@@ -1,5 +1,7 @@
 # DeukAgentRules (득에이전트룰스)
 
+> **Deuk Family**의 핵심 모듈 가운데 하나입니다. 구조화된 규칙으로 AI 에이전트의 협업과 응답을 다듬습니다.
+
 **npm 패키지:** `deuk-agent-rule` · **CLI:** `deuk-agent-rule`
 
 **English:** [README.md](https://github.com/joygram/DeukAgentRules/blob/master/README.md)
