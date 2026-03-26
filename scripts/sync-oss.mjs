@@ -42,6 +42,9 @@ if (!existsSync(ossPublic)) {
 }
 cpSync(join(pkgRoot, "README.md"), join(ossRoot, "README.md"), { force: true });
 cpSync(join(pkgRoot, "README.ko.md"), join(ossRoot, "README.ko.md"), { force: true });
+if (existsSync(join(pkgRoot, "LICENSE"))) {
+  cpSync(join(pkgRoot, "LICENSE"), join(ossRoot, "LICENSE"), { force: true });
+}
 cpSync(join(ossPublic, "RELEASING.md"), join(ossRoot, "RELEASING.md"), { force: true });
 cpSync(join(ossPublic, "RELEASING.ko.md"), join(ossRoot, "RELEASING.ko.md"), { force: true });
 cpSync(join(ossPublic, "GITHUB_DESCRIPTION.md"), join(ossRoot, "GITHUB_DESCRIPTION.md"), {
@@ -51,7 +54,7 @@ cpSync(join(ossPublic, "GITHUB_DESCRIPTION.md"), join(ossRoot, "GITHUB_DESCRIPTI
 const srcPkg = JSON.parse(readFileSync(join(pkgRoot, "package.json"), "utf8"));
 const outPkg = {
   ...srcPkg,
-  license: "MIT",
+  license: srcPkg.license || "Apache-2.0",
   repository: {
     type: "git",
     url: gitUrl,
