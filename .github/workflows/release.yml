@@ -1,0 +1,51 @@
+name: Release
+
+on:
+  push:
+    tags:
+      - 'v*.*.*'
+      - 'v*.*.*-*'
+
+permissions:
+  contents: write
+
+jobs:
+  release:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Use Node.js 20
+        uses: actions/setup-node@v4
+        with:
+          node-version: '20.x'
+          registry-url: 'https://registry.npmjs.org'
+          cache: npm
+
+      - name: Verify package.json version matches tag
+        run: |
+          REF="${GITHUB_REF#refs/tags/}"
+          TAG_VER="${REF#v}"
+          PKG_VER=$(node -p "require('./package.json').version")
+          if [ "$TAG_VER" != "$PKG_VER" ]; then
+            echo "Version mismatch: tag=$TAG_VER, package.json=$PKG_VER"
+            exit 1
+          fi
+          echo "OK: tag $REF matches package.json $PKG_VER"
+
+      - name: Create npm tarball
+        run: npm pack
+
+      - name: GitHub Release
+        uses: softprops/action-gh-release@v2
+        with:
+          files: "deuk-agent-rule-*.tgz"
+          generate_release_notes: true
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+
+      # Optional: add repo secret NPM_TOKEN to auto-publish
+      # - name: Publish to npm
+      #   run: npm publish --access public
+      #   env:
+      #     NODE_AUTH_TOKEN: ${{ secrets.NPM_TOKEN }}
