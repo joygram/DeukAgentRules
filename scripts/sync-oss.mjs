@@ -57,8 +57,12 @@ if (existsSync(join(pkgRoot, "LICENSE"))) {
 if (existsSync(join(pkgRoot, ".npmrc"))) {
   cpSync(join(pkgRoot, ".npmrc"), join(ossRoot, ".npmrc"), { force: true });
 }
-if (existsSync(join(pkgRoot, ".versionrc.json"))) {
-  cpSync(join(pkgRoot, ".versionrc.json"), join(ossRoot, ".versionrc.json"), { force: true });
+if (existsSync(join(pkgRoot, ".versionrc.cjs"))) {
+  cpSync(join(pkgRoot, ".versionrc.cjs"), join(ossRoot, ".versionrc.cjs"), { force: true });
+}
+const changelogTemplates = join(pkgRoot, "changelog-templates");
+if (existsSync(changelogTemplates)) {
+  cpSync(changelogTemplates, join(ossRoot, "changelog-templates"), { recursive: true, force: true });
 }
 cpSync(join(ossPublic, "RELEASING.md"), join(ossRoot, "RELEASING.md"), { force: true });
 cpSync(join(ossPublic, "RELEASING.ko.md"), join(ossRoot, "RELEASING.ko.md"), { force: true });
