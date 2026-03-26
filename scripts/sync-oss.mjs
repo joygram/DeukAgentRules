@@ -45,11 +45,20 @@ if (!existsSync(ossPublic)) {
 }
 cpSync(join(pkgRoot, "README.md"), join(ossRoot, "README.md"), { force: true });
 cpSync(join(pkgRoot, "README.ko.md"), join(ossRoot, "README.ko.md"), { force: true });
+if (existsSync(join(pkgRoot, "CHANGELOG.md"))) {
+  cpSync(join(pkgRoot, "CHANGELOG.md"), join(ossRoot, "CHANGELOG.md"), { force: true });
+}
 if (existsSync(join(pkgRoot, "package-lock.json"))) {
   cpSync(join(pkgRoot, "package-lock.json"), join(ossRoot, "package-lock.json"), { force: true });
 }
 if (existsSync(join(pkgRoot, "LICENSE"))) {
   cpSync(join(pkgRoot, "LICENSE"), join(ossRoot, "LICENSE"), { force: true });
+}
+if (existsSync(join(pkgRoot, ".npmrc"))) {
+  cpSync(join(pkgRoot, ".npmrc"), join(ossRoot, ".npmrc"), { force: true });
+}
+if (existsSync(join(pkgRoot, ".versionrc.json"))) {
+  cpSync(join(pkgRoot, ".versionrc.json"), join(ossRoot, ".versionrc.json"), { force: true });
 }
 cpSync(join(ossPublic, "RELEASING.md"), join(ossRoot, "RELEASING.md"), { force: true });
 cpSync(join(ossPublic, "RELEASING.ko.md"), join(ossRoot, "RELEASING.ko.md"), { force: true });
@@ -69,7 +78,14 @@ const outPkg = {
     url: base.startsWith("http") ? base + "/issues" : base,
   },
   homepage: base.startsWith("http") ? base + "#readme" : base,
-  files: ["LICENSE", "bundle/**/*", "scripts/**/*.mjs", "README.md", "README.ko.md"],
+  files: [
+    "LICENSE",
+    "bundle/**/*",
+    "scripts/**/*.mjs",
+    "README.md",
+    "README.ko.md",
+    "CHANGELOG.md",
+  ],
 };
 delete outPkg.private;
 if (outPkg.scripts && outPkg.scripts["merge:dry"]) {

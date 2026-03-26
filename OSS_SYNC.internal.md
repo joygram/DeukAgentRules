@@ -22,4 +22,4 @@ npm run sync:oss
 1. `publish/` 수정 → `npm run sync` (로컬 `bundle/` 갱신)
 2. README 수정은 루트 `README.md` / `README.ko.md` 단일 편집 (공개·내부 공용)
 3. GitHub About 문구 수정은 `oss-public/GITHUB_DESCRIPTION.md` 단일 편집
-4. `npm run sync:oss` → `DeukAgentRulesOSS/` 커밋·푸시 → `npm publish`
+4. 커밋은 Conventional Commits 권장 → `npm run bump:patch`(또는 `bump:minor`/`bump:major`)로 **CHANGELOG 자동 갱신**·버전·`v*` 태그·커밋 → `git push && git push --tags` → `npm run sync:oss` → `DeukAgentRulesOSS/` 커밋·푸시 → `npm publish`
