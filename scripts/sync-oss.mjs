@@ -108,6 +108,14 @@ if (outPkg.scripts && outPkg.scripts["sync:oss"]) {
   const { "sync:oss": _drop, ...rest } = outPkg.scripts;
   outPkg.scripts = rest;
 }
+/** Mirror is not a publish/version source: no bump scripts or release devDependencies. */
+for (const k of ["bump", "bump:patch", "bump:minor", "bump:major"]) {
+  if (outPkg.scripts && outPkg.scripts[k]) {
+    const { [k]: _drop, ...rest } = outPkg.scripts;
+    outPkg.scripts = rest;
+  }
+}
+delete outPkg.devDependencies;
 
 writeFileSync(join(ossRoot, "package.json"), JSON.stringify(outPkg, null, 2) + "\n", "utf8");
 
