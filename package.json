@@ -1,8 +1,8 @@
 {
   "name": "deuk-agent-rule",
-  "version": "1.0.1",
+  "version": "1.0.2",
   "description": "DeukAgentRules: generic AGENTS.md + .cursor rule templates with init/merge CLI (npm name: deuk-agent-rule).",
-  "license": "UNLICENSED",
+  "license": "Apache-2.0",
   "files": [
     "bundle/**/*",
     "scripts/**/*.mjs",
