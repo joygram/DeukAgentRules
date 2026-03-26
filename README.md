@@ -1,5 +1,7 @@
 # DeukAgentRules
 
+> **Part of the Deuk Family** — Empowering AI Agents with structured rules.
+
 **npm package:** `deuk-agent-rule` · **CLI:** `deuk-agent-rule`
 
 **한국어:** [README.ko.md](https://github.com/joygram/DeukAgentRules/blob/master/README.ko.md)

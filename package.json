@@ -2,6 +2,15 @@
   "name": "deuk-agent-rule",
   "version": "1.0.7",
   "description": "DeukAgentRules: generic AGENTS.md + .cursor rule templates with init/merge CLI (npm name: deuk-agent-rule).",
+  "keywords": [
+    "agents-md",
+    "cursor-rules",
+    "copilot",
+    "gemini",
+    "handoff",
+    "deuk-family",
+    "deukpack-ecosystem"
+  ],
   "license": "Apache-2.0",
   "files": [
     "bundle/**/*",
