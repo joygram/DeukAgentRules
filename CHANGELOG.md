@@ -15,7 +15,7 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 
 ### Added
 
-- **deuk-agent-rule:** automated changelog, bump tooling, and OSS sync
+- **deuk-agent-rule:** automated changelog and release tooling
 - **deuk-agent-rule:** handoff gitignore, pre-work handoff scan, AGENTS inject newline
 
 ### Changed
@@ -49,5 +49,5 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 
 ### Changed
 
-- `sync-oss` copies `package-lock.json` for reproducible installs.
+- Release packaging includes `package-lock.json` for reproducible installs.
 - README: absolute links for the npm package page.

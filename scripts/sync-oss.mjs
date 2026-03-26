@@ -2,7 +2,7 @@
  * Populates ../DeukAgentRulesOSS for the public GitHub repo.
  * Run: cd deuk-agent-rule && npm run sync:oss
  */
-import { cpSync, existsSync, mkdirSync, readFileSync, writeFileSync } from "fs";
+import { cpSync, existsSync, mkdirSync, readFileSync, unlinkSync, writeFileSync } from "fs";
 import { dirname, join } from "path";
 import { fileURLToPath } from "url";
 
@@ -24,6 +24,13 @@ function gitBase() {
 
 const base = gitBase();
 const gitUrl = base.startsWith("http") ? "git+" + base + ".git" : base;
+
+/** Public mirror: no prebump/postchangelog (internal sync / polish hooks). */
+function stripOssVersionrcScripts(ossVersionrcPath) {
+  let t = readFileSync(ossVersionrcPath, "utf8").replace(/\r\n/g, "\n");
+  t = t.replace(/\n  scripts:\s*\{\n[\s\S]*?\n  \},\s*\n/, "\n");
+  writeFileSync(ossVersionrcPath, t, "utf8");
+}
 
 mkdirSync(join(ossRoot, "scripts"), { recursive: true });
 mkdirSync(join(ossRoot, "publish"), { recursive: true });
@@ -59,6 +66,7 @@ if (existsSync(join(pkgRoot, ".npmrc"))) {
 }
 if (existsSync(join(pkgRoot, ".versionrc.cjs"))) {
   cpSync(join(pkgRoot, ".versionrc.cjs"), join(ossRoot, ".versionrc.cjs"), { force: true });
+  stripOssVersionrcScripts(join(ossRoot, ".versionrc.cjs"));
 }
 const changelogTemplates = join(pkgRoot, "changelog-templates");
 if (existsSync(changelogTemplates)) {
@@ -102,6 +110,11 @@ if (outPkg.scripts && outPkg.scripts["sync:oss"]) {
 }
 
 writeFileSync(join(ossRoot, "package.json"), JSON.stringify(outPkg, null, 2) + "\n", "utf8");
+
+const ossPolish = join(ossRoot, "scripts", "changelog-polish.mjs");
+if (existsSync(ossPolish)) {
+  unlinkSync(ossPolish);
+}
 
 console.log("deuk-agent-rule: synced OSS tree at " + ossRoot);
 console.log("  Override repo URL: DEUK_AGENT_RULES_OSS_REPO=https://github.com/org/DeukAgentRulesOSS");
