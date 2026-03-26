@@ -41,6 +41,8 @@ No editor or vendor tool branding in code, docs, README, commits, or published a
 - **브랜딩**: 코드·문서·README·커밋·배포물에 에디터·벤더 도구 이름을 넣지 않음.
 - **비용·효율**: 짧고 신호가 큰 답·패치 위주; 불필요한 장문·동일 맥락 반복 지양. 한 번에 목표 하나. 읽기 전용 작업은 요약과 경로 위주.
 - **전달·병렬**: PR/세션 단위는 데모 가능한 세로 슬라이스 우선. 포트폴리오·출시 우선 시 범위 축소. 병렬 갈래·소유 구역 존중, 핫 경로는 최소 변경.
+- **핸드오프 보관**: 채팅만이 아니라 **남겨야 할** 핸드오프는 **내부 구현 문서**에 아래 **Handoff format**과 같은 제목·절 구조의 Markdown으로 기록한다. `deuk-agent-rule init`은 기본으로 **`.deuk-agent-handoff/`** 를 만들고 `.gitignore`에 넣어 로컬 전용으로 둔다. 이 패키지를 **`DeukAgentRules/`** 폴더로 둔 소비 모노레포에서는 **`DeukAgentRules/handoff/LATEST.md`** 에 두는 관례를 쓸 수 있다(해당 `handoff/`는 소비 레포 `.gitignore`에 넣는다). 본문은 **사용자가 대화에 쓰는 언어**로 쓴다(특정 언어를 요청한 경우는 예외).
+- **핸드오프 선확인**: 구현·수정 등 본격 작업 전에 **보관된 핸드오프**를 확인한다. **반드시 경로 문자열을 규칙에 포함해 읽는다:** 존재하면 **`DeukAgentRules/handoff/LATEST.md`**(소비 레포 루트 기준), 그리고 **`.deuk-agent-handoff/`** 및 프로젝트별 내부 경로. 채팅에 붙여 넣은 핸드오프가 있으면 우선한다(사용자가 파일 기준이라고 하면 예외).
 
 English sections above are canonical for tooling; this block is a short Korean mirror for the same rules.
 
@@ -57,3 +59,26 @@ When handing work between tools or people, use:
 ### Constraints
 - [constraint]
 ```
+
+## Handoff persistence (internal implementation docs)
+
+**Default local directory:** `npx deuk-agent-rule init` creates **`.deuk-agent-handoff/`** at the repo root and appends it to **`.gitignore`** so persisted handoffs are **not committed by default**. Remove or adjust that ignore rule if your team versions handoffs in git.
+
+When a handoff should **outlive the chat** — for example the user asks to save it, it is the authoritative spec for a follow-up session or another implementer, or the team keeps structured handoffs in-repo — **write it as a Markdown file** under **internal implementation documentation** (implementation notes, not end-user or marketing docs). Prefer **`.deuk-agent-handoff/`** when no project convention exists; if this package lives in **`DeukAgentRules/`** at the consumer repo root, prefer **`DeukAgentRules/handoff/LATEST.md`** (see the next section). Otherwise use an existing convention such as `<product-or-feature>/internal/*.md` or `docs/internal/*.md`. If the user names a path, use it. Reuse the same section structure as **Handoff format** above. If only an inline paste is needed, skip creating a file unless the user asks to save.
+
+**Language:** Write the **body** of persisted handoffs in the **user’s language** — the language they use in the conversation (or their stated preference) — unless they ask for a specific language (for example English-only for an external partner).
+
+**Before substantive work:** Before implementation, fixes, or other non-trivial repo changes, **check persisted handoffs** in the locations above (including **`.deuk-agent-handoff/`** and any project-specific internal paths). **If the file `DeukAgentRules/handoff/LATEST.md` exists** (path relative to the **consumer** repository root — i.e. this rules package lives in a top-level folder named `DeukAgentRules`), **read it** before editing code, in addition to other handoff locations. Read documents that match the current task; a **pasted handoff** in the chat takes precedence unless the user says to follow files instead. Skip this scan only when no locations exist, nothing matches, or the user explicitly says to ignore stored handoffs.
+
+## Handoff directory when this package is cloned as `DeukAgentRules/` (consumer repos)
+
+In monorepos that vendor or submodule this package under a top-level directory **`DeukAgentRules`**, teams may use a **gitignored** handoff directory:
+
+- **Directory (repo-relative):** `DeukAgentRules/handoff/`
+- **Default file for the next agent:** `DeukAgentRules/handoff/LATEST.md`
+
+Add **`DeukAgentRules/handoff/`** to the **consumer** repository’s `.gitignore` unless you intentionally version handoffs.
+
+**Agent guidance (canonical path strings):** Rules and `AGENTS.md` in the consumer repo should tell agents to open **`DeukAgentRules/handoff/LATEST.md`** when it exists — not only a pasted chat block — so other tools and sessions can resume from the same clone.
+
+**Producing handoffs:** When saving a durable handoff for another agent, write the **Handoff format** body to **`DeukAgentRules/handoff/LATEST.md`** (or a dated file in that folder) and, in chat, include one line: e.g. *Details: `DeukAgentRules/handoff/LATEST.md`* using **repo-relative paths** (no `file://` URLs).

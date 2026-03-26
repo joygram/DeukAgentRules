@@ -1,6 +1,6 @@
 # GitHub repository — About description
 
-**Single source of truth.** Edit this file only. `npm run sync:oss` copies it to the public repo; do not maintain the same text elsewhere.
+**Single source of truth for the About field.** Edit this file only; release and packaging steps are in [`RELEASING.md`](RELEASING.md).
 
 ---
 
