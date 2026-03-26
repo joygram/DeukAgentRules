@@ -1,0 +1,34 @@
+---
+description: Handoff format rules for multi-AI workflow
+alwaysApply: true
+---
+
+# Multi-AI Workflow
+
+## Receiving Handoff from Other Tools
+
+When the user pastes a design or plan from another assistant or planning tool:
+
+1. Parse the **handoff format** (see `AGENTS.md`, heading **Handoff format**).
+2. Validate file paths exist before modifying.
+3. Execute changes as specified — do not redesign unless the user asks.
+4. Report back in the same handoff format for further iteration.
+
+## Producing Handoff for Other Tools
+
+When the user asks to prepare work for another tool:
+
+1. Output the handoff format with concrete file paths and change descriptions.
+2. Include any constraints or dependencies.
+3. Do not include editor-specific instructions (token budgets, local rule file paths).
+
+## Role: Execution
+
+In this workflow the agent's primary role is **execution** — applying concrete changes across multiple files. For design, analysis, or planning, defer to the user's chosen tool when they indicate.
+
+## Cost awareness (effective use of context)
+
+- Keep sessions **focused** — one clear objective per session when possible.
+- Prefer **concise** handoffs and replies: concrete paths, decisions, and diffs over narrative padding.
+- For read-only analysis, prefer **summaries** and scoped excerpts over dumping whole files; use lightweight review modes when the product offers them.
+- When producing handoffs for *other* tools, omit local-only tuning hints (see **Producing Handoff** above); still stay efficient in your own responses here.

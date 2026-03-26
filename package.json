@@ -1,0 +1,25 @@
+{
+  "name": "deuk-agent-rule",
+  "version": "1.0.1",
+  "description": "DeukAgentRules: generic AGENTS.md + .cursor rule templates with init/merge CLI (npm name: deuk-agent-rule).",
+  "license": "UNLICENSED",
+  "files": [
+    "bundle/**/*",
+    "scripts/**/*.mjs",
+    "README.md",
+    "README.ko.md"
+  ],
+  "scripts": {
+    "sync": "node scripts/sync-bundle.mjs",
+    "prepack": "node scripts/sync-bundle.mjs",
+    "prepublishOnly": "echo 'ERROR: Publish from DeukAgentRulesOSS/ only (npm run sync:oss first).' && exit 1",
+    "merge:dry": "node scripts/cli.mjs merge --dry-run --cwd .. --agents skip",
+    "sync:oss": "node scripts/sync-oss.mjs"
+  },
+  "engines": {
+    "node": ">=18"
+  },
+  "bin": {
+    "deuk-agent-rule": "./scripts/cli.mjs"
+  }
+}
