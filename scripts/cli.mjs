@@ -1,5 +1,5 @@
 #!/usr/bin/env node
-import { existsSync, readFileSync } from "fs";
+import { appendFileSync, existsSync, mkdirSync, readFileSync, writeFileSync } from "fs";
 import { createInterface } from "readline";
 import { dirname, join } from "path";
 import { fileURLToPath } from "url";
@@ -13,6 +13,43 @@ import {
 const __dirname = dirname(fileURLToPath(import.meta.url));
 const pkgRoot = join(__dirname, "..");
 const bundleRoot = join(pkgRoot, "bundle");
+
+/** Default directory for persisted handoffs; `init` adds it to `.gitignore`. */
+const HANDOFF_DIR_NAME = ".deuk-agent-handoff";
+const GITIGNORE_HANDOFF_MARKER = "# deuk-agent-rule: handoff directory (local, not committed by default)";
+
+function ensureHandoffDirAndGitignore(opts) {
+  const handoffPath = join(opts.cwd, HANDOFF_DIR_NAME);
+  const gitignorePath = join(opts.cwd, ".gitignore");
+  const ignoreLine = HANDOFF_DIR_NAME + "/";
+
+  if (opts.dryRun) {
+    console.log("handoff: would mkdir " + HANDOFF_DIR_NAME + "/ and ensure .gitignore ignores it");
+    return;
+  }
+
+  mkdirSync(handoffPath, { recursive: true });
+  console.log("handoff: " + HANDOFF_DIR_NAME + "/");
+
+  let gi = "";
+  if (existsSync(gitignorePath)) {
+    gi = readFileSync(gitignorePath, "utf8");
+    const lines = gi.split(/\r?\n/).map((l) => l.trim());
+    const already =
+      gi.includes(ignoreLine) ||
+      lines.some((t) => t === HANDOFF_DIR_NAME || t === ignoreLine.replace(/\/$/, ""));
+    if (already) {
+      console.log(".gitignore: already ignores " + HANDOFF_DIR_NAME);
+      return;
+    }
+    const block = "\n" + GITIGNORE_HANDOFF_MARKER + "\n" + ignoreLine + "\n";
+    appendFileSync(gitignorePath, block, "utf8");
+    console.log(".gitignore: appended " + ignoreLine.trim());
+  } else {
+    writeFileSync(gitignorePath, GITIGNORE_HANDOFF_MARKER + "\n" + ignoreLine + "\n", "utf8");
+    console.log(".gitignore: created with " + ignoreLine.trim());
+  }
+}
 
 // ---------------------------------------------------------------------------
 // Interactive prompt helpers (no external deps)
@@ -128,6 +165,8 @@ Options:
   --append-if-no-markers
   --marker-begin / --marker-end  Custom marker strings (both required)
 
+init also creates .deuk-agent-handoff/ and appends it to .gitignore (local handoffs).
+
 Korean: package README.ko.md
 `,
   );
@@ -228,6 +267,8 @@ function runInit(opts) {
   for (const r of ruleActions) {
     console.log("rule " + r.action + ": " + (r.dest || r.src) + (r.reason ? " (" + r.reason + ")" : ""));
   }
+
+  ensureHandoffDirAndGitignore(opts);
 }
 
 function runMerge(opts) {
