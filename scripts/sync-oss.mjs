@@ -45,6 +45,9 @@ if (!existsSync(ossPublic)) {
 }
 cpSync(join(pkgRoot, "README.md"), join(ossRoot, "README.md"), { force: true });
 cpSync(join(pkgRoot, "README.ko.md"), join(ossRoot, "README.ko.md"), { force: true });
+if (existsSync(join(pkgRoot, "package-lock.json"))) {
+  cpSync(join(pkgRoot, "package-lock.json"), join(ossRoot, "package-lock.json"), { force: true });
+}
 if (existsSync(join(pkgRoot, "LICENSE"))) {
   cpSync(join(pkgRoot, "LICENSE"), join(ossRoot, "LICENSE"), { force: true });
 }
