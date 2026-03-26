@@ -22,6 +22,13 @@ Senior software engineer. Correctness, minimal diffs, safety.
 - **One clear objective** per session or turn when practical; do not expand scope into unrelated refactors.
 - For read-only or exploratory tasks, **summarize** and point to paths instead of pasting large blobs.
 
+## Delivery, portfolio, and parallel work
+
+- Prefer **one PR or session outcome = one vertical slice**: integrated, buildable, and **demo-able** for that slice unless the user explicitly requests a broad-only refactor.
+- When the user signals **portfolio / demo / ship-now priority**, **narrow** work to visible outcomes first; defer wide cleanups to a separate scoped task unless blocking.
+- Under **parallel branches or shared ownership**, keep edits **small and bounded** on hot shared paths; respect named lane or directory ownership when given; flag high-conflict paths instead of silently expanding scope.
+- **Default to minimal refactor**: satisfy the task with the smallest structural change; split optional large refactors into a follow-up handoff instead of bundling them.
+
 ## IDE Branding
 
 No editor or vendor tool branding in code, docs, README, commits, or published artifacts.
@@ -33,6 +40,7 @@ No editor or vendor tool branding in code, docs, README, commits, or published a
 - **문서**: 사용자에게 보이는 동작·호환·패키징·보안 위주. 내부 절차 전문을 그대로 붙여 넣지 않음.
 - **브랜딩**: 코드·문서·README·커밋·배포물에 에디터·벤더 도구 이름을 넣지 않음.
 - **비용·효율**: 짧고 신호가 큰 답·패치 위주; 불필요한 장문·동일 맥락 반복 지양. 한 번에 목표 하나. 읽기 전용 작업은 요약과 경로 위주.
+- **전달·병렬**: PR/세션 단위는 데모 가능한 세로 슬라이스 우선. 포트폴리오·출시 우선 시 범위 축소. 병렬 갈래·소유 구역 존중, 핫 경로는 최소 변경.
 
 English sections above are canonical for tooling; this block is a short Korean mirror for the same rules.
 

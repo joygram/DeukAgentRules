@@ -41,6 +41,7 @@ DeukAgentRules init — let's configure your workspace.
 
 AGENTS.md: injected (inject)
 rule copied: .cursor/rules/deuk-agent-rule-multi-ai-workflow.mdc
+rule copied: .cursor/rules/deuk-agent-rule-delivery-and-parallel-work.mdc
 rule copied: .cursor/rules/deuk-agent-rule-git-commit.mdc
 ```
 
@@ -74,6 +75,7 @@ Only the **marker region** in `AGENTS.md` is replaced; your text outside stays.
 ### Bundled rules
 
 - **`multi-ai-workflow.mdc`** — `alwaysApply: true`
+- **`delivery-and-parallel-work.mdc`** — `alwaysApply: true` (vertical slices, portfolio priority, parallel ownership, scoped refactors)
 - **`git-commit.mdc`** — `alwaysApply: false`
 
 ### `merge` (stricter)

@@ -41,6 +41,7 @@ DeukAgentRules init — let's configure your workspace.
 
 AGENTS.md: injected (inject)
 rule copied: .cursor/rules/deuk-agent-rule-multi-ai-workflow.mdc
+rule copied: .cursor/rules/deuk-agent-rule-delivery-and-parallel-work.mdc
 rule copied: .cursor/rules/deuk-agent-rule-git-commit.mdc
 ```
 
@@ -74,6 +75,7 @@ npx deuk-agent-rule init --non-interactive
 ### 번들 규칙
 
 - **`multi-ai-workflow.mdc`** — `alwaysApply: true`
+- **`delivery-and-parallel-work.mdc`** — `alwaysApply: true` (세로 슬라이스·포트폴리오 우선·병렬 소유·리팩터 범위 축소)
 - **`git-commit.mdc`** — `alwaysApply: false`
 
 ### `merge` (엄격)
