@@ -29,6 +29,9 @@ mkdirSync(join(ossRoot, "scripts"), { recursive: true });
 mkdirSync(join(ossRoot, "publish"), { recursive: true });
 
 cpSync(join(pkgRoot, "publish"), join(ossRoot, "publish"), { recursive: true, force: true });
+if (existsSync(join(pkgRoot, ".github"))) {
+  cpSync(join(pkgRoot, ".github"), join(ossRoot, ".github"), { recursive: true, force: true });
+}
 cpSync(join(pkgRoot, "scripts", "cli.mjs"), join(ossRoot, "scripts", "cli.mjs"), { force: true });
 cpSync(join(pkgRoot, "scripts", "merge-logic.mjs"), join(ossRoot, "scripts", "merge-logic.mjs"), {
   force: true,
