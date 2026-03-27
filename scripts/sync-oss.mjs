@@ -25,7 +25,7 @@ function gitBase() {
 const base = gitBase();
 const gitUrl = base.startsWith("http") ? "git+" + base + ".git" : base;
 
-/** Public mirror: no prebump/postchangelog (internal sync / polish hooks). */
+/** Strip OSS package.json hooks not used in the public mirror. */
 function stripOssVersionrcScripts(ossVersionrcPath) {
   let t = readFileSync(ossVersionrcPath, "utf8").replace(/\r\n/g, "\n");
   t = t.replace(/\n  scripts:\s*\{\n[\s\S]*?\n  \},\s*\n/, "\n");
