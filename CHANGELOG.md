@@ -4,13 +4,29 @@ All notable changes to this project will be documented in this file.
 
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/), and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [1.0.13] - 2026-03-28
+
+
+### Fixed
+
+- **deuk-agent-rule:** `printHandoffTip` missing in CLI (handoff tip after `init`)
+
+
+### Changed
+
+- **docs:** README § Handoffs; GitHub About text; npm keywords; CLI survey adds Claude, Windsurf, JetBrains AI Assistant
+- **agents:** optional `.cursor/plans/*.plan.md` mirror for plan-style UI; chat `Path:` line and optional first-line path in handoff files
+- **deuk-agent-rule:** `init` prints a short handoff tip after ensuring `.deuk-agent-handoff/`
+- **deuk-agent-rule:** default `--rules prefix` overwrites existing `deuk-agent-rule-*.mdc` on repeat `init` (package updates without a separate `merge`)
+- **deuk-agent-rule:** `.deuk-agent-rule.config.json` stores interactive choices; later `init` reuses them (`--interactive` to change; `--non-interactive` for CI only)
+
+
 ## [1.0.12] - 2026-03-27
 
 
 ### Fixed
 
-- **ci:** run release workflow on master; document GitHub is not auto-synced from gplat
-
+- **ci:** release workflow runs on pushes to `master`
 
 ### Changed
 
@@ -21,21 +37,20 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 
 ### Added
 
-- **ci:** GitHub Release on main for chore(release); simplify public RELEASING
+- **ci:** GitHub Release workflow for version tags and `chore(release):` commits on `main` / `master`
 
 ## [1.0.10] - 2026-03-26
 
 
 ### Added
 
-- **deuk-agent-rule:** keep a changelog templates without commit links
+- **deuk-agent-rule:** changelog template headers without per-commit links
 
 ## [1.0.9] - 2026-03-27
 
 ### Added
 
-- **deuk-agent-rule:** automated changelog and release tooling
-- **deuk-agent-rule:** handoff gitignore, pre-work handoff scan, AGENTS inject newline
+- **deuk-agent-rule:** release changelog tooling; handoff directory gitignore; pre-work handoff scan; AGENTS inject newline fix
 
 ### Changed
 
