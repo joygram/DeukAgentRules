@@ -27,11 +27,11 @@ When the user pastes a design or plan from another assistant or planning tool:
 
 When the user asks to prepare work for another tool:
 
-1. Output the handoff format with concrete file paths and change descriptions.
+1. Output the handoff format with concrete file paths and change descriptions. When linking handoff files (Markdown `[label](path)` or path citations), use the **full path from the repository root** — never a bare filename.
 2. Include any constraints or dependencies.
 3. Do not include editor-specific instructions (token budgets, local rule file paths).
-4. When the handoff must **persist** (user asks to save or document it, or it is the canonical next-step spec), **create or update** a Markdown file under **internal implementation documentation** (see `AGENTS.md`, **Handoff persistence**). Prefer **`DeukAgentRules/handoff/LATEST.md`** when this repo has a top-level **`DeukAgentRules/`** folder; otherwise prefer **`.deuk-agent-handoff/`**; `init` gitignores that directory by default. Use the same handoff template; do not place this in public README/landing unless the project explicitly treats that as its internal log. In chat, include the repo-relative path (e.g. `DeukAgentRules/handoff/LATEST.md`) so the next agent opens the file.
-5. Write persisted handoff **content** in the **user’s conversation language** unless they specify another language.
+4. When the handoff must **persist** (user asks to save or document it, or it is the canonical next-step spec), **create or update** a Markdown file under **internal implementation documentation** (see `AGENTS.md`, **Handoff persistence**). Prefer **`DeukAgentRules/handoff/LATEST.md`** when this repo has a top-level **`DeukAgentRules/`** folder; otherwise prefer **`.deuk-agent-handoff/`**; `init` gitignores that directory by default. Use the same handoff template; do not place this in public README/landing unless the project explicitly treats that as its internal log. In chat, include the **full repo-root-relative path** (e.g. `DeukAgentRules/handoff/LATEST.md`, not `LATEST.md` alone) so the next agent opens the file; same for Markdown link targets.
+5. Write persisted handoff **content** in the **user's conversation language** unless they specify another language.
 
 ## Role: Execution
 
