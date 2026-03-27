@@ -23,4 +23,4 @@ npm run sync:oss
 1. `publish/` 수정 → `npm run sync` (로컬 `bundle/` 갱신)
 2. README 수정은 루트 `README.md` / `README.ko.md` 단일 편집 (공개·내부 공용)
 3. GitHub About 문구 수정은 `oss-public/GITHUB_DESCRIPTION.md` 단일 편집
-4. 커밋은 Conventional Commits 권장 → **DeukAgentRules**에서 `npm run bump:patch`(또는 `bump:minor`/`bump:major`)로 **CHANGELOG·버전·`v*` 태그** → `git push && git push --tags` → `npm run sync:oss` → `DeukAgentRulesOSS/` 커밋·푸시 → 공개 GitHub **`main` 푸시** 시 Actions가 GitHub Release 생성(태그는 선택) → **`npm publish`는 정본 또는 공개 클론**에서 레지스트리 정책에 맞게 실행
+4. 커밋은 Conventional Commits 권장 → **DeukAgentRules**에서 `npm run bump:patch`(또는 `bump:minor`/`bump:major`)로 **CHANGELOG·버전·`v*` 태그** → `git push && git push --tags` → `npm run sync:oss` → `DeukAgentRulesOSS/` 커밋·푸시 → 공개 GitHub **`main`/`master` 푸시** 시 Actions가 GitHub Release 생성(태그는 선택). 공개 쪽 푸시 커밋 제목은 내부와 같이 **`chore(release):`** 로 시작한다. → **`npm publish`는 정본 또는 공개 클론**에서 레지스트리 정책에 맞게 실행
