@@ -18,6 +18,14 @@ const bundleRoot = join(pkgRoot, "bundle");
 const HANDOFF_DIR_NAME = ".deuk-agent-handoff";
 const GITIGNORE_HANDOFF_MARKER = "# deuk-agent-rule: handoff directory (local, not committed by default)";
 
+function printHandoffTip() {
+  console.log(
+    "tip: Persist multi-session specs under " +
+      HANDOFF_DIR_NAME +
+      "/ (see README § Handoffs). Optional: mirror the same body to .cursor/plans/deuk-handoff.plan.md for the Plans panel.",
+  );
+}
+
 function ensureHandoffDirAndGitignore(opts) {
   const handoffPath = join(opts.cwd, HANDOFF_DIR_NAME);
   const gitignorePath = join(opts.cwd, ".gitignore");
@@ -25,6 +33,7 @@ function ensureHandoffDirAndGitignore(opts) {
 
   if (opts.dryRun) {
     console.log("handoff: would mkdir " + HANDOFF_DIR_NAME + "/ and ensure .gitignore ignores it");
+    printHandoffTip();
     return;
   }
 
@@ -40,14 +49,17 @@ function ensureHandoffDirAndGitignore(opts) {
       lines.some((t) => t === HANDOFF_DIR_NAME || t === ignoreLine.replace(/\/$/, ""));
     if (already) {
       console.log(".gitignore: already ignores " + HANDOFF_DIR_NAME);
+      printHandoffTip();
       return;
     }
     const block = "\n" + GITIGNORE_HANDOFF_MARKER + "\n" + ignoreLine + "\n";
     appendFileSync(gitignorePath, block, "utf8");
     console.log(".gitignore: appended " + ignoreLine.trim());
+    printHandoffTip();
   } else {
     writeFileSync(gitignorePath, GITIGNORE_HANDOFF_MARKER + "\n" + ignoreLine + "\n", "utf8");
     console.log(".gitignore: created with " + ignoreLine.trim());
+    printHandoffTip();
   }
 }
 
@@ -96,13 +108,55 @@ const STACKS = [
   { label: "Other / skip", value: "other" },
 ];
 
+/** Survey only today; merge/init does not branch on these yet (future tool-specific templates). */
 const AGENT_TOOLS = [
   { label: "Cursor", value: "cursor" },
   { label: "GitHub Copilot", value: "copilot" },
   { label: "Gemini / Antigravity", value: "gemini" },
+  { label: "Claude (Cursor / Claude Code)", value: "claude" },
+  { label: "Windsurf", value: "windsurf" },
+  { label: "JetBrains AI Assistant", value: "jetbrains" },
   { label: "All of the above", value: "all" },
   { label: "Other / skip", value: "other" },
 ];
+
+/** Written after first interactive init; reused on later inits unless --interactive or schema mismatch. */
+const INIT_CONFIG_VERSION = 1;
+const INIT_CONFIG_FILENAME = ".deuk-agent-rule.config.json";
+
+function loadInitConfig(cwd) {
+  const p = join(cwd, INIT_CONFIG_FILENAME);
+  if (!existsSync(p)) return null;
+  try {
+    const j = JSON.parse(readFileSync(p, "utf8"));
+    if (j.version !== INIT_CONFIG_VERSION) return null;
+    const allowedStack = new Set(STACKS.map((s) => s.value));
+    if (!allowedStack.has(j.stack)) return null;
+    const allowedTools = new Set(AGENT_TOOLS.map((t) => t.value));
+    if (!Array.isArray(j.agentTools) || !j.agentTools.every((t) => allowedTools.has(t))) return null;
+    if (!["inject", "skip", "overwrite"].includes(j.agentsMode)) return null;
+    return {
+      stack: j.stack,
+      agentTools: j.agentTools,
+      agentsMode: j.agentsMode,
+    };
+  } catch {
+    return null;
+  }
+}
+
+function writeInitConfig(cwd, opts) {
+  const p = join(cwd, INIT_CONFIG_FILENAME);
+  const body = {
+    version: INIT_CONFIG_VERSION,
+    stack: opts.stack,
+    agentTools: opts.agentTools,
+    agentsMode: opts.agents ?? "inject",
+    updatedAt: new Date().toISOString(),
+  };
+  writeFileSync(p, JSON.stringify(body, null, 2) + "\n", "utf8");
+  console.log("saved: " + INIT_CONFIG_FILENAME);
+}
 
 async function runInteractive(opts) {
   const rl = createInterface({ input: process.stdin, output: process.stdout });
@@ -157,7 +211,8 @@ Usage:
 Options:
   --cwd <path>          Target repo root (default: current directory)
   --dry-run             Print actions; do not write files
-  --non-interactive     Skip questions; use defaults/flags directly
+  --non-interactive     CI/scripts: no prompts; use --agents/--rules (no saved config read)
+  --interactive         Ask questions even if .deuk-agent-rule.config.json exists
   --tag <id>            Marker id (default: deuk-agent-rule)
   --agents <mode>       inject | skip | overwrite
   --rules <mode>        prefix | skip | overwrite
@@ -166,6 +221,7 @@ Options:
   --marker-begin / --marker-end  Custom marker strings (both required)
 
 init also creates .deuk-agent-handoff/ and appends it to .gitignore (local handoffs).
+After npm update, run init again: deuk-agent-rule-*.mdc rules refresh from the bundle (no separate merge needed).
 
 Korean: package README.ko.md
 `,
@@ -184,6 +240,7 @@ function parseArgs(argv) {
     rules: undefined,
     appendIfNoMarkers: false,
     nonInteractive: false,
+    interactive: false,
   };
   for (let i = 0; i < argv.length; i++) {
     const a = argv[i];
@@ -193,6 +250,7 @@ function parseArgs(argv) {
     } else if (a === "--dry-run") out.dryRun = true;
     else if (a === "--backup") out.backup = true;
     else if (a === "--non-interactive") out.nonInteractive = true;
+    else if (a === "--interactive") out.interactive = true;
     else if (a === "--tag") {
       out.tag = argv[++i];
       if (out.tag == null) throw new Error("--tag requires a value");
@@ -348,7 +406,23 @@ async function main() {
   try {
     if (sub === "init") {
       if (!isNonInteractive(opts)) {
-        await runInteractive(opts);
+        const saved = loadInitConfig(opts.cwd);
+        if (saved && !opts.interactive) {
+          opts.agents = opts.agents !== undefined ? opts.agents : saved.agentsMode;
+          opts.stack = saved.stack;
+          opts.agentTools = saved.agentTools;
+          const stackL = STACKS.find((s) => s.value === saved.stack)?.label || saved.stack;
+          console.log("\nDeukAgentRules init — using saved choices from " + INIT_CONFIG_FILENAME);
+          console.log("  Stack : " + saved.stack + " (" + stackL + ")");
+          console.log("  Tools : " + (saved.agentTools.join(", ") || "none"));
+          console.log("  AGENTS: " + opts.agents);
+          console.log("  (`--interactive` to change, or edit/delete " + INIT_CONFIG_FILENAME + ")\n");
+        } else {
+          await runInteractive(opts);
+          if (!opts.dryRun) {
+            writeInitConfig(opts.cwd, opts);
+          }
+        }
       }
       runInit(opts);
     } else if (sub === "merge") {

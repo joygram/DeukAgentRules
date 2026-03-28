@@ -11,15 +11,16 @@ cd deuk-agent-rule
 npm run sync:oss
 ```
 
-선택: `DEUK_AGENT_RULES_OSS_REPO=https://github.com/ORG/REPO`
+선택: `DEUK_AGENT_RULES_OSS_REPO=https://github.com/ORG/REPO`  
+**공개 GitHub**([joygram/DeukAgentRules](https://github.com/joygram/DeukAgentRules) 등)는 서브모듈 `origin`(gplat)과 **자동 연동되지 않는다.** 미러 반영 후 해당 저장소에 **`main` 또는 `master`를 푸시**해야 하며, 기본 브랜치가 `master`면 워크플로도 `master` 푸시를 받도록 맞춰 둔다.
 
 ## 산출물
 
-**`DeukAgentRulesOSS/`** 동기화: `MIT` `package.json`, `publish/`, `scripts/`, **루트 `README*.md`**, `oss-public/RELEASING*.md`·`GITHUB_DESCRIPTION`, `LICENSE`. 공개 클론의 `package.json`에는 `merge:dry`·`sync:oss` 없음.
+**`DeukAgentRulesOSS/`** 동기화: `MIT` `package.json`, `publish/`, `scripts/`, **루트 `README*.md`**, `oss-public/RELEASING*.md`·`GITHUB_DESCRIPTION`, `LICENSE`. 공개 미러 `package.json`에는 `merge:dry`·`sync:oss`·`bump:*`·`devDependencies` 없음(내부 자동화 비노출; **`npm publish`는 공개 클론에서도 가능**).
 
 ## 유지보수
 
 1. `publish/` 수정 → `npm run sync` (로컬 `bundle/` 갱신)
 2. README 수정은 루트 `README.md` / `README.ko.md` 단일 편집 (공개·내부 공용)
 3. GitHub About 문구 수정은 `oss-public/GITHUB_DESCRIPTION.md` 단일 편집
-4. `npm run sync:oss` → `DeukAgentRulesOSS/` 커밋·푸시 → `npm publish`
+4. 커밋은 Conventional Commits 권장 → **DeukAgentRules**에서 `npm run bump:patch`(또는 `bump:minor`/`bump:major`)로 **CHANGELOG·버전·`v*` 태그** → `git push && git push --tags` → `npm run sync:oss` → `DeukAgentRulesOSS/` 커밋·푸시 → 공개 GitHub **`main`/`master` 푸시** 시 Actions가 GitHub Release 생성(태그는 선택). 공개 쪽 푸시 커밋 제목은 내부와 같이 **`chore(release):`** 로 시작한다. → **`npm publish`는 정본 또는 공개 클론**에서 레지스트리 정책에 맞게 실행

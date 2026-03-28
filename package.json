@@ -1,26 +1,42 @@
 {
   "name": "deuk-agent-rule",
-  "version": "1.0.7",
+  "version": "1.0.13",
   "description": "DeukAgentRules: generic AGENTS.md + .cursor rule templates with init/merge CLI (npm name: deuk-agent-rule).",
   "keywords": [
     "agents-md",
     "cursor-rules",
     "copilot",
     "gemini",
+    "claude",
+    "windsurf",
+    "jetbrains",
     "handoff",
     "deuk-family",
     "deukpack-ecosystem"
   ],
   "license": "Apache-2.0",
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/joygram/DeukAgentRules.git"
+  },
+  "bugs": {
+    "url": "https://github.com/joygram/DeukAgentRules/issues"
+  },
+  "homepage": "https://github.com/joygram/DeukAgentRules#readme",
   "files": [
     "bundle/**/*",
     "scripts/**/*.mjs",
     "README.md",
-    "README.ko.md"
+    "README.ko.md",
+    "CHANGELOG.md"
   ],
   "scripts": {
     "sync": "node scripts/sync-bundle.mjs",
     "prepack": "node scripts/sync-bundle.mjs",
+    "bump": "commit-and-tag-version",
+    "bump:patch": "commit-and-tag-version -r patch",
+    "bump:minor": "commit-and-tag-version -r minor",
+    "bump:major": "commit-and-tag-version -r major",
     "merge:dry": "node scripts/cli.mjs merge --dry-run --cwd .. --agents skip",
     "sync:oss": "node scripts/sync-oss.mjs"
   },
@@ -29,5 +45,8 @@
   },
   "bin": {
     "deuk-agent-rule": "./scripts/cli.mjs"
+  },
+  "devDependencies": {
+    "commit-and-tag-version": "^12.7.1"
   }
 }
