@@ -1,7 +1,7 @@
 #!/usr/bin/env node
 import { appendFileSync, existsSync, mkdirSync, readFileSync, writeFileSync } from "fs";
 import { createInterface } from "readline";
-import { dirname, join } from "path";
+import { dirname, join, relative } from "path";
 import { fileURLToPath } from "url";
 import {
   applyAgents,
@@ -17,6 +17,8 @@ const bundleRoot = join(pkgRoot, "bundle");
 /** Default directory for persisted handoffs; `init` adds it to `.gitignore`. */
 const HANDOFF_DIR_NAME = ".deuk-agent-handoff";
 const GITIGNORE_HANDOFF_MARKER = "# deuk-agent-rule: handoff directory (local, not committed by default)";
+const HANDOFF_LIST_FILENAME = "HANDOFF_LIST.md";
+const HANDOFF_INDEX_FILENAME = "INDEX.json";
 
 function printHandoffTip() {
   console.log(
@@ -63,6 +65,195 @@ function ensureHandoffDirAndGitignore(opts) {
   }
 }
 
+function toPosixPath(p) {
+  return p.replace(/\\/g, "/");
+}
+
+function toRepoRelativePath(cwd, absPath) {
+  return toPosixPath(relative(cwd, absPath));
+}
+
+function toSlug(input) {
+  return String(input || "")
+    .toLowerCase()
+    .replace(/[^a-z0-9]+/g, "-")
+    .replace(/^-+|-+$/g, "") || "handoff";
+}
+
+function formatTimestampForFile(d = new Date()) {
+  const y = d.getFullYear();
+  const m = String(d.getMonth() + 1).padStart(2, "0");
+  const day = String(d.getDate()).padStart(2, "0");
+  const hh = String(d.getHours()).padStart(2, "0");
+  const mm = String(d.getMinutes()).padStart(2, "0");
+  const ss = String(d.getSeconds()).padStart(2, "0");
+  return `${y}${m}${day}-${hh}${mm}${ss}`;
+}
+
+function detectConsumerHandoffDir(cwd) {
+  const consumerPath = join(cwd, "DeukAgentRules", "handoff");
+  const localPath = join(cwd, "handoff");
+  if (existsSync(consumerPath)) return consumerPath;
+  if (existsSync(localPath)) return localPath;
+  return consumerPath;
+}
+
+function readLegacyLatestPath(cwd) {
+  const candidateDirs = [join(cwd, "DeukAgentRules", "handoff"), join(cwd, "handoff")];
+  for (const dir of candidateDirs) {
+    const p = join(dir, "LATEST.md");
+    if (existsSync(p)) return p;
+  }
+  return null;
+}
+
+function readHandoffIndexJson(cwd) {
+  const p = join(cwd, HANDOFF_DIR_NAME, HANDOFF_INDEX_FILENAME);
+  if (!existsSync(p)) {
+    return { version: 1, updatedAt: null, entries: [] };
+  }
+  try {
+    const j = JSON.parse(readFileSync(p, "utf8"));
+    if (!Array.isArray(j.entries)) throw new Error("Invalid INDEX.json: entries must be an array");
+    return { version: 1, updatedAt: j.updatedAt ?? null, entries: j.entries };
+  } catch {
+    return { version: 1, updatedAt: null, entries: [] };
+  }
+}
+
+function writeHandoffIndexJson(cwd, indexJson, opts) {
+  const dir = join(cwd, HANDOFF_DIR_NAME);
+  const p = join(dir, HANDOFF_INDEX_FILENAME);
+  if (opts.dryRun) {
+    console.log("handoff: would write " + toRepoRelativePath(cwd, p));
+    return;
+  }
+  mkdirSync(dir, { recursive: true });
+  writeFileSync(p, JSON.stringify(indexJson, null, 2) + "\n", "utf8");
+  console.log("handoff: wrote " + toRepoRelativePath(cwd, p));
+}
+
+function renderHandoffListMarkdown(cwd, entries) {
+  const sorted = [...entries].sort((a, b) => String(b.createdAt || "").localeCompare(String(a.createdAt || "")));
+  const latest = sorted[0] || null;
+
+  const lines = [];
+  lines.push("# Handoff List");
+  lines.push("");
+  lines.push(`> Source index: \`${HANDOFF_DIR_NAME}/${HANDOFF_INDEX_FILENAME}\``);
+  lines.push("");
+  lines.push("## Latest");
+  lines.push("");
+  if (latest) {
+    const relPath = latest.path;
+    const group = latest.group || "sub";
+    const project = latest.project || "global";
+    const createdAt = latest.createdAt || "-";
+    lines.push(`- [${latest.title}](${relPath})`);
+    lines.push(`- group: \`${group}\` / project: \`${project}\` / created: \`${createdAt}\``);
+  } else {
+    lines.push("- No handoff entries yet.");
+  }
+  lines.push("");
+  lines.push("## Entries");
+  lines.push("");
+  lines.push("| # | Title | Group | Project | Created | Path |");
+  lines.push("|---|---|---|---|---|---|");
+  sorted.slice(0, 30).forEach((e, i) => {
+    const title = String(e.title || "(untitled)").replace(/\|/g, "\\|");
+    const group = String(e.group || "sub").replace(/\|/g, "\\|");
+    const project = String(e.project || "global").replace(/\|/g, "\\|");
+    const createdAt = String(e.createdAt || "-").replace(/\|/g, "\\|");
+    lines.push(`| ${i + 1} | ${title} | ${group} | ${project} | ${createdAt} | [open](${e.path}) |`);
+  });
+  lines.push("");
+  lines.push("## Commands");
+  lines.push("");
+  lines.push("```bash");
+  lines.push("npx deuk-agent-rule handoff list");
+  lines.push("npx deuk-agent-rule handoff use --latest");
+  lines.push("```\n");
+
+  return lines.join("\n");
+}
+
+function writeHandoffListFile(cwd, entries, opts) {
+  const handoffDir = detectConsumerHandoffDir(cwd);
+  const p = join(handoffDir, HANDOFF_LIST_FILENAME);
+  const body = renderHandoffListMarkdown(cwd, entries);
+  if (opts.dryRun) {
+    console.log("handoff: would write " + toRepoRelativePath(cwd, p));
+    return;
+  }
+  mkdirSync(handoffDir, { recursive: true });
+  writeFileSync(p, body, "utf8");
+  console.log("handoff: wrote " + toRepoRelativePath(cwd, p));
+}
+
+function writeLatestStub(cwd, opts) {
+  const handoffDir = detectConsumerHandoffDir(cwd);
+  const latestPath = join(handoffDir, "LATEST.md");
+  const listRel = toRepoRelativePath(cwd, join(handoffDir, HANDOFF_LIST_FILENAME));
+  const body =
+    "# Legacy pointer\n\n" +
+    "This file no longer stores full handoff bodies.\n\n" +
+    `See \`${listRel}\` for indexed handoffs.\n`;
+  if (opts.dryRun) {
+    console.log("handoff: would replace " + toRepoRelativePath(cwd, latestPath) + " with a pointer stub");
+    return;
+  }
+  mkdirSync(handoffDir, { recursive: true });
+  writeFileSync(latestPath, body, "utf8");
+  console.log("handoff: updated " + toRepoRelativePath(cwd, latestPath));
+}
+
+function parseLegacyHandoffMeta(legacyBody) {
+  const titleMatch = legacyBody.match(/^##\s+Task:\s*(.+)$/m);
+  const title = titleMatch ? titleMatch[1].trim() : "Migrated legacy handoff";
+
+  let group = "sub";
+  const lower = legacyBody.toLowerCase();
+  if (lower.includes("discussion")) group = "discussion";
+  else if (lower.includes("main")) group = "main";
+
+  let project = "global";
+  const projectMatch = legacyBody.match(/\b(DeukUI|DeukAgentRules)\b/i);
+  if (projectMatch) project = projectMatch[1];
+
+  return { title, group, project };
+}
+
+function makeEntryId() {
+  return `handoff_${Date.now()}_${Math.random().toString(36).slice(2, 8)}`;
+}
+
+function appendHandoffEntry(cwd, entry, opts) {
+  const indexJson = readHandoffIndexJson(cwd);
+  const next = {
+    version: 1,
+    updatedAt: new Date().toISOString(),
+    entries: [entry, ...indexJson.entries],
+  };
+  writeHandoffIndexJson(cwd, next, opts);
+  writeHandoffListFile(cwd, next.entries, opts);
+}
+
+function getLegacyMigrationCandidate(cwd) {
+  const latestPath = readLegacyLatestPath(cwd);
+  if (!latestPath) return null;
+
+  const handoffDir = dirname(latestPath);
+  const listPath = join(handoffDir, HANDOFF_LIST_FILENAME);
+  if (existsSync(listPath)) return null;
+
+  const body = readFileSync(latestPath, "utf8");
+  const lineCount = body.split(/\r?\n/).filter((l) => l.trim().length > 0).length;
+  const hasTaskHeader = /^##\s+Task:/m.test(body);
+  if (!hasTaskHeader || lineCount <= 5) return null;
+
+  return { latestPath, body };
+}
+
 // ---------------------------------------------------------------------------
 // Interactive prompt helpers (no external deps)
 // ---------------------------------------------------------------------------
@@ -73,6 +264,18 @@ function isNonInteractive(opts) {
 
 async function ask(rl, question) {
   return new Promise((resolve) => rl.question(question, resolve));
+}
+
+async function askYesNo(question, defaultYes = true) {
+  const rl = createInterface({ input: process.stdin, output: process.stdout });
+  try {
+    const suffix = defaultYes ? " [Y/n]: " : " [y/N]: ";
+    const ans = (await ask(rl, question + suffix)).trim().toLowerCase();
+    if (!ans) return defaultYes;
+    return ans === "y" || ans === "yes";
+  } finally {
+    rl.close();
+  }
 }
 
 async function selectOne(rl, prompt, choices) {
@@ -207,6 +410,7 @@ function printHelp() {
 Usage:
   npx deuk-agent-rule init   [options]   # interactive by default
   npx deuk-agent-rule merge  [options]
+  npx deuk-agent-rule handoff <create|list|use|migrate> [options]
 
 Options:
   --cwd <path>          Target repo root (default: current directory)
@@ -220,12 +424,75 @@ Options:
   --append-if-no-markers
   --marker-begin / --marker-end  Custom marker strings (both required)
 
+Handoff options:
+  handoff create --topic <name> [--group <name>] [--project <name>] [--content <text>] [--from <path>]
+  handoff list [--group <name>] [--project <name>] [--topic <prefix>] [--limit <n>]
+  handoff use [--latest] [--topic <prefix>] [--path-only] [--print-content]
+  handoff migrate
+
 init also creates .deuk-agent-handoff/ and appends it to .gitignore (local handoffs).
 After npm update, run init again: deuk-agent-rule-*.mdc rules refresh from the bundle (no separate merge needed).
 
 Korean: package README.ko.md
 `,
   );
+}
+
+function parseHandoffArgs(argv) {
+  const out = {
+    cwd: process.cwd(),
+    dryRun: false,
+    nonInteractive: false,
+    topic: undefined,
+    group: "sub",
+    project: "global",
+    content: undefined,
+    from: undefined,
+    limit: 20,
+    latest: false,
+    pathOnly: false,
+    printContent: false,
+  };
+
+  for (let i = 0; i < argv.length; i++) {
+    const a = argv[i];
+    if (a === "--cwd") {
+      out.cwd = argv[++i];
+      if (!out.cwd) throw new Error("--cwd requires a path");
+    } else if (a === "--dry-run") out.dryRun = true;
+    else if (a === "--non-interactive") out.nonInteractive = true;
+    else if (a === "--topic") {
+      out.topic = argv[++i];
+      if (!out.topic) throw new Error("--topic requires a value");
+    } else if (a === "--group") {
+      out.group = argv[++i];
+      if (!out.group) throw new Error("--group requires a value");
+    } else if (a === "--project") {
+      out.project = argv[++i];
+      if (!out.project) throw new Error("--project requires a value");
+    } else if (a === "--content") {
+      out.content = argv[++i];
+      if (out.content == null) throw new Error("--content requires a value");
+    } else if (a === "--from") {
+      out.from = argv[++i];
+      if (!out.from) throw new Error("--from requires a file path");
+    } else if (a === "--limit") {
+      const raw = argv[++i];
+      const n = Number(raw);
+      if (!Number.isFinite(n) || n <= 0) throw new Error("--limit requires a positive number");
+      out.limit = n;
+    } else if (a === "--latest") out.latest = true;
+    else if (a === "--path-only") out.pathOnly = true;
+    else if (a === "--print-content") out.printContent = true;
+    else if (a === "-h" || a === "--help") {
+      printHelp();
+      process.exit(0);
+    } else {
+      throw new Error("Unknown handoff argument: " + a);
+    }
+  }
+
+  return out;
 }
 
 function parseArgs(argv) {
@@ -287,7 +554,198 @@ function validateMode(name, v, allowed) {
 // init / merge runners
 // ---------------------------------------------------------------------------
 
-function runInit(opts) {
+async function maybeMigrateLegacyOnInit(opts) {
+  const candidate = getLegacyMigrationCandidate(opts.cwd);
+  if (!candidate) return;
+
+  if (opts.dryRun) {
+    console.log("handoff: would migrate legacy LATEST.md into indexed topic files");
+    return;
+  }
+
+  let shouldMigrate = !!opts.nonInteractive;
+  if (!opts.nonInteractive && process.stdin.isTTY) {
+    shouldMigrate = await askYesNo("Legacy handoff detected in LATEST.md. Migrate to HANDOFF_LIST.md now?", true);
+  }
+  if (!shouldMigrate) {
+    console.log("handoff: skipped legacy migration");
+    return;
+  }
+
+  const { title, group, project } = parseLegacyHandoffMeta(candidate.body);
+  const topic = toSlug(title);
+  const stamp = formatTimestampForFile(new Date());
+  const targetDir = join(opts.cwd, HANDOFF_DIR_NAME, group);
+  const targetPath = join(targetDir, `${topic}-${stamp}.md`);
+  mkdirSync(targetDir, { recursive: true });
+  writeFileSync(targetPath, candidate.body.trimEnd() + "\n", "utf8");
+  console.log("handoff: migrated body -> " + toRepoRelativePath(opts.cwd, targetPath));
+
+  const entry = {
+    id: makeEntryId(),
+    title,
+    topic,
+    group,
+    project,
+    createdAt: new Date().toISOString(),
+    path: toRepoRelativePath(opts.cwd, targetPath),
+    source: "legacy-latest",
+  };
+  appendHandoffEntry(opts.cwd, entry, opts);
+  writeLatestStub(opts.cwd, opts);
+}
+
+function readHandoffBodyFromOpts(opts) {
+  if (opts.content != null) return opts.content;
+  if (opts.from) {
+    const fromAbs = join(opts.cwd, opts.from);
+    if (!existsSync(fromAbs)) {
+      throw new Error("--from file not found: " + opts.from);
+    }
+    return readFileSync(fromAbs, "utf8");
+  }
+  throw new Error("handoff create requires --content or --from <file>");
+}
+
+function createTopicHandoffFile(opts, body) {
+  const topic = toSlug(opts.topic || "handoff");
+  const group = toSlug(opts.group || "sub");
+  const stamp = formatTimestampForFile(new Date());
+  const dir = join(opts.cwd, HANDOFF_DIR_NAME, group);
+  const abs = join(dir, `${topic}-${stamp}.md`);
+  if (opts.dryRun) {
+    console.log("handoff: would write " + toRepoRelativePath(opts.cwd, abs));
+  } else {
+    mkdirSync(dir, { recursive: true });
+    writeFileSync(abs, body.trimEnd() + "\n", "utf8");
+    console.log("handoff: wrote " + toRepoRelativePath(opts.cwd, abs));
+  }
+  return { abs, topic, group };
+}
+
+function runHandoffCreate(opts) {
+  if (!opts.topic) {
+    throw new Error("handoff create requires --topic <name>");
+  }
+  const body = readHandoffBodyFromOpts(opts);
+  const { abs, topic, group } = createTopicHandoffFile(opts, body);
+
+  const entry = {
+    id: makeEntryId(),
+    title: opts.topic,
+    topic,
+    group,
+    project: opts.project || "global",
+    createdAt: new Date().toISOString(),
+    path: toRepoRelativePath(opts.cwd, abs),
+    source: "handoff-create",
+  };
+  appendHandoffEntry(opts.cwd, entry, opts);
+  if (opts.dryRun) {
+    console.log("Path: `" + entry.path + "`");
+  }
+}
+
+function runHandoffList(opts) {
+  const indexJson = readHandoffIndexJson(opts.cwd);
+  let rows = [...indexJson.entries];
+  if (opts.group) rows = rows.filter((e) => String(e.group || "").toLowerCase() === String(opts.group).toLowerCase());
+  if (opts.project) {
+    rows = rows.filter((e) => String(e.project || "").toLowerCase() === String(opts.project).toLowerCase());
+  }
+  if (opts.topic) {
+    rows = rows.filter((e) => String(e.topic || "").toLowerCase().includes(String(opts.topic).toLowerCase()));
+  }
+  rows.sort((a, b) => String(b.createdAt || "").localeCompare(String(a.createdAt || "")));
+  const limited = rows.slice(0, opts.limit);
+
+  if (limited.length === 0) {
+    console.log("handoff: no entries");
+    return;
+  }
+
+  console.log("#  GROUP       PROJECT     CREATED                  TOPIC                     PATH");
+  limited.forEach((e, idx) => {
+    const no = String(idx + 1).padEnd(2, " ");
+    const group = String(e.group || "-").padEnd(10, " ");
+    const project = String(e.project || "-").padEnd(11, " ");
+    const createdAt = String(e.createdAt || "-").padEnd(24, " ");
+    const topic = String(e.topic || "-").padEnd(24, " ");
+    const path = String(e.path || "-");
+    console.log(`${no} ${group} ${project} ${createdAt} ${topic} ${path}`);
+  });
+}
+
+function pickHandoffEntry(opts) {
+  const indexJson = readHandoffIndexJson(opts.cwd);
+  const rows = [...indexJson.entries].sort((a, b) => String(b.createdAt || "").localeCompare(String(a.createdAt || "")));
+  if (rows.length === 0) return null;
+  if (opts.topic) {
+    const key = String(opts.topic).toLowerCase();
+    return rows.find((e) => String(e.topic || "").toLowerCase().includes(key)) || null;
+  }
+  return rows[0];
+}
+
+function runHandoffUse(opts) {
+  if (!opts.latest && !opts.topic) {
+    throw new Error("handoff use requires --latest or --topic <prefix>");
+  }
+  const found = pickHandoffEntry(opts);
+  if (!found) {
+    throw new Error("handoff use: no matching entry");
+  }
+  const abs = join(opts.cwd, found.path);
+  if (!existsSync(abs)) {
+    throw new Error("handoff use: file not found " + found.path);
+  }
+
+  if (opts.pathOnly) {
+    console.log(found.path);
+    return;
+  }
+
+  console.log("Path: `" + found.path + "`");
+  if (opts.printContent) {
+    console.log("\n" + readFileSync(abs, "utf8"));
+  }
+}
+
+function runHandoffMigrate(opts) {
+  const candidate = getLegacyMigrationCandidate(opts.cwd);
+  if (!candidate) {
+    console.log("handoff: no legacy LATEST.md migration candidate found");
+    return;
+  }
+
+  const { title, group, project } = parseLegacyHandoffMeta(candidate.body);
+  const topic = toSlug(title);
+  const stamp = formatTimestampForFile(new Date());
+  const targetDir = join(opts.cwd, HANDOFF_DIR_NAME, group);
+  const targetPath = join(targetDir, `${topic}-${stamp}.md`);
+  if (opts.dryRun) {
+    console.log("handoff: would migrate -> " + toRepoRelativePath(opts.cwd, targetPath));
+  } else {
+    mkdirSync(targetDir, { recursive: true });
+    writeFileSync(targetPath, candidate.body.trimEnd() + "\n", "utf8");
+    console.log("handoff: migrated body -> " + toRepoRelativePath(opts.cwd, targetPath));
+  }
+
+  const entry = {
+    id: makeEntryId(),
+    title,
+    topic,
+    group,
+    project,
+    createdAt: new Date().toISOString(),
+    path: toRepoRelativePath(opts.cwd, targetPath),
+    source: "handoff-migrate",
+  };
+  appendHandoffEntry(opts.cwd, entry, opts);
+  writeLatestStub(opts.cwd, opts);
+}
+
+async function runInit(opts) {
   const markers = resolveMarkers({
     tag: opts.tag,
     markerBegin: opts.markerBegin,
@@ -327,6 +785,7 @@ function runInit(opts) {
   }
 
   ensureHandoffDirAndGitignore(opts);
+  await maybeMigrateLegacyOnInit(opts);
 }
 
 function runMerge(opts) {
@@ -387,6 +846,40 @@ async function main() {
     process.exit(0);
   }
 
+  if (sub === "handoff") {
+    const action = rest[0];
+    const handoffRest = rest.slice(1);
+    if (!action || action === "-h" || action === "--help") {
+      printHelp();
+      process.exit(0);
+    }
+
+    let opts;
+    try {
+      opts = parseHandoffArgs(handoffRest);
+    } catch (e) {
+      console.error(e.message || e);
+      printHelp();
+      process.exit(1);
+    }
+
+    try {
+      if (action === "create") runHandoffCreate(opts);
+      else if (action === "list") runHandoffList(opts);
+      else if (action === "use") runHandoffUse(opts);
+      else if (action === "migrate") runHandoffMigrate(opts);
+      else {
+        console.error("Unknown handoff action: " + action);
+        printHelp();
+        process.exit(1);
+      }
+      process.exit(0);
+    } catch (e) {
+      console.error(e.message || e);
+      process.exit(1);
+    }
+  }
+
   let opts;
   try {
     opts = parseArgs(rest);
@@ -424,7 +917,7 @@ async function main() {
           }
         }
       }
-      runInit(opts);
+      await runInit(opts);
     } else if (sub === "merge") {
       runMerge(opts);
     } else {

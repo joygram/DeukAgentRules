@@ -8,6 +8,8 @@
 
 Cursor, GitHub Copilot, Gemini / Antigravity, Claude(Cursor·Claude Code), Windsurf, JetBrains AI Assistant 등 코딩 에이전트와 함께 쓸 `AGENTS.md`·`.cursor/rules` 버전 관리형 템플릿. 그 밖에도 프로젝트 규칙을 읽는 유사 도구에 그대로 활용할 수 있습니다. 핸드오프·간결 응답으로 비용·성능을 개선합니다.
 
+> **핵심 피처:** 핸드오프 인덱스 + 토픽 파일 구조로 반복 로드 컨텍스트를 세션당 약 1,500~2,000 토큰에서 200~300 토큰 수준으로 줄여, **반복 프롬프트 부하를 약 83% 절감**합니다.
+
 ## 워크스페이스 초기화
 
 ```bash
@@ -69,9 +71,30 @@ npx deuk-agent-rule init
 
 ### 핸드오프 (멀티 세션·도구 넘김)
 
-`init` 시 **`.deuk-agent-handoff/`** 를 만들고 기본으로 **`.gitignore`** 에 넣습니다. 채팅만이 아니라 **파일로 남겨야 할** 작업 명세는 여기(또는 `DeukAgentRules/handoff/LATEST.md` 관례)에 `AGENTS.md`의 **Handoff format** 절 구조(과제, 수정 파일, 결정, 제약)로 적어 두면, 다음 세션이나 다른 에이전트가 이어 받기 쉽습니다.
+`init` 시 **`.deuk-agent-handoff/`** 를 만들고 기본으로 **`.gitignore`** 에 넣습니다. 기존 `LATEST.md` 본문 방식은 토픽 파일 + `HANDOFF_LIST.md` 인덱스로 재편되어, 다음 세션에서 불필요한 장문 로드를 줄입니다.
 
-**플랜 패널**을 쓰는 환경에서는 동일 본문을 **`.cursor/plans/deuk-handoff.plan.md`** 등으로 **선택적으로 복제**해 둘 수 있습니다. 정본과 내용이 어긋나지 않게 맞추고, 에이전트 동작은 번들된 **`multi-ai-workflow.mdc`** 를 참고하세요.
+채팅만이 아니라 **파일로 남겨야 할** 작업 명세는 `AGENTS.md`의 **Handoff format** 절 구조(과제, 수정 파일, 결정, 제약)로 적어 두면, 다음 세션이나 다른 에이전트가 이어 받기 쉽습니다.
+
+빠른 명령 예시:
+
+```bash
+npx deuk-agent-rule handoff create --topic container-unified --group sub --project DeukUI --content "## Task: ..."
+npx deuk-agent-rule handoff list --group sub --project DeukUI --limit 20
+npx deuk-agent-rule handoff use --latest --path-only
+```
+
+**플랜 패널**을 쓰는 환경에서는 동일 본문을 **`.cursor/plans/deuk-handoff.plan.md`** 등으로 **선택적으로 복제**해 둘 수 있습니다. 정본(`.deuk-agent-handoff/`)과 인덱스(`DeukAgentRules/handoff/HANDOFF_LIST.md`)를 기준으로 내용이 어긋나지 않게 맞추세요.
+
+단일 세션 내 임시 핸드오프는 채팅에 인라인으로 작성하며, 여러 번 참조하거나 다중 에이전트가 공유해야 하거나 리스크를 기록해야 할 때는 내부 `.md` 파일로 전환합니다. 기본 저장 경로는 `.deuk-agent-handoff/` 로컬 디렉토리이며, 팀이 요청하거나 프로젝트 관례가 있을 때만 저장소에 커밋합니다.
+
+### 핸드오프 시스템 (가성비 가이드)
+
+- **Claude Sonnet:** 인덱스 + 필요한 토픽 파일만 로드할 때 비용 효율이 크게 좋아집니다.
+- **Gemini (Flash/Pro):** 넓은 탐색에 강하고 저비용이지만, 토픽 핸드오프로 정확도와 재현성이 더 좋아집니다.
+- **Cursor:** always-apply 규칙이 자주 로드되므로 compact 인덱스 전환 효과가 큽니다.
+- **Antigravity:** 경량 실행 환경에서 토픽 단위 로딩이 특히 유리합니다.
+
+상세 사례/튜토리얼: [`docs/handoff-tutorial.md`](docs/handoff-tutorial.md)
 
 ### 주요 옵션
 

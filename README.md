@@ -8,6 +8,8 @@
 
 Versioned templates for `AGENTS.md` and `.cursor/rules` for Cursor, GitHub Copilot, Gemini / Antigravity, Claude (via Cursor or Claude Code), Windsurf, JetBrains AI Assistant, and other coding agents that read project rules: shared handoff format, concise execution, stronger cost-efficiency and responsiveness.
 
+> **Feature highlight:** Handoff Index + topic-based files reduce repeated handoff context from ~1,500-2,000 tokens to ~200-300 tokens per session (about **83% less recurring prompt load**).
+
 ## Initialize a workspace
 
 ```bash
@@ -69,9 +71,30 @@ Use `init --non-interactive` only in **CI** or headless scripts. You do **not** 
 
 ### Handoffs (multi-session and tool handover)
 
-`init` creates **`.deuk-agent-handoff/`** (and adds it to **`.gitignore`** by default) so you can **persist** structured specs beyond a single chat. Use the same sections as in `AGENTS.md` (**Handoff format**): task title, files to modify, decisions, constraints. That lets the next session or another tool pick up where you left off without re-explaining the repo.
+`init` creates **`.deuk-agent-handoff/`** (and adds it to **`.gitignore`** by default) so you can **persist** structured specs beyond a single chat. Legacy full-body handoffs in `LATEST.md` are migrated to topic files and indexed via `HANDOFF_LIST.md` to keep recurring context small.
 
-Optionally, if you use an editor with a **Plans** panel, mirror the same Markdown body under **`.cursor/plans/deuk-handoff.plan.md`** (or `deuk-handoff-<topic>.plan.md`) so it appears there; keep it in sync with the canonical file under `.deuk-agent-handoff/` or `DeukAgentRules/handoff/LATEST.md`. See the bundled **`multi-ai-workflow.mdc`** rule for agent-side details.
+Use the same sections as in `AGENTS.md` (**Handoff format**): task title, files to modify, decisions, constraints. That lets the next session or another tool pick up where you left off without re-explaining the repo.
+
+Quick commands:
+
+```bash
+npx deuk-agent-rule handoff create --topic container-unified --group sub --project DeukUI --content "## Task: ..."
+npx deuk-agent-rule handoff list --group sub --project DeukUI --limit 20
+npx deuk-agent-rule handoff use --latest --path-only
+```
+
+Optionally, if you use an editor with a **Plans** panel, mirror the same Markdown body under **`.cursor/plans/deuk-handoff.plan.md`** (or `deuk-handoff-<topic>.plan.md`) so it appears there; keep it in sync with the canonical file under `.deuk-agent-handoff/` and index pointers in `DeukAgentRules/handoff/HANDOFF_LIST.md`.
+
+For temporary handoffs within a single session, write them inline in chat; when repeatedly referenced, shared across multiple agents, or recording risks, convert to an internal `.md` file. The default storage path is the local `.deuk-agent-handoff/` directory; commit to the repository only when requested by the user or following established team conventions.
+
+### Handoff system (cost guide)
+
+- **Claude Sonnet:** Best when you keep only index + selected topic file in context.
+- **Gemini (Flash/Pro):** Strong cost-performance for broad exploration; still benefits from topic handoffs.
+- **Cursor:** Biggest gain from compact handoff index because always-applied rules are loaded often.
+- **Antigravity:** Lightweight runs benefit from loading only one topic file per task.
+
+See full examples and workflow tutorial: [`docs/handoff-tutorial.md`](docs/handoff-tutorial.md).
 
 ### Key options
 
