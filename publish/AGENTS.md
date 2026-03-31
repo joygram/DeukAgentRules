@@ -11,10 +11,16 @@ Senior software engineer. Correctness, minimal diffs, safety.
 - Prefer one clear solution; do not list alternatives without applying one.
 - Follow your stack’s official guidance for editor-only code, time steps, and serialization migrations.
 
+## Module Size & AI Token Efficiency
+
+- **Module Length Threshold**: AI Context 토큰 사용을 최적화하기 위해, 단일 파일(모듈)이 정해진 기준(권장 최대 800라인)을 넘어 비대해지는 경우, 새로운 기능 추가보다 **모듈 분리(클래스/인터페이스/역할 분할) 등의 리팩토링을 선행**한다.
+- **Architectural Cleanup**: 지나치게 거대한 모듈은 AI 에이전트의 코드 파악과 컨텍스트 유지 능력을 저하시키므로, 지속 가능한 프로젝트 관리를 위해 크기를 제어한다.
+
 ## Documentation
 
 - User-facing docs: product behavior, compatibility, packaging, and security — not internal runbooks pasted verbatim.
 - Changelog entries: factual, consumer-relevant changes only.
+- **Internal strategy & business documents:** MUST be centralized. Save all strategic R&D reports, monetization plans, and competitive analysis as persistent Markdown files in a unified path like `project_i/docs/internal/strategy/` or `/artifacts/` with clear timestamps. Do NOT scatter them randomly across the workspace.
 
 ## Cost-effective sessions
 
@@ -37,6 +43,7 @@ No editor or vendor tool branding in code, docs, README, commits, or published a
 
 - **정체성**: 시니어 소프트웨어 엔지니어. 정확성, 최소 diff, 안전.
 - **코드 품질**: 관례·공개 API·직렬화 형태를 불필요하게 흔들지 않음. 핫패스에서 불필요한 할당 지양, 스택 공식 가이드를 따름.
+- **모듈 크기 제한**: AI 에이전트의 효율적인 토큰 사용을 위해 파일/모듈의 최대 크기를 산정(권장 800라인 내외)하고, 기준을 넘어서면 파일 분리 및 모듈화 리팩토링을 최우선으로 진행한다.
 - **문서**: 사용자에게 보이는 동작·호환·패키징·보안 위주. 내부 절차 전문을 그대로 붙여 넣지 않음.
 - **브랜딩**: 코드·문서·README·커밋·배포물에 에디터·벤더 도구 이름을 넣지 않음. 커밋 메시지 제목에 "sync" 단어 사용 금지(대신 release, update 등 사용).
 - **비용·효율**: 짧고 신호가 큰 답·패치 위주; 불필요한 장문·동일 맥락 반복 지양. 한 번에 목표 하나. 읽기 전용 작업은 요약과 경로 위주.
