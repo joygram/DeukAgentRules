@@ -1,4 +1,4 @@
-<!-- Handoff (repo-relative): DeukAgentRules/handoff/TICKET-XXX_Handoff.md -->
+<!-- Ticket (repo-relative): DeukAgentRules/ticket/TICKET-XXX_Ticket.md -->
 # Task: [Task Title / Ticket Number]
 
 > **[CAUTION FOR AI AGENTS]** 

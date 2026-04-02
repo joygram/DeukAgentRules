@@ -24,11 +24,31 @@ function printTicketTip() {
   console.log(
     "tip: Persist multi-session specs under " +
       TICKET_DIR_NAME +
-      "/ (see README § Tickets). Optional: mirror the same body to .cursor/plans/deuk-ticket.plan.md for the Plans panel.",
+      "/ (see README § Tickets). Keep your workflow strictly within the Ticket bounds.",
   );
 }
 
+
+function cleanLegacyHandoffDirs(opts) {
+  
+  
+  const legacyDir = join(opts.cwd, '.deuk-agent-handoff');
+  if (existsSync(legacyDir)) {
+    if (opts.dryRun) {
+      console.log('cleanup: would delete legacy directory ' + legacyDir);
+      return;
+    }
+    try {
+      rmSync(legacyDir, { recursive: true, force: true });
+      console.log('cleanup: removed legacy handoff directory (.deuk-agent-handoff)');
+    } catch (e) {
+      console.log('cleanup: failed to remove legacy handoff directory ' + legacyDir + ' -> ' + e.message);
+    }
+  }
+}
+
 function ensureTicketDirAndGitignore(opts) {
+  cleanLegacyHandoffDirs(opts);
   const ticketPath = join(opts.cwd, TICKET_DIR_NAME);
   const gitignorePath = join(opts.cwd, ".gitignore");
   const ignoreLine = TICKET_DIR_NAME + "/";

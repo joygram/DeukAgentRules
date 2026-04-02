@@ -47,14 +47,14 @@ npx deuk-agent-rule ticket create --topic ui-refactoring --group frontend --proj
 This command instantly creates a templated `TICKET-ui-refactoring.md` file within the `.deuk-agent-ticket/` directory.
 The developer must simply specify the exact isolated directory path (e.g., `src/client`) inside the `[Target Submodule]` attribute at the top of the generated file.
 
-### [Step 2] Agent Execution & Handoff
+### [Step 2] Agent Execution & Handoff (Ticket Session)
 Provide a single line of instruction to your AI chatbot (Cursor, Gemini, etc.):
 > *"Open the recently issued `.deuk-agent-ticket/TICKET-ui-refactoring.md` ticket and strictly follow the checklist within the specified target submodule."*
 
 The AI will faithfully read the defined Phases in the ticket and write optimized code while **completely blocking out unnecessary computations for unrelated server logic or sibling modules**. (This mechanism drastically reduces token costs).
 
 ### [Step 3] Status Review & Closure
-As the AI writes the code, it will simultaneously update the markup checkboxes (`[x]`) inside the ticket. If the agent's session memory limit is approaching, simply leave the ticket file saved, turn off the chat window, open a fresh session, and issue [Step 2] again. The handoff is seamlessly completed.
+As the AI writes the code, it will simultaneously update the markup checkboxes (`[x]`) inside the ticket. If the agent's session memory limit is approaching, simply leave the ticket file saved, turn off the chat window, open a fresh session, and issue [Step 2] again. The handoff (session transfer) is seamlessly completed.
 Once all steps are accomplished, promote the Phase status to `[Phase Complete]`. Track all currently active tickets directly from the terminal:
 
 ```bash

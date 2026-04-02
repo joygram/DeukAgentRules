@@ -1,7 +1,7 @@
 # Submodule Agent Rules: [Module Name]
 
 > **[CAUTION FOR AI AGENTS]**
-> When the Handoff Document `Target Submodule` matches this module, you MUST strictly adhere to the following architectural conventions and rules. Do not cross-pollinate rules from other submodules.
+> When the Ticket Document `Target Submodule` matches this module, you MUST strictly adhere to the following architectural conventions and rules. Do not cross-pollinate rules from other submodules.
 
 ## 📁 Repository Boundary
 - **Path Root:** `[e.g., DeukUI/ or DeukPackKits/]`
@@ -20,5 +20,5 @@
 - **To build this module:** `[e.g., npm run build:plugin --prefix DeukUI]`
 - **To test this module:** `[e.g., npm run test:ui]`
 
-## 🔗 Handoff Instructions
-Always enforce that generated `Handoffs` intended for this module include this rule file in their `[Context Files]` section.
+## 🔗 Ticket Instructions
+Always enforce that generated `Tickets` intended for this module include this rule file in their `[Context Files]` section.

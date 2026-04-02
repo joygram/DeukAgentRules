@@ -1,109 +1,35 @@
+<!-- deuk-agent-rule:begin -->
+
 # Project Agent Rules
 
 ## Identity
 
-Senior software engineer. Correctness, minimal diffs, safety.
-
-## Code Quality
-
-- Minimal diffs: keep existing conventions, public API, and serialized/config shapes stable unless the task requires a deliberate change.
-- Hot paths (per-frame loops, tight inner loops): avoid unnecessary allocation; cache lookups where appropriate.
-- Prefer one clear solution; do not list alternatives without applying one.
-- Follow your stack’s official guidance for editor-only code, time steps, and serialization migrations.
-
-## Module Size & AI Token Efficiency
-
-- **Module Length Threshold**: AI Context 토큰 사용을 최적화하기 위해, 단일 파일(모듈)이 정해진 기준(권장 최대 800라인)을 넘어 비대해지는 경우, 새로운 기능 추가보다 **모듈 분리(클래스/인터페이스/역할 분할) 등의 리팩토링을 선행**한다.
-- **Architectural Cleanup**: 지나치게 거대한 모듈은 AI 에이전트의 코드 파악과 컨텍스트 유지 능력을 저하시키므로, 지속 가능한 프로젝트 관리를 위해 크기를 제어한다.
-
-## Documentation
-
-- User-facing docs: product behavior, compatibility, packaging, and security — not internal runbooks pasted verbatim.
-- Changelog entries: factual, consumer-relevant changes only.
-- **Internal strategy & business documents:** MUST be centralized. Save all strategic R&D reports, monetization plans, and competitive analysis as persistent Markdown files in a unified path like `project_i/docs/internal/strategy/` or `/artifacts/` with clear timestamps. Do NOT scatter them randomly across the workspace.
-
-## Cost-effective sessions
-
-- Prefer **short, high-signal** answers and patches; avoid filler, long tutorials, and repeating context the user already has unless they ask for depth.
-- **One clear objective** per session or turn when practical; do not expand scope into unrelated refactors.
-- For read-only or exploratory tasks, **summarize** and point to paths instead of pasting large blobs.
-
-## Delivery, portfolio, and parallel work
-
-- Prefer **one PR or session outcome = one vertical slice**: integrated, buildable, and **demo-able** for that slice unless the user explicitly requests a broad-only refactor.
-- When the user signals **portfolio / demo / ship-now priority**, **narrow** work to visible outcomes first; defer wide cleanups to a separate scoped task unless blocking.
-- Under **parallel branches or shared ownership**, keep edits **small and bounded** on hot shared paths; respect named lane or directory ownership when given; flag high-conflict paths instead of silently expanding scope.
-- **Default to minimal refactor**: satisfy the task with the smallest structural change; split optional large refactors into a follow-up handoff instead of bundling them.
-
-## IDE Branding
-
-No editor or vendor tool branding in code, docs, README, commits, or published artifacts.
-
-## 요약 (한국어)
-
-- **정체성**: 시니어 소프트웨어 엔지니어. 정확성, 최소 diff, 안전.
-- **코드 품질**: 관례·공개 API·직렬화 형태를 불필요하게 흔들지 않음. 핫패스에서 불필요한 할당 지양, 스택 공식 가이드를 따름.
-- **모듈 크기 제한**: AI 에이전트의 효율적인 토큰 사용을 위해 파일/모듈의 최대 크기를 산정(권장 800라인 내외)하고, 기준을 넘어서면 파일 분리 및 모듈화 리팩토링을 최우선으로 진행한다.
-- **문서**: 사용자에게 보이는 동작·호환·패키징·보안 위주. 내부 절차 전문을 그대로 붙여 넣지 않음.
-- **브랜딩**: 코드·문서·README·커밋·배포물에 에디터·벤더 도구 이름을 넣지 않음. 커밋 메시지 제목에 "sync" 단어 사용 금지(대신 release, update 등 사용).
-- **비용·효율**: 짧고 신호가 큰 답·패치 위주; 불필요한 장문·동일 맥락 반복 지양. 한 번에 목표 하나. 읽기 전용 작업은 요약과 경로 위주.
-- **전달·병렬**: PR/세션 단위는 데모 가능한 세로 슬라이스 우선. 포트폴리오·출시 우선 시 범위 축소. 병렬 갈래·소유 구역 존중, 핫 경로는 최소 변경.
-- **핸드오프 보관**: 채팅만이 아니라 **남겨야 할** 핸드오프는 **내부 구현 문서**에 아래 **Handoff format**과 같은 제목·절 구조의 Markdown으로 기록한다. `deuk-agent-rule init`은 기본으로 **`.deuk-agent-handoff/`** 를 만들고 `.gitignore`에 넣어 로컬 전용으로 둔다. 이 패키지를 **`DeukAgentRules/`** 폴더로 둔 소비 모노레포에서는 **`DeukAgentRules/handoff/HANDOFF_LIST.md`** 인덱스를 기준으로 관리하고 `LATEST.md`는 포인터 스텁으로 유지할 수 있다(해당 `handoff/`는 소비 레포 `.gitignore`에 넣는다). 본문은 **사용자가 대화에 쓰는 언어**로 쓴다(특정 언어를 요청한 경우는 예외).
-- **핸드오프 선확인**: 구현·수정 등 본격 작업 전에 **보관된 핸드오프**를 확인한다. **반드시 경로 문자열을 규칙에 포함해 읽는다:** 존재하면 **`DeukAgentRules/handoff/HANDOFF_LIST.md`**(소비 레포 루트 기준), 그리고 **`.deuk-agent-handoff/`** 및 프로젝트별 내부 경로. 채팅에 붙여 넣은 핸드오프가 있으면 우선한다(사용자가 파일 기준이라고 하면 예외).
-- **핸드오프 파일 링크**: Markdown 링크 `[텍스트](경로)`·백틱 경로·채팅 안내에서 핸드오프 파일을 가리킬 때 **저장소(또는 워크스페이스) 루트 기준 전체 경로**를 쓴다(예: `DeukAgentRules/handoff/HANDOFF_LIST.md`, `project_i/foo/internal/handoff.md`). **`LATEST.md`처럼 파일명만** 단독으로 쓰지 않는다. 모노레포에서는 접두 경로를 생략하지 않는다.
 - **핸드오프 저장 후 채팅**: 파일로 남긴 뒤 채팅에 **`Path: \`루트기준/전체/경로.md\``** 형태로 **한 줄**을 반드시 넣어 다음 세션이 동일 파일을 연다.
-- **핸드오프 파일 머리줄(선택)**: 파일 첫 줄에 `**Handoff (repo-relative):** \`경로\`` 또는 동일 경로의 HTML 주석을 두어 검색·스캔에 쓸 수 있다.
-- **플랜 UI(선택)**: 플랜 전용 패널에 같은 문서를 띄우려면, 관리 중인 **multi-ai-workflow** 규칙에 적힌 **선택적 미러 경로**(예: `.cursor/plans/*.plan.md`)에 동일 본문을 둘 수 있다. 정본은 `.deuk-agent-handoff/` 또는 `DeukAgentRules/handoff/`를 유지하고 두 곳 내용을 맞출 것.
+- **핸드오프 파일 머리줄(선택)**: 파일 첫 줄에 `**Ticket (repo-relative):** \`경로\`` 또는 동일 경로의 HTML 주석을 두어 검색·스캔에 쓸 수 있다.
+- **플랜 UI(선택)**: 플랜 전용 패널에 같은 문서를 띄우려면, 관리 중인 **multi-ai-workflow** 규칙에 적힌 **선택적 미러 경로**(예: `.cursor/plans/*.plan.md`)에 동일 본문을 둘 수 있다. 정본은 `.deuk-agent-ticket/` 또는 `DeukAgentRules/ticket/`를 유지하고 두 곳 내용을 맞출 것.
 
 English sections above are canonical for tooling; this block is a short Korean mirror for the same rules.
 
-## Handoff format & Submodule Isolation
+## Ticket format & Submodule Isolation
 
 When handing work between tools or people—especially in an environment with multiple submodules like DeukUI, DeukPack, etc.—you **MUST NOT** use free-form markdown. 
 
-You **MUST** use the official Handoff Skeleton Template located at:
-`.deuk-agent-templates/HANDOFF_TEMPLATE.md`
+You **MUST** use the official Ticket Skeleton Template located at:
+`.deuk-agent-templates/TICKET_TEMPLATE.md`
 
-By copying this template to `.deuk-agent-handoff/TICKET-XXX.md` (or `LATEST.md`), you ensure that:
+By copying this template to `.deuk-agent-ticket/TICKET-XXX.md` (or `LATEST.md`), you ensure that:
 1. The **Target Submodule** is explicitly locked.
 2. The agent is forced to read specific **Module Rules** (e.g., `.deuk-agent-templates/MODULE_RULE_TEMPLATE.md`).
 3. Execution happens in explicit **Phases** to prevent context bleed.
 
-*For quick one-off tasks only*, you may use the short format:
-```markdown
-## Task: [title] | Target Submodule: [name]
-### Files to modify
-- `path/to/file`: [what to change]
-### Verification
-- [test command]
-```
-## Handoff persistence (internal implementation docs)
+## 🔗 Ticket Framework & Execution Strategy
 
-**Default local directory:** `npx deuk-agent-rule init` creates **`.deuk-agent-handoff/`** at the repo root and appends it to **`.gitignore`** so persisted handoffs are **not committed by default**. Remove or adjust that ignore rule if your team versions handoffs in git.
+When given a ticket, you MUST run commands and write code **strictly within the boundaries** of the `[Target Submodule]` defined in the `TICKET-XXX.md`.
 
-When a handoff should **outlive the chat** — for example the user asks to save it, it is the authoritative spec for a follow-up session or another implementer, or the team keeps structured handoffs in-repo — **write it as a Markdown file** under **internal implementation documentation** (implementation notes, not end-user or marketing docs). Prefer **`.deuk-agent-handoff/`** when no project convention exists; if this package lives in **`DeukAgentRules/`** at the consumer repo root, prefer **`DeukAgentRules/handoff/HANDOFF_LIST.md`** as index plus topic files under `.deuk-agent-handoff/` (see the next section). Otherwise use an existing convention such as `<product-or-feature>/internal/*.md` or `docs/internal/*.md`. If the user names a path, use it. Reuse the same section structure as **Handoff format** above. If only an inline paste is needed, skip creating a file unless the user asks to save.
+1. **Read the Ticket**: Identify the active `.deuk-agent-ticket/TICKET-XXX.md` file.
+2. **Execute Phase**: Process only the checklist for the **Current Phase**. Do not hallucinate or wander into other architectural areas.
+3. **Update Status**: Mark checkboxes (`[x]`) as tasks are completed.
 
-**Plan-style UI (optional):** Some editors surface **plan documents** separately from normal Markdown. You may **mirror** the same handoff body into the optional path described in the managed **multi-ai-workflow** rule (e.g. `.cursor/plans/deuk-handoff.plan.md`) while keeping the **canonical** file under **`.deuk-agent-handoff/`** or **`DeukAgentRules/handoff/`**. If both exist, **keep them in sync**.
+All Tickets are volatile and strictly local. Do not attempt to version them or mirror them to obsolete plan directories.
 
-**After saving (chat):** Include **one dedicated line** with the full repo-root-relative path, e.g. `Path: \`.deuk-agent-handoff/sub/container-unified-20260329-120000.md\`` — not only a bare filename inside prose.
-
-**Optional first line in the file:** e.g. `**Handoff (repo-relative):** \`path/from/root.md\`` or the same in an HTML comment on line 1.
-
-**Language:** Write the **body** of persisted handoffs in the **user’s language** — the language they use in the conversation (or their stated preference) — unless they ask for a specific language (for example English-only for an external partner).
-
-**Before substantive work:** Before implementation, fixes, or other non-trivial repo changes, **check persisted handoffs** in the locations above (including **`.deuk-agent-handoff/`** and any project-specific internal paths). **If the file `DeukAgentRules/handoff/HANDOFF_LIST.md` exists** (path relative to the **consumer** repository root — i.e. this rules package lives in a top-level folder named `DeukAgentRules`), **read it** before editing code, in addition to other handoff locations. Read documents that match the current task; a **pasted handoff** in the chat takes precedence unless the user says to follow files instead. Skip this scan only when no locations exist, nothing matches, or the user explicitly says to ignore stored handoffs.
-
-## Handoff directory when this package is cloned as `DeukAgentRules/` (consumer repos)
-
-In monorepos that vendor or submodule this package under a top-level directory **`DeukAgentRules`**, teams may use a **gitignored** handoff directory:
-
-- **Directory (repo-relative):** `DeukAgentRules/handoff/`
-- **Default file for the next agent:** `DeukAgentRules/handoff/HANDOFF_LIST.md` (index), then open linked topic files
-
-Add **`DeukAgentRules/handoff/`** to the **consumer** repository’s `.gitignore` unless you intentionally version handoffs.
-
-**Agent guidance (canonical path strings):** Rules and `AGENTS.md` in the consumer repo should tell agents to open **`DeukAgentRules/handoff/HANDOFF_LIST.md`** when it exists — not only a pasted chat block — so other tools and sessions can resume from the same clone.
-
-**Producing handoffs:** When saving a durable handoff for another agent, write the **Handoff format** body to topic files under **`.deuk-agent-handoff/`**, then update **`DeukAgentRules/handoff/HANDOFF_LIST.md`** as index (or use CLI `handoff create`). In chat, include **one line** with the full path, e.g. `Path: \`.deuk-agent-handoff/sub/container-unified-20260329-120000.md\`` using **repo-relative paths** (no `file://` URLs).
-
-**Handoff links (full path):** Whenever you **link** or **cite** a persisted handoff file — in **Handoff format** sections, chat, or Markdown — use the **full path from the repository root** (for example `DeukAgentRules/handoff/HANDOFF_LIST.md`, `project_i/_ref_data/deuk_define/reports/REF_DATA_DEUK_TRANSITION.md`). Do **not** use a **bare filename** (`LATEST.md` alone) or an ambiguous partial path. In monorepos, include every prefix segment so the path is unique in the workspace. Markdown: put the full path in the link target, e.g. `[handoff](DeukAgentRules/handoff/HANDOFF_LIST.md)` (repo-relative).
+<!-- deuk-agent-rule:end -->
