@@ -74,16 +74,16 @@ npx deuk-agent-rule init
 `npx deuk-agent-rule init` 또는 패키지를 업데이트하는 즉시 워크스페이스 최상단에 다음 두 개의 폴더가 자동 생성 및 관리됩니다:
 
 1. **`.deuk-agent-templates/` (Rule Skeleton)**
-   - 에이전트가 어떤 양식으로 작업을 처리해야 하는지 적힌 공식 템플릿(`HANDOFF_TEMPLATE.md` 등)이 제공됩니다. 이 폴더는 소스코드와 함께 시스템 프롬프트의 기준점으로 Git에 커밋됩니다.
-2. **`.deuk-agent-handoff/` (Ticket Instances)**
+   - 에이전트가 어떤 양식으로 작업을 처리해야 하는지 적힌 공식 템플릿(`TICKET_TEMPLATE.md` 등)이 제공됩니다. 이 폴더는 소스코드와 함께 시스템 프롬프트의 기준점으로 Git에 커밋됩니다.
+2. **`.deuk-agent-ticket/` (Ticket Instances)**
    - 에이전트 간 실제 작업을 이어가는 휘발성 지시서(`TICKET-XXX.md`)가 발급되는 공간입니다. 이 폴더는 시스템에 의해 강제로 **`.gitignore`** 에 기재되므로 작업 기록이 소스코드로 외부 누출되거나 오토 커밋되는 것을 완벽히 방지합니다.
 
 ### 💰 토큰 비용 절감을 위한 모듈 격리 (Submodule Isolation)
 
 거대한 프로젝트(예: 프론트엔드 모듈과 백엔드 모듈이 겹쳐 있는 모노레포)에서 전체 룰과 진행 상황을 단일 파일(`AGENTS.md`)에 밀어넣으면, 에이전트가 매 턴마다 쓸데없는 타 서버의 아키텍처 정보까지 강제로 연산하며 엄청난 비용을 청구합니다.
 
-DeukAgentRules는 **티켓 기반 구조(Ticket Handoff)**를 강제합니다.
-- 발급된 `.deuk-agent-handoff/TICKET.md` 파일 내에 `[Target Submodule]` 속성을 명시하게 함으로써, 에이전트가 **정확히 자신에게 할당된 모듈의 로직만을 읽어오도록 격리**합니다.
+DeukAgentRules는 **티켓 기반 구조(Ticket Ticket)**를 강제합니다.
+- 발급된 `.deuk-agent-ticket/TICKET.md` 파일 내에 `[Target Submodule]` 속성을 명시하게 함으로써, 에이전트가 **정확히 자신에게 할당된 모듈의 로직만을 읽어오도록 격리**합니다.
 - 채팅창에 복잡하게 지시할 필요 없이, 단순히 **"방금 발급된 TICKET 파일을 열어 작업을 재개하라"** 라고만 명령해도 AI가 완벽하게 한정된 컨텍스트 공간 안에서 가장 저렴하고 안전하게 작동하게 됩니다.
 
 ### 핸드오프 명령 (멀티 세션·도구 넘김)
@@ -91,14 +91,14 @@ DeukAgentRules는 **티켓 기반 구조(Ticket Handoff)**를 강제합니다.
 빠른 명령 예시:
 
 ```bash
-npx deuk-agent-rule handoff create --topic container-unified --group sub --project DeukUI --content "## Task: ..."
-npx deuk-agent-rule handoff list --group sub --project DeukUI --limit 20
-npx deuk-agent-rule handoff use --latest --path-only
+npx deuk-agent-rule ticket create --topic container-unified --group sub --project DeukUI --content "## Task: ..."
+npx deuk-agent-rule ticket list --group sub --project DeukUI --limit 20
+npx deuk-agent-rule ticket use --latest --path-only
 ```
 
-**플랜 패널**을 쓰는 환경에서는 동일 본문을 **`.cursor/plans/deuk-handoff.plan.md`** 등으로 **선택적으로 복제**해 둘 수 있습니다. 정본(`.deuk-agent-handoff/`)과 인덱스(`DeukAgentRules/handoff/HANDOFF_LIST.md`)를 기준으로 내용이 어긋나지 않게 맞추세요.
+**플랜 패널**을 쓰는 환경에서는 동일 본문을 **`.cursor/plans/deuk-ticket.plan.md`** 등으로 **선택적으로 복제**해 둘 수 있습니다. 정본(`.deuk-agent-ticket/`)과 인덱스(`DeukAgentRules/ticket/TICKET_LIST.md`)를 기준으로 내용이 어긋나지 않게 맞추세요.
 
-단일 세션 내 임시 핸드오프는 채팅에 인라인으로 작성하며, 여러 번 참조하거나 다중 에이전트가 공유해야 하거나 리스크를 기록해야 할 때는 내부 `.md` 파일로 전환합니다. 기본 저장 경로는 `.deuk-agent-handoff/` 로컬 디렉토리이며, 팀이 요청하거나 프로젝트 관례가 있을 때만 저장소에 커밋합니다.
+단일 세션 내 임시 핸드오프는 채팅에 인라인으로 작성하며, 여러 번 참조하거나 다중 에이전트가 공유해야 하거나 리스크를 기록해야 할 때는 내부 `.md` 파일로 전환합니다. 기본 저장 경로는 `.deuk-agent-ticket/` 로컬 디렉토리이며, 팀이 요청하거나 프로젝트 관례가 있을 때만 저장소에 커밋합니다.
 
 ### 핸드오프 시스템 (가성비 가이드)
 
@@ -107,7 +107,7 @@ npx deuk-agent-rule handoff use --latest --path-only
 - **Cursor:** always-apply 규칙이 자주 로드되므로 compact 인덱스 전환 효과가 큽니다.
 - **Antigravity:** 경량 실행 환경에서 토픽 단위 로딩이 특히 유리합니다.
 
-상세 사례/튜토리얼: [`docs/handoff-tutorial.md`](docs/handoff-tutorial.md)
+상세 사례/튜토리얼: [`docs/ticket-tutorial.md`](docs/ticket-tutorial.md)
 
 ### 주요 옵션
 

@@ -14,33 +14,33 @@ const __dirname = dirname(fileURLToPath(import.meta.url));
 const pkgRoot = join(__dirname, "..");
 const bundleRoot = join(pkgRoot, "bundle");
 
-/** Default directory for persisted handoffs; `init` adds it to `.gitignore`. */
-const HANDOFF_DIR_NAME = ".deuk-agent-handoff";
-const GITIGNORE_HANDOFF_MARKER = "# deuk-agent-rule: handoff directory (local, not committed by default)";
-const HANDOFF_LIST_FILENAME = "HANDOFF_LIST.md";
-const HANDOFF_INDEX_FILENAME = "INDEX.json";
+/** Default directory for persisted tickets; `init` adds it to `.gitignore`. */
+const TICKET_DIR_NAME = ".deuk-agent-ticket";
+const GITIGNORE_TICKET_MARKER = "# deuk-agent-rule: ticket directory (local, not committed by default)";
+const TICKET_LIST_FILENAME = "TICKET_LIST.md";
+const TICKET_INDEX_FILENAME = "INDEX.json";
 
-function printHandoffTip() {
+function printTicketTip() {
   console.log(
     "tip: Persist multi-session specs under " +
-      HANDOFF_DIR_NAME +
-      "/ (see README § Handoffs). Optional: mirror the same body to .cursor/plans/deuk-handoff.plan.md for the Plans panel.",
+      TICKET_DIR_NAME +
+      "/ (see README § Tickets). Optional: mirror the same body to .cursor/plans/deuk-ticket.plan.md for the Plans panel.",
   );
 }
 
-function ensureHandoffDirAndGitignore(opts) {
-  const handoffPath = join(opts.cwd, HANDOFF_DIR_NAME);
+function ensureTicketDirAndGitignore(opts) {
+  const ticketPath = join(opts.cwd, TICKET_DIR_NAME);
   const gitignorePath = join(opts.cwd, ".gitignore");
-  const ignoreLine = HANDOFF_DIR_NAME + "/";
+  const ignoreLine = TICKET_DIR_NAME + "/";
 
   if (opts.dryRun) {
-    console.log("handoff: would mkdir " + HANDOFF_DIR_NAME + "/ and ensure .gitignore ignores it");
-    printHandoffTip();
+    console.log("ticket: would mkdir " + TICKET_DIR_NAME + "/ and ensure .gitignore ignores it");
+    printTicketTip();
     return;
   }
 
-  mkdirSync(handoffPath, { recursive: true });
-  console.log("handoff: " + HANDOFF_DIR_NAME + "/");
+  mkdirSync(ticketPath, { recursive: true });
+  console.log("ticket: " + TICKET_DIR_NAME + "/");
 
   let gi = "";
   if (existsSync(gitignorePath)) {
@@ -48,20 +48,20 @@ function ensureHandoffDirAndGitignore(opts) {
     const lines = gi.split(/\r?\n/).map((l) => l.trim());
     const already =
       gi.includes(ignoreLine) ||
-      lines.some((t) => t === HANDOFF_DIR_NAME || t === ignoreLine.replace(/\/$/, ""));
+      lines.some((t) => t === TICKET_DIR_NAME || t === ignoreLine.replace(/\/$/, ""));
     if (already) {
-      console.log(".gitignore: already ignores " + HANDOFF_DIR_NAME);
-      printHandoffTip();
+      console.log(".gitignore: already ignores " + TICKET_DIR_NAME);
+      printTicketTip();
       return;
     }
-    const block = "\n" + GITIGNORE_HANDOFF_MARKER + "\n" + ignoreLine + "\n";
+    const block = "\n" + GITIGNORE_TICKET_MARKER + "\n" + ignoreLine + "\n";
     appendFileSync(gitignorePath, block, "utf8");
     console.log(".gitignore: appended " + ignoreLine.trim());
-    printHandoffTip();
+    printTicketTip();
   } else {
-    writeFileSync(gitignorePath, GITIGNORE_HANDOFF_MARKER + "\n" + ignoreLine + "\n", "utf8");
+    writeFileSync(gitignorePath, GITIGNORE_TICKET_MARKER + "\n" + ignoreLine + "\n", "utf8");
     console.log(".gitignore: created with " + ignoreLine.trim());
-    printHandoffTip();
+    printTicketTip();
   }
 }
 
@@ -101,7 +101,7 @@ function toSlug(input) {
   return String(input || "")
     .toLowerCase()
     .replace(/[^a-z0-9]+/g, "-")
-    .replace(/^-+|-+$/g, "") || "handoff";
+    .replace(/^-+|-+$/g, "") || "ticket";
 }
 
 function formatTimestampForFile(d = new Date()) {
@@ -114,16 +114,16 @@ function formatTimestampForFile(d = new Date()) {
   return `${y}${m}${day}-${hh}${mm}${ss}`;
 }
 
-function detectConsumerHandoffDir(cwd) {
-  const consumerPath = join(cwd, "DeukAgentRules", "handoff");
-  const localPath = join(cwd, "handoff");
+function detectConsumerTicketDir(cwd) {
+  const consumerPath = join(cwd, "DeukAgentRules", "ticket");
+  const localPath = join(cwd, "ticket");
   if (existsSync(consumerPath)) return consumerPath;
   if (existsSync(localPath)) return localPath;
   return consumerPath;
 }
 
 function readLegacyLatestPath(cwd) {
-  const candidateDirs = [join(cwd, "DeukAgentRules", "handoff"), join(cwd, "handoff")];
+  const candidateDirs = [join(cwd, "DeukAgentRules", "ticket"), join(cwd, "ticket")];
   for (const dir of candidateDirs) {
     const p = join(dir, "LATEST.md");
     if (existsSync(p)) return p;
@@ -131,8 +131,8 @@ function readLegacyLatestPath(cwd) {
   return null;
 }
 
-function readHandoffIndexJson(cwd) {
-  const p = join(cwd, HANDOFF_DIR_NAME, HANDOFF_INDEX_FILENAME);
+function readTicketIndexJson(cwd) {
+  const p = join(cwd, TICKET_DIR_NAME, TICKET_INDEX_FILENAME);
   if (!existsSync(p)) {
     return { version: 1, updatedAt: null, entries: [] };
   }
@@ -145,26 +145,26 @@ function readHandoffIndexJson(cwd) {
   }
 }
 
-function writeHandoffIndexJson(cwd, indexJson, opts) {
-  const dir = join(cwd, HANDOFF_DIR_NAME);
-  const p = join(dir, HANDOFF_INDEX_FILENAME);
+function writeTicketIndexJson(cwd, indexJson, opts) {
+  const dir = join(cwd, TICKET_DIR_NAME);
+  const p = join(dir, TICKET_INDEX_FILENAME);
   if (opts.dryRun) {
-    console.log("handoff: would write " + toRepoRelativePath(cwd, p));
+    console.log("ticket: would write " + toRepoRelativePath(cwd, p));
     return;
   }
   mkdirSync(dir, { recursive: true });
   writeFileSync(p, JSON.stringify(indexJson, null, 2) + "\n", "utf8");
-  console.log("handoff: wrote " + toRepoRelativePath(cwd, p));
+  console.log("ticket: wrote " + toRepoRelativePath(cwd, p));
 }
 
-function renderHandoffListMarkdown(cwd, entries) {
+function renderTicketListMarkdown(cwd, entries) {
   const sorted = [...entries].sort((a, b) => String(b.createdAt || "").localeCompare(String(a.createdAt || "")));
   const latest = sorted[0] || null;
 
   const lines = [];
-  lines.push("# Handoff List");
+  lines.push("# Ticket List");
   lines.push("");
-  lines.push(`> Source index: \`${HANDOFF_DIR_NAME}/${HANDOFF_INDEX_FILENAME}\``);
+  lines.push(`> Source index: \`${TICKET_DIR_NAME}/${TICKET_INDEX_FILENAME}\``);
   lines.push("");
   lines.push("## Latest");
   lines.push("");
@@ -176,7 +176,7 @@ function renderHandoffListMarkdown(cwd, entries) {
     lines.push(`- [${latest.title}](${relPath})`);
     lines.push(`- group: \`${group}\` / project: \`${project}\` / created: \`${createdAt}\``);
   } else {
-    lines.push("- No handoff entries yet.");
+    lines.push("- No ticket entries yet.");
   }
   lines.push("");
   lines.push("## Entries");
@@ -194,46 +194,46 @@ function renderHandoffListMarkdown(cwd, entries) {
   lines.push("## Commands");
   lines.push("");
   lines.push("```bash");
-  lines.push("npx deuk-agent-rule handoff list");
-  lines.push("npx deuk-agent-rule handoff use --latest");
+  lines.push("npx deuk-agent-rule ticket list");
+  lines.push("npx deuk-agent-rule ticket use --latest");
   lines.push("```\n");
 
   return lines.join("\n");
 }
 
-function writeHandoffListFile(cwd, entries, opts) {
-  const handoffDir = detectConsumerHandoffDir(cwd);
-  const p = join(handoffDir, HANDOFF_LIST_FILENAME);
-  const body = renderHandoffListMarkdown(cwd, entries);
+function writeTicketListFile(cwd, entries, opts) {
+  const ticketDir = detectConsumerTicketDir(cwd);
+  const p = join(ticketDir, TICKET_LIST_FILENAME);
+  const body = renderTicketListMarkdown(cwd, entries);
   if (opts.dryRun) {
-    console.log("handoff: would write " + toRepoRelativePath(cwd, p));
+    console.log("ticket: would write " + toRepoRelativePath(cwd, p));
     return;
   }
-  mkdirSync(handoffDir, { recursive: true });
+  mkdirSync(ticketDir, { recursive: true });
   writeFileSync(p, body, "utf8");
-  console.log("handoff: wrote " + toRepoRelativePath(cwd, p));
+  console.log("ticket: wrote " + toRepoRelativePath(cwd, p));
 }
 
 function writeLatestStub(cwd, opts) {
-  const handoffDir = detectConsumerHandoffDir(cwd);
-  const latestPath = join(handoffDir, "LATEST.md");
-  const listRel = toRepoRelativePath(cwd, join(handoffDir, HANDOFF_LIST_FILENAME));
+  const ticketDir = detectConsumerTicketDir(cwd);
+  const latestPath = join(ticketDir, "LATEST.md");
+  const listRel = toRepoRelativePath(cwd, join(ticketDir, TICKET_LIST_FILENAME));
   const body =
     "# Legacy pointer\n\n" +
-    "This file no longer stores full handoff bodies.\n\n" +
-    `See \`${listRel}\` for indexed handoffs.\n`;
+    "This file no longer stores full ticket bodies.\n\n" +
+    `See \`${listRel}\` for indexed tickets.\n`;
   if (opts.dryRun) {
-    console.log("handoff: would replace " + toRepoRelativePath(cwd, latestPath) + " with a pointer stub");
+    console.log("ticket: would replace " + toRepoRelativePath(cwd, latestPath) + " with a pointer stub");
     return;
   }
-  mkdirSync(handoffDir, { recursive: true });
+  mkdirSync(ticketDir, { recursive: true });
   writeFileSync(latestPath, body, "utf8");
-  console.log("handoff: updated " + toRepoRelativePath(cwd, latestPath));
+  console.log("ticket: updated " + toRepoRelativePath(cwd, latestPath));
 }
 
-function parseLegacyHandoffMeta(legacyBody) {
+function parseLegacyTicketMeta(legacyBody) {
   const titleMatch = legacyBody.match(/^##\s+Task:\s*(.+)$/m);
-  const title = titleMatch ? titleMatch[1].trim() : "Migrated legacy handoff";
+  const title = titleMatch ? titleMatch[1].trim() : "Migrated legacy ticket";
 
   let group = "sub";
   const lower = legacyBody.toLowerCase();
@@ -248,26 +248,26 @@ function parseLegacyHandoffMeta(legacyBody) {
 }
 
 function makeEntryId() {
-  return `handoff_${Date.now()}_${Math.random().toString(36).slice(2, 8)}`;
+  return `ticket_${Date.now()}_${Math.random().toString(36).slice(2, 8)}`;
 }
 
-function appendHandoffEntry(cwd, entry, opts) {
-  const indexJson = readHandoffIndexJson(cwd);
+function appendTicketEntry(cwd, entry, opts) {
+  const indexJson = readTicketIndexJson(cwd);
   const next = {
     version: 1,
     updatedAt: new Date().toISOString(),
     entries: [entry, ...indexJson.entries],
   };
-  writeHandoffIndexJson(cwd, next, opts);
-  writeHandoffListFile(cwd, next.entries, opts);
+  writeTicketIndexJson(cwd, next, opts);
+  writeTicketListFile(cwd, next.entries, opts);
 }
 
 function getLegacyMigrationCandidate(cwd) {
   const latestPath = readLegacyLatestPath(cwd);
   if (!latestPath) return null;
 
-  const handoffDir = dirname(latestPath);
-  const listPath = join(handoffDir, HANDOFF_LIST_FILENAME);
+  const ticketDir = dirname(latestPath);
+  const listPath = join(ticketDir, TICKET_LIST_FILENAME);
   if (existsSync(listPath)) return null;
 
   const body = readFileSync(latestPath, "utf8");
@@ -434,7 +434,7 @@ function printHelp() {
 Usage:
   npx deuk-agent-rule init   [options]   # interactive by default
   npx deuk-agent-rule merge  [options]
-  npx deuk-agent-rule handoff <create|list|use|migrate> [options]
+  npx deuk-agent-rule ticket <create|list|use|migrate> [options]
 
 Options:
   --cwd <path>          Target repo root (default: current directory)
@@ -448,13 +448,13 @@ Options:
   --append-if-no-markers
   --marker-begin / --marker-end  Custom marker strings (both required)
 
-Handoff options:
-  handoff create --topic <name> [--group <name>] [--project <name>] [--content <text>] [--from <path>]
-  handoff list [--group <name>] [--project <name>] [--topic <prefix>] [--limit <n>]
-  handoff use [--latest] [--topic <prefix>] [--path-only] [--print-content]
-  handoff migrate
+Ticket options:
+  ticket create --topic <name> [--group <name>] [--project <name>] [--content <text>] [--from <path>]
+  ticket list [--group <name>] [--project <name>] [--topic <prefix>] [--limit <n>]
+  ticket use [--latest] [--topic <prefix>] [--path-only] [--print-content]
+  ticket migrate
 
-init also creates .deuk-agent-handoff/ and appends it to .gitignore (local handoffs).
+init also creates .deuk-agent-ticket/ and appends it to .gitignore (local tickets).
 After npm update, run init again: deuk-agent-rule-*.mdc rules refresh from the bundle (no separate merge needed).
 
 Korean: package README.ko.md
@@ -462,7 +462,7 @@ Korean: package README.ko.md
   );
 }
 
-function parseHandoffArgs(argv) {
+function parseTicketArgs(argv) {
   const out = {
     cwd: process.cwd(),
     dryRun: false,
@@ -512,7 +512,7 @@ function parseHandoffArgs(argv) {
       printHelp();
       process.exit(0);
     } else {
-      throw new Error("Unknown handoff argument: " + a);
+      throw new Error("Unknown ticket argument: " + a);
     }
   }
 
@@ -583,27 +583,27 @@ async function maybeMigrateLegacyOnInit(opts) {
   if (!candidate) return;
 
   if (opts.dryRun) {
-    console.log("handoff: would migrate legacy LATEST.md into indexed topic files");
+    console.log("ticket: would migrate legacy LATEST.md into indexed topic files");
     return;
   }
 
   let shouldMigrate = !!opts.nonInteractive;
   if (!opts.nonInteractive && process.stdin.isTTY) {
-    shouldMigrate = await askYesNo("Legacy handoff detected in LATEST.md. Migrate to HANDOFF_LIST.md now?", true);
+    shouldMigrate = await askYesNo("Legacy ticket detected in LATEST.md. Migrate to TICKET_LIST.md now?", true);
   }
   if (!shouldMigrate) {
-    console.log("handoff: skipped legacy migration");
+    console.log("ticket: skipped legacy migration");
     return;
   }
 
-  const { title, group, project } = parseLegacyHandoffMeta(candidate.body);
+  const { title, group, project } = parseLegacyTicketMeta(candidate.body);
   const topic = toSlug(title);
   const stamp = formatTimestampForFile(new Date());
-  const targetDir = join(opts.cwd, HANDOFF_DIR_NAME, group);
+  const targetDir = join(opts.cwd, TICKET_DIR_NAME, group);
   const targetPath = join(targetDir, `${topic}-${stamp}.md`);
   mkdirSync(targetDir, { recursive: true });
   writeFileSync(targetPath, candidate.body.trimEnd() + "\n", "utf8");
-  console.log("handoff: migrated body -> " + toRepoRelativePath(opts.cwd, targetPath));
+  console.log("ticket: migrated body -> " + toRepoRelativePath(opts.cwd, targetPath));
 
   const entry = {
     id: makeEntryId(),
@@ -615,11 +615,11 @@ async function maybeMigrateLegacyOnInit(opts) {
     path: toRepoRelativePath(opts.cwd, targetPath),
     source: "legacy-latest",
   };
-  appendHandoffEntry(opts.cwd, entry, opts);
+  appendTicketEntry(opts.cwd, entry, opts);
   writeLatestStub(opts.cwd, opts);
 }
 
-function readHandoffBodyFromOpts(opts) {
+function readTicketBodyFromOpts(opts) {
   if (opts.content != null) return opts.content;
   if (opts.from) {
     const fromAbs = join(opts.cwd, opts.from);
@@ -628,31 +628,31 @@ function readHandoffBodyFromOpts(opts) {
     }
     return readFileSync(fromAbs, "utf8");
   }
-  throw new Error("handoff create requires --content or --from <file>");
+  throw new Error("ticket create requires --content or --from <file>");
 }
 
-function createTopicHandoffFile(opts, body) {
-  const topic = toSlug(opts.topic || "handoff");
+function createTopicTicketFile(opts, body) {
+  const topic = toSlug(opts.topic || "ticket");
   const group = toSlug(opts.group || "sub");
   const stamp = formatTimestampForFile(new Date());
-  const dir = join(opts.cwd, HANDOFF_DIR_NAME, group);
+  const dir = join(opts.cwd, TICKET_DIR_NAME, group);
   const abs = join(dir, `${topic}-${stamp}.md`);
   if (opts.dryRun) {
-    console.log("handoff: would write " + toRepoRelativePath(opts.cwd, abs));
+    console.log("ticket: would write " + toRepoRelativePath(opts.cwd, abs));
   } else {
     mkdirSync(dir, { recursive: true });
     writeFileSync(abs, body.trimEnd() + "\n", "utf8");
-    console.log("handoff: wrote " + toRepoRelativePath(opts.cwd, abs));
+    console.log("ticket: wrote " + toRepoRelativePath(opts.cwd, abs));
   }
   return { abs, topic, group };
 }
 
-function runHandoffCreate(opts) {
+function runTicketCreate(opts) {
   if (!opts.topic) {
-    throw new Error("handoff create requires --topic <name>");
+    throw new Error("ticket create requires --topic <name>");
   }
-  const body = readHandoffBodyFromOpts(opts);
-  const { abs, topic, group } = createTopicHandoffFile(opts, body);
+  const body = readTicketBodyFromOpts(opts);
+  const { abs, topic, group } = createTopicTicketFile(opts, body);
 
   const entry = {
     id: makeEntryId(),
@@ -662,46 +662,57 @@ function runHandoffCreate(opts) {
     project: opts.project || "global",
     createdAt: new Date().toISOString(),
     path: toRepoRelativePath(opts.cwd, abs),
-    source: "handoff-create",
+    source: "ticket-create",
   };
-  appendHandoffEntry(opts.cwd, entry, opts);
+  appendTicketEntry(opts.cwd, entry, opts);
   if (opts.dryRun) {
     console.log("Path: `" + entry.path + "`");
   }
 }
 
-function runHandoffList(opts) {
-  const indexJson = readHandoffIndexJson(opts.cwd);
-  let rows = [...indexJson.entries];
-  if (opts.group) rows = rows.filter((e) => String(e.group || "").toLowerCase() === String(opts.group).toLowerCase());
-  if (opts.project) {
-    rows = rows.filter((e) => String(e.project || "").toLowerCase() === String(opts.project).toLowerCase());
+function runTicketList(opts) {
+  
+  const dirs = [
+    join(opts.cwd, '.deuk-agent-ticket'),
+    join(opts.cwd, 'DeukAgentRules', 'ticket'),
+    join(opts.cwd, 'ticket')
+  ];
+  
+  console.log('\\n📦 Agent Tickets (Direct System Scan):');
+  let found = 0;
+  for (const dir of dirs) {
+    if (!existsSync(dir)) continue;
+    let files;
+    try { files = readdirSync(dir).filter(f => f.startsWith('TICKET-') && f.endsWith('.md')); } catch(e) { continue; }
+    
+    for (const f of files) {
+      found++;
+      const p = join(dir, f);
+      const c = readFileSync(p, 'utf8');
+      
+      const tm = c.match(/##\\s*Task:\\s*(.+)/);
+      const title = tm ? tm[1].split('|')[0].trim() : 'Untitled';
+      
+      const sm = c.match(/Target Submodule:\\s*([^\\n]+)/);
+      const sub = sm ? sm[1].replace(/\\`/g, '').trim() : '-';
+      
+      const pm = c.match(/\\[Phase[^\\]]+(완료|진행 중|대기)\\]/g);
+      const phaseStr = pm ? pm[pm.length - 1] : '[상태 불명]';
+      
+      const isComplete = phaseStr.includes('완료');
+      const icon = isComplete ? '✅' : '🔨';
+      
+      console.log(`  ${icon} [${f}]`);
+      console.log(`     Title:  ${title}`);
+      console.log(`     Target: ${sub}`);
+      console.log(`     Status: ${phaseStr}\\n`);
+    }
   }
-  if (opts.topic) {
-    rows = rows.filter((e) => String(e.topic || "").toLowerCase().includes(String(opts.topic).toLowerCase()));
-  }
-  rows.sort((a, b) => String(b.createdAt || "").localeCompare(String(a.createdAt || "")));
-  const limited = rows.slice(0, opts.limit);
-
-  if (limited.length === 0) {
-    console.log("handoff: no entries");
-    return;
-  }
-
-  console.log("#  GROUP       PROJECT     CREATED                  TOPIC                     PATH");
-  limited.forEach((e, idx) => {
-    const no = String(idx + 1).padEnd(2, " ");
-    const group = String(e.group || "-").padEnd(10, " ");
-    const project = String(e.project || "-").padEnd(11, " ");
-    const createdAt = String(e.createdAt || "-").padEnd(24, " ");
-    const topic = String(e.topic || "-").padEnd(24, " ");
-    const path = String(e.path || "-");
-    console.log(`${no} ${group} ${project} ${createdAt} ${topic} ${path}`);
-  });
+  if (found === 0) console.log('  No active TICKET-XXX.md found in usual ticket directories.\\n');
 }
 
-function pickHandoffEntry(opts) {
-  const indexJson = readHandoffIndexJson(opts.cwd);
+function pickTicketEntry(opts) {
+  const indexJson = readTicketIndexJson(opts.cwd);
   const rows = [...indexJson.entries].sort((a, b) => String(b.createdAt || "").localeCompare(String(a.createdAt || "")));
   if (rows.length === 0) return null;
   if (opts.topic) {
@@ -711,17 +722,17 @@ function pickHandoffEntry(opts) {
   return rows[0];
 }
 
-function runHandoffUse(opts) {
+function runTicketUse(opts) {
   if (!opts.latest && !opts.topic) {
-    throw new Error("handoff use requires --latest or --topic <prefix>");
+    throw new Error("ticket use requires --latest or --topic <prefix>");
   }
-  const found = pickHandoffEntry(opts);
+  const found = pickTicketEntry(opts);
   if (!found) {
-    throw new Error("handoff use: no matching entry");
+    throw new Error("ticket use: no matching entry");
   }
   const abs = join(opts.cwd, found.path);
   if (!existsSync(abs)) {
-    throw new Error("handoff use: file not found " + found.path);
+    throw new Error("ticket use: file not found " + found.path);
   }
 
   if (opts.pathOnly) {
@@ -735,24 +746,24 @@ function runHandoffUse(opts) {
   }
 }
 
-function runHandoffMigrate(opts) {
+function runTicketMigrate(opts) {
   const candidate = getLegacyMigrationCandidate(opts.cwd);
   if (!candidate) {
-    console.log("handoff: no legacy LATEST.md migration candidate found");
+    console.log("ticket: no legacy LATEST.md migration candidate found");
     return;
   }
 
-  const { title, group, project } = parseLegacyHandoffMeta(candidate.body);
+  const { title, group, project } = parseLegacyTicketMeta(candidate.body);
   const topic = toSlug(title);
   const stamp = formatTimestampForFile(new Date());
-  const targetDir = join(opts.cwd, HANDOFF_DIR_NAME, group);
+  const targetDir = join(opts.cwd, TICKET_DIR_NAME, group);
   const targetPath = join(targetDir, `${topic}-${stamp}.md`);
   if (opts.dryRun) {
-    console.log("handoff: would migrate -> " + toRepoRelativePath(opts.cwd, targetPath));
+    console.log("ticket: would migrate -> " + toRepoRelativePath(opts.cwd, targetPath));
   } else {
     mkdirSync(targetDir, { recursive: true });
     writeFileSync(targetPath, candidate.body.trimEnd() + "\n", "utf8");
-    console.log("handoff: migrated body -> " + toRepoRelativePath(opts.cwd, targetPath));
+    console.log("ticket: migrated body -> " + toRepoRelativePath(opts.cwd, targetPath));
   }
 
   const entry = {
@@ -763,9 +774,9 @@ function runHandoffMigrate(opts) {
     project,
     createdAt: new Date().toISOString(),
     path: toRepoRelativePath(opts.cwd, targetPath),
-    source: "handoff-migrate",
+    source: "ticket-migrate",
   };
-  appendHandoffEntry(opts.cwd, entry, opts);
+  appendTicketEntry(opts.cwd, entry, opts);
   writeLatestStub(opts.cwd, opts);
 }
 
@@ -808,7 +819,7 @@ async function runInit(opts) {
     console.log("rule " + r.action + ": " + (r.dest || r.src) + (r.reason ? " (" + r.reason + ")" : ""));
   }
 
-  ensureHandoffDirAndGitignore(opts);
+  ensureTicketDirAndGitignore(opts);
   ensureTemplatesDirAndCopyBundle(opts);
   ensureTemplatesDirAndCopyBundle(opts);
   await maybeMigrateLegacyOnInit(opts);
@@ -858,7 +869,7 @@ function runMerge(opts) {
 // Entry point
 // ---------------------------------------------------------------------------
 
-async function main() {
+async function main() { 
   const argv = process.argv.slice(2);
   const sub = argv[0];
   if (!sub || sub === "-h" || sub === "--help") {
@@ -872,9 +883,9 @@ async function main() {
     process.exit(0);
   }
 
-  if (sub === "handoff") {
+  if (sub === "ticket") {
     const action = rest[0];
-    const handoffRest = rest.slice(1);
+    const ticketRest = rest.slice(1);
     if (!action || action === "-h" || action === "--help") {
       printHelp();
       process.exit(0);
@@ -882,7 +893,7 @@ async function main() {
 
     let opts;
     try {
-      opts = parseHandoffArgs(handoffRest);
+      opts = parseTicketArgs(ticketRest);
     } catch (e) {
       console.error(e.message || e);
       printHelp();
@@ -890,12 +901,12 @@ async function main() {
     }
 
     try {
-      if (action === "create") runHandoffCreate(opts);
-      else if (action === "list") runHandoffList(opts);
-      else if (action === "use") runHandoffUse(opts);
-      else if (action === "migrate") runHandoffMigrate(opts);
+      if (action === "create") runTicketCreate(opts);
+      else if (action === "list") runTicketList(opts);
+      else if (action === "use") runTicketUse(opts);
+      else if (action === "migrate") runTicketMigrate(opts);
       else {
-        console.error("Unknown handoff action: " + action);
+        console.error("Unknown ticket action: " + action);
         printHelp();
         process.exit(1);
       }
