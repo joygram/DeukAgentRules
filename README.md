@@ -1,142 +1,98 @@
 # DeukAgentRules
 
-> **Part of the Deuk Family** — Empowering AI Agents with structured rules.
+> A core module of the **Deuk Family**. Maximizes collaboration efficiency of AI agents through structured rules.
 
 **npm package:** `deuk-agent-rule` · **CLI:** `deuk-agent-rule`
 
-**한국어:** [README.ko.md](https://github.com/joygram/DeukAgentRules/blob/master/README.ko.md)
+**Korean:** [README.ko.md](https://github.com/joygram/DeukAgentRules/blob/master/README.ko.md)
 
-Versioned templates for `AGENTS.md` and `.cursor/rules` for Cursor, GitHub Copilot, Gemini / Antigravity, Claude (via Cursor or Claude Code), Windsurf, JetBrains AI Assistant, and other coding agents that read project rules: shared handoff format, concise execution, stronger cost-efficiency and responsiveness.
+A **submodule-isolated collaborative framework** designed to be used alongside various coding agents such as Cursor, GitHub Copilot, Gemini / Antigravity, Claude, Windsurf, and JetBrains AI Assistant.
+It standardizes project rules (`AGENTS.md`, `.cursor/rules`) and strongly prevents wasteful prompt token consumption and AI context hallucination through a **ticket-based workflow**.
 
-> **Feature highlight:** Introduces zero-touch template scaffolding and target module isolation. This reduces repeated handoff context from ~1,500-2,000 tokens to ~200-300 tokens per session, preventing AI context bleeding and **drastically cutting token waste**.
+> **🚀 Core Value:**
+> Compresses the mandatory loaded context of approx. 1,500~2,000 tokens per session down to a mere 200~300 tokens. By isolating the AI to a specific **"Target Submodule"** using exact tickets (work orders), it prevents the AI from wandering through an entire monolithic repository.
 
-## Initialize a workspace
+---
+
+## 🛠️ Getting Started (Workspace Initialization)
+
+Install and initialize the package once at the project root.
 
 ```bash
 npm install deuk-agent-rule
 npx deuk-agent-rule init
 ```
 
-On the **first** `init` in a repo (no `.deuk-agent-rule.config.json`), a short **interactive** setup runs. **Later** `npx deuk-agent-rule init` reuses those choices and only applies template updates — no need for `--non-interactive` unless you are in **CI**. Use **`--interactive`** to change answers, or delete/edit the config file.
+Upon initialization, interactive questions will ask for the project's **tech stack** and **agent tools in use**. Based on your selections, optimized markdown templates and rule files (`.cursor/rules/*`) will be automatically generated and synchronized.
+- If you don't need to change the tech stack later, simply run `npx deuk-agent-rule init` to refresh the rules.
+- Suppress interactive prompts in CI or script environments by appending the `--non-interactive` flag.
 
-Running `init` for the first time (example):
+---
 
-```
-$ npx deuk-agent-rule init
+## 🎯 The Ticket Workflow
 
-DeukAgentRules init — let's configure your workspace.
+Running `npx deuk-agent-rule init` deploys a **zero-touch scaffolding sandbox** at your workspace root, spawning two essential directories:
 
-? What is your primary tech stack?
-  1) Unity / C#
-  2) Next.js + C#
-  3) Web (React / Vue / general)
-  4) Java / Spring Boot
-  5) Other / skip
-  Choice [1-5]: 3
+1. **`.deuk-agent-templates/` (Agent Templates)**: Houses the official blueprint (`TICKET_TEMPLATE.md`) dictating how AIs must process and report tasks. Committed alongside your source code to serve as the team's rulebook.
+2. **`.deuk-agent-ticket/` (Ticket Execution Space)**: The covert space where volatile instructions (`TICKET-XXX.md`) are exchanged between agents and workers. (Automatically hidden by `.gitignore` to prevent security leaks and repository bloat).
 
-? Which agent tools do you use? (comma-separated numbers, or 'all')
-  1) Cursor
-  2) GitHub Copilot
-  3) Gemini / Antigravity
-  4) Claude (Cursor / Claude Code)
-  5) Windsurf
-  6) JetBrains AI Assistant
-  7) All of the above
-  8) Other / skip
-  Choices: all
+The optimal **3-Step AI Coding Sequence** utilizing these sandbox folders is as follows.
 
-  Stack : web
-  Tools : cursor, copilot, gemini, claude, windsurf, jetbrains, all, other
-
-AGENTS.md: injected (inject)
-rule copied: .cursor/rules/deuk-agent-rule-multi-ai-workflow.mdc
-rule copied: .cursor/rules/deuk-agent-rule-delivery-and-parallel-work.mdc
-rule copied: .cursor/rules/deuk-agent-rule-git-commit.mdc
-```
-
-To skip questions (CI or scripted use):
+### [Step 1] Ticket Creation & Submodule Isolation
+Do not issue scattered, unbounded commands to your AI. Narrowing the **context** via a clear ticket is strictly required to prevent astronomical costs and accidental code corruption.
 
 ```bash
-npx deuk-agent-rule init --non-interactive
+npx deuk-agent-rule ticket create --topic ui-refactoring --group frontend --project DeukUI --content "## Task: Plugin UI Refactoring"
 ```
+This command instantly creates a templated `TICKET-ui-refactoring.md` file within the `.deuk-agent-ticket/` directory.
+The developer must simply specify the exact isolated directory path (e.g., `src/client`) inside the `[Target Submodule]` attribute at the top of the generated file.
 
-After a package upgrade:
+### [Step 2] Agent Execution & Handoff
+Provide a single line of instruction to your AI chatbot (Cursor, Gemini, etc.):
+> *"Open the recently issued `.deuk-agent-ticket/TICKET-ui-refactoring.md` ticket and strictly follow the checklist within the specified target submodule."*
+
+The AI will faithfully read the defined Phases in the ticket and write optimized code while **completely blocking out unnecessary computations for unrelated server logic or sibling modules**. (This mechanism drastically reduces token costs).
+
+### [Step 3] Status Review & Closure
+As the AI writes the code, it will simultaneously update the markup checkboxes (`[x]`) inside the ticket. If the agent's session memory limit is approaching, simply leave the ticket file saved, turn off the chat window, open a fresh session, and issue [Step 2] again. The handoff is seamlessly completed.
+Once all steps are accomplished, promote the Phase status to `[Phase Complete]`. Track all currently active tickets directly from the terminal:
 
 ```bash
-npm update deuk-agent-rule
-npx deuk-agent-rule init
+npx deuk-agent-rule ticket list
+```
+```text
+📦 Agent Tickets (Direct System Scan):
+  ✅ [TICKET-DEUKUI-Button.md]
+     Title: Add Button Component
+     Target: DeukUI
+     Status: [Complete]
+  🔨 [TICKET-ui-refactoring.md]
+     Title: Plugin UI Refactoring
+     Target: DeukUI
+     Status: [In Progress]
 ```
 
-Use `init --non-interactive` only in **CI** or headless scripts. You do **not** need a separate `merge` for routine upgrades: **`init` refreshes** the bundled `.cursor/rules` files. With default `--rules prefix`, existing **`deuk-agent-rule-*.mdc`** copies are **overwritten** from the new package so template fixes reach your repo. Unprefixed rule files you keep for local overrides are not touched. Only the **marker region** in `AGENTS.md` is replaced; your text outside stays.
+---
 
-### 🚀 Zero-Touch Scaffolding & Sandboxing
+## ⚙️ CLI Reference & Advanced Options
 
-Running `npx deuk-agent-rule init` now automatically scaffolds two vital directories at your workspace root:
+Advanced commands for workflow automation and target control.
 
-1. **`.deuk-agent-templates/` (Rule Skeleton)**
-   - Contains official templates (like `HANDOFF_TEMPLATE.md`) defining how agents should structure their tasks. This folder acts as your system prompt baseline and is committed to Git.
-2. **`.deuk-agent-handoff/` (Ticket Instances)**
-   - The volatile space where actual task handoffs (`TICKET-XXX.md`) are issued. This folder is forcibly added to **`.gitignore`** by the system, ensuring task histories never leak into your source code.
+### Ticket-based Commands
+| Command | Description |
+|--------|------|
+| `npx deuk-agent-rule ticket create --topic <name>` | Generates a new ticket document (accepts `--group`, `--project` options) |
+| `npx deuk-agent-rule ticket list` | Lists and displays the status of all active tickets |
+| `npx deuk-agent-rule ticket use --latest --path-only` | Returns only the file path of the most recent ticket for CI pipeline integrations |
 
-### 💰 Token Cost Reduction via Submodule Isolation
-
-In large codebases (e.g., frontend and backend overlapping in a monorepo), dumping all rules and progress into a single `AGENTS.md` file forces the AI to process irrelevant backend specs while tweaking frontend code, burning massive token costs.
-
-DeukAgentRules enforces a **Ticket-based Handoff Structure**:
-- By specifying the `[Target Submodule]` inside the exported `.deuk-agent-handoff/TICKET.md` file, the agent is strictly sandboxed.
-- It only loads logic and rules specific to that submodule, effectively preventing hallucination and operating cost-effectively in a narrowed context boundary.
-
-### Handoffs (multi-session and tool handover)
-
-Quick commands:
-
-```bash
-npx deuk-agent-rule handoff create --topic container-unified --group sub --project DeukUI --content "## Task: ..."
-npx deuk-agent-rule handoff list --group sub --project DeukUI --limit 20
-npx deuk-agent-rule handoff use --latest --path-only
-```
-
-Optionally, if you use an editor with a **Plans** panel, mirror the same Markdown body under **`.cursor/plans/deuk-handoff.plan.md`** (or `deuk-handoff-<topic>.plan.md`) so it appears there; keep it in sync with the canonical file under `.deuk-agent-handoff/` and index pointers in `DeukAgentRules/handoff/HANDOFF_LIST.md`.
-
-For temporary handoffs within a single session, write them inline in chat; when repeatedly referenced, shared across multiple agents, or recording risks, convert to an internal `.md` file. The default storage path is the local `.deuk-agent-handoff/` directory; commit to the repository only when requested by the user or following established team conventions.
-
-### Handoff system (cost guide)
-
-- **Claude Sonnet:** Best when you keep only index + selected topic file in context.
-- **Gemini (Flash/Pro):** Strong cost-performance for broad exploration; still benefits from topic handoffs.
-- **Cursor:** Biggest gain from compact handoff index because always-applied rules are loaded often.
-- **Antigravity:** Lightweight runs benefit from loading only one topic file per task.
-
-See full examples and workflow tutorial: [`docs/handoff-tutorial.md`](docs/handoff-tutorial.md).
-
-### Key options
-
+### Advanced Init Options
 | Flag | Default | Description |
-|------|---------|-------------|
-| `--non-interactive` | off | CI/scripts: no prompts; no saved-config path |
-| `--interactive` | off | Force the setup questions even if `.deuk-agent-rule.config.json` exists |
-| `--cwd <path>` | current directory | Target repo root |
-| `--dry-run` | off | Print actions without writing |
-| `--tag <id>` | `deuk-agent-rule` | Marker id: `<!-- <id>:begin/end -->` |
-| `--agents <mode>` | `inject` | `inject` \| `skip` \| `overwrite` |
-| `--rules <mode>` | `prefix` | `prefix` \| `skip` \| `overwrite` |
-| `--backup` | off | Write `*.bak` before overwrite |
+|--------|--------|------|
+| `--non-interactive` | Off | For CI/Scripts. Disables interactive UI and adopts existing `.config.json` |
+| `--interactive` | Off | Forces the interactive setup to reappear even if config already exists |
+| `--cwd <path>` | Current dir | Adjust target workspace root (absolute/relative path) |
+| `--dry-run` | Off | Simulates the execution text in the console without generating/altering files |
+| `--backup` | Off | Safely creates `*.bak` copies of `AGENTS.md` and rule files before overwriting |
 
-### Bundled rules
-
-- **`multi-ai-workflow.mdc`** — `alwaysApply: true`
-- **`delivery-and-parallel-work.mdc`** — `alwaysApply: true` (vertical slices, portfolio priority, parallel ownership, scoped refactors)
-- **`git-commit.mdc`** — `alwaysApply: false`
-
-### `merge` (stricter)
-
-Same flags; `AGENTS.md` inject fails without markers unless `--append-if-no-markers`. Default `--rules skip`.
-
-### Caveats
-
-- Multiple `alwaysApply: true` rules all apply — trim duplicates if context grows too large.
-- Do **not** run `init` from `postinstall` without an explicit team decision.
-
-## Versioning
-
-Bump `version` in `package.json` before publishing.
+## Versioning Policy
+Before pushing any core updates/feature changes to this package (`DeukAgentRules`), strictly bump the `version` inside `package.json` and publish it (`npm run sync:oss`).
