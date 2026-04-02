@@ -66,16 +66,16 @@ function ensureHandoffDirAndGitignore(opts) {
 }
 
 function ensureTemplatesDirAndCopyBundle(opts) {
-  const sourceTemplatesDir = join(bundleRoot, &quot;templates&quot;);
-  const targetTemplatesDir = join(opts.cwd, &quot;.deuk-agent-templates&quot;);
+  const sourceTemplatesDir = join(bundleRoot, "templates");
+  const targetTemplatesDir = join(opts.cwd, ".deuk-agent-templates");
   if (!existsSync(sourceTemplatesDir)) return;
   if (opts.dryRun) {
-    console.log(&quot;templates: would copy bundle/templates to .deuk-agent-templates/&quot;);
+    console.log("templates: would copy bundle/templates to .deuk-agent-templates/");
     return;
   }
   if (!existsSync(targetTemplatesDir)) {
     mkdirSync(targetTemplatesDir, { recursive: true });
-    console.log(&quot;templates: created &quot; + targetTemplatesDir + &quot;/&quot;);
+    console.log("templates: created " + targetTemplatesDir + "/");
   }
   const files = readdirSync(sourceTemplatesDir);
   for (const file of files) {
@@ -83,10 +83,11 @@ function ensureTemplatesDirAndCopyBundle(opts) {
     const destFile = join(targetTemplatesDir, file);
     if (!existsSync(destFile)) {
       copyFileSync(srcFile, destFile);
-      console.log(&quot;templates: copied &quot; + file + &quot; to .deuk-agent-templates/&quot;);
+      console.log("templates: copied " + file + " to .deuk-agent-templates/");
     }
   }
 }
+
 
 function toPosixPath(p) {
   return p.replace(/\\/g, "/");
