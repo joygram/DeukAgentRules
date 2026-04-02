@@ -8,7 +8,7 @@
 
 Versioned templates for `AGENTS.md` and `.cursor/rules` for Cursor, GitHub Copilot, Gemini / Antigravity, Claude (via Cursor or Claude Code), Windsurf, JetBrains AI Assistant, and other coding agents that read project rules: shared handoff format, concise execution, stronger cost-efficiency and responsiveness.
 
-> **Feature highlight:** Handoff Index + topic-based files reduce repeated handoff context from ~1,500-2,000 tokens to ~200-300 tokens per session (about **83% less recurring prompt load**).
+> **Feature highlight:** Introduces zero-touch template scaffolding and target module isolation. This reduces repeated handoff context from ~1,500-2,000 tokens to ~200-300 tokens per session, preventing AI context bleeding and **drastically cutting token waste**.
 
 ## Initialize a workspace
 
@@ -69,11 +69,24 @@ npx deuk-agent-rule init
 
 Use `init --non-interactive` only in **CI** or headless scripts. You do **not** need a separate `merge` for routine upgrades: **`init` refreshes** the bundled `.cursor/rules` files. With default `--rules prefix`, existing **`deuk-agent-rule-*.mdc`** copies are **overwritten** from the new package so template fixes reach your repo. Unprefixed rule files you keep for local overrides are not touched. Only the **marker region** in `AGENTS.md` is replaced; your text outside stays.
 
+### 🚀 Zero-Touch Scaffolding & Sandboxing
+
+Running `npx deuk-agent-rule init` now automatically scaffolds two vital directories at your workspace root:
+
+1. **`.deuk-agent-templates/` (Rule Skeleton)**
+   - Contains official templates (like `HANDOFF_TEMPLATE.md`) defining how agents should structure their tasks. This folder acts as your system prompt baseline and is committed to Git.
+2. **`.deuk-agent-handoff/` (Ticket Instances)**
+   - The volatile space where actual task handoffs (`TICKET-XXX.md`) are issued. This folder is forcibly added to **`.gitignore`** by the system, ensuring task histories never leak into your source code.
+
+### 💰 Token Cost Reduction via Submodule Isolation
+
+In large codebases (e.g., frontend and backend overlapping in a monorepo), dumping all rules and progress into a single `AGENTS.md` file forces the AI to process irrelevant backend specs while tweaking frontend code, burning massive token costs.
+
+DeukAgentRules enforces a **Ticket-based Handoff Structure**:
+- By specifying the `[Target Submodule]` inside the exported `.deuk-agent-handoff/TICKET.md` file, the agent is strictly sandboxed.
+- It only loads logic and rules specific to that submodule, effectively preventing hallucination and operating cost-effectively in a narrowed context boundary.
+
 ### Handoffs (multi-session and tool handover)
-
-`init` creates **`.deuk-agent-handoff/`** (and adds it to **`.gitignore`** by default) so you can **persist** structured specs beyond a single chat. Legacy full-body handoffs in `LATEST.md` are migrated to topic files and indexed via `HANDOFF_LIST.md` to keep recurring context small.
-
-Use the same sections as in `AGENTS.md` (**Handoff format**): task title, files to modify, decisions, constraints. That lets the next session or another tool pick up where you left off without re-explaining the repo.
 
 Quick commands:
 
