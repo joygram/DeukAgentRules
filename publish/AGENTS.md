@@ -57,20 +57,26 @@ No editor or vendor tool branding in code, docs, README, commits, or published a
 
 English sections above are canonical for tooling; this block is a short Korean mirror for the same rules.
 
-## Handoff format
+## Handoff format & Submodule Isolation
 
-When handing work between tools or people, use:
+When handing work between tools or people—especially in an environment with multiple submodules like DeukUI, DeukPack, etc.—you **MUST NOT** use free-form markdown. 
 
+You **MUST** use the official Handoff Skeleton Template located at:
+`.deuk-agent-templates/HANDOFF_TEMPLATE.md`
+
+By copying this template to `.deuk-agent-handoff/TICKET-XXX.md` (or `LATEST.md`), you ensure that:
+1. The **Target Submodule** is explicitly locked.
+2. The agent is forced to read specific **Module Rules** (e.g., `.deuk-agent-templates/MODULE_RULE_TEMPLATE.md`).
+3. Execution happens in explicit **Phases** to prevent context bleed.
+
+*For quick one-off tasks only*, you may use the short format:
 ```markdown
-## Task: [title]
+## Task: [title] | Target Submodule: [name]
 ### Files to modify
 - `path/to/file`: [what to change]
-### Design decisions
-- [decision]
-### Constraints
-- [constraint]
+### Verification
+- [test command]
 ```
-
 ## Handoff persistence (internal implementation docs)
 
 **Default local directory:** `npx deuk-agent-rule init` creates **`.deuk-agent-handoff/`** at the repo root and appends it to **`.gitignore`** so persisted handoffs are **not committed by default**. Remove or adjust that ignore rule if your team versions handoffs in git.

@@ -1,5 +1,5 @@
 #!/usr/bin/env node
-import { appendFileSync, existsSync, mkdirSync, readFileSync, writeFileSync } from "fs";
+import { appendFileSync, existsSync, mkdirSync, readFileSync, writeFileSync, copyFileSync, readdirSync } from "fs";
 import { createInterface } from "readline";
 import { dirname, join, relative } from "path";
 import { fileURLToPath } from "url";
@@ -62,6 +62,29 @@ function ensureHandoffDirAndGitignore(opts) {
     writeFileSync(gitignorePath, GITIGNORE_HANDOFF_MARKER + "\n" + ignoreLine + "\n", "utf8");
     console.log(".gitignore: created with " + ignoreLine.trim());
     printHandoffTip();
+  }
+}
+
+function ensureTemplatesDirAndCopyBundle(opts) {
+  const sourceTemplatesDir = join(bundleRoot, &quot;templates&quot;);
+  const targetTemplatesDir = join(opts.cwd, &quot;.deuk-agent-templates&quot;);
+  if (!existsSync(sourceTemplatesDir)) return;
+  if (opts.dryRun) {
+    console.log(&quot;templates: would copy bundle/templates to .deuk-agent-templates/&quot;);
+    return;
+  }
+  if (!existsSync(targetTemplatesDir)) {
+    mkdirSync(targetTemplatesDir, { recursive: true });
+    console.log(&quot;templates: created &quot; + targetTemplatesDir + &quot;/&quot;);
+  }
+  const files = readdirSync(sourceTemplatesDir);
+  for (const file of files) {
+    const srcFile = join(sourceTemplatesDir, file);
+    const destFile = join(targetTemplatesDir, file);
+    if (!existsSync(destFile)) {
+      copyFileSync(srcFile, destFile);
+      console.log(&quot;templates: copied &quot; + file + &quot; to .deuk-agent-templates/&quot;);
+    }
   }
 }
 
@@ -785,6 +808,8 @@ async function runInit(opts) {
   }
 
   ensureHandoffDirAndGitignore(opts);
+  ensureTemplatesDirAndCopyBundle(opts);
+  ensureTemplatesDirAndCopyBundle(opts);
   await maybeMigrateLegacyOnInit(opts);
 }
 

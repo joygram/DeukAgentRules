@@ -1,52 +1,35 @@
-## Task: DeukUI Container 생성기 단일화 2차
+## Task: DeukPack — 엔진 안정화, 보안 강화 및 세니타이즈 (Phase 2 이관)
 
 ### Files to modify
-- DeukUI/plugin/generators/container-code-generator.ts: 단일 진입점을 container-unified 중심으로 고정하고, 기존 분기 로직을 최소화
-- DeukUI/plugin/generators/container-generator-new.ts: wrapper 성격으로 축소하거나 호출 경로 제거 시 안전하게 정리
-- DeukUI/plugin/generators/container-unified.ts: 실제 생성 흐름을 단일 소스로 유지하도록 누락 경로 보강
-- DeukUI/plugin/generators/steps/code-generation-steps.ts: container 단계 계약(입력/출력 context) 주석 또는 체크리스트 추가
+- `DeukPack/src/serialization/WireSerializer.ts`: 직렬화 핸들러 레지스트리 분리 및 `WireSerializer` 클래스 경량화 (Phase 2).
+- `DeukPack/src/core/IdlParser.ts`: 파일 파싱 및 포함 구조 관리 로직 유틸리티 추출.
+- `DeukPack/docs/internal/`: 내부 문서 파일명 및 본문 내 잔여 레거시 식별자(`GPLAT` 등) 2차 전수조사.
+- `DeukPack/package.json`: Phase 2 리팩토링물에 대한 진입점 정합성 유지.
 
 ### Design decisions
-- 1차에서 완료한 경계 분리(container-step-helpers)는 유지하고, 2차는 진입점 단일화에 집중
-- 기능 변경보다 생성 경로 일원화와 충돌 감소를 우선
-- legacy 호환 레이어는 즉시 삭제보다 단계적 축소
-- 대규모 트리 환경이므로 작은 슬라이스 단위 커밋 유지
+- **보안 가드 표준화**: `BinaryReader`, `TBinaryProtocol`, `TCompactProtocol`에 적용된 `MAX_SAFE_LENGTH`(10MB)와 `WireDeserializer`의 `MAX_RECURSION_DEPTH`(64) 정책을 향후 모든 전송 레이어에 강제 적용.
+- **모듈 책임 분할**: 비대해진 코어 클래스를 `utils/`, `ast/`, `serialization/` 하위 모듈로 즉시 분리하여 각 코드 블록을 500라인 이내로 유지함.
+- **중립성 유지**: 모든 공개 명칭, 벤치마크 스크립트(`bench-project-dp-define.js`), 환경 변수(`DEUK_BENCH_PROJECT_DP_ROOT`)에서 식별자 중립성 원칙 고수.
 
 ### Constraints
-- npm run build:codegen 실행 시 plugin/code-generator.ts 버전 bump 가능성 있음
-- build 산출물(plugin/code.js, plugin/ui.html)은 가능하면 기능 검증용으로만 보고 불필요 diff 확산 방지
-- 현재 브랜치는 이미 대규모 변경을 포함하므로 되돌리기보다 전진식 정리
-- 검증은 build:plugin + get_errors 우선
+- **바이너리 호환 유지**: `BinaryWriter`의 I64 수정 및 `TBinaryProtocol` 문자열 쓰기 수정에 따른 타 언어 엔진(C++, C#, Java)과의 호환성 회귀 테스트(`test-e2e-roundtrip-chain.js`) 수행 필수.
+- **문서 외부 유출 방지**: `docs/internal/` 디렉토리는 공개 GitHub(DeukPackOSS) 동기화 범위에서 영구 제외(`OSS_PUBLISH_SCOPE.md` 준수).
 
 ### Current state
-- 기준 커밋 1: 33b7c615
-  - refactor(generator): split container step helpers
-  - 포함: container-step-helpers 신규, code-generation-steps import 전환, container-generator re-export 정리, import-css 주석 보정
-- 기준 커밋 2: 87524aab
-  - chore(plugin): checkpoint remaining generator and runtime changes
-  - 잔여 변경 57개 파일 체크포인트 커밋 완료
-- 워크트리 상태: clean
+- **Phase 1 완료**:
+  - `BinaryWriter` I64 절삭 버그 및 `TProtocol` 문자열 중복 쓰기 버그 수정.
+  - `MAX_SAFE_LENGTH` / `MAX_RECURSION_DEPTH` 보안 가드 전역 적용.
+  - `gplat`, `project_i` 등 내부 식별자 1차 제거 및 벤치마크 환경 업데이트.
+  - `DeukPackEngine`, `ExcelProtocol` 분할 완료 (PathUtils, ASTResolver, ExcelObjectReader, ExcelUtils 파생).
+- **검증**: `npm run verify:quick` 통과. 워크트리 clean.
 
 ### How to pick up
-1. 진입점 호출 그래프 확인
-- container-code-generator, container-generator-new, container-unified 간 실제 호출/사용 관계를 먼저 확정
-
-2. 단일 경로 강제
-- 최종 생성이 container-unified 한 경로로만 수렴하도록 호출부 정리
-- 기존 경로는 wrapper로 축소하거나 dead path 제거
-
-3. Step 계약 문서화
-- code-generation-steps.ts의 container 단계에 consumed/produced context 명시
-- 다음 구현자가 안전하게 수정할 수 있도록 체크리스트 추가
-
-4. 검증
-- npm run build:plugin
-- 대상 파일 get_errors
-- 가능하면 샘플 입력 1건으로 생성 결과 스모크 확인
+1. **WireSerializer 경량화**: `WireSerializer.ts` 내부의 직렬화 로직을 별도 핸들러로 추출하여 클래스 크기를 축소함.
+2. **IDL 파서 리팩토링**: `IdlParser.ts`의 포함 그래프 관리 및 파일 비즈니스 로직을 `DeukPackEngine`에서 사용한 `PathUtils` 규격에 맞춰 체계화함.
+3. **2차 세니타이즈**: `docs/internal/` 내의 파일명 중 `GPLAT_` 접두어가 남은 항목이 있는지 재검독하고, 본문 내 잔여 내부 명칭 치환.
 
 ### Risks
-- container-generator 계열 직접 참조가 남아 있으면 경로 단일화 시 회귀 가능
-- 체크포인트 이후 작업에서 build 산출물 diff가 다시 커질 수 있음
-- PluginData 전환 트랙과 병행되는 영역이라 책임 범위가 섞일 위험 있음
+- **타 언어 연동**: 바이너리 레이어 수정으로 인해 Unity(C#)나 서버(C++) 연동 시 비정상적인 데이터 파싱이 발생하는지 원격 엔진과 교차 검증 필요.
+- **포함 경로**: `PathUtils` 통합 과정에서 `include` 깊이가 깊은 복잡한 IDL 트리에 대한 파싱 순환 오류가 발생하지 않는지 확인.
 
 Generated: 2026-03-29

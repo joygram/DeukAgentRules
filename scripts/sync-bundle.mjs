@@ -16,7 +16,9 @@ const pkgRoot = join(__dirname, "..");
 /** Copy publish/ templates into bundle/ for npm packaging. */
 const publishDir = join(pkgRoot, "publish");
 const publishRulesDir = join(publishDir, "rules");
+const publishTemplatesDir = join(publishDir, "templates");
 const rulesDest = join(pkgRoot, "bundle", "rules");
+const templatesDest = join(pkgRoot, "bundle", "templates");
 const agentsSrc = join(publishDir, "AGENTS.md");
 const agentsDest = join(pkgRoot, "bundle", "AGENTS.md");
 
@@ -30,13 +32,19 @@ if (!existsSync(agentsSrc)) {
   throw new Error("Missing publish/AGENTS.md: " + agentsSrc);
 }
 
-if (existsSync(rulesDest)) {
-  rmSync(rulesDest, { recursive: true });
-}
+if (existsSync(rulesDest)) rmSync(rulesDest, { recursive: true });
 mkdirSync(rulesDest, { recursive: true });
 for (const name of readdirSync(publishRulesDir)) {
   if (!name.endsWith(".mdc")) continue;
   copyFileSync(join(publishRulesDir, name), join(rulesDest, name));
+}
+
+if (existsSync(publishTemplatesDir)) {
+  if (existsSync(templatesDest)) rmSync(templatesDest, { recursive: true });
+  mkdirSync(templatesDest, { recursive: true });
+  for (const name of readdirSync(publishTemplatesDir)) {
+    copyFileSync(join(publishTemplatesDir, name), join(templatesDest, name));
+  }
 }
 
 const agentsBody = readFileSync(agentsSrc, "utf8");
