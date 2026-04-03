@@ -22,10 +22,11 @@ By copying this template to `.deuk-agent-ticket/TICKET-XXX.md` (or `LATEST.md`),
 2. The agent is forced to read specific **Module Rules** (e.g., `.deuk-agent-templates/MODULE_RULE_TEMPLATE.md`).
 3. Execution happens in explicit **Phases** to prevent context bleed.
 
-## DeukPack Namespace Strict Rule (득팩 네임스페이스 엄격 룰)
+## DeukPack Codec & IDL Strict Rules (득팩 코어 체재 하드 룰)
 
-- **IDL Definition**: Every `.deuk` schema MUST explicitly declare a namespace (e.g., `namespace * game`). Never define global structs without a namespace in documentation or code.
-- **Code Examples & Docs**: Whenever writing tutorials, generated code, or README examples, you MUST use the fully qualified namespace path (e.g., `game.Hero.Pack()`, `game::Hero::Pack()`, `var hero = new game.Hero()`) to accurately reflect DeukPack's structural reality. Do NOT use isolated class names like `Hero` which breaks the compilation format.
+- **IDL Field Syntax (앵글 브래킷)**: 득팩의 필드 정의는 `1> int32 id` 형식을 따릅니다. Thrift 레거시 문법인 `:`(콜론), 세미콜론(`;`), `i32`, `i64`를 더 이상 문서나 코드에 사용하지 마십시오. 오로지 `id> type name` 및 `int32`, `int64` 표준 명칭을 강제합니다.
+- **Unified Pack API**: 과거의 `DeukPackSerializer`, `DeukPackEngine`, `WriteWithOverrides`, `WriteFields` 등은 모두 폐기되었습니다. 모든 코드에는 `DeukPackCodec` 식별자와 유니파이드 API(`byte[] bin = Dto.Hero.Pack(hero, overrides: dict)`, `hero.Unpack(bin)`)만 사용해야 합니다.
+- **Namespace Requirement**: Every `.deuk` schema MUST explicitly declare a namespace (e.g., `namespace * Dto`). Never define global structs without a namespace. Code examples MUST use the fully qualified namespace path (e.g., `Dto.Hero.Pack()`).
 
 ## 🔗 Ticket Framework & Execution Strategy
 
