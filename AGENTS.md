@@ -22,6 +22,11 @@ By copying this template to `.deuk-agent-ticket/TICKET-XXX.md` (or `LATEST.md`),
 2. The agent is forced to read specific **Module Rules** (e.g., `.deuk-agent-templates/MODULE_RULE_TEMPLATE.md`).
 3. Execution happens in explicit **Phases** to prevent context bleed.
 
+## DeukPack Namespace Strict Rule (득팩 네임스페이스 엄격 룰)
+
+- **IDL Definition**: Every `.deuk` schema MUST explicitly declare a namespace (e.g., `namespace * game`). Never define global structs without a namespace in documentation or code.
+- **Code Examples & Docs**: Whenever writing tutorials, generated code, or README examples, you MUST use the fully qualified namespace path (e.g., `game.Hero.Pack()`, `game::Hero::Pack()`, `var hero = new game.Hero()`) to accurately reflect DeukPack's structural reality. Do NOT use isolated class names like `Hero` which breaks the compilation format.
+
 ## 🔗 Ticket Framework & Execution Strategy
 
 When given a ticket, you MUST run commands and write code **strictly within the boundaries** of the `[Target Submodule]` defined in the `TICKET-XXX.md`.
