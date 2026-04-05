@@ -4,6 +4,21 @@ All notable changes to this project will be documented in this file.
 
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/), and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [1.0.15] - 2026-04-05
+
+
+### Added
+
+-  migrate and rename handoff terminology to ticket in CLI and templates
+
+
+### Changed
+
+-  Add strict rule for DeukPack namespace requirement
+-  completely eradicate legacy Handoff references from AGENTS.md, templates, and mdc rules
+-  Enforce DeukPack code format and API strictly as a hard rule
+-  refactor README usage guide and workflow
+
 ## [1.0.14] - 2026-04-02
 
 
