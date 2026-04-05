@@ -30,8 +30,9 @@
 ## 🔄 Phased Execution Steps
 > Agent: Do NOT attempt to do Phase 2 before Phase 1 is fully tested. Use separate chat messages per phase if the task is large.
 1. [Phase 1 완료] **보안 가드 도입**: `MAX_SAFE_LENGTH`(10MB) 및 `MAX_RECURSION_DEPTH`(64) Elixir 등 전역 적용, 식별자 세니타이즈 완료.
-2. **[Phase 2 진행 중]** `WireSerializer` 직렬화 레지스트리 분리 방어 및 `IdlParser` 유틸 분리.
+2. [Phase 1.5 완료] **안정화 및 버그 픽스**: C# 브릿지 앱 중복 Main 진입점 빌드 오류 해결. Elixir Generated Code JSON 프로토콜 예외(`FunctionClauseError`) Fallback 처리 및 컴파일 경고(`_et` 변수 섀도잉 등) 수정.
+3. [Phase 2 완료] **레지스트리 및 유틸 분리**: `WireSerializer` 직렬화 레지스트리 분리 방어 및 `IdlParser` 유틸 분리 구조 점검 완료.
 
 ## ✅ Verification / QA
-- [ ] `node scripts/test-e2e-roundtrip-chain.js` 통과 증명
+- [x] `node scripts/test-e2e-roundtrip-chain.js` 통과 증명 (모든 언어 및 Protocol 테스트 완료)
 - [ ] OOM 방어를 위한 Payload Fuzzing 테스트 통과 증명

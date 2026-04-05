@@ -1,5 +1,14 @@
 #!/usr/bin/env node
-import { appendFileSync, existsSync, mkdirSync, readFileSync, writeFileSync, copyFileSync, readdirSync } from "fs";
+import {
+  appendFileSync,
+  existsSync,
+  mkdirSync,
+  readFileSync,
+  writeFileSync,
+  copyFileSync,
+  readdirSync,
+  rmSync,
+} from "fs";
 import { createInterface } from "readline";
 import { dirname, join, relative } from "path";
 import { fileURLToPath } from "url";
@@ -16,33 +25,43 @@ const bundleRoot = join(pkgRoot, "bundle");
 
 /** Default directory for persisted tickets; `init` adds it to `.gitignore`. */
 const TICKET_DIR_NAME = ".deuk-agent-ticket";
-const GITIGNORE_TICKET_MARKER = "# deuk-agent-rule: ticket directory (local, not committed by default)";
+const GITIGNORE_TICKET_MARKER =
+  "# deuk-agent-rule: ticket directory (local, not committed by default)";
+const GITIGNORE_LOCAL_OVERRIDE_MARKER =
+  "# deuk-agent-rule: local runtime artifacts (do not commit)";
 const TICKET_LIST_FILENAME = "TICKET_LIST.md";
 const TICKET_INDEX_FILENAME = "INDEX.json";
+const PROJECT_OVERRIDE_DIR_NAME = ".project-overrides";
+const PROJECT_OVERRIDE_AGENT_DIR_NAME = "agent";
+const AGENT_TAG_GUIDE_FILENAME = "agent-rule-tags.md";
 
 function printTicketTip() {
   console.log(
     "tip: Persist multi-session specs under " +
       TICKET_DIR_NAME +
-      "/ (see README § Tickets). Keep your workflow strictly within the Ticket bounds.",
+      "/ (see README § Tickets). Keep your workflow strictly within the Ticket bounds."
   );
 }
 
-
 function cleanLegacyHandoffDirs(opts) {
-  
-  
-  const legacyDir = join(opts.cwd, '.deuk-agent-handoff');
+  const legacyDir = join(opts.cwd, ".deuk-agent-handoff");
   if (existsSync(legacyDir)) {
     if (opts.dryRun) {
-      console.log('cleanup: would delete legacy directory ' + legacyDir);
+      console.log("cleanup: would delete legacy directory " + legacyDir);
       return;
     }
     try {
       rmSync(legacyDir, { recursive: true, force: true });
-      console.log('cleanup: removed legacy handoff directory (.deuk-agent-handoff)');
+      console.log(
+        "cleanup: removed legacy handoff directory (.deuk-agent-handoff)"
+      );
     } catch (e) {
-      console.log('cleanup: failed to remove legacy handoff directory ' + legacyDir + ' -> ' + e.message);
+      console.log(
+        "cleanup: failed to remove legacy handoff directory " +
+          legacyDir +
+          " -> " +
+          e.message
+      );
     }
   }
 }
@@ -54,7 +73,11 @@ function ensureTicketDirAndGitignore(opts) {
   const ignoreLine = TICKET_DIR_NAME + "/";
 
   if (opts.dryRun) {
-    console.log("ticket: would mkdir " + TICKET_DIR_NAME + "/ and ensure .gitignore ignores it");
+    console.log(
+      "ticket: would mkdir " +
+        TICKET_DIR_NAME +
+        "/ and ensure .gitignore ignores it"
+    );
     printTicketTip();
     return;
   }
@@ -68,7 +91,9 @@ function ensureTicketDirAndGitignore(opts) {
     const lines = gi.split(/\r?\n/).map((l) => l.trim());
     const already =
       gi.includes(ignoreLine) ||
-      lines.some((t) => t === TICKET_DIR_NAME || t === ignoreLine.replace(/\/$/, ""));
+      lines.some(
+        (t) => t === TICKET_DIR_NAME || t === ignoreLine.replace(/\/$/, "")
+      );
     if (already) {
       console.log(".gitignore: already ignores " + TICKET_DIR_NAME);
       printTicketTip();
@@ -79,10 +104,118 @@ function ensureTicketDirAndGitignore(opts) {
     console.log(".gitignore: appended " + ignoreLine.trim());
     printTicketTip();
   } else {
-    writeFileSync(gitignorePath, GITIGNORE_TICKET_MARKER + "\n" + ignoreLine + "\n", "utf8");
+    writeFileSync(
+      gitignorePath,
+      GITIGNORE_TICKET_MARKER + "\n" + ignoreLine + "\n",
+      "utf8"
+    );
     console.log(".gitignore: created with " + ignoreLine.trim());
     printTicketTip();
   }
+}
+
+function ensureIgnoreLines(opts, marker, linesToIgnore) {
+  const gitignorePath = join(opts.cwd, ".gitignore");
+  const normalized = linesToIgnore.map((l) => String(l).trim()).filter(Boolean);
+
+  let existing = "";
+  if (existsSync(gitignorePath)) {
+    existing = readFileSync(gitignorePath, "utf8");
+  }
+  const trimmedLines = existing.split(/\r?\n/).map((l) => l.trim());
+  const missing = normalized.filter(
+    (line) =>
+      !existing.includes(line) &&
+      !trimmedLines.some(
+        (t) => t === line || t === line.replace(/\/$/, "") || t === line + "/"
+      )
+  );
+
+  if (missing.length === 0) {
+    console.log(".gitignore: local runtime ignore lines already present");
+    return;
+  }
+
+  if (opts.dryRun) {
+    console.log(
+      ".gitignore: would append local runtime ignore lines: " +
+        missing.join(", ")
+    );
+    return;
+  }
+
+  const block = "\n" + marker + "\n" + missing.join("\n") + "\n";
+  if (existsSync(gitignorePath)) {
+    appendFileSync(gitignorePath, block, "utf8");
+  } else {
+    writeFileSync(
+      gitignorePath,
+      marker + "\n" + missing.join("\n") + "\n",
+      "utf8"
+    );
+  }
+  console.log(".gitignore: appended local runtime ignore lines");
+}
+
+function ensureProjectOverrideLayout(opts) {
+  const rootDir = join(opts.cwd, PROJECT_OVERRIDE_DIR_NAME);
+  const agentDir = join(rootDir, PROJECT_OVERRIDE_AGENT_DIR_NAME);
+  const rootReadme = join(rootDir, "README.md");
+  const agentReadme = join(agentDir, "README.md");
+
+  if (opts.dryRun) {
+    console.log(
+      "override: would ensure " +
+        PROJECT_OVERRIDE_DIR_NAME +
+        "/" +
+        PROJECT_OVERRIDE_AGENT_DIR_NAME +
+        "/"
+    );
+    return;
+  }
+
+  mkdirSync(agentDir, { recursive: true });
+
+  if (!existsSync(rootReadme)) {
+    writeFileSync(
+      rootReadme,
+      "# Project Overrides\n\n" +
+        "This directory contains team-shared project override settings for AI workflows.\n\n" +
+        "- Use project-level guidance only.\n" +
+        "- Keep runtime artifacts and personal cache data out of git.\n" +
+        "- Template source-of-truth remains in DeukAgentRules.\n",
+      "utf8"
+    );
+    console.log(
+      "override: created " + toRepoRelativePath(opts.cwd, rootReadme)
+    );
+  }
+
+  if (!existsSync(agentReadme)) {
+    writeFileSync(
+      agentReadme,
+      "# Agent Override Settings\n\n" +
+        "Place repository-shared override policies here.\n\n" +
+        "Do not store runtime ticket data, personal IDE cache, or generated outputs here.\n" +
+        "Template semantics must be updated in DeukAgentRules first.\n",
+      "utf8"
+    );
+    console.log(
+      "override: created " + toRepoRelativePath(opts.cwd, agentReadme)
+    );
+  }
+}
+
+function maybeMigrateOverridesOnInit(opts) {
+  ensureProjectOverrideLayout(opts);
+  ensureIgnoreLines(opts, GITIGNORE_LOCAL_OVERRIDE_MARKER, [
+    ".cursor/",
+    ".cursorignore",
+    ".cursorrules",
+    ".codebuddy/",
+    ".github/prompts/",
+    "tmp/",
+  ]);
 }
 
 function ensureTemplatesDirAndCopyBundle(opts) {
@@ -90,7 +223,9 @@ function ensureTemplatesDirAndCopyBundle(opts) {
   const targetTemplatesDir = join(opts.cwd, ".deuk-agent-templates");
   if (!existsSync(sourceTemplatesDir)) return;
   if (opts.dryRun) {
-    console.log("templates: would copy bundle/templates to .deuk-agent-templates/");
+    console.log(
+      "templates: would copy bundle/templates to .deuk-agent-templates/"
+    );
     return;
   }
   if (!existsSync(targetTemplatesDir)) {
@@ -108,7 +243,6 @@ function ensureTemplatesDirAndCopyBundle(opts) {
   }
 }
 
-
 function toPosixPath(p) {
   return p.replace(/\\/g, "/");
 }
@@ -118,10 +252,12 @@ function toRepoRelativePath(cwd, absPath) {
 }
 
 function toSlug(input) {
-  return String(input || "")
-    .toLowerCase()
-    .replace(/[^a-z0-9]+/g, "-")
-    .replace(/^-+|-+$/g, "") || "ticket";
+  return (
+    String(input || "")
+      .toLowerCase()
+      .replace(/[^a-z0-9]+/g, "-")
+      .replace(/^-+|-+$/g, "") || "ticket"
+  );
 }
 
 function formatTimestampForFile(d = new Date()) {
@@ -143,7 +279,10 @@ function detectConsumerTicketDir(cwd) {
 }
 
 function readLegacyLatestPath(cwd) {
-  const candidateDirs = [join(cwd, "DeukAgentRules", "ticket"), join(cwd, "ticket")];
+  const candidateDirs = [
+    join(cwd, "DeukAgentRules", "ticket"),
+    join(cwd, "ticket"),
+  ];
   for (const dir of candidateDirs) {
     const p = join(dir, "LATEST.md");
     if (existsSync(p)) return p;
@@ -158,7 +297,8 @@ function readTicketIndexJson(cwd) {
   }
   try {
     const j = JSON.parse(readFileSync(p, "utf8"));
-    if (!Array.isArray(j.entries)) throw new Error("Invalid INDEX.json: entries must be an array");
+    if (!Array.isArray(j.entries))
+      throw new Error("Invalid INDEX.json: entries must be an array");
     return { version: 1, updatedAt: j.updatedAt ?? null, entries: j.entries };
   } catch {
     return { version: 1, updatedAt: null, entries: [] };
@@ -178,7 +318,9 @@ function writeTicketIndexJson(cwd, indexJson, opts) {
 }
 
 function renderTicketListMarkdown(cwd, entries) {
-  const sorted = [...entries].sort((a, b) => String(b.createdAt || "").localeCompare(String(a.createdAt || "")));
+  const sorted = [...entries].sort((a, b) =>
+    String(b.createdAt || "").localeCompare(String(a.createdAt || ""))
+  );
   const latest = sorted[0] || null;
 
   const lines = [];
@@ -194,7 +336,9 @@ function renderTicketListMarkdown(cwd, entries) {
     const project = latest.project || "global";
     const createdAt = latest.createdAt || "-";
     lines.push(`- [${latest.title}](${relPath})`);
-    lines.push(`- group: \`${group}\` / project: \`${project}\` / created: \`${createdAt}\``);
+    lines.push(
+      `- group: \`${group}\` / project: \`${project}\` / created: \`${createdAt}\``
+    );
   } else {
     lines.push("- No ticket entries yet.");
   }
@@ -208,7 +352,11 @@ function renderTicketListMarkdown(cwd, entries) {
     const group = String(e.group || "sub").replace(/\|/g, "\\|");
     const project = String(e.project || "global").replace(/\|/g, "\\|");
     const createdAt = String(e.createdAt || "-").replace(/\|/g, "\\|");
-    lines.push(`| ${i + 1} | ${title} | ${group} | ${project} | ${createdAt} | [open](${e.path}) |`);
+    lines.push(
+      `| ${i + 1} | ${title} | ${group} | ${project} | ${createdAt} | [open](${
+        e.path
+      }) |`
+    );
   });
   lines.push("");
   lines.push("## Commands");
@@ -237,13 +385,20 @@ function writeTicketListFile(cwd, entries, opts) {
 function writeLatestStub(cwd, opts) {
   const ticketDir = detectConsumerTicketDir(cwd);
   const latestPath = join(ticketDir, "LATEST.md");
-  const listRel = toRepoRelativePath(cwd, join(ticketDir, TICKET_LIST_FILENAME));
+  const listRel = toRepoRelativePath(
+    cwd,
+    join(ticketDir, TICKET_LIST_FILENAME)
+  );
   const body =
     "# Legacy pointer\n\n" +
     "This file no longer stores full ticket bodies.\n\n" +
     `See \`${listRel}\` for indexed tickets.\n`;
   if (opts.dryRun) {
-    console.log("ticket: would replace " + toRepoRelativePath(cwd, latestPath) + " with a pointer stub");
+    console.log(
+      "ticket: would replace " +
+        toRepoRelativePath(cwd, latestPath) +
+        " with a pointer stub"
+    );
     return;
   }
   mkdirSync(ticketDir, { recursive: true });
@@ -291,7 +446,9 @@ function getLegacyMigrationCandidate(cwd) {
   if (existsSync(listPath)) return null;
 
   const body = readFileSync(latestPath, "utf8");
-  const lineCount = body.split(/\r?\n/).filter((l) => l.trim().length > 0).length;
+  const lineCount = body
+    .split(/\r?\n/)
+    .filter((l) => l.trim().length > 0).length;
   const hasTaskHeader = /^##\s+Task:/m.test(body);
   if (!hasTaskHeader || lineCount <= 5) return null;
 
@@ -355,12 +512,12 @@ const STACKS = [
   { label: "Other / skip", value: "other" },
 ];
 
-/** Survey only today; merge/init does not branch on these yet (future tool-specific templates). */
+/** Survey is persisted and used to generate per-agent tagging/reference guidance on init. */
 const AGENT_TOOLS = [
   { label: "Cursor", value: "cursor" },
   { label: "GitHub Copilot", value: "copilot" },
   { label: "Gemini / Antigravity", value: "gemini" },
-  { label: "Claude (Cursor / Claude Code)", value: "claude" },
+  { label: "Claude Sonnet/Opus (Cursor / Claude Code)", value: "claude" },
   { label: "Windsurf", value: "windsurf" },
   { label: "JetBrains AI Assistant", value: "jetbrains" },
   { label: "All of the above", value: "all" },
@@ -371,6 +528,133 @@ const AGENT_TOOLS = [
 const INIT_CONFIG_VERSION = 1;
 const INIT_CONFIG_FILENAME = ".deuk-agent-rule.config.json";
 
+const AGENT_TAG_META = {
+  cursor: {
+    name: "Cursor",
+    rulePath: ".cursorrules, .cursor/rules/*.mdc",
+    tag: "agent:cursor",
+    sharedRef: "AGENTS.md",
+  },
+  copilot: {
+    name: "GitHub Copilot",
+    rulePath: ".github/copilot-instructions.md",
+    tag: "agent:copilot",
+    sharedRef: "AGENTS.md",
+  },
+  gemini: {
+    name: "Gemini / Antigravity",
+    rulePath: "GEMINI.md",
+    tag: "agent:gemini",
+    sharedRef: "AGENTS.md",
+  },
+  claude: {
+    name: "Claude Sonnet/Opus",
+    rulePath: "CLAUDE.md (or tool-specific Claude rules)",
+    tag: "agent:claude-sonnet",
+    sharedRef: "AGENTS.md",
+  },
+  windsurf: {
+    name: "Windsurf",
+    rulePath: "Windsurf workspace rules",
+    tag: "agent:windsurf",
+    sharedRef: "AGENTS.md",
+  },
+  jetbrains: {
+    name: "JetBrains AI Assistant",
+    rulePath: "JetBrains AI instructions",
+    tag: "agent:jetbrains",
+    sharedRef: "AGENTS.md",
+  },
+};
+
+function normalizeSelectedAgentTools(tools) {
+  if (!Array.isArray(tools) || tools.length === 0 || tools.includes("all")) {
+    return ["cursor", "copilot", "gemini", "claude"];
+  }
+  const known = new Set(Object.keys(AGENT_TAG_META));
+  const selected = [];
+  for (const t of tools) {
+    if (known.has(t) && !selected.includes(t)) selected.push(t);
+  }
+  if (selected.length === 0) {
+    return ["cursor", "copilot", "gemini", "claude"];
+  }
+  return selected;
+}
+
+function buildAgentTagGuideContent(selectedTools) {
+  const lines = [
+    "# Agent Rule Tags",
+    "",
+    "Purpose:",
+    "- Tag each agent rule set and force a shared baseline reference.",
+    "- Keep behavior aligned across tools while minimizing token waste.",
+    "",
+    "Mandatory shared reference:",
+    "- Every agent-specific rule file should include this line near the top:",
+    "  `Read and follow root AGENTS.md for project-wide rules.`",
+    "",
+    "## Selected Agent Tags",
+    "",
+    "| Agent | Rule location | Required tag | Shared rule reference |",
+    "|---|---|---|---|",
+  ];
+
+  for (const key of selectedTools) {
+    const meta = AGENT_TAG_META[key];
+    if (!meta) continue;
+    lines.push(
+      `| ${meta.name} | ${meta.rulePath} | ${meta.tag} | ${meta.sharedRef} |`
+    );
+  }
+
+  lines.push(
+    "",
+    "## Claude Sonnet Free-Cycle Guardrail",
+    "",
+    "When running Claude Sonnet on a free tier, enforce one-cycle mode by default:",
+    "- Output target: keep default answer within 5-10 lines unless user asks `EXPLAIN`.",
+    "- Read limit: up to 3 files per cycle, then stop and summarize.",
+    "- Execution limit: perform one concrete patch cycle, then wait for user confirmation.",
+    "- Option policy: provide one best fix only; avoid multiple alternatives.",
+    "",
+    "Suggested runtime profile mapping:",
+    "- Claude Sonnet free tier: `claude-sonnet` (high-cost mode)",
+    "- Claude Opus: `claude-opus` (high-cost mode)",
+    "- Gemini / Antigravity: `gemini-fast`",
+    "- Unknown model: `unknown` (treat as high-cost mode)",
+    ""
+  );
+
+  return lines.join("\n");
+}
+
+function ensureAgentTagGuide(opts) {
+  const selectedTools = normalizeSelectedAgentTools(opts.agentTools);
+  const agentDir = join(
+    opts.cwd,
+    PROJECT_OVERRIDE_DIR_NAME,
+    PROJECT_OVERRIDE_AGENT_DIR_NAME
+  );
+  const guidePath = join(agentDir, AGENT_TAG_GUIDE_FILENAME);
+  const content = buildAgentTagGuideContent(selectedTools);
+
+  if (opts.dryRun) {
+    console.log(
+      "override: would write " +
+        toRepoRelativePath(opts.cwd, guidePath) +
+        " (selected agents: " +
+        selectedTools.join(", ") +
+        ")"
+    );
+    return;
+  }
+
+  mkdirSync(agentDir, { recursive: true });
+  writeFileSync(guidePath, content, "utf8");
+  console.log("override: wrote " + toRepoRelativePath(opts.cwd, guidePath));
+}
+
 function loadInitConfig(cwd) {
   const p = join(cwd, INIT_CONFIG_FILENAME);
   if (!existsSync(p)) return null;
@@ -380,7 +664,11 @@ function loadInitConfig(cwd) {
     const allowedStack = new Set(STACKS.map((s) => s.value));
     if (!allowedStack.has(j.stack)) return null;
     const allowedTools = new Set(AGENT_TOOLS.map((t) => t.value));
-    if (!Array.isArray(j.agentTools) || !j.agentTools.every((t) => allowedTools.has(t))) return null;
+    if (
+      !Array.isArray(j.agentTools) ||
+      !j.agentTools.every((t) => allowedTools.has(t))
+    )
+      return null;
     if (!["inject", "skip", "overwrite"].includes(j.agentsMode)) return null;
     return {
       stack: j.stack,
@@ -410,8 +698,16 @@ async function runInteractive(opts) {
   try {
     console.log("\nDeukAgentRules init — let's configure your workspace.\n");
 
-    const stack = await selectOne(rl, "What is your primary tech stack?", STACKS);
-    const tools = await selectMany(rl, "Which agent tools do you use?", AGENT_TOOLS);
+    const stack = await selectOne(
+      rl,
+      "What is your primary tech stack?",
+      STACKS
+    );
+    const tools = await selectMany(
+      rl,
+      "Which agent tools do you use?",
+      AGENT_TOOLS
+    );
 
     const targetAgents = join(opts.cwd, "AGENTS.md");
     let agentsDefault = "inject";
@@ -422,11 +718,18 @@ async function runInteractive(opts) {
       const content = readFileSync(targetAgents, "utf8");
       const hasMarkers = content.includes("deuk-agent-rule:begin");
       if (!hasMarkers) {
-        const choice = await selectOne(rl, "AGENTS.md exists but has no markers. How to apply?", [
-          { label: "Append managed block at the end (safe)", value: "inject" },
-          { label: "Overwrite entire AGENTS.md", value: "overwrite" },
-          { label: "Skip AGENTS.md", value: "skip" },
-        ]);
+        const choice = await selectOne(
+          rl,
+          "AGENTS.md exists but has no markers. How to apply?",
+          [
+            {
+              label: "Append managed block at the end (safe)",
+              value: "inject",
+            },
+            { label: "Overwrite entire AGENTS.md", value: "overwrite" },
+            { label: "Skip AGENTS.md", value: "skip" },
+          ]
+        );
         agentsDefault = choice;
       }
     }
@@ -475,10 +778,11 @@ Ticket options:
   ticket migrate
 
 init also creates .deuk-agent-ticket/ and appends it to .gitignore (local tickets).
+init also prepares .project-overrides/agent/ and migrates local runtime ignore rules.
 After npm update, run init again: deuk-agent-rule-*.mdc rules refresh from the bundle (no separate merge needed).
 
 Korean: package README.ko.md
-`,
+`
   );
 }
 
@@ -523,7 +827,8 @@ function parseTicketArgs(argv) {
     } else if (a === "--limit") {
       const raw = argv[++i];
       const n = Number(raw);
-      if (!Number.isFinite(n) || n <= 0) throw new Error("--limit requires a positive number");
+      if (!Number.isFinite(n) || n <= 0)
+        throw new Error("--limit requires a positive number");
       out.limit = n;
     } else if (a === "--latest") out.latest = true;
     else if (a === "--path-only") out.pathOnly = true;
@@ -567,13 +872,16 @@ function parseArgs(argv) {
       if (out.tag == null) throw new Error("--tag requires a value");
     } else if (a === "--marker-begin") {
       out.markerBegin = argv[++i];
-      if (out.markerBegin == null) throw new Error("--marker-begin requires a value");
+      if (out.markerBegin == null)
+        throw new Error("--marker-begin requires a value");
     } else if (a === "--marker-end") {
       out.markerEnd = argv[++i];
-      if (out.markerEnd == null) throw new Error("--marker-end requires a value");
+      if (out.markerEnd == null)
+        throw new Error("--marker-end requires a value");
     } else if (a === "--agents") {
       out.agents = argv[++i];
-      if (!out.agents) throw new Error("--agents requires skip|overwrite|inject");
+      if (!out.agents)
+        throw new Error("--agents requires skip|overwrite|inject");
     } else if (a === "--rules") {
       out.rules = argv[++i];
       if (!out.rules) throw new Error("--rules requires skip|overwrite|prefix");
@@ -590,7 +898,9 @@ function parseArgs(argv) {
 
 function validateMode(name, v, allowed) {
   if (!allowed.includes(v)) {
-    throw new Error("Invalid " + name + ": " + v + " (allowed: " + allowed.join(", ") + ")");
+    throw new Error(
+      "Invalid " + name + ": " + v + " (allowed: " + allowed.join(", ") + ")"
+    );
   }
 }
 
@@ -603,27 +913,45 @@ async function maybeMigrateLegacyOnInit(opts) {
   if (!candidate) return;
 
   if (opts.dryRun) {
-    console.log("ticket: would migrate legacy LATEST.md into indexed topic files");
+    console.log(
+      "ticket: would migrate legacy LATEST.md into indexed topic files"
+    );
+    migrateLegacyCandidateToIndexedTicket(opts, candidate, "legacy-latest");
     return;
   }
 
   let shouldMigrate = !!opts.nonInteractive;
   if (!opts.nonInteractive && process.stdin.isTTY) {
-    shouldMigrate = await askYesNo("Legacy ticket detected in LATEST.md. Migrate to TICKET_LIST.md now?", true);
+    shouldMigrate = await askYesNo(
+      "Legacy ticket detected in LATEST.md. Migrate to TICKET_LIST.md now?",
+      true
+    );
   }
   if (!shouldMigrate) {
     console.log("ticket: skipped legacy migration");
     return;
   }
 
+  migrateLegacyCandidateToIndexedTicket(opts, candidate, "legacy-latest");
+}
+
+function migrateLegacyCandidateToIndexedTicket(opts, candidate, sourceTag) {
   const { title, group, project } = parseLegacyTicketMeta(candidate.body);
   const topic = toSlug(title);
   const stamp = formatTimestampForFile(new Date());
   const targetDir = join(opts.cwd, TICKET_DIR_NAME, group);
   const targetPath = join(targetDir, `${topic}-${stamp}.md`);
-  mkdirSync(targetDir, { recursive: true });
-  writeFileSync(targetPath, candidate.body.trimEnd() + "\n", "utf8");
-  console.log("ticket: migrated body -> " + toRepoRelativePath(opts.cwd, targetPath));
+  if (opts.dryRun) {
+    console.log(
+      "ticket: would migrate -> " + toRepoRelativePath(opts.cwd, targetPath)
+    );
+  } else {
+    mkdirSync(targetDir, { recursive: true });
+    writeFileSync(targetPath, candidate.body.trimEnd() + "\n", "utf8");
+    console.log(
+      "ticket: migrated body -> " + toRepoRelativePath(opts.cwd, targetPath)
+    );
+  }
 
   const entry = {
     id: makeEntryId(),
@@ -633,7 +961,7 @@ async function maybeMigrateLegacyOnInit(opts) {
     project,
     createdAt: new Date().toISOString(),
     path: toRepoRelativePath(opts.cwd, targetPath),
-    source: "legacy-latest",
+    source: sourceTag,
   };
   appendTicketEntry(opts.cwd, entry, opts);
   writeLatestStub(opts.cwd, opts);
@@ -690,54 +1018,86 @@ function runTicketCreate(opts) {
   }
 }
 
-function runTicketList(opts) {
-  
-  const dirs = [
-    join(opts.cwd, '.deuk-agent-ticket'),
-    join(opts.cwd, 'DeukAgentRules', 'ticket'),
-    join(opts.cwd, 'ticket')
+function getTicketScanDirs(cwd) {
+  return [
+    join(cwd, TICKET_DIR_NAME),
+    join(cwd, "DeukAgentRules", "ticket"),
+    join(cwd, "ticket"),
   ];
-  
-  console.log('\\n📦 Agent Tickets (Direct System Scan):');
+}
+
+function readTicketSnapshot(absPath) {
+  const body = readFileSync(absPath, "utf8");
+  const titleMatch = body.match(/##\\s*Task:\\s*(.+)/);
+  const submoduleMatch = body.match(/Target Submodule:\\s*([^\\n]+)/);
+  const phaseMatches = body.match(/\\[Phase[^\\]]+(완료|진행 중|대기)\\]/g);
+
+  const title = titleMatch ? titleMatch[1].split("|")[0].trim() : "Untitled";
+  const targetSubmodule = submoduleMatch
+    ? submoduleMatch[1].replace(/\\`/g, "").trim()
+    : "-";
+  const phase = phaseMatches
+    ? phaseMatches[phaseMatches.length - 1]
+    : "[상태 불명]";
+  const done = phase.includes("완료");
+
+  return { title, targetSubmodule, phase, done };
+}
+
+function runTicketList(opts) {
+  const dirs = getTicketScanDirs(opts.cwd);
+
+  console.log("\\n📦 Agent Tickets (Direct System Scan):");
   let found = 0;
   for (const dir of dirs) {
     if (!existsSync(dir)) continue;
     let files;
-    try { files = readdirSync(dir).filter(f => f.startsWith('TICKET-') && f.endsWith('.md')); } catch(e) { continue; }
-    
+    try {
+      files = readdirSync(dir).filter(
+        (f) => f.startsWith("TICKET-") && f.endsWith(".md")
+      );
+    } catch (e) {
+      continue;
+    }
+
     for (const f of files) {
       found++;
       const p = join(dir, f);
-      const c = readFileSync(p, 'utf8');
-      
-      const tm = c.match(/##\\s*Task:\\s*(.+)/);
-      const title = tm ? tm[1].split('|')[0].trim() : 'Untitled';
-      
-      const sm = c.match(/Target Submodule:\\s*([^\\n]+)/);
-      const sub = sm ? sm[1].replace(/\\`/g, '').trim() : '-';
-      
-      const pm = c.match(/\\[Phase[^\\]]+(완료|진행 중|대기)\\]/g);
-      const phaseStr = pm ? pm[pm.length - 1] : '[상태 불명]';
-      
-      const isComplete = phaseStr.includes('완료');
-      const icon = isComplete ? '✅' : '🔨';
-      
+      let snapshot;
+      try {
+        snapshot = readTicketSnapshot(p);
+      } catch (e) {
+        continue;
+      }
+      const icon = snapshot.done ? "✅" : "🔨";
+
       console.log(`  ${icon} [${f}]`);
-      console.log(`     Title:  ${title}`);
-      console.log(`     Target: ${sub}`);
-      console.log(`     Status: ${phaseStr}\\n`);
+      console.log(`     Title:  ${snapshot.title}`);
+      console.log(`     Target: ${snapshot.targetSubmodule}`);
+      console.log(`     Status: ${snapshot.phase}\\n`);
     }
   }
-  if (found === 0) console.log('  No active TICKET-XXX.md found in usual ticket directories.\\n');
+  if (found === 0)
+    console.log(
+      "  No active TICKET-XXX.md found in usual ticket directories.\\n"
+    );
 }
 
 function pickTicketEntry(opts) {
   const indexJson = readTicketIndexJson(opts.cwd);
-  const rows = [...indexJson.entries].sort((a, b) => String(b.createdAt || "").localeCompare(String(a.createdAt || "")));
+  const rows = [...indexJson.entries].sort((a, b) =>
+    String(b.createdAt || "").localeCompare(String(a.createdAt || ""))
+  );
   if (rows.length === 0) return null;
   if (opts.topic) {
     const key = String(opts.topic).toLowerCase();
-    return rows.find((e) => String(e.topic || "").toLowerCase().includes(key)) || null;
+    return (
+      rows.find((e) =>
+        String(e.topic || "")
+          .toLowerCase()
+          .includes(key)
+      ) || null
+    );
   }
   return rows[0];
 }
@@ -772,32 +1132,7 @@ function runTicketMigrate(opts) {
     console.log("ticket: no legacy LATEST.md migration candidate found");
     return;
   }
-
-  const { title, group, project } = parseLegacyTicketMeta(candidate.body);
-  const topic = toSlug(title);
-  const stamp = formatTimestampForFile(new Date());
-  const targetDir = join(opts.cwd, TICKET_DIR_NAME, group);
-  const targetPath = join(targetDir, `${topic}-${stamp}.md`);
-  if (opts.dryRun) {
-    console.log("ticket: would migrate -> " + toRepoRelativePath(opts.cwd, targetPath));
-  } else {
-    mkdirSync(targetDir, { recursive: true });
-    writeFileSync(targetPath, candidate.body.trimEnd() + "\n", "utf8");
-    console.log("ticket: migrated body -> " + toRepoRelativePath(opts.cwd, targetPath));
-  }
-
-  const entry = {
-    id: makeEntryId(),
-    title,
-    topic,
-    group,
-    project,
-    createdAt: new Date().toISOString(),
-    path: toRepoRelativePath(opts.cwd, targetPath),
-    source: "ticket-migrate",
-  };
-  appendTicketEntry(opts.cwd, entry, opts);
-  writeLatestStub(opts.cwd, opts);
+  migrateLegacyCandidateToIndexedTicket(opts, candidate, "ticket-migrate");
 }
 
 async function runInit(opts) {
@@ -826,7 +1161,11 @@ async function runInit(opts) {
     backup: opts.backup,
     agentsMode,
   });
-  console.log("AGENTS.md: " + agentsResult.action + (agentsResult.mode ? " (" + agentsResult.mode + ")" : ""));
+  console.log(
+    "AGENTS.md: " +
+      agentsResult.action +
+      (agentsResult.mode ? " (" + agentsResult.mode + ")" : "")
+  );
 
   const ruleActions = applyRules({
     bundleRulesDir: join(bundleRoot, "rules"),
@@ -836,12 +1175,19 @@ async function runInit(opts) {
     backup: opts.backup,
   });
   for (const r of ruleActions) {
-    console.log("rule " + r.action + ": " + (r.dest || r.src) + (r.reason ? " (" + r.reason + ")" : ""));
+    console.log(
+      "rule " +
+        r.action +
+        ": " +
+        (r.dest || r.src) +
+        (r.reason ? " (" + r.reason + ")" : "")
+    );
   }
 
   ensureTicketDirAndGitignore(opts);
   ensureTemplatesDirAndCopyBundle(opts);
-  ensureTemplatesDirAndCopyBundle(opts);
+  maybeMigrateOverridesOnInit(opts);
+  ensureAgentTagGuide(opts);
   await maybeMigrateLegacyOnInit(opts);
 }
 
@@ -871,7 +1217,11 @@ function runMerge(opts) {
     backup: opts.backup,
     agentsMode,
   });
-  console.log("AGENTS.md: " + agentsResult.action + (agentsResult.mode ? " (" + agentsResult.mode + ")" : ""));
+  console.log(
+    "AGENTS.md: " +
+      agentsResult.action +
+      (agentsResult.mode ? " (" + agentsResult.mode + ")" : "")
+  );
 
   const ruleActions = applyRules({
     bundleRulesDir: join(bundleRoot, "rules"),
@@ -881,7 +1231,13 @@ function runMerge(opts) {
     backup: opts.backup,
   });
   for (const r of ruleActions) {
-    console.log("rule " + r.action + ": " + (r.dest || r.src) + (r.reason ? " (" + r.reason + ")" : ""));
+    console.log(
+      "rule " +
+        r.action +
+        ": " +
+        (r.dest || r.src) +
+        (r.reason ? " (" + r.reason + ")" : "")
+    );
   }
 }
 
@@ -889,7 +1245,7 @@ function runMerge(opts) {
 // Entry point
 // ---------------------------------------------------------------------------
 
-async function main() { 
+async function main() {
   const argv = process.argv.slice(2);
   const sub = argv[0];
   if (!sub || sub === "-h" || sub === "--help") {
@@ -948,7 +1304,7 @@ async function main() {
 
   if (!existsSync(bundleRoot)) {
     console.error(
-      "Missing bundle/ (run from published package or run npm run sync in DeukAgentRules when developing).",
+      "Missing bundle/ (run from published package or run npm run sync in DeukAgentRules when developing)."
     );
     process.exit(1);
   }
@@ -958,15 +1314,24 @@ async function main() {
       if (!isNonInteractive(opts)) {
         const saved = loadInitConfig(opts.cwd);
         if (saved && !opts.interactive) {
-          opts.agents = opts.agents !== undefined ? opts.agents : saved.agentsMode;
+          opts.agents =
+            opts.agents !== undefined ? opts.agents : saved.agentsMode;
           opts.stack = saved.stack;
           opts.agentTools = saved.agentTools;
-          const stackL = STACKS.find((s) => s.value === saved.stack)?.label || saved.stack;
-          console.log("\nDeukAgentRules init — using saved choices from " + INIT_CONFIG_FILENAME);
+          const stackL =
+            STACKS.find((s) => s.value === saved.stack)?.label || saved.stack;
+          console.log(
+            "\nDeukAgentRules init — using saved choices from " +
+              INIT_CONFIG_FILENAME
+          );
           console.log("  Stack : " + saved.stack + " (" + stackL + ")");
           console.log("  Tools : " + (saved.agentTools.join(", ") || "none"));
           console.log("  AGENTS: " + opts.agents);
-          console.log("  (`--interactive` to change, or edit/delete " + INIT_CONFIG_FILENAME + ")\n");
+          console.log(
+            "  (`--interactive` to change, or edit/delete " +
+              INIT_CONFIG_FILENAME +
+              ")\n"
+          );
         } else {
           await runInteractive(opts);
           if (!opts.dryRun) {

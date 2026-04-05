@@ -29,9 +29,9 @@
 
 ## 🔄 Phased Execution Steps
 > Agent: Do NOT attempt to do Phase 3 before Phase 1 is fully tested. Use separate chat messages per phase if the task is large.
-1. [Phase 1: Setup / Parsing]
-2. [Phase 2: Core Logic Change]
-3. [Phase 3: Cleanup / Verification]
+1. [Phase 1> Setup / Parsing]
+2. [Phase 2> Core Logic Change]
+3. [Phase 3> Cleanup / Verification]
 
 ## ✅ Verification / QA
 - [e.g., Check CLI command output `npm run test`]
