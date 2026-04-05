@@ -1,0 +1,7 @@
+# Cursor — AGENTS.md is authoritative
+
+You MUST read and strictly follow the workflows, rules, and ticket formats defined in `AGENTS.md` at the repository root before writing or modifying any code. If `AGENTS.md` is not yet in your context for this task, open it and use it.
+
+**Precedence:** Repository root `AGENTS.md` defines project rules (structure, constraints, tickets). `.cursor/rules/*.mdc` files add editor-specific behavior (for example token discipline and multi-tool handoff). If anything conflicts, follow `AGENTS.md` for project facts and tickets.
+
+**Do not assume** stacks or repo layouts (microservices, api-gateway, OpenAPI-only workflows) unless they appear in this repository and `AGENTS.md`.

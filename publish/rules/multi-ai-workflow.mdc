@@ -1,5 +1,5 @@
 ---
-description: Handoff format rules for multi-AI workflow
+description: Ticket format rules for multi-AI workflow
 alwaysApply: true
 ---
 
@@ -9,47 +9,78 @@ alwaysApply: true
 
 Before implementation, fixes, or other **substantive** changes to the repo:
 
-1. **Check persisted handoffs** in the locations described in `AGENTS.md` (**Handoff persistence**) — at minimum inspect **`.deuk-agent-handoff/`** and any project-specific internal paths for files related to the current task.
-2. **If `DeukAgentRules/handoff/LATEST.md` exists** (repo root–relative path: rules package cloned as top-level folder `DeukAgentRules`), **read it** before editing code, in addition to step 1.
-3. **Read** matching documents before editing code. If the user **pasted** a handoff in the chat, treat that as primary unless they say to follow on-disk files instead.
-4. Skip the scan only when no handoff locations exist, nothing matches the task, or the user tells you to ignore stored handoffs.
+1. **Check persisted tickets** in the locations described in `AGENTS.md` (**Ticket persistence**) — at minimum inspect **`.deuk-agent-ticket/`** and any project-specific internal paths for files related to the current task.
+2. **If `DeukAgentRules/ticket/TICKET_LIST.md` exists** (repo root-relative path: rules package cloned as top-level folder `DeukAgentRules`), **read it** before editing code, then open only relevant topic files, in addition to step 1.
+3. **Read** matching documents before editing code. If the user **pasted** a ticket in the chat, treat that as primary unless they say to follow on-disk files instead.
+4. Skip the scan only when no ticket locations exist, nothing matches the task, or the user tells you to ignore stored tickets.
 
-## Receiving Handoff from Other Tools
+## Receiving Ticket from Other Tools
 
 When the user pastes a design or plan from another assistant or planning tool:
 
-1. Parse the **handoff format** (see `AGENTS.md`, heading **Handoff format**).
+1. Parse the **ticket format** (see `AGENTS.md`, heading **Ticket format**).
 2. Validate file paths exist before modifying.
 3. Execute changes as specified — do not redesign unless the user asks.
-4. Report back in the same handoff format for further iteration.
+4. Report back in the same ticket format for further iteration.
 
-## Producing Handoff for Other Tools
+## Producing Ticket for Other Tools
 
 When the user asks to prepare work for another tool:
 
-1. Output the handoff format with concrete file paths and change descriptions. When linking handoff files (Markdown `[label](path)` or path citations), use the **full path from the repository root** — never a bare filename.
+1. Output the ticket format with concrete file paths and change descriptions. When linking ticket files (Markdown `[label](path)` or path citations), use the **full path from the repository root** — never a bare filename.
 2. Include any constraints or dependencies.
 3. Do not include editor-specific instructions (token budgets, local rule file paths).
-4. When the handoff must **persist** (user asks to save or document it, or it is the canonical next-step spec), **create or update** a Markdown file under **internal implementation documentation** (see `AGENTS.md`, **Handoff persistence**). Prefer **`DeukAgentRules/handoff/LATEST.md`** when this repo has a top-level **`DeukAgentRules/`** folder; otherwise prefer **`.deuk-agent-handoff/`**; `init` gitignores that directory by default. Use the same handoff template; do not place this in public README/landing unless the project explicitly treats this as its internal log. In Markdown links and backtick citations, use the **full path from the repository root** — never a bare filename.
-5. **After writing a persisted handoff**, in chat include **one dedicated line** with the full repo-root-relative path so the next session can open it unambiguously, for example: `Path: \`.deuk-agent-handoff/LATEST.md\`` (same path you used in the file). Repeat the full path in links elsewhere in the same message if helpful.
-6. **Optional first line inside the persisted file** (improves search and skim): `**Handoff (repo-relative):** \`path/from/repo/root.md\`` or the same path in an HTML comment on line 1.
-7. Write persisted handoff **content** in the **user's conversation language** unless they specify another language.
+4. When the ticket must **persist** (user asks to save or document it, or it is the canonical next-step spec), **create or update** a Markdown file under **internal implementation documentation** (see `AGENTS.md`, **Ticket persistence**). Prefer topic files under **`.deuk-agent-ticket/`** and keep **`DeukAgentRules/ticket/TICKET_LIST.md`** as index when this repo has a top-level **`DeukAgentRules/`** folder; `init` gitignores `.deuk-agent-ticket/` by default. Use the same ticket template; do not place this in public README/landing unless the project explicitly treats this as its internal log. In Markdown links and backtick citations, use the **full path from the repository root** — never a bare filename.
+5. **After writing a persisted ticket**, in chat include **one dedicated line** with the full repo-root-relative path so the next session can open it unambiguously, for example: `Path: \`.deuk-agent-ticket/sub/container-unified-20260329-120000.md\`` (same path you used in the file). Repeat the full path in links elsewhere in the same message if helpful.
+6. **Optional first line inside the persisted file** (improves search and skim): `**Ticket (repo-relative):** \`path/from/repo/root.md\`` or the same path in an HTML comment on line 1.
+7. Write persisted ticket **content** in the **user's conversation language** unless they specify another language.
 
-## Persisted handoff vs plan UI (optional)
+## Context Preservation (New Issues)
 
-Some environments show **plan-style documents** in a separate panel from ordinary Markdown tabs. Behavior varies by product version; when the user wants that experience in **Cursor**, you may **mirror** the same handoff body (Handoff format) under the workspace **`.cursor/plans/`** directory using a **`.plan.md`** suffix, for example `.cursor/plans/deuk-handoff.plan.md` or `.cursor/plans/deuk-handoff-<topic>.plan.md`.
+If a new bug, unexpected error, or structural scope change arises during your work, **DO NOT** attempt to fix it within an endless conversational loop. This degrades the context window.
+Instead, immediately pause and **Prioritize Creating a Ticket**.
+- Document your findings and create a new `.deuk-agent-ticket/` Markdown file.
+- This preserves the context safely and allows transparent multi-agent handoffs or manual rollbacks.
 
-- **Canonical copy** remains **`.deuk-agent-handoff/`** or **`DeukAgentRules/handoff/LATEST.md`** (portable, matches `AGENTS.md`). The `.cursor/plans/` file is an **optional duplicate** for UI only.
+## Custom Slash Commands
+
+If the user's prompt starts with `/ticket` or `/티켓` (with an optional keyword like `DeukPack`), immediately pause and perform the following:
+1. Automatically run `npx deuk-agent-rule ticket list` in the terminal (append `--project <keyword>` if specified).
+2. Read the latest constraints and objectives from the fetched ticket metadata.
+3. Briefly summarize the active ticket state to the user and wait for their next command.
+
+## Persisted ticket vs plan UI (optional)
+
+Some environments show **plan-style documents** in a separate panel from ordinary Markdown tabs. Behavior varies by product version; when the user wants that experience in **Cursor**, you may **mirror** the same ticket body (Ticket format) under the workspace **`.cursor/plans/`** directory using a **`.plan.md`** suffix, for example `.cursor/plans/deuk-ticket.plan.md` or `.cursor/plans/deuk-ticket-<topic>.plan.md`.
+
+- **Canonical copy** remains topic files under **`.deuk-agent-ticket/`**, with **`DeukAgentRules/ticket/TICKET_LIST.md`** as the index pointer (portable, matches `AGENTS.md`). The `.cursor/plans/` file is an **optional duplicate** for UI only.
 - **Single source of truth:** If both exist, keep their **content in sync**; updating one should update the other in the same turn when possible.
-- **Version control:** Treat `.cursor/plans/` like other local-only handoffs unless the team commits plans on purpose — align with `.gitignore` team policy.
+- **Version control:** Treat `.cursor/plans/` like other local-only tickets unless the team commits plans on purpose — align with `.gitignore` team policy.
+- For temporary tickets within a single session, write them inline in chat; when repeatedly referenced, shared across multiple agents, or recording risks, convert to an internal `.md` file. The default storage path is the local `.deuk-agent-ticket/` directory; commit to the repository only when requested by the user or following established team conventions.
 
-## Role: Execution
+## Definitive Multi-AI Workflow Cycles
 
-In this workflow the agent's primary role is **execution** — applying concrete changes across multiple files. For design, analysis, or planning, defer to the user's chosen tool when they indicate.
+The core philosophy of this project dictates a strict separation of 'Reasoning' and 'Execution' via boundary tickets. The definitive workflow cycle is:
 
+1. **Explore & Plan (Reasoning AI):** High-reasoning agents (e.g., Gemini, Claude) explore the codebase, research constraints, and propose an implementation plan. 
+2. **Decision (User):** The user actively reviews and approves the plan.
+3. **Persist Ticket (Handoff):** The reasoning agent explicitly writes the approved plan into a `.deuk-agent-ticket/` Markdown file.
+4. **Execution (Coding AI):** IDE execution agents (e.g., Cursor, Windsurf) read the single ticket and strictly execute the code without deviating from the constraints.
+5. **Self-Verification (Post-Test Artifact Risk Analysis - MANDATORY):** Testing is NOT the final step. After tests are completed, the agent MUST automatically perform a risk analysis on the *resulting artifacts* (e.g., compiled binaries, generated bundles, final configurations) before reporting to the user:
+   - Do the generated artifacts introduce missing schemas, memory leaks, or unintended coupling?
+   - Are there structural corruptions or unintended side effects in the generated output?
+   - This step must be executed proactively; do not wait for the user to prompt for post-test analysis.
+   - If any risk is identified, document it in the ticket before reporting — do not silently suppress it.
+6. **Report & Close:** Present the final artifact risk analysis to the user. If verified successful, clear the queue by running `npx deuk-agent-rule ticket close --topic <topic>`. If unexpected issues arise, revert to Phase 1 (Explore) to amend the ticket.
+
+
+## Agent Role Awareness
+
+If you are operating inside an IDE (Cursor, Windsurf), you are strictly in Phase 4 (**Execution**). Do not attempt to over-engineer or explore completely out of bounds. Follow the Markdown ticket constraints strictly. If large-scale exploration or breaking structural changes are needed during execution, pause and instruct the user to revert to Phase 1 (Explore & Plan).
 ## Cost awareness (effective use of context)
 
 - Keep sessions **focused** — one clear objective per session when possible.
-- Prefer **concise** handoffs and replies: concrete paths, decisions, and diffs over narrative padding.
+- Prefer **concise** tickets and replies: concrete paths, decisions, and diffs over narrative padding.
 - For read-only analysis, prefer **summaries** and scoped excerpts over dumping whole files; use lightweight review modes when the product offers them.
-- When producing handoffs for *other* tools, omit local-only tuning hints (see **Producing Handoff** above); still stay efficient in your own responses here.
+- When producing tickets for *other* tools, omit local-only tuning hints (see **Producing Ticket** above); still stay efficient in your own responses here.
+- **Tone & Style**: No hype, no exaggerations, no fake satisfaction. Keep responses entirely factual and calm. When using Korean, end sentences concisely with '-요' instead of '-다/까'.

@@ -8,7 +8,7 @@ alwaysApply: true
 ## Default shape of work
 
 - Prefer **one PR (or one agent session outcome) = one vertically integrated slice**: buildable, runnable, and **demo-able** end-to-end for that slice. Do not treat “wide refactors with no user-visible behavior” as the default unit of delivery unless the user explicitly asks for that.
-- When the user states **portfolio, demo, or ship-this-week priority**, treat that as **scope authority**: narrow the task to what improves the visible outcome first; defer broad cleanups to a follow-up handoff unless they are blocking the slice.
+- When the user states **portfolio, demo, or ship-this-week priority**, treat that as **scope authority**: narrow the task to what improves the visible outcome first; defer broad cleanups to a follow-up ticket unless they are blocking the slice.
 
 ## Parallel branches and file ownership
 
@@ -18,9 +18,9 @@ alwaysApply: true
 
 ## Refactor discipline
 
-- **Shrink refactor scope by default**: extract or adjust only what the current task requires. If a larger refactor is tempting, split it: **(1)** minimal change that satisfies the task, **(2)** optional follow-up task in handoff format.
+- **Shrink refactor scope by default**: extract or adjust only what the current task requires. If a larger refactor is tempting, split it: **(1)** minimal change that satisfies the task, **(2)** optional follow-up task in ticket format.
 - Do not use “while we’re here” to rename, reformat, or reorganize unrelated modules.
 
-## Interaction with handoffs
+## Interaction with tickets
 
-- If a handoff or user message defines **Files to modify** and **Constraints**, those win; this rule file **narrows** how you plan and execute within that envelope — it does not override explicit file lists.
+- If a ticket or user message defines **Files to modify** and **Constraints**, those win; this rule file **narrows** how you plan and execute within that envelope — it does not override explicit file lists.

@@ -9,7 +9,7 @@
 GitHub **About** description field (keep under ~350 characters if the UI enforces a limit):
 
 ```
-DeukAgentRules — AGENTS.md + .cursor rule templates for Cursor, Copilot, Gemini, Claude, Windsurf, JetBrains AI Assistant, and similar coding agents: shared handoff format, concise execution, cost-efficiency. npx deuk-agent-rule init updates only a tagged region; your other rules stay intact.
+DeukAgentRules — AGENTS.md + .cursor rule templates for Cursor, Copilot, Gemini, Claude, Windsurf, JetBrains AI Assistant, and similar coding agents: shared ticket format, concise execution, cost-efficiency. npx deuk-agent-rule init updates only a tagged region; your other rules stay intact.
 ```
 
 ## Paste into GitHub — Korean (optional)
@@ -20,7 +20,7 @@ DeukAgentRules — Cursor, Copilot, Gemini, Claude, Windsurf, JetBrains AI Assis
 
 ## Even shorter (topics / subtitle)
 
-- EN: `DeukAgentRules — Cursor, Copilot, Gemini, Claude, Windsurf, JetBrains & more: handoffs, tag-scoped AGENTS.md + .cursor rules`
+- EN: `DeukAgentRules — Cursor, Copilot, Gemini, Claude, Windsurf, JetBrains & more: tickets, tag-scoped AGENTS.md + .cursor rules`
 - KO: `DeukAgentRules — Cursor·Copilot·Gemini·Claude·Windsurf·JetBrains 등 핸드오프, 태그 기반 룰`
 
 ## GitHub repository — Topics (recommended)
