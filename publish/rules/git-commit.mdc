@@ -1,24 +1,18 @@
 ---
-description: Git 커밋 메시지 — 짧고 의미 있게(저비용 출력)
-alwaysApply: false
+description: Commit message formatting (Plain text only)
+alwaysApply: true
 ---
 
-# Git commit messages (agent)
+# Git Commit Rules
 
-커밋 메시지·스테이징 요약을 쓸 때만 적용. **출력은 최소 토큰**, 내용은 **검색·리뷰에 쓸 만한 정보**만.
+Apply only when writing commit messages or staging summaries. Output must consume minimal tokens; content must be high-signal for search and review.
 
-## 형식 (기본)
+- First line only: Imperative mood, under 72 characters, no trailing period.
+- Optional type(scope): summary — feat, fix, refactor, docs, chore, etc. Use a single word for scope (directory or module).
+- Body: Only when requested by the user or when changes span multiple topics. Use a maximum of 3 bullet points, each under 80 characters.
 
-- **첫 줄만**: 명령형, **72자 이내**, 마침표 없음.
-- **선택** `type(scope): summary` — `feat` `fix` `refactor` `docs` `chore` 등; `scope`는 디렉터리·모듈 한 단어.
-- **본문**: 사용자가 요청하거나 변경이 여러 주제일 때만. 그때도 **불릿 최대 3줄**, 각 80자 이내.
+- What to include: Describe what changed in one sentence (behavior, contract, compatibility). Mark risky changes with a prefix (e.g., BREAKING or migration note).
+- What to exclude: Do not restate diffs, list filenames, use filler like "updated/improved", use emojis, provide long tutorials, or provide bilingual translations (use one project language). Never use the word "sync" in the commit title; use specific words like "release", "update", or "apply".
 
-## 쓸 것 / 쓰지 말 것
-
-- **쓸 것**: 무엇이 바뀌었는지 한 문장(동작·계약·호환). 위험한 변경이면 한 단어로 표시(`BREAKING` 또는 마이그레이션 한 줄).
-- **쓰지 말 것**: diff 재서술, 파일 목록 나열, “업데이트함/개선함” 같은 빈 말, 이모지, 장문 튜토리얼, 영어·한국어 이중 번역(팀 언어 하나만). 커밋 메시지 제목(Title)에 "sync" 단어 사용 금지 (대신 "release", "update", "apply" 등으로 구체적으로 표현).
-
-## 비용
-
-- 한 커밋 주제면 **제목 한 줄로 끝낸다.**
-- 스테이징이 크면 제목은 요약하고, 본문은 **사용자가 본문 달라고 할 때만** 추가한다.
+- For single-topic commits, use a one-line title only.
+- For large staging areas, summarize the title and only add a body if the user explicitly requests it.
