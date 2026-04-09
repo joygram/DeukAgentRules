@@ -82,8 +82,10 @@ Advanced commands for workflow automation and target control.
 | Command | Description |
 |--------|------|
 | `npx deuk-agent-rule ticket create --topic <name>` | Generates a new ticket document (accepts `--group`, `--project` options) |
-| `npx deuk-agent-rule ticket list` | Lists and displays the status of all active tickets |
+| `npx deuk-agent-rule ticket list` | Lists and displays the status of all active tickets (Use `--archived`, `--all` options to query history) |
 | `npx deuk-agent-rule ticket use --latest --path-only` | Returns only the file path of the most recent ticket for CI pipeline integrations |
+| `npx deuk-agent-rule ticket archive --latest` | Securely moves completed tickets to the `archive/` folder and updates INDEX state (Attach AI reports via `--report`) |
+| `npx deuk-agent-rule ticket reports` | Lists structurally preserved agent work reports (`.deuk-agent-ticket/reports/`) sorted by recency |
 
 ### Advanced Init Options
 | Flag | Default | Description |

@@ -81,9 +81,11 @@ npx deuk-agent-rule ticket list
 ### Ticket 기반 명령
 | 커맨드 | 설명 |
 |--------|------|
-| `npx deuk-agent-rule ticket create --topic <주제>` | 신규 티켓 문서 생성 (`--group`, `--project` 옵션 지시 가능) |
-| `npx deuk-agent-rule ticket list` | 발급된 전체 티켓의 현재 상태 및 리스트업 |
+| `npx deuk-agent-rule ticket create --topic <주제>` | 신규 티켓 문서 생성 (`--group`, `--project` 옵션 지정 가능) |
+| `npx deuk-agent-rule ticket list` | 발급된 활성 티켓의 현재 상태 및 리스트업 (`--archived`, `--all` 옵션으로 완료 이력 조회) |
 | `npx deuk-agent-rule ticket use --latest --path-only` | 빌드 파이프라인 연동을 위해 최근 티켓의 파일 경로만 반환 |
+| `npx deuk-agent-rule ticket archive --latest` | 완료된 티켓을 안전하게 보관소(`archive/`)로 이동시키고 INDEX 상태를 갱신 (`--report` 인자로 AI 워크스루 첨부 가능) |
+| `npx deuk-agent-rule ticket reports` | 완료되어 영구 보관된 에이전트 작업 보고서(`.deuk-agent-ticket/reports/`) 목록을 최신순으로 조회 |
 
 ### Init 고급 옵션
 | 플래그 | 기본값 | 설명 |
