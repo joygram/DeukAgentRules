@@ -55,7 +55,8 @@ The AI will faithfully read the defined Phases in the ticket and write optimized
 
 ### [Step 3] Status Review & Closure
 As the AI writes the code, it will simultaneously update the markup checkboxes (`[x]`) inside the ticket. If the agent's session memory limit is approaching, simply leave the ticket file saved, turn off the chat window, open a fresh session, and issue [Step 2] again. The handoff (session transfer) is seamlessly completed.
-Once all steps are accomplished, promote the Phase status to `[Phase Complete]`. Track all currently active tickets directly from the terminal:
+Once all steps are accomplished, promote the Phase status to `[Phase Complete]`. Instead of manually typing terminal commands, **you can simply tell your AI chatbot via natural language prompt: "Show me the list of active tickets" or "Archive the completed tickets with reports"**, and the AI will autonomously invoke the CLI to manage them for you.
+To track tickets manually from the terminal, run:
 
 ```bash
 npx deuk-agent-rule ticket list
