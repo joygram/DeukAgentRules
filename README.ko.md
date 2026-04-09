@@ -84,11 +84,11 @@ npx deuk-agent-rule ticket list
 
 | 커맨드 | 설명 / 자연어 프롬프트 지시 예시 |
 |--------|------|
-| `npx deuk-agent-rule ticket create ...` | 신규 티켓 문서 생성 (`--group`, `--project` 지정 가능) <br>💬 *"UI 리팩토링 주제로 프론트엔드 그룹에 새 티켓을 만들어줘"* |
-| `npx deuk-agent-rule ticket list` | 활성 티켓의 현재 상태 및 리스트업 (`--archived`, `--all` 지원) <br>💬 *"현재 활성화된 티켓 리스트를 보여줘"* |
-| `npx deuk-agent-rule ticket use --latest ...` | 빌드 파이프라인 연동을 위해 최근 티켓의 파일 경로만 반환 <br>💬 *"가장 최근에 작업한 티켓 경로를 알려줘"* |
-| `npx deuk-agent-rule ticket archive ...` | 완료된 티켓을 안전하게 보관소(`archive/`)로 이동 및 갱신 <br>💬 *"이 티켓 작업을 완료했어. 마크다운 보고서와 함께 아카이브 해 줘"* |
-| `npx deuk-agent-rule ticket reports` | 영구 보관된 에이전트 작업 보고서(`reports/`) 목록 조회 <br>💬 *"최근에 완료/보관된 에이전트 보고서 목록을 나열해줘"* |
+| `npx deuk-agent-rule ticket create ...` | 신규 티켓 문서 생성 (`--group`, `--project` 지정 가능) <br>💬 *"새 티켓 만들어 (주제: refactor, 타겟: sub1)"* |
+| `npx deuk-agent-rule ticket list` | 활성 티켓의 현재 상태 및 리스트업 (`--archived`, `--all` 지원) <br>💬 *"티켓 리스트"* |
+| `npx deuk-agent-rule ticket use --latest ...` | 빌드 파이프라인 연동을 위해 최근 티켓의 파일 경로만 반환 <br>💬 *"최근 티켓 경로"* |
+| `npx deuk-agent-rule ticket archive ...` | 완료된 티켓을 안전하게 보관소(`archive/`)로 이동 및 갱신 <br>💬 *"현재 티켓 아카이브해 (보고서 첨부)"* |
+| `npx deuk-agent-rule ticket reports` | 영구 보관된 에이전트 작업 보고서(`reports/`) 목록 조회 <br>💬 *"완료된 티켓 보고서 목록"* |
 
 ### Init 고급 옵션
 | 플래그 | 기본값 | 설명 |

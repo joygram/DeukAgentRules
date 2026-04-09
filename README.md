@@ -84,11 +84,11 @@ Instead of manually typing the CLI commands below into the terminal, you can **d
 
 | Command | Description / Natural Language Prompt Example |
 |--------|------|
-| `npx deuk-agent-rule ticket create ...` | Generates a new ticket document (accepts `--group`, `--project`) <br>💬 *"Create a new ticket for UI refactoring in the frontend group"* |
-| `npx deuk-agent-rule ticket list` | Lists and displays active tickets (`--archived`, `--all` supported) <br>💬 *"Show me the list of currently active tickets"* |
-| `npx deuk-agent-rule ticket use --latest ...` | Returns only the file path of the most recent ticket <br>💬 *"What is the file path of the most recent ticket?"* |
-| `npx deuk-agent-rule ticket archive ...` | Securely moves completed tickets to `archive/` and updates INDEX <br>💬 *"I've finished this ticket. Please archive it along with the markdown report"* |
-| `npx deuk-agent-rule ticket reports` | Lists structurally preserved agent work reports (`reports/`) <br>💬 *"List the recently archived agent work reports"* |
+| `npx deuk-agent-rule ticket create ...` | Generates a new ticket document (accepts `--group`, `--project`) <br>💬 *"Create new ticket (topic: refactor)"* |
+| `npx deuk-agent-rule ticket list` | Lists and displays active tickets (`--archived`, `--all` supported) <br>💬 *"Ticket list"* |
+| `npx deuk-agent-rule ticket use --latest ...` | Returns only the file path of the most recent ticket <br>💬 *"Recent ticket path"* |
+| `npx deuk-agent-rule ticket archive ...` | Securely moves completed tickets to `archive/` and updates INDEX <br>💬 *"Archive this ticket (attach report)"* |
+| `npx deuk-agent-rule ticket reports` | Lists structurally preserved agent work reports (`reports/`) <br>💬 *"List archived reports"* |
 
 ### Advanced Init Options
 | Flag | Default | Description |
