@@ -80,13 +80,15 @@ npx deuk-agent-rule ticket list
 업무 자동화 및 타깃 제어를 위한 상세 옵션입니다.
 
 ### Ticket 기반 명령
-| 커맨드 | 설명 |
+아래 CLI 명령어들은 터미널에 직접 입력하는 대신, **AI 챗봇에게 자연어 프롬프트로 지시**하여 실행을 위임할 수 있습니다.
+
+| 커맨드 | 설명 / 자연어 프롬프트 지시 예시 |
 |--------|------|
-| `npx deuk-agent-rule ticket create --topic <주제>` | 신규 티켓 문서 생성 (`--group`, `--project` 옵션 지정 가능) |
-| `npx deuk-agent-rule ticket list` | 발급된 활성 티켓의 현재 상태 및 리스트업 (`--archived`, `--all` 옵션으로 완료 이력 조회) |
-| `npx deuk-agent-rule ticket use --latest --path-only` | 빌드 파이프라인 연동을 위해 최근 티켓의 파일 경로만 반환 |
-| `npx deuk-agent-rule ticket archive --latest` | 완료된 티켓을 안전하게 보관소(`archive/`)로 이동시키고 INDEX 상태를 갱신 (`--report` 인자로 AI 워크스루 첨부 가능) |
-| `npx deuk-agent-rule ticket reports` | 완료되어 영구 보관된 에이전트 작업 보고서(`.deuk-agent-ticket/reports/`) 목록을 최신순으로 조회 |
+| `npx deuk-agent-rule ticket create ...` | 신규 티켓 문서 생성 (`--group`, `--project` 지정 가능) <br>💬 *"UI 리팩토링 주제로 프론트엔드 그룹에 새 티켓을 만들어줘"* |
+| `npx deuk-agent-rule ticket list` | 활성 티켓의 현재 상태 및 리스트업 (`--archived`, `--all` 지원) <br>💬 *"현재 활성화된 티켓 리스트를 보여줘"* |
+| `npx deuk-agent-rule ticket use --latest ...` | 빌드 파이프라인 연동을 위해 최근 티켓의 파일 경로만 반환 <br>💬 *"가장 최근에 작업한 티켓 경로를 알려줘"* |
+| `npx deuk-agent-rule ticket archive ...` | 완료된 티켓을 안전하게 보관소(`archive/`)로 이동 및 갱신 <br>💬 *"이 티켓 작업을 완료했어. 마크다운 보고서와 함께 아카이브 해 줘"* |
+| `npx deuk-agent-rule ticket reports` | 영구 보관된 에이전트 작업 보고서(`reports/`) 목록 조회 <br>💬 *"최근에 완료/보관된 에이전트 보고서 목록을 나열해줘"* |
 
 ### Init 고급 옵션
 | 플래그 | 기본값 | 설명 |
