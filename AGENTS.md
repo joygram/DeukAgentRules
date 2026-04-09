@@ -38,6 +38,16 @@ By copying this template to `.deuk-agent-ticket/TICKET-XXX.md` (or `LATEST.md`),
 - **Unified Pack API**: 과거의 `DeukPackSerializer`, `DeukPackEngine`, `WriteWithOverrides`, `toJsonWithOverrides` 등은 모두 폐기되었습니다. 모든 코드에는 `DeukPackCodec` 식별자와 유니파이드 API(`byte[] bin = Dto.Hero.Pack(format, fieldIds, overrides)`, `hero.UnpackFrom(bin)`)만 사용해야 합니다.
 - **Namespace Requirement**: Every `.deuk` schema MUST explicitly declare a namespace (e.g., `namespace Dto`). Never define global structs without a namespace. Code examples MUST use the fully qualified namespace path (e.g., `Dto.Hero.Pack()`).
 
+## AI Model Compliance & Selection Policy
+
+**Model Over-alignment vs Compliance (High vs Flash)**
+- **Flash/Fast Models**: Highly instruct-tuned for strict mechanical task execution. Due to a smaller parameter footprint and less internal "world knowledge", they explicitly follow literal agent rules and format templates exactly as instructed. 
+- **High/Pro Models**: Possess vast world knowledge and are optimized for helpfulness. This often leads to "overthinking" (prioritizing a helpful or natural answer over rigid, arbitrary constraints), resulting in frequent rule violations like ignoring length limits or template structures. They also experience attention dilution in deep analysis tasks.
+
+**Assignment Strategy**:
+1. **Flash Models**: Use for strict template filling, simple code generation, porting, and repetitive ticket execution (`.deuk-agent-ticket/*`) where strict compliance is mandatory.
+2. **High/Pro Models**: Use for architectural planning, deep legacy code comprehension, complex bug squashing, and creative solutions. Supply heavy failure warnings in the prompt to force formatting compliance.
+
 ## 🔗 Ticket Framework & Execution Strategy
 
 When given a ticket, you MUST run commands and write code **strictly within the boundaries** of the `[Target Submodule]` defined in the `TICKET-XXX.md`.

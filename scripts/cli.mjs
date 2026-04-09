@@ -8,9 +8,10 @@ import {
   copyFileSync,
   readdirSync,
   rmSync,
+  statSync,
 } from "fs";
 import { createInterface } from "readline";
-import { dirname, join, relative } from "path";
+import { dirname, join, relative, resolve } from "path";
 import { fileURLToPath } from "url";
 import {
   applyAgents,
@@ -321,7 +322,9 @@ function renderTicketListMarkdown(cwd, entries) {
   const sorted = [...entries].sort((a, b) =>
     String(b.createdAt || "").localeCompare(String(a.createdAt || ""))
   );
-  const latest = sorted[0] || null;
+  const active = sorted.filter(e => e.status !== "archived");
+  const archived = sorted.filter(e => e.status === "archived");
+  const latest = active[0] || null;
 
   const lines = [];
   lines.push("# Ticket List");
@@ -340,14 +343,14 @@ function renderTicketListMarkdown(cwd, entries) {
       `- group: \`${group}\` / project: \`${project}\` / created: \`${createdAt}\``
     );
   } else {
-    lines.push("- No ticket entries yet.");
+    lines.push("- No active ticket entries yet.");
   }
   lines.push("");
-  lines.push("## Entries");
+  lines.push("## Active Entries");
   lines.push("");
   lines.push("| # | Title | Group | Project | Created | Path |");
   lines.push("|---|---|---|---|---|---|");
-  sorted.slice(0, 30).forEach((e, i) => {
+  active.slice(0, 30).forEach((e, i) => {
     const title = String(e.title || "(untitled)").replace(/\|/g, "\\|");
     const group = String(e.group || "sub").replace(/\|/g, "\\|");
     const project = String(e.project || "global").replace(/\|/g, "\\|");
@@ -359,11 +362,32 @@ function renderTicketListMarkdown(cwd, entries) {
     );
   });
   lines.push("");
+  
+  if (archived.length > 0) {
+    lines.push("## Archived Entries");
+    lines.push("");
+    lines.push("| # | Title | Group | Project | Created | Path |");
+    lines.push("|---|---|---|---|---|---|");
+    archived.slice(0, 30).forEach((e, i) => {
+      const title = String(e.title || "(untitled)").replace(/\|/g, "\\|");
+      const group = String(e.group || "sub").replace(/\|/g, "\\|");
+      const project = String(e.project || "global").replace(/\|/g, "\\|");
+      const createdAt = String(e.createdAt || "-").replace(/\|/g, "\\|");
+      lines.push(
+        `| ${i + 1} | ${title} | ${group} | ${project} | ${createdAt} | [view](${
+          e.path
+        }) |`
+      );
+    });
+    lines.push("");
+  }
+  
   lines.push("## Commands");
   lines.push("");
   lines.push("```bash");
   lines.push("npx deuk-agent-rule ticket list");
   lines.push("npx deuk-agent-rule ticket use --latest");
+  lines.push("npx deuk-agent-rule ticket archive --latest");
   lines.push("```\n");
 
   return lines.join("\n");
@@ -757,7 +781,7 @@ function printHelp() {
 Usage:
   npx deuk-agent-rule init   [options]   # interactive by default
   npx deuk-agent-rule merge  [options]
-  npx deuk-agent-rule ticket <create|list|use|migrate> [options]
+  npx deuk-agent-rule ticket <create|list|use|migrate|archive> [options]
 
 Options:
   --cwd <path>          Target repo root (default: current directory)
@@ -773,8 +797,10 @@ Options:
 
 Ticket options:
   ticket create --topic <name> [--group <name>] [--project <name>] [--content <text>] [--from <path>]
-  ticket list [--group <name>] [--project <name>] [--topic <prefix>] [--limit <n>]
+  ticket list [--group <name>] [--project <name>] [--topic <prefix>] [--limit <n>] [--all] [--archived]
   ticket use [--latest] [--topic <prefix>] [--path-only] [--print-content]
+  ticket archive [--latest | --topic <prefix>] [--report <path>]
+  ticket reports [--limit <n>]
   ticket migrate
 
 init also creates .deuk-agent-ticket/ and appends it to .gitignore (local tickets).
@@ -800,6 +826,10 @@ function parseTicketArgs(argv) {
     latest: false,
     pathOnly: false,
     printContent: false,
+    title: undefined,
+    report: undefined,
+    all: false,
+    archived: false,
   };
 
   for (let i = 0; i < argv.length; i++) {
@@ -825,15 +855,19 @@ function parseTicketArgs(argv) {
       out.from = argv[++i];
       if (!out.from) throw new Error("--from requires a file path");
     } else if (a === "--limit") {
-      const raw = argv[++i];
-      const n = Number(raw);
-      if (!Number.isFinite(n) || n <= 0)
-        throw new Error("--limit requires a positive number");
-      out.limit = n;
+      out.limit = parseInt(argv[++i], 10);
     } else if (a === "--latest") out.latest = true;
     else if (a === "--path-only") out.pathOnly = true;
     else if (a === "--print-content") out.printContent = true;
-    else if (a === "-h" || a === "--help") {
+    else if (a === "--all") out.all = true;
+    else if (a === "--archived") out.archived = true;
+    else if (a === "--title") {
+      out.title = argv[++i];
+      if (out.title == null) throw new Error("--title requires a value");
+    } else if (a === "--report") {
+      out.report = argv[++i];
+      if (!out.report) throw new Error("--report requires a path");
+    } else if (a === "-h" || a === "--help") {
       printHelp();
       process.exit(0);
     } else {
@@ -1045,42 +1079,41 @@ function readTicketSnapshot(absPath) {
 }
 
 function runTicketList(opts) {
-  const dirs = getTicketScanDirs(opts.cwd);
+  const indexJson = readTicketIndexJson(opts.cwd);
+  const sorted = [...indexJson.entries].sort((a, b) =>
+    String(b.createdAt || "").localeCompare(String(a.createdAt || ""))
+  );
+  
+  const active = sorted.filter(e => e.status !== "archived");
+  const archived = sorted.filter(e => e.status === "archived");
 
-  console.log("\\n📦 Agent Tickets (Direct System Scan):");
-  let found = 0;
-  for (const dir of dirs) {
-    if (!existsSync(dir)) continue;
-    let files;
-    try {
-      files = readdirSync(dir).filter(
-        (f) => f.startsWith("TICKET-") && f.endsWith(".md")
-      );
-    } catch (e) {
-      continue;
-    }
+  const showActive = opts.all || !opts.archived;
+  const showArchived = opts.all || opts.archived;
 
-    for (const f of files) {
-      found++;
-      const p = join(dir, f);
-      let snapshot;
-      try {
-        snapshot = readTicketSnapshot(p);
-      } catch (e) {
-        continue;
-      }
-      const icon = snapshot.done ? "✅" : "🔨";
-
-      console.log(`  ${icon} [${f}]`);
-      console.log(`     Title:  ${snapshot.title}`);
-      console.log(`     Target: ${snapshot.targetSubmodule}`);
-      console.log(`     Status: ${snapshot.phase}\\n`);
+  if (showActive) {
+    console.log("\n📦 Agent Tickets (Active):");
+    if (active.length === 0) {
+      console.log("  No active tickets found.");
+    } else {
+      active.slice(0, opts.limit || 30).forEach(e => {
+        const fileName = e.path.split(/[/\\]/).pop();
+        console.log(`  🔨 [${fileName}]`);
+        console.log(`     Title:  ${e.title}`);
+        console.log(`     Group:  ${e.group} | Proj: ${e.project}`);
+        console.log(`     Topic:  ${e.topic}\n`);
+      });
     }
   }
-  if (found === 0)
-    console.log(
-      "  No active TICKET-XXX.md found in usual ticket directories.\\n"
-    );
+
+  if (showArchived && archived.length > 0) {
+    console.log("\n📦 Agent Tickets (Archived):");
+    archived.slice(0, opts.limit || 30).forEach(e => {
+      const fileName = e.path.split(/[/\\]/).pop();
+      console.log(`  ✅ [${fileName}]`);
+      console.log(`     Title:  ${e.title}`);
+      console.log(`     Group:  ${e.group} | Proj: ${e.project}\n`);
+    });
+  }
 }
 
 function pickTicketEntry(opts) {
@@ -1133,6 +1166,91 @@ function runTicketMigrate(opts) {
     return;
   }
   migrateLegacyCandidateToIndexedTicket(opts, candidate, "ticket-migrate");
+}
+
+function runTicketArchive(opts) {
+  if (!opts.latest && !opts.topic) {
+    throw new Error("ticket archive requires --latest or --topic <prefix>");
+  }
+  const indexJson = readTicketIndexJson(opts.cwd);
+  const found = pickTicketEntry(opts);
+  if (!found) throw new Error("ticket archive: no matching entry");
+
+  const absPath = join(opts.cwd, found.path);
+  if (!existsSync(absPath)) {
+    throw new Error("ticket archive: file not found " + found.path);
+  }
+
+  const archiveDir = join(opts.cwd, TICKET_DIR_NAME, "archive", found.group || "sub");
+  if (!opts.dryRun) mkdirSync(archiveDir, { recursive: true });
+  
+  const fileName = found.path.split(/[/\\]/).pop();
+  const newAbsPath = join(archiveDir, fileName);
+  const bodyLines = readFileSync(absPath, "utf8").trimEnd().split(/\r?\n/);
+  
+  if (opts.report) {
+    const reportSrc = resolve(opts.cwd, opts.report);
+    if (!existsSync(reportSrc)) {
+      throw new Error("ticket archive: report file not found " + opts.report);
+    }
+    const reportDir = join(opts.cwd, TICKET_DIR_NAME, "reports");
+    if (!opts.dryRun) mkdirSync(reportDir, { recursive: true });
+    
+    // We prefix the report filename to avoid collisions if multiple tickets have same name
+    const reportDest = join(reportDir, `REPORT-${fileName}`);
+    if (!opts.dryRun) copyFileSync(reportSrc, reportDest);
+    console.log("ticket archive: copied report to " + toRepoRelativePath(opts.cwd, reportDest));
+    
+    bodyLines.push("");
+    bodyLines.push("## 📄 Attached Report");
+    // Link format in markdown must be posix paths 
+    const relativeLink = toPosixPath(relative(dirname(newAbsPath), reportDest));
+    bodyLines.push(`- [View Report](${relativeLink})`);
+  }
+
+  if (opts.dryRun) {
+    console.log("ticket archive: would move " + toRepoRelativePath(opts.cwd, absPath) + " to " + toRepoRelativePath(opts.cwd, newAbsPath));
+    return;
+  }
+
+  // Move the file
+  writeFileSync(newAbsPath, bodyLines.join("\n") + "\n", "utf8");
+  rmSync(absPath);
+  console.log("ticket archive: moved ticket to " + toRepoRelativePath(opts.cwd, newAbsPath));
+
+  // Update INDEX
+  const entryIdx = indexJson.entries.findIndex(e => e.id === found.id);
+  if (entryIdx >= 0) {
+    indexJson.entries[entryIdx].status = "archived";
+    indexJson.entries[entryIdx].path = toRepoRelativePath(opts.cwd, newAbsPath);
+    indexJson.updatedAt = new Date().toISOString();
+  }
+
+  writeTicketIndexJson(opts.cwd, indexJson, opts);
+  writeTicketListFile(opts.cwd, indexJson.entries, opts);
+}
+
+function runTicketReports(opts) {
+  const reportDir = join(opts.cwd, TICKET_DIR_NAME, "reports");
+  console.log("\n📄 Agent Reports:");
+  if (!existsSync(reportDir)) {
+    console.log("  No reports found.");
+    return;
+  }
+  const files = readdirSync(reportDir).filter(f => f.startsWith("REPORT-") && f.endsWith(".md"));
+  if (files.length === 0) {
+    console.log("  No reports found.");
+    return;
+  }
+  
+  const sorted = files.sort((a, b) => {
+    return statSync(join(reportDir, b)).mtime.getTime() - statSync(join(reportDir, a)).mtime.getTime();
+  });
+  
+  sorted.slice(0, opts.limit || 30).forEach(f => {
+    console.log(`  - [${f}]`);
+  });
+  console.log("");
 }
 
 async function runInit(opts) {
@@ -1281,6 +1399,8 @@ async function main() {
       else if (action === "list") runTicketList(opts);
       else if (action === "use") runTicketUse(opts);
       else if (action === "migrate") runTicketMigrate(opts);
+      else if (action === "archive") runTicketArchive(opts);
+      else if (action === "reports") runTicketReports(opts);
       else {
         console.error("Unknown ticket action: " + action);
         printHelp();
