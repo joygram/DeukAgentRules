@@ -27,6 +27,14 @@ Upon initialization, interactive questions will ask for the project's **tech sta
 - If you don't need to change the tech stack later, simply run `npx deuk-agent-rule init` to refresh the rules.
 - Suppress interactive prompts in CI or script environments by appending the `--non-interactive` flag.
 
+### 🔄 Updating the Rules Package
+When a new version of the agent rules or templates is released, you can sync the latest instructions to your project by updating the package and re-running `init`.
+Since your previous configurations are saved (`.deuk-agent-rule.config.json`), using the `--non-interactive` flag will quietly and cleanly overwrite the obsolete rules with the latest ones without asking any questions.
+```bash
+npm install deuk-agent-rule@latest
+npx deuk-agent-rule init --non-interactive
+```
+
 ---
 
 ## 🎯 The Ticket Workflow

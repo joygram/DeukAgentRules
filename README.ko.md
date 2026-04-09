@@ -27,6 +27,14 @@ npx deuk-agent-rule init
 - 스택 변경이 필요 없으면 이후에는 `npx deuk-agent-rule init`만 쳐서 규칙을 최신화할 수 있습니다.
 - CI나 스크립트 환경에서는 대화형 입력을 끄기 위해 `--non-interactive` 파라미터를 추가하세요.
 
+### 🔄 규칙 패키지 업데이트 (Update Rules)
+새로운 에이전트 워크플로우나 템플릿이 릴리즈되었을 경우, 패키지를 최신 버전으로 갱신하고 `init` 명령을 재실행하여 변경 사항을 쉽게 프로젝트에 동기화할 수 있습니다.
+기존 환경 설정(`.deuk-agent-rule.config.json`)을 기억하고 있으므로 `--non-interactive`를 주면 묻지도 따지지도 않고 규칙만 즉시 최신화해 줍니다.
+```bash
+npm install deuk-agent-rule@latest
+npx deuk-agent-rule init --non-interactive
+```
+
 ---
 
 ## 🎯 핵심 워크플로우 (The Ticket Workflow)
