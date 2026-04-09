@@ -23,6 +23,17 @@ When the user pastes a design or plan from another assistant or planning tool:
 3. Execute changes as specified — do not redesign unless the user asks.
 4. Report back by marking the checkboxes ([x]) completed in the same ticket format for further iteration.
 
+## Natural Language CLI Execution (Prompt-to-CLI)
+
+When the user types short conversational commands in the chat (e.g., "티켓 리스트", "새 티켓 만들어", "티켓 아카이브해"):
+1. Do not ask for permission or instruct the user to type the CLI command.
+2. Directly execute the appropriate `npx deuk-agent-rule ticket <action>` CLI command on their behalf in the background terminal.
+   - "새 티켓 / Create ticket" -> `npx deuk-agent-rule ticket create --topic ...`
+   - "티켓 리스트 / List tickets" -> `npx deuk-agent-rule ticket list` (append `--archived` or `--all` if history is requested)
+   - "최근 티켓 경로 / Recent ticket path" -> `npx deuk-agent-rule ticket use --latest --path-only`
+   - "티켓 아카이브해 / Archive ticket" -> `npx deuk-agent-rule ticket archive --latest` (append `--report <path>` if markdown report is attached)
+   - "보고서 목록 / List reports" -> `npx deuk-agent-rule ticket reports`
+
 ## Producing Tickets for Other Tools
 
 When the user asks to prepare work for another tool:
