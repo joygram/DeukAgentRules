@@ -39,13 +39,7 @@ cpSync(join(pkgRoot, "publish"), join(ossRoot, "publish"), { recursive: true, fo
 if (existsSync(join(pkgRoot, ".github"))) {
   cpSync(join(pkgRoot, ".github"), join(ossRoot, ".github"), { recursive: true, force: true });
 }
-cpSync(join(pkgRoot, "scripts", "cli.mjs"), join(ossRoot, "scripts", "cli.mjs"), { force: true });
-cpSync(join(pkgRoot, "scripts", "merge-logic.mjs"), join(ossRoot, "scripts", "merge-logic.mjs"), {
-  force: true,
-});
-cpSync(join(pkgRoot, "scripts", "sync-bundle.mjs"), join(ossRoot, "scripts", "sync-bundle.mjs"), {
-  force: true,
-});
+cpSync(join(pkgRoot, "scripts"), join(ossRoot, "scripts"), { recursive: true, force: true });
 
 if (!existsSync(ossPublic)) {
   throw new Error("Missing oss-public/: " + ossPublic);
