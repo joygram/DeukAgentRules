@@ -83,6 +83,18 @@ npx deuk-agent-rule ticket list
 
 ---
 
+## 🤖 AI Agent Prompting Guide
+
+Even after installing and initializing the package, some AI agents (Cursor, Gemini, etc.) might not actively read the rule file (`AGENTS.md`) in a fresh session. **Whenever you start a new chat session, copy and paste the following prompts to force the AI to align with the rules. This effectively eliminates hallucination and accidental scope-creep.**
+
+### 1. Force Rule Familiarization (Mandatory)
+> *"Before starting any work, please read the `AGENTS.md` (DeukAgentRules) file at the workspace root from top to bottom. Make sure you fully understand your Identity, the core project rules, and the ticket workflow. Once you have read and understood them, do NOT summarize them; simply reply 'Rules Acknowledged' and await my first instruction."*
+
+### 2. Ticket Execution (Recommended)
+> *"Open the recently issued `.deuk-agent-ticket/TICKET-XXX.md` ticket. Restrict all your file exploration, analysis, and modifications STRICTLY to the target submodule path explicitly specified in the ticket. Do not wander into other submodules or accidentally modify unrelated files."*
+
+---
+
 ## ⚙️ CLI Reference & Advanced Options
 
 Advanced commands for workflow automation and target control.

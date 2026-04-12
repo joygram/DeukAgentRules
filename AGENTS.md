@@ -55,6 +55,7 @@ When given a ticket, you MUST run commands and write code **strictly within the 
 1. **Read the Ticket**: Identify the active `.deuk-agent-ticket/TICKET-XXX.md` file.
 2. **Execute Phase**: Process only the checklist for the **Current Phase**. Do not hallucinate or wander into other architectural areas.
 3. **Update Status**: Mark checkboxes (`[x]`) as tasks are completed.
+4. **Archive on Completion**: When all phases are completed, append the execution report or walkthrough markdown natively at the bottom of the ticket under a `## 📜 Execution Report` header, then move the single file to `.deuk-agent-ticket/archive/TICKET-XXX.md`.
 
 All Tickets are volatile and strictly local. Do not attempt to version them or mirror them to obsolete plan directories.
 
