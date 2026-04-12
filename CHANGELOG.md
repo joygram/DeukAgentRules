@@ -4,6 +4,24 @@ All notable changes to this project will be documented in this file.
 
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/), and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [1.0.18] - 2026-04-12
+
+
+### Added
+
+- **ai:** map conversational ticket requests to implicit CLI execution
+- **cli:** implement ticket archive and reporting workflow
+- **rules:** map conversational ticket aliases to implicit CLI execution
+
+
+### Changed
+
+- **readme:** add ticket archive and reports CLI usage to documentation
+- **readme:** describe natural language CLI prompting alternatives
+- **readme:** provide explicit conversational prompt examples inside option tables
+- **readme:** provide explicit update guide
+- **rules:** add prompting guide and execution report archival rule
+
 ## [1.0.17] - 2026-04-06
 
 
