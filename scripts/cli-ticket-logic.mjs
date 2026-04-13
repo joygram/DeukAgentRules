@@ -1,6 +1,6 @@
-import { existsSync, mkdirSync, readdirSync, readFileSync, statSync, writeFileSync, unlinkSync } from "fs";
+import { existsSync, mkdirSync, readdirSync, readFileSync, statSync, writeFileSync, unlinkSync, copyFileSync } from "fs";
 import { basename, dirname, join, relative } from "path";
-import { toPosixPath, toRepoRelativePath, toSlug, formatTimestampForFile, makeEntryId, detectProjectFromBody, deriveTopicFromBaseName } from "./cli-utils.mjs";
+import { toPosixPath, toRepoRelativePath, toSlug, formatTimestampForFile, makeEntryId, detectProjectFromBody, deriveTopicFromBaseName, parseFrontMatter, stringifyFrontMatter } from "./cli-utils.mjs";
 
 export const TICKET_DIR_NAME = ".deuk-agent-ticket";
 export const TICKET_INDEX_FILENAME = "INDEX.json";
@@ -65,32 +65,40 @@ export function writeTicketIndexJson(cwd, indexJson, opts = {}) {
 
 export function renderTicketListMarkdown(cwd, entries) {
   const sorted = [...entries].sort((a, b) => String(b.createdAt || "").localeCompare(String(a.createdAt || "")));
-  const latest = sorted[0] || null;
+  const latest = sorted.find(e => e.status !== "archived") || sorted[0] || null;
 
   const ticketDir = detectConsumerTicketDir(cwd, { createIfMissing: true });
   const templatePath = join(ticketDir, TICKET_LIST_TEMPLATE_FILENAME);
   const template = existsSync(templatePath) ? readFileSync(templatePath, "utf8") : DEFAULT_TICKET_LIST_TEMPLATE;
 
-  let latestBlock = "- No ticket entries yet.";
+  let latestBlock = "- No active ticket entries yet.";
   if (latest) {
     const relPath = toPosixPath(relative(ticketDir, join(cwd, latest.path)));
     const safeLatestTitle = String(latest.title || "").replace(/\[|\]/g, '').replace(/\n/g, ' ');
-    latestBlock = `- [${safeLatestTitle}](${relPath})\n- group: \`${latest.group}\` / project: \`${latest.project}\` / created: \`${latest.createdAt}\``;
+    latestBlock = `- [${safeLatestTitle}](${relPath})\n- status: \`${latest.status}\` / group: \`${latest.group}\` / project: \`${latest.project}\``;
   }
 
-  let rows = sorted.slice(0, 30).map((e, i) => {
-    const relPath = toPosixPath(relative(ticketDir, join(cwd, e.path)));
-    const statusPrefix = e.status === "closed" ? "✓ " : "";
-    const safeTitle = String(e.title || "").replace(/\|/g, '&#124;').replace(/(\n|\\n)+/g, ' ');
-    return `| ${i + 1} | ${statusPrefix}${safeTitle} | ${e.group} | ${e.project} | ${e.createdAt} | [open](${relPath}) |`;
-  }).join("\n");
+  const activeRows = sorted.filter(e => e.status !== "archived").map((e, i) => renderLine(e, i, ticketDir, cwd));
+  const archivedRows = sorted.filter(e => e.status === "archived").slice(0, 50).map((e, i) => renderLine(e, i, ticketDir, cwd));
+
+  let combinedRows = "### 🚀 Active Tickets\n\n| # | Status | Title | Group | Project | Created | Path |\n|---|---|---|---|---|---|---|\n" + 
+                     (activeRows.join("\n") || "| - | - | No active tickets | - | - | - | - |") + 
+                     "\n\n### 📦 Archived Tickets\n\n| # | Status | Title | Group | Project | Created | Path |\n|---|---|---|---|---|---|---|\n" + 
+                     (archivedRows.join("\n") || "| - | - | No archived tickets | - | - | - | - |");
 
   return template
     .replaceAll("{{SOURCE_INDEX}}", `${TICKET_DIR_NAME}/${TICKET_INDEX_FILENAME}`)
     .replaceAll("{{LATEST_BLOCK}}", latestBlock)
-    .replaceAll("{{ENTRIES_ROWS}}", rows || "| - | No entries yet | - | - | - | - |")
+    .replaceAll("{{ENTRIES_ROWS}}", combinedRows)
     .replaceAll("{{CMD_LIST}}", "npx deuk-agent-rule ticket list")
     .replaceAll("{{CMD_USE_LATEST}}", "npx deuk-agent-rule ticket use --latest");
+}
+
+function renderLine(e, i, ticketDir, cwd) {
+  const relPath = toPosixPath(relative(ticketDir, join(cwd, e.path)));
+  const statusIcon = e.status === "active" ? "🔥 " : (e.status === "archived" ? "📦 " : "[ ] ");
+  const safeTitle = String(e.title || "").replace(/\|/g, '&#124;').replace(/(\n|\\n)+/g, ' ');
+  return `| ${i + 1} | ${statusIcon}${e.status} | ${safeTitle} | ${e.group} | ${e.project} | ${e.createdAt.split('T')[0]} | [open](${relPath}) |`;
 }
 
 export function writeTicketListFile(cwd, entries, opts = {}) {
@@ -135,6 +143,99 @@ export function updateTicketEntryStatus(cwd, opts = {}) {
   return entry;
 }
 
+export function performUpgradeMigration(cwd, opts = {}) {
+  const root = join(cwd, TICKET_DIR_NAME);
+  const archiveDir = join(root, "archive");
+  
+  const files = collectTicketMarkdownFiles(root).filter(p => {
+    const base = basename(p);
+    return base !== "LATEST.md" && base !== TICKET_LIST_FILENAME && base !== TICKET_LIST_TEMPLATE_FILENAME && base !== "ACTIVE_TICKET.md";
+  });
+
+  console.log(`[UPGRADE] Scanning ${files.length} tickets for V2 migration...`);
+
+  let count = 0;
+  for (const abs of files) {
+    const rel = toRepoRelativePath(cwd, abs);
+    const body = readFileSync(abs, "utf8");
+    const { meta, content } = parseFrontMatter(body);
+
+    if (meta.id && meta.status) {
+      // Already V2, but check if it needs archiving
+      const isAlreadyInArchive = rel.includes("/archive/");
+      if (meta.status === "archived" && !isAlreadyInArchive && !opts.dryRun) {
+        // Move to archive if status is archived but file is in root
+        moveFileToArchive(cwd, abs, meta.group || "sub");
+      }
+      continue;
+    }
+
+    // V1 -> V2 Migration
+    const titleMatch = content.match(/^##\s+Task:\s*(.+)$/m);
+    const title = meta.title || titleMatch?.[1]?.trim() || basename(abs).replace(/\.md$/i, "");
+    
+    // Check if finished (all phases [x])
+    const phases = content.match(/\[[ x/]]/g);
+    const finished = phases && phases.length > 0 && phases.every(p => p.includes("x"));
+    const isAlreadyInArchive = rel.includes("/archive/");
+
+    let status = meta.status || "open";
+    if (finished || isAlreadyInArchive) {
+        status = "archived";
+    }
+
+    const project = meta.project || detectProjectFromBody(content);
+    
+    const newMeta = {
+      id: meta.id || `ticket_${statSync(abs).mtimeMs}`,
+      title,
+      status,
+      submodule: meta.submodule || (content.includes("DeukPack") ? "DeukPack" : ""),
+      project,
+      createdAt: meta.createdAt || statSync(abs).birthtime.toISOString(),
+      updatedAt: new Date().toISOString()
+    };
+
+    const migratedBody = stringifyFrontMatter(newMeta, content);
+    
+    if (opts.dryRun) {
+      console.log(`[DRY-RUN] Would upgrade: ${rel} (status: ${status})`);
+    } else {
+      let finalAbs = abs;
+      if (status === "archived" && !isAlreadyInArchive) {
+          finalAbs = moveFileToArchive(cwd, abs, basename(dirname(abs)));
+      }
+      writeFileSync(finalAbs, migratedBody, "utf8");
+      console.log(`[OK] Upgraded: ${toRepoRelativePath(cwd, finalAbs)}`);
+      count++;
+    }
+  }
+
+  if (!opts.dryRun) {
+    rebuildTicketIndexFromTopicFilesIfNeeded(cwd, { ...opts, force: true });
+    syncActiveTicketPointer(cwd);
+  }
+  
+  return count;
+}
+
+function moveFileToArchive(cwd, abs, group) {
+  const archiveBase = join(cwd, TICKET_DIR_NAME, "archive");
+  const targetSubDir = (group === TICKET_DIR_NAME || !group) ? "sub" : group;
+  const targetDir = join(archiveBase, targetSubDir);
+  mkdirSync(targetDir, { recursive: true });
+  const finalAbs = join(targetDir, basename(abs));
+  if (finalAbs !== abs) {
+    if (existsSync(finalAbs)) {
+      unlinkSync(abs); // Already exists in archive
+    } else {
+      writeFileSync(finalAbs, readFileSync(abs, "utf8"), "utf8");
+      unlinkSync(abs);
+    }
+  }
+  return finalAbs;
+}
+
 export function collectTicketMarkdownFiles(dir, out = []) {
   if (!existsSync(dir)) return out;
   for (const ent of readdirSync(dir, { withFileTypes: true })) {
@@ -150,45 +251,48 @@ export function rebuildTicketIndexFromTopicFilesIfNeeded(cwd, opts = {}) {
   const root = join(cwd, TICKET_DIR_NAME);
   const files = collectTicketMarkdownFiles(root).filter(p => {
     const base = basename(p);
-    return base !== "LATEST.md" && base !== TICKET_LIST_FILENAME && base !== TICKET_LIST_TEMPLATE_FILENAME;
+    return base !== "LATEST.md" && base !== TICKET_LIST_FILENAME && base !== TICKET_LIST_TEMPLATE_FILENAME && base !== "ACTIVE_TICKET.md";
   });
 
   let dirty = false;
-  const existingPaths = new Set(indexJson.entries.map(e => toPosixPath(e.path)));
+  const newEntries = [];
 
   for (let i = 0; i < files.length; i++) {
     const abs = files[i];
     const rel = toPosixPath(toRepoRelativePath(cwd, abs));
-    if (!existingPaths.has(rel)) {
-      const body = readFileSync(abs, "utf8");
-      const titleMatch = body.match(/^##\s+Task:\s*(.+)$/m);
-      const title = titleMatch ? titleMatch[1].trim() : basename(abs).replace(/\.md$/i, "");
-      indexJson.entries.push({
-        id: `ticket_recovered_${Date.now()}_${i}`,
-        title,
-        topic: deriveTopicFromBaseName(basename(abs)),
-        group: basename(dirname(abs)),
-        project: detectProjectFromBody(body),
-        createdAt: statSync(abs).mtime.toISOString(),
-        path: rel,
-        source: "ticket-recover-scan",
-        status: "open",
-      });
-      dirty = true;
-    }
+    const body = readFileSync(abs, "utf8");
+    const { meta, content } = parseFrontMatter(body);
+    const titleMatch = content.match(/^##\s+Task:\s*(.+)$/m);
+    
+    const title = meta.title || titleMatch?.[1]?.trim() || basename(abs).replace(/\.md$/i, "");
+    const isAlreadyInArchive = rel.includes("/archive/");
+    const status = isAlreadyInArchive ? "archived" : (meta.status || "open");
+    const project = meta.project || detectProjectFromBody(content);
+    const submodule = meta.submodule || "";
+
+    newEntries.push({
+      id: meta.id || makeEntryId(),
+      title,
+      topic: deriveTopicFromBaseName(basename(abs)),
+      group: basename(dirname(abs)),
+      project,
+      submodule,
+      createdAt: meta.createdAt || statSync(abs).mtime.toISOString(),
+      updatedAt: meta.updatedAt || statSync(abs).mtime.toISOString(),
+      path: rel,
+      source: "ticket-sync",
+      status,
+    });
   }
 
-  const physicalPaths = new Set(files.map(abs => toPosixPath(toRepoRelativePath(cwd, abs))));
-  const originalLength = indexJson.entries.length;
-  indexJson.entries = indexJson.entries.filter(e => physicalPaths.has(toPosixPath(e.path)));
-  
-  if (indexJson.entries.length !== originalLength) {
+  // Compare with old index to see if dirty
+  if (JSON.stringify(indexJson.entries) !== JSON.stringify(newEntries)) {
     dirty = true;
   }
 
-  if (dirty) {
-    indexJson.entries.sort((a,b) => String(b.createdAt||"").localeCompare(String(a.createdAt||"")));
-    const next = { version: 1, updatedAt: new Date().toISOString(), entries: indexJson.entries };
+  if (dirty || opts.force) {
+    newEntries.sort((a,b) => String(b.createdAt||"").localeCompare(String(a.createdAt||"")));
+    const next = { version: 1, updatedAt: new Date().toISOString(), entries: newEntries };
     writeTicketIndexJson(cwd, next, opts);
     writeTicketListFile(cwd, next.entries, opts);
     return next;
@@ -226,4 +330,28 @@ export function getLegacyMigrationCandidate(cwd) {
     }
   }
   return null;
+}
+
+export function syncActiveTicketPointer(cwd) {
+  const index = readTicketIndexJson(cwd);
+  // Find the single "active" ticket, or the most recent "open" ticket.
+  const activeEntry = index.entries.find(e => e.status === "active") || 
+                      index.entries.find(e => e.status === "open");
+  
+  const ticketDir = detectConsumerTicketDir(cwd);
+  if (!ticketDir) return;
+
+  const pointerPath = join(ticketDir, "ACTIVE_TICKET.md");
+  
+  if (activeEntry) {
+    const srcAbs = join(cwd, activeEntry.path);
+    if (existsSync(srcAbs)) {
+      copyFileSync(srcAbs, pointerPath);
+      // console.log(`[TICKET] Mirrored active ticket to: ${pointerPath}`);
+      return;
+    }
+  }
+
+  // If no active ticket, clear pointer or write informational notice
+  writeFileSync(pointerPath, "# No Active Ticket Found\nUse `npx deuk-agent-rule ticket list` to find open tasks.\n", "utf8");
 }

@@ -1,3 +1,10 @@
+---
+id: TICKET-XXX
+title: "Task Title"
+status: open # open | active | archived
+submodule: DeukPack
+project: global
+---
 
 # Task: [Task Title / Ticket Number]
 
@@ -37,4 +44,4 @@
 - [e.g., Check CLI command output `npm run test`]
 - [e.g., Validate Inspector mounts properly in Figma]
 
-<!-- Ticket (repo-relative): DeukAgentRules/ticket/TICKET-XXX_Ticket.md -->
+<!-- Ticket (repo-relative): .deuk-agent-ticket/TICKET-XXX.md -->

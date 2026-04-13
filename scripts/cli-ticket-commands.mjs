@@ -1,7 +1,7 @@
 import { existsSync, mkdirSync, readFileSync, writeFileSync, unlinkSync, copyFileSync, readdirSync, rmSync, statSync } from "fs";
 import { basename, join, dirname, relative, resolve } from "path";
-import { toSlug, toRepoRelativePath, inferRefTitleAndTopic, resolveReferencedTicketPath, toPosixPath } from "./cli-utils.mjs";
-import { TICKET_DIR_NAME, appendTicketEntry, rebuildTicketIndexFromTopicFilesIfNeeded, detectConsumerTicketDir, readTicketIndexJson, writeTicketIndexJson, writeTicketListFile } from "./cli-ticket-logic.mjs";
+import { toSlug, toRepoRelativePath, inferRefTitleAndTopic, resolveReferencedTicketPath, toPosixPath, stringifyFrontMatter } from "./cli-utils.mjs";
+import { TICKET_DIR_NAME, appendTicketEntry, rebuildTicketIndexFromTopicFilesIfNeeded, detectConsumerTicketDir, readTicketIndexJson, writeTicketIndexJson, writeTicketListFile, syncActiveTicketPointer, performUpgradeMigration } from "./cli-ticket-logic.mjs";
 
 import { createInterface } from "readline";
 import { selectOne } from "./cli-prompts.mjs";
@@ -21,11 +21,23 @@ export async function runTicketCreate(opts) {
   } else {
     let body = opts.content ? String(opts.content).replace(/\\n/g, '\n') : "";
     if (!body && opts.from) body = readFileSync(join(opts.cwd, opts.from), "utf8");
+    
     const abs = join(opts.cwd, TICKET_DIR_NAME, group, `${topic}-${Date.now()}.md`);
     mkdirSync(join(opts.cwd, TICKET_DIR_NAME, group), { recursive: true });
     path = toRepoRelativePath(opts.cwd, abs);
-    const marker = `\n\n<!-- Ticket (repo-relative): ${path} -->\n`;
-    writeFileSync(abs, body.trimEnd() + marker, "utf8");
+
+    const meta = {
+      id: `ticket_${Date.now()}`,
+      title,
+      topic,
+      status: "open",
+      submodule: opts.submodule || "",
+      project: opts.project || "global",
+      createdAt: new Date().toISOString(),
+    };
+
+    const finalContent = stringifyFrontMatter(meta, body);
+    writeFileSync(abs, finalContent, "utf8");
     source = "ticket-create";
   }
 
@@ -34,6 +46,7 @@ export async function runTicketCreate(opts) {
     title, topic, group, project: opts.project || "global",
     createdAt: new Date().toISOString(), path, source
   }, opts);
+  syncActiveTicketPointer(opts.cwd);
 }
 
 export async function runTicketList(opts) {
@@ -44,15 +57,19 @@ export async function runTicketList(opts) {
   const index = rebuildTicketIndexFromTopicFilesIfNeeded(opts.cwd, opts);
   let rows = index.entries;
   
-  if (!opts.all) {
-    const targetStatus = opts.status || "open";
-    rows = rows.filter(e => e.status === targetStatus);
+  if (opts.active) {
+    rows = rows.filter(e => e.status === "active" || e.status === "open");
+  } else if (opts.archived) {
+    rows = rows.filter(e => e.status === "archived");
+  } else if (!opts.all) {
+    // Default: major/active list (open or active)
+    rows = rows.filter(e => e.status === "open" || e.status === "active");
   }
   
   if (opts.group) rows = rows.filter(e => e.group === opts.group);
   if (opts.project) rows = rows.filter(e => e.project === opts.project);
   
-  console.log("#  STATUS  GROUP       PROJECT     CREATED                  TITLE");
+  console.log("#  STATUS   GROUP       PROJECT     CREATED                  TITLE");
   rows.slice(0, opts.limit).forEach((e, idx) => {
     const stat = (e.status === "closed" ? "[x]" : "[ ]").padEnd(7);
     const safeTitle = String(e.title || e.topic || "").replace(/(\n|\\n)+/g, " ").slice(0, 50);
@@ -85,6 +102,7 @@ export async function runTicketClose(opts) {
   }
   opts.status = "closed";
   const entry = updateTicketEntryStatus(opts.cwd, opts);
+  syncActiveTicketPointer(opts.cwd);
   console.log(`ticket: closed -> ${entry.topic} (${entry.path})`);
 }
 
@@ -154,6 +172,16 @@ export async function runTicketMigrate(opts) {
       unlinkSync(candidate.latestPath);
       console.log("ticket: deleted legacy LATEST.md");
     }
+  }
+}
+
+export async function runTicketUpgrade(opts) {
+  const count = performUpgradeMigration(opts.cwd, opts);
+  if (opts.dryRun) {
+    console.log(`[UPGRADE] Done (Dry-Run).`);
+  } else {
+    console.log(`[UPGRADE] Successfully migrated ${count} tickets to V2 format.`);
+    console.log(`[UPGRADE] ACTIVE_TICKET.md has been synchronized.`);
   }
 }
 

@@ -1,5 +1,6 @@
 import { existsSync, readFileSync } from "fs";
 import { basename, dirname, join, relative } from "path";
+import YAML from "../node_modules/yaml/dist/index.js";
 
 export function toPosixPath(p) {
   return p.replace(/\\/g, "/");
@@ -79,4 +80,21 @@ export function inferRefTitleAndTopic(opts) {
     title: String(title || base).trim(),
     topic,
   };
+}
+
+export function parseFrontMatter(content) {
+  const match = content.match(/^---\r?\n([\s\S]+?)\r?\n---\r?\n?([\s\S]*)$/);
+  if (!match) return { meta: {}, content };
+  try {
+    const meta = YAML.parse(match[1]);
+    return { meta: meta || {}, content: match[2] };
+  } catch (e) {
+    console.error("YAML Parse Error:", e);
+    return { meta: {}, content };
+  }
+}
+
+export function stringifyFrontMatter(meta, content) {
+  const yamlStr = YAML.stringify(meta).trim();
+  return `---\n${yamlStr}\n---\n\n${content.trim()}\n`;
 }
