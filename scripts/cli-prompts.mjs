@@ -60,6 +60,7 @@ export function writeInitConfig(cwd, opts) {
     stack: opts.stack,
     agentTools: opts.agentTools,
     agentsMode: opts.agents ?? "inject",
+    shareTickets: opts.shareTickets ?? false,
     updatedAt: new Date().toISOString(),
   };
   writeFileSync(p, JSON.stringify(body, null, 2) + "\n", "utf8");
@@ -91,6 +92,7 @@ export async function runInteractive(opts) {
 
     const stack = await selectOne(rl, "What is your primary tech stack?", STACKS);
     const tools = await selectMany(rl, "Which agent tools do you use?", AGENT_TOOLS);
+    const shareTickets = await askYesNo("Do you want to share (git-track) tickets for this repository?", false);
 
     const targetAgents = join(opts.cwd, "AGENTS.md");
     let agentsDefault = "inject";
@@ -113,9 +115,11 @@ export async function runInteractive(opts) {
     opts.agents = opts.agents ?? agentsDefault;
     opts.stack = stack;
     opts.agentTools = tools;
+    opts.shareTickets = shareTickets;
 
     console.log("\n  Stack : " + stack);
     console.log("  Tools : " + (tools.join(", ") || "none"));
+    console.log("  Share Tickets: " + opts.shareTickets);
     console.log("  AGENTS: " + opts.agents + "\n");
   } finally {
     rl.close();

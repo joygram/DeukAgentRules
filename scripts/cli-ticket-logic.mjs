@@ -213,10 +213,55 @@ export function performUpgradeMigration(cwd, opts = {}) {
 
   if (!opts.dryRun) {
     rebuildTicketIndexFromTopicFilesIfNeeded(cwd, { ...opts, force: true });
+    performDefragmentation(cwd, opts); // NEW: Split to submodules
     syncActiveTicketPointer(cwd);
   }
   
   return count;
+}
+
+export function performDefragmentation(cwd, opts = {}) {
+  const rootTicketDir = join(cwd, TICKET_DIR_NAME);
+  const tickets = collectTicketMarkdownFiles(rootTicketDir).filter(p => {
+    const base = basename(p);
+    return base !== "LATEST.md" && base !== TICKET_LIST_FILENAME && base !== TICKET_LIST_TEMPLATE_FILENAME && base !== "ACTIVE_TICKET.md";
+  });
+
+  console.log(`[DEFRAG] Checking ${tickets.length} tickets for submodule placement...`);
+
+  const modifiedSubmodules = new Set();
+  
+  for (const abs of tickets) {
+    const { meta } = parseFrontMatter(readFileSync(abs, "utf8"));
+    if (meta.submodule && meta.submodule !== "global") {
+      const subPath = join(cwd, meta.submodule);
+      if (existsSync(subPath) && statSync(subPath).isDirectory()) {
+        const subTicketDir = join(subPath, TICKET_DIR_NAME);
+        mkdirSync(subTicketDir, { recursive: true });
+        
+        const relToRoot = relative(rootTicketDir, abs);
+        const destAbs = join(subTicketDir, relToRoot);
+        
+        if (opts.dryRun) {
+          console.log(`[DRY-RUN] Would move to submodule: ${relToRoot} -> ${meta.submodule}/${TICKET_DIR_NAME}/`);
+        } else {
+          mkdirSync(dirname(destAbs), { recursive: true });
+          copyFileSync(abs, destAbs);
+          unlinkSync(abs);
+          console.log(`[DEFRAG] Moved: ${meta.submodule}/${TICKET_DIR_NAME}/${relToRoot}`);
+          modifiedSubmodules.add(subPath);
+        }
+      }
+    }
+  }
+
+  // Re-index all touched submodules
+  if (!opts.dryRun) {
+    for (const subCwd of modifiedSubmodules) {
+      rebuildTicketIndexFromTopicFilesIfNeeded(subCwd, { ...opts, force: true });
+      syncActiveTicketPointer(subCwd);
+    }
+  }
 }
 
 function moveFileToArchive(cwd, abs, group) {

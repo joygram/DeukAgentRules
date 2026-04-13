@@ -20,14 +20,14 @@ English sections above are canonical for tooling; this block is a short Korean m
 When handing work between tools or people—especially in an environment with multiple submodules like DeukUI, DeukPack, etc.—you **MUST NOT** use free-form markdown. 
 
 You **MUST** use the official Ticket Skeleton Template located at:
-`.deuk-agent-templates/TICKET_TEMPLATE.md`
+`<Current Repo Root>/.deuk-agent-templates/TICKET_TEMPLATE.md`
 
 **Hard Rules**:
 - **No hotpath LINQ (금지)**: Update 루프에서 LINQ, boxing, frame allocation 없음
 - **Root Cleanliness (하드룰)**: 작업용 스크립트(`fix_*.py`, `tmp_*.js` 등)를 워크스페이스 루트에 직접 생성하지 마십시오. 모든 일시적 스크립트는 `tmp/scripts/` 또는 `tmp/` 폴더 내에 생성해야 합니다.
-- **Ticket format (필수)**: 멀티스텝은 `.deuk-agent-templates/TICKET_TEMPLATE.md` 사용
+- **Ticket format (필수)**: 멀티스텝은 `.deuk-agent-templates/TICKET_TEMPLATE.md` (또는 활성 서브모듈의 템플릿) 사용
 
-By copying this template to `.deuk-agent-ticket/TICKET-XXX.md` (or `LATEST.md`), you ensure that:
+By copying this template to `.deuk-agent-ticket/TICKET-XXX.md` (소속 저장소 내) 또는 `LATEST.md`, you ensure that:
 1. The **Target Submodule** is explicitly locked.
 2. The agent is forced to read specific **Module Rules** (e.g., `.deuk-agent-templates/MODULE_RULE_TEMPLATE.md`).
 3. Execution happens in explicit **Phases** to prevent context bleed.

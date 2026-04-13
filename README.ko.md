@@ -19,7 +19,7 @@ Cursor, GitHub Copilot, Gemini / Antigravity, Claude, Windsurf, JetBrains AI Ass
 프로젝트 규칙(`AGENTS.md`, `.cursor/rules`)을 표준화하고, **티켓 기반 워크플로우**를 통해 쓸데없는 프롬프트 토큰 낭비와 AI의 맥락 환각(Hallucination)을 강력하게 방어합니다.
 
 > **🚀 핵심 가치:**
-> 세션당 약 1,500~2,000 토큰에 달하는 강제 로드 컨텍스트를 200~300 토큰 수준으로 압축합니다. AI가 모놀리식 전체 레포지토리를 헤매지 않도록, 정확한 티켓(작업 지시서) 기반으로 **"해당 서브모듈(Submodule)"**에만 격리시켜 작업을 지시할 수 있습니다.
+> 세션당 약 1,500~2,000 토큰에 달하는 강제 로드 컨텍스트를 200~300 토큰 수준으로 압축합니다. AI가 모놀리식 전체 레포지토리를 헤매지 않도록, 작업이 속한 **"해당 서브모듈(Submodule)"** 내부에 티켓을 격리하여 가장 정확한 맥락에서 작업을 지시할 수 있습니다.
 
 ---
 
@@ -32,7 +32,8 @@ npm install deuk-agent-rule
 npx deuk-agent-rule init
 ```
 
-초기화 시 프로젝트의 **기술 스택**과 **사용 중인 에이전트 툴**을 묻는 대화형 질문이 나타나며, 선택에 맞춰 최적화된 마크다운 템플릿과 룰 파일(`.cursor/rules/*`)들이 자동 생성 및 동기화됩니다. 
+초기화 시 프로젝트의 **기술 스택**, **사용 중인 에이전트 툴**, 그리고 **티켓 공유 정책**을 묻는 대화형 질문이 나타납니다. 
+- **티켓 공유 정책**: 각 저장소 단위의 `.deuk-agent-ticket/` 폴더를 Git으로 추적하여 팀과 공유할지, 아니면 로컬 전용으로 둘지 결정합니다.
 - 스택 변경이 필요 없으면 이후에는 `npx deuk-agent-rule init`만 쳐서 규칙을 최신화할 수 있습니다.
 - CI나 스크립트 환경에서는 대화형 입력을 끄기 위해 `--non-interactive` 파라미터를 추가하세요.
 
@@ -46,17 +47,17 @@ npx deuk-agent-rule init --non-interactive
 
 ---
 
-## 🎯 핵심 워크플로우 (The Ticket Workflow)
+## 🎯 핵심 워크플로우 (The Distributed Ticket Workflow)
 
-`npx deuk-agent-rule init`을 실행하면 워크스페이스 최상단에 **제로-터치 스캐폴딩 샌드박스**가 작동하며 아래 두 개의 핵심 폴더가 등장합니다. 
+`npx deuk-agent-rule init`을 실행하면 현재 저장소 루트(서브모듈 포함)에 아래 두 개의 핵심 폴더가 등장합니다. 
 
-1. **`.deuk-agent-templates/` (에이전트 템플릿)**: AI가 어떠한 양식으로 작업을 처리하고 보고해야 하는지 정의된 공식 뼈대(`TICKET_TEMPLATE.md`)가 지정됩니다. 소스코드와 함께 Git에 커밋되어 팀의 룰북 역할을 합니다.
-2. **`.deuk-agent-ticket/` (티켓 실행 공간)**: 에이전트들과 작업자가 실제 주고받는 휘발성 지시서(`TICKET-XXX.md`)가 발급되는 은밀한 공간입니다. (보안 및 히스토리 누출 방지를 위해 시스템이 자동으로 `.gitignore`에 기재합니다.)
+1. **`.deuk-agent-templates/` (에이전트 템플릿)**: AI가 어떠한 양식으로 작업을 처리하고 보고해야 하는지 정의된 공식 뼈대(`TICKET_TEMPLATE.md`)가 지정됩니다.
+2. **`.deuk-agent-ticket/` (티켓 실행 공간)**: 실제 지시서(`TICKET-XXX.md`)가 발급되는 공간입니다. 서브모듈 단위로 티켓을 분산 관리할 수 있어 서브모듈만 떼어가도 히스토리가 유지됩니다. (공유 정책에 따라 `.gitignore`에 자동으로 기재될 수 있습니다.)
 
 이러한 샌드박스 폴더들을 활용하여 스퍼트를 올리는 **최적의 AI 코딩 3단계**는 다음과 같습니다.
 
-### [Step 1] 티켓 발급 및 서브모듈 지정 (Ticket Creation)
-AI에게 중구난방으로 지시하지 마세요. 명확한 티켓을 발급하여 **문맥(Context)을 좁혀주어야** 비용과 사고를 막을 수 있습니다.
+### [Step 1] 티켓 발급 및 계층적 관리 (Ticket Creation & Delegation)
+AI에게 중구난방으로 지시하지 마세요. 명확한 티켓을 발급하여 **문맥(Context)을 소속 저장소 단위로 좁혀주어야** 합니다.
 
 ```bash
 npx deuk-agent-rule ticket create --topic ui-refactoring --group frontend --project DeukUI --content "## Task: 플러그인 UI 리팩토링"
@@ -100,7 +101,7 @@ npx deuk-agent-rule ticket list
 > *"본격적인 작업을 시작하기 전에 워크스페이스 Root에 있는 `AGENTS.md` (DeukAgentRules) 문서를 끝까지 읽어줘. 현재 프로젝트의 핵심 룰, Identity, 그리고 티켓 워크플로우에 대해 완벽히 숙지해야 해. 숙지를 마쳤다면 내용을 요약하지 말고 '규칙 확인 완료'라고 짧게 대답한 뒤 첫 지시를 대기해."*
 
 ### 2. 티켓 기반 타깃 작업 시작 (권장)
-> *"방금 발급된 `.deuk-agent-ticket/TICKET-XXX.md` 티켓을 열고, 티켓 내부에 명시된 **타겟 서브모듈(Target Submodule)** 경로 내에서만 파일 탐색 및 작업을 진행해. 다른 서브모듈(예: 서버 코드를 명시했는데 클라이언트 폴더를 건드리는 행위 등)로 벗어나거나 임의의 파일을 건드리지 마."*
+> *"방금 설치/발급된 `.deuk-agent-ticket/TICKET-XXX.md` 티켓을 열고, 현재 저장소(Target Submodule) 경로 내에서만 파일 탐색 및 작업을 진행해. 다른 서브모듈로 벗어나거나 임의의 파일을 건드리지 마."*
 
 ---
 
