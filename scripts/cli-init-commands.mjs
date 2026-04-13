@@ -33,6 +33,11 @@ export async function runInit(opts, bundleRoot) {
   console.log(`.cursorrules: ${crResult.action} (${crResult.mode || ""})`);
 
   ensureTicketDirAndGitignore(opts);
+
+  // If no config exists, save the derived/default config to ensure persistency
+  if (!loadInitConfig(opts.cwd)) {
+    writeInitConfig(opts.cwd, opts);
+  }
 }
 
 export function runMerge(opts, bundleRoot) {

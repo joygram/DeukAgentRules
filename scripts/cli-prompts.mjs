@@ -68,6 +68,7 @@ export function writeInitConfig(cwd, opts) {
 
 export const STACKS = [
   { label: "Unity / C#", value: "unity" },
+  { label: "Unity + WebApp + C++ Server (Hybrid)", value: "unity-webapp-cpp" },
   { label: "Next.js + C#", value: "nextjs-dotnet" },
   { label: "Web (React / Vue / general)", value: "web" },
   { label: "Java / Spring Boot", value: "java" },
@@ -117,9 +118,11 @@ export async function runInteractive(opts) {
     opts.agentTools = tools;
     opts.shareTickets = shareTickets;
 
+    writeInitConfig(opts.cwd, opts);
+
     console.log("\n  Stack : " + stack);
     console.log("  Tools : " + (tools.join(", ") || "none"));
-    console.log("  Share Tickets: " + opts.shareTickets);
+    console.log("  Share Tickets: " + (opts.shareTickets ? "Yes (Shared)" : "No (Private)"));
     console.log("  AGENTS: " + opts.agents + "\n");
   } finally {
     rl.close();

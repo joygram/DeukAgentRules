@@ -22,8 +22,10 @@ export async function runTicketCreate(opts) {
     let body = opts.content ? String(opts.content).replace(/\\n/g, '\n') : "";
     if (!body && opts.from) body = readFileSync(join(opts.cwd, opts.from), "utf8");
     
-    const abs = join(opts.cwd, TICKET_DIR_NAME, group, `${topic}-${Date.now()}.md`);
-    mkdirSync(join(opts.cwd, TICKET_DIR_NAME, group), { recursive: true });
+    // Find nearest or create in CWD if missing
+    const ticketDir = detectConsumerTicketDir(opts.cwd, { createIfMissing: true });
+    const abs = join(ticketDir, group, `${topic}-${Date.now()}.md`);
+    mkdirSync(join(ticketDir, group), { recursive: true });
     path = toRepoRelativePath(opts.cwd, abs);
 
     const meta = {

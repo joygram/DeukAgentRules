@@ -293,7 +293,9 @@ export function collectTicketMarkdownFiles(dir, out = []) {
 
 export function rebuildTicketIndexFromTopicFilesIfNeeded(cwd, opts = {}) {
   const indexJson = readTicketIndexJson(cwd);
-  const root = join(cwd, TICKET_DIR_NAME);
+  const root = detectConsumerTicketDir(cwd);
+  if (!root) return indexJson;
+
   const files = collectTicketMarkdownFiles(root).filter(p => {
     const base = basename(p);
     return base !== "LATEST.md" && base !== TICKET_LIST_FILENAME && base !== TICKET_LIST_TEMPLATE_FILENAME && base !== "ACTIVE_TICKET.md";
