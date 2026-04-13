@@ -12,6 +12,7 @@ export function parseTicketArgs(argv) {
     else if (a === "--from") out.from = argv[++i];
     else if (a === "--ref") out.ref = argv[++i];
     else if (a === "--limit") out.limit = Number(argv[++i]);
+    else if (a === "--submodule") out.submodule = argv[++i];
     else if (a === "--latest") out.latest = true;
     else if (a === "--path-only") out.pathOnly = true;
     else if (a === "--print-content") out.printContent = true;

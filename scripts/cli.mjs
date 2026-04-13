@@ -102,6 +102,7 @@ Ticket Options:
   --topic <name>        Ticket topic slug
   --group <name>        Ticket group (sub|main|discussion)
   --project <name>      Project filter (DeukUI|DeukAgentRules)
+  --submodule <name>    Submodule filter (DeukPack|DeukUI)
   --latest              Use most recent ticket
   --path-only           Print only the file path
 `);

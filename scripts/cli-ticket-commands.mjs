@@ -68,6 +68,7 @@ export async function runTicketList(opts) {
   
   if (opts.group) rows = rows.filter(e => e.group === opts.group);
   if (opts.project) rows = rows.filter(e => e.project === opts.project);
+  if (opts.submodule) rows = rows.filter(e => e.submodule === opts.submodule);
   
   console.log("#  STATUS   GROUP       PROJECT     CREATED                  TITLE");
   rows.slice(0, opts.limit).forEach((e, idx) => {
