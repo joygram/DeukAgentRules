@@ -66,7 +66,9 @@ export async function runTicketList(opts) {
     throw new Error("No ticket system found. Please run 'npx deuk-agent-rule init' first.");
   }
   const index = rebuildTicketIndexFromTopicFilesIfNeeded(opts.cwd, opts);
+  syncActiveTicketPointer(opts.cwd);
   let rows = index.entries;
+
   
   if (opts.active) {
     rows = rows.filter(e => e.status === "active" || e.status === "open");

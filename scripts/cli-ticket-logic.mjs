@@ -429,6 +429,12 @@ export function syncActiveTicketPointer(cwd) {
   const ticketDir = detectConsumerTicketDir(cwd);
   if (!ticketDir) return;
 
+  // LATEST.md is deprecated. Remove it on every sync to prevent stale reads.
+  const legacyLatestPath = join(ticketDir, "LATEST.md");
+  if (existsSync(legacyLatestPath)) {
+    unlinkSync(legacyLatestPath);
+  }
+
   const pointerPathMd = join(ticketDir, "ACTIVE_TICKET.md");
   const pointerPathJson = join(ticketDir, "ACTIVE_TICKET.json");
   
@@ -452,6 +458,7 @@ export function syncActiveTicketPointer(cwd) {
   writeFileSync(pointerPathMd, noTicketMsg, "utf8");
   writeFileSync(pointerPathJson, JSON.stringify({ status: "none", message: "No active ticket" }), "utf8");
 }
+
 
 /**
  * Deterministic or Hash-based ID to prevent collisions in multi-device sync

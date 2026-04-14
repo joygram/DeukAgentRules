@@ -34,7 +34,7 @@ You **MUST** use the official Ticket Skeleton Template located at:
     - **Protocol Integrity**: Never hardcode JSON structures; always use `DeukPack` generated JS/TS codecs for communication.
 - **Ticket format (필수)**: 멀티스텝은 `.deuk-agent-templates/TICKET_TEMPLATE.md` (또는 활성 서브모듈의 템플릿) 사용
 
-By copying this template to `.deuk-agent-ticket/TICKET-XXX.md` (소속 저장소 내) 또는 `LATEST.md`, you ensure that:
+By copying this template to `.deuk-agent-ticket/TICKET-XXX.md` (소속 저장소 내), you ensure that:
 1. The **Target Submodule** is explicitly locked.
 2. The agent is forced to read specific **Module Rules** (e.g., `.deuk-agent-templates/MODULE_RULE_TEMPLATE.md`).
 3. Execution happens in explicit **Phases** to prevent context bleed.
