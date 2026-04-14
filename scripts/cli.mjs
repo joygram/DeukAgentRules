@@ -4,8 +4,8 @@ import { dirname, join } from "path";
 import { fileURLToPath } from "url";
 import { parseArgs, parseTicketArgs } from "./cli-args.mjs";
 import { runInit, runMerge } from "./cli-init-commands.mjs";
-import { runTicketCreate, runTicketList, runTicketUse, runTicketClose, runTicketArchive, runTicketReports, runTicketUpgrade } from "./cli-ticket-commands.mjs";
-import { loadInitConfig, writeInitConfig } from "./cli-prompts.mjs";
+import { runTicketCreate, runTicketList, runTicketUse, runTicketClose, runTicketArchive, runTicketReports, runTicketUpgrade, runTicketMeta, runTicketConnect } from "./cli-ticket-commands.mjs";
+import { loadInitConfig, writeInitConfig } from "./cli-utils.mjs";
 import { runInteractive } from "./cli-prompts.mjs";
 
 const __dirname = dirname(fileURLToPath(import.meta.url));
@@ -32,6 +32,8 @@ async function main() {
     else if (action === "reports") await runTicketReports(opts);
     else if (action === "migrate") await runTicketMigrate(opts);
     else if (action === "upgrade") await runTicketUpgrade(opts);
+    else if (action === "meta") await runTicketMeta(opts);
+    else if (action === "connect") await runTicketConnect(opts);
     else {
       console.error("Unknown ticket action: " + action);
       printHelp();
@@ -87,7 +89,7 @@ function printHelp() {
 Usage:
   npx deuk-agent-rule init   [options]
   npx deuk-agent-rule merge  [options]
-  npx deuk-agent-rule ticket <create|list|use|close|archive|reports|migrate|upgrade> [options]
+  npx deuk-agent-rule ticket <create|list|use|close|archive|reports|migrate|upgrade|meta|connect> [options]
 
 Options:
   --cwd <path>          Target repo root
@@ -97,14 +99,19 @@ Options:
   --agents <mode>       inject | skip | overwrite
   --rules <mode>        prefix | skip | overwrite
   --cursorrules <mode>  inject | skip | overwrite
+  --json                Output result in JSON format
+  --remote <url>        Temporary pipeline URL
+  --sync                Force enable remote sync
+  --no-sync             Force disable remote sync
 
 Ticket Options:
   --topic <name>        Ticket topic slug
   --group <name>        Ticket group (sub|main|discussion)
   --project <name>      Project filter (DeukUI|DeukAgentRules)
   --submodule <name>    Submodule filter (DeukPack|DeukUI)
-  --latest              Use most recent ticket
+  --latest              Use most recent ticket (default if no topic)
   --path-only           Print only the file path
+  --json                Output result in JSON format
 `);
 }
 

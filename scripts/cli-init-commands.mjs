@@ -2,7 +2,8 @@ import { join } from "path";
 import { existsSync, readFileSync, writeFileSync } from "fs";
 import { resolveMarkers, resolveCursorrulesMarkers, applyAgents, applyRules, applyCursorrules, readBundleAgents } from "./merge-logic.mjs";
 import { ensureTicketDirAndGitignore } from "./cli-init-logic.mjs";
-import { loadInitConfig, writeInitConfig } from "./cli-prompts.mjs";
+import { loadInitConfig, writeInitConfig } from "./cli-utils.mjs";
+import { runInteractive } from "./cli-prompts.mjs";
 
 export async function runInit(opts, bundleRoot) {
   const markers = resolveMarkers(opts);

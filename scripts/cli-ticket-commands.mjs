@@ -1,7 +1,8 @@
 import { existsSync, mkdirSync, readFileSync, writeFileSync, unlinkSync, copyFileSync, readdirSync, rmSync, statSync } from "fs";
 import { basename, join, dirname, relative, resolve } from "path";
 import { toSlug, toRepoRelativePath, inferRefTitleAndTopic, resolveReferencedTicketPath, toPosixPath, stringifyFrontMatter } from "./cli-utils.mjs";
-import { TICKET_DIR_NAME, appendTicketEntry, rebuildTicketIndexFromTopicFilesIfNeeded, detectConsumerTicketDir, readTicketIndexJson, writeTicketIndexJson, writeTicketListFile, syncActiveTicketPointer, performUpgradeMigration } from "./cli-ticket-logic.mjs";
+import { TICKET_DIR_NAME, appendTicketEntry, rebuildTicketIndexFromTopicFilesIfNeeded, detectConsumerTicketDir, readTicketIndexJson, writeTicketIndexJson, writeTicketListFile, syncActiveTicketPointer, performUpgradeMigration, generateTicketId, syncToPipeline } from "./cli-ticket-logic.mjs";
+import { loadInitConfig } from "./cli-utils.mjs";
 
 import { createInterface } from "readline";
 import { selectOne } from "./cli-prompts.mjs";
@@ -28,8 +29,9 @@ export async function runTicketCreate(opts) {
     mkdirSync(join(ticketDir, group), { recursive: true });
     path = toRepoRelativePath(opts.cwd, abs);
 
+    const ticketId = generateTicketId(title);
     const meta = {
-      id: `ticket_${Date.now()}`,
+      id: ticketId,
       title,
       topic,
       status: "open",
@@ -41,13 +43,20 @@ export async function runTicketCreate(opts) {
     const finalContent = stringifyFrontMatter(meta, body);
     writeFileSync(abs, finalContent, "utf8");
     source = "ticket-create";
+    
+    // Remote Sync Hook
+    const config = loadInitConfig(opts.cwd);
+    if (config && config.remoteSync && config.pipelineUrl) {
+      syncToPipeline(config.pipelineUrl, { action: "create", ticket: meta });
+    }
+
+    appendTicketEntry(opts.cwd, {
+      id: ticketId,
+      title, topic, group, project: opts.project || "global",
+      createdAt: new Date().toISOString(), path, source
+    }, opts);
   }
 
-  appendTicketEntry(opts.cwd, {
-    id: `ticket_${Date.now()}`,
-    title, topic, group, project: opts.project || "global",
-    createdAt: new Date().toISOString(), path, source
-  }, opts);
   syncActiveTicketPointer(opts.cwd);
 }
 
@@ -72,12 +81,44 @@ export async function runTicketList(opts) {
   if (opts.project) rows = rows.filter(e => e.project === opts.project);
   if (opts.submodule) rows = rows.filter(e => e.submodule === opts.submodule);
   
+  if (opts.json) {
+    console.log(JSON.stringify(rows, null, 2));
+    return;
+  }
+
   console.log("#  STATUS   GROUP       PROJECT     CREATED                  TITLE");
   rows.slice(0, opts.limit).forEach((e, idx) => {
     const stat = (e.status === "closed" ? "[x]" : "[ ]").padEnd(7);
     const safeTitle = String(e.title || e.topic || "").replace(/(\n|\\n)+/g, " ").slice(0, 50);
     console.log(`${String(idx+1).padEnd(2)} ${stat} ${e.group.padEnd(10)} ${e.project.padEnd(11)} ${e.createdAt.padEnd(24)} ${safeTitle}`);
   });
+}
+
+export async function runTicketMeta(opts) {
+  const index = rebuildTicketIndexFromTopicFilesIfNeeded(opts.cwd, opts);
+  const found = pickTicketEntry(opts, index);
+  if (!found) throw new Error("ticket meta: no matching ticket found");
+
+  if (opts.json) {
+    console.log(JSON.stringify(found, null, 2));
+  } else {
+    console.log(`Ticket Meta [${found.topic}]`);
+    Object.entries(found).forEach(([k, v]) => console.log(`  ${k}: ${v}`));
+  }
+}
+
+export async function runTicketConnect(opts) {
+  const config = loadInitConfig(opts.cwd);
+  const url = opts.remote || config?.pipelineUrl;
+  if (!url) throw new Error("ticket connect: no pipeline URL configured or provided via --remote");
+
+  console.log(`Connecting to AI Pipeline at ${url} ...`);
+  const success = await syncToPipeline(url, { action: "ping", timestamp: new Date().toISOString() });
+  if (success) {
+    console.log("SUCCESS: Pipeline is reachable.");
+  } else {
+    console.error("FAILED: Could not connect to pipeline or returned non-OK status.");
+  }
 }
 
 import { updateTicketEntryStatus } from "./cli-ticket-logic.mjs";

@@ -1,6 +1,7 @@
 import { existsSync, mkdirSync, readdirSync, readFileSync, statSync, writeFileSync, unlinkSync, copyFileSync } from "fs";
 import { basename, dirname, join, relative } from "path";
-import { toPosixPath, toRepoRelativePath, toSlug, formatTimestampForFile, makeEntryId, detectProjectFromBody, deriveTopicFromBaseName, parseFrontMatter, stringifyFrontMatter } from "./cli-utils.mjs";
+import { createHash } from "crypto";
+import { toPosixPath, toRepoRelativePath, toSlug, formatTimestampForFile, makeEntryId, detectProjectFromBody, deriveTopicFromBaseName, parseFrontMatter, stringifyFrontMatter, loadInitConfig } from "./cli-utils.mjs";
 
 export const TICKET_DIR_NAME = ".deuk-agent-ticket";
 export const TICKET_INDEX_FILENAME = "INDEX.json";
@@ -388,17 +389,60 @@ export function syncActiveTicketPointer(cwd) {
   const ticketDir = detectConsumerTicketDir(cwd);
   if (!ticketDir) return;
 
-  const pointerPath = join(ticketDir, "ACTIVE_TICKET.md");
+  const pointerPathMd = join(ticketDir, "ACTIVE_TICKET.md");
+  const pointerPathJson = join(ticketDir, "ACTIVE_TICKET.json");
   
   if (activeEntry) {
     const srcAbs = join(cwd, activeEntry.path);
     if (existsSync(srcAbs)) {
-      copyFileSync(srcAbs, pointerPath);
-      // console.log(`[TICKET] Mirrored active ticket to: ${pointerPath}`);
+      copyFileSync(srcAbs, pointerPathMd);
+      writeFileSync(pointerPathJson, JSON.stringify({ ...activeEntry, syncedAt: new Date().toISOString() }, null, 2), "utf8");
+      
+      // Hook: Optional background sync to remote pipeline
+      const config = loadInitConfig(cwd);
+      if (config && config.remoteSync && config.pipelineUrl) {
+        syncToPipeline(config.pipelineUrl, { action: "sync_active", ticket: activeEntry });
+      }
       return;
     }
   }
 
-  // If no active ticket, clear pointer or write informational notice
-  writeFileSync(pointerPath, "# No Active Ticket Found\nUse `npx deuk-agent-rule ticket list` to find open tasks.\n", "utf8");
+  // If no active ticket, clear pointers
+  const noTicketMsg = "# No Active Ticket Found\nUse `npx deuk-agent-rule ticket list` to find open tasks.\n";
+  writeFileSync(pointerPathMd, noTicketMsg, "utf8");
+  writeFileSync(pointerPathJson, JSON.stringify({ status: "none", message: "No active ticket" }), "utf8");
+}
+
+/**
+ * Deterministic or Hash-based ID to prevent collisions in multi-device sync
+ */
+export function generateTicketId(title) {
+  const seed = `${title}-${Date.now()}-${Math.random()}`;
+  try {
+    return "ticket_" + createHash("md5").update(seed).digest("hex").slice(0, 12);
+  } catch {
+    return "ticket_" + Date.now() + "_" + Math.floor(Math.random() * 1000);
+  }
+}
+
+/**
+ * Async background sync to AI Pipeline.
+ * Returning true on success, false on failure (for connect check).
+ */
+export async function syncToPipeline(url, data) {
+  if (typeof fetch === "undefined") {
+    // Node.js version < 18 or no fetch polyfill
+    return false;
+  }
+  try {
+    const response = await fetch(url, {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify(data),
+      signal: AbortSignal?.timeout ? AbortSignal.timeout(3000) : undefined
+    });
+    return response.ok;
+  } catch (err) {
+    return false;
+  }
 }
