@@ -59,7 +59,7 @@ By copying this template to `.deuk-agent-ticket/TICKET-XXX.md` (소속 저장소
 
 When given a ticket, you MUST run commands and write code **strictly within the boundaries** of the `[Target Submodule]` defined in the `TICKET-XXX.md`.
 
-1. **Read the Ticket**: Identify the active `.deuk-agent-ticket/TICKET-XXX.md` file.
+1. **Read the Ticket**: ALWAYS use `npx deuk-agent-rule ticket use --latest` (or `npx deuk-agent-rule ticket list`) to locate and read the active ticket. DO NOT manually parse INDEX.json or scan directories.
 2. **Execute Phase**: Process only the checklist for the **Current Phase**. Do not hallucinate or wander into other architectural areas.
 3. **Update Status**: Mark checkboxes (`[x]`) as tasks are completed.
 4. **Archive on Completion**: When all phases are completed, append the execution report or walkthrough markdown natively at the bottom of the ticket under a `## 📜 Execution Report` header, then move the single file to `.deuk-agent-ticket/archive/TICKET-XXX.md`.
