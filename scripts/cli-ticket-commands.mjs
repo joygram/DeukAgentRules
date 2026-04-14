@@ -86,11 +86,12 @@ export async function runTicketList(opts) {
     return;
   }
 
-  console.log("#  STATUS   GROUP       PROJECT     CREATED                  TITLE");
+  console.log("#  STATUS   SUBMODULE   GROUP       PROJECT     CREATED                  TITLE");
   rows.slice(0, opts.limit).forEach((e, idx) => {
     const stat = (e.status === "closed" ? "[x]" : "[ ]").padEnd(7);
+    const sub = (e.submodule || "-").padEnd(11);
     const safeTitle = String(e.title || e.topic || "").replace(/(\n|\\n)+/g, " ").slice(0, 50);
-    console.log(`${String(idx+1).padEnd(2)} ${stat} ${e.group.padEnd(10)} ${e.project.padEnd(11)} ${e.createdAt.padEnd(24)} ${safeTitle}`);
+    console.log(`${String(idx+1).padEnd(2)} ${stat} ${sub} ${String(e.group||"").padEnd(10)} ${String(e.project||"").padEnd(11)} ${String(e.createdAt||"").padEnd(24)} ${safeTitle}`);
   });
 }
 

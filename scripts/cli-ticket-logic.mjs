@@ -286,21 +286,61 @@ export function collectTicketMarkdownFiles(dir, out = []) {
   if (!existsSync(dir)) return out;
   for (const ent of readdirSync(dir, { withFileTypes: true })) {
     const abs = join(dir, ent.name);
+    // Ignore common noise
+    if (ent.name === "node_modules" || ent.name === ".git") continue;
+    
     if (ent.isDirectory()) collectTicketMarkdownFiles(abs, out);
-    else if (ent.isFile() && /\.md$/i.test(ent.name)) out.push(abs);
+    else if (ent.isFile() && /\.md$/i.test(ent.name)) {
+      const base = ent.name;
+      if (base === "LATEST.md" || base === TICKET_LIST_FILENAME || base === TICKET_LIST_TEMPLATE_FILENAME || base === "ACTIVE_TICKET.md") continue;
+      out.push(abs);
+    }
+  }
+  return out;
+}
+
+/**
+ * Finds all .deuk-agent-ticket directories recursively, skipping node_modules/.git
+ */
+export function discoverAllTicketDirs(baseCwd, out = []) {
+  if (!existsSync(baseCwd)) return out;
+  const entries = readdirSync(baseCwd, { withFileTypes: true });
+  
+  // If current dir has .deuk-agent-ticket, add it
+  const local = join(baseCwd, TICKET_DIR_NAME);
+  if (existsSync(local) && statSync(local).isDirectory()) {
+    out.push(local);
+  }
+
+  for (const ent of entries) {
+    if (!ent.isDirectory()) continue;
+    if (ent.name === "node_modules" || ent.name === ".git" || ent.name === TICKET_DIR_NAME) continue;
+    discoverAllTicketDirs(join(baseCwd, ent.name), out);
   }
   return out;
 }
 
 export function rebuildTicketIndexFromTopicFilesIfNeeded(cwd, opts = {}) {
   const indexJson = readTicketIndexJson(cwd);
-  const root = detectConsumerTicketDir(cwd);
-  if (!root) return indexJson;
+  // Hierarchical Scan: If we are at root, discover all sub-dirs. 
+  const isRoot = existsSync(join(cwd, "DeukAgentRules")) || existsSync(join(cwd, "project_i"));
+  
+  let ticketDirs = [];
+  if (opts.recursive !== false && isRoot) {
+    ticketDirs = discoverAllTicketDirs(cwd);
+  } else {
+    const local = join(cwd, TICKET_DIR_NAME);
+    if (existsSync(local) && statSync(local).isDirectory()) {
+      ticketDirs = [local];
+    }
+  }
 
-  const files = collectTicketMarkdownFiles(root).filter(p => {
-    const base = basename(p);
-    return base !== "LATEST.md" && base !== TICKET_LIST_FILENAME && base !== TICKET_LIST_TEMPLATE_FILENAME && base !== "ACTIVE_TICKET.md";
-  });
+  if (ticketDirs.length === 0) return indexJson;
+
+  const files = [];
+  for (const dir of ticketDirs) {
+    collectTicketMarkdownFiles(dir, files);
+  }
 
   let dirty = false;
   const newEntries = [];
@@ -324,7 +364,7 @@ export function rebuildTicketIndexFromTopicFilesIfNeeded(cwd, opts = {}) {
       topic: deriveTopicFromBaseName(basename(abs)),
       group: basename(dirname(abs)),
       project,
-      submodule,
+      submodule: meta.submodule || (rel.startsWith(TICKET_DIR_NAME) ? "" : rel.split("/")[0]),
       createdAt: meta.createdAt || statSync(abs).mtime.toISOString(),
       updatedAt: meta.updatedAt || statSync(abs).mtime.toISOString(),
       path: rel,
