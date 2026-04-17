@@ -119,4 +119,4 @@ if (existsSync(ossPolish)) {
 }
 
 console.log("deuk-agent-rule: synced OSS tree at " + ossRoot);
-console.log("  Override repo URL: DEUK_AGENT_RULES_OSS_REPO=https://github.com/org/DeukAgentRulesOSS");
+console.log("  Override repo URL: DEUK_AGENT_RULES_OSS_REPO=https://github.com/joygram/DeukAgentRules");
