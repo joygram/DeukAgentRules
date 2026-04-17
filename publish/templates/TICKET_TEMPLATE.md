@@ -1,4 +1,3 @@
-
 # Task: [Task Title / Ticket Number]
 
 > **[CAUTION FOR AI AGENTS]** 
@@ -36,5 +35,3 @@
 ## ✅ Verification / QA
 - [e.g., Check CLI command output `npm run test`]
 - [e.g., Validate Inspector mounts properly in Figma]
-
-<!-- Ticket (repo-relative): DeukAgentRules/ticket/TICKET-XXX_Ticket.md -->
