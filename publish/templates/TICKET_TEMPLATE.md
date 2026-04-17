@@ -1,11 +1,3 @@
----
-id: TICKET-XXX
-title: "Task Title"
-status: open # open | active | archived
-submodule: DeukPack
-project: global
----
-
 # Task: [Task Title / Ticket Number]
 
 > **[CAUTION FOR AI AGENTS]** 
@@ -43,5 +35,3 @@ project: global
 ## ✅ Verification / QA
 - [e.g., Check CLI command output `npm run test`]
 - [e.g., Validate Inspector mounts properly in Figma]
-
-<!-- Ticket (repo-relative): .deuk-agent-ticket/TICKET-XXX.md -->

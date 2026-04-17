@@ -11,8 +11,7 @@
   - Do not attempt to "wow" the user with your tone.
   - For Korean responses, use polite '해요체(-요)' instead of formal '하십시오체(-다/까)'.
 - **핸드오프 저장 후 채팅**: 파일로 남긴 뒤 채팅에 **`Path: \`루트기준/전체/경로.md\``** 형태로 **한 줄**을 반드시 넣어 다음 세션이 동일 파일을 연다.
-- **핸드오프 파일 꼬리줄(선택)**: 파일 맨 마지막 줄에 `<!-- Ticket (repo-relative): 경로 -->` 형태의 HTML 주석을 두어 검색·스캔에 쓸 수 있다.
-- **플랜 UI(선택)**: 플랜 전용 패널에 같은 문서를 띄우려면, 관리 중인 **multi-ai-workflow** 규칙에 적힌 **선택적 미러 경로**(예: `.cursor/plans/*.plan.md`)에 동일 본문을 둘 수 있다. 정본은 `.deuk-agent-ticket/` 또는 `DeukAgentRules/ticket/`를 유지하고 두 곳 내용을 맞출 것.
+- **플랜 UI(선택)**: 플랜 전용 패널에 같은 문서를 띄우려면, 관리 중인 **multi-ai-workflow** 규칙에 적힌 **선택적 미러 경로**(예: `.cursor/plans/*.plan.md`)에 동일 본문을 둘 수 있다. 정본은 지정된 티켓 폴더를 유지하고 두 곳 내용을 맞출 것.
 
 English sections above are canonical for tooling; this block is a short Korean mirror for the same rules.
 
@@ -34,7 +33,7 @@ You **MUST** use the official Ticket Skeleton Template located at:
     - **Protocol Integrity**: Never hardcode JSON structures; always use `DeukPack` generated JS/TS codecs for communication.
 - **Ticket format (필수)**: 멀티스텝은 `.deuk-agent-templates/TICKET_TEMPLATE.md` (또는 활성 서브모듈의 템플릿) 사용
 
-By copying this template to `.deuk-agent-ticket/TICKET-XXX.md` (소속 저장소 내) 또는 `LATEST.md`, you ensure that:
+By **creating a ticket using the CLI** (`npx deuk-agent-rule ticket create --topic <name>`), you ensure that:
 1. The **Target Submodule** is explicitly locked.
 2. The agent is forced to read specific **Module Rules** (e.g., `.deuk-agent-templates/MODULE_RULE_TEMPLATE.md`).
 3. Execution happens in explicit **Phases** to prevent context bleed.
@@ -59,10 +58,12 @@ By copying this template to `.deuk-agent-ticket/TICKET-XXX.md` (소속 저장소
 
 When given a ticket, you MUST run commands and write code **strictly within the boundaries** of the `[Target Submodule]` defined in the `TICKET-XXX.md`.
 
-1. **Read the Ticket**: ALWAYS use `npx deuk-agent-rule ticket use --latest` (or `npx deuk-agent-rule ticket list`) to locate and read the active ticket. DO NOT manually parse INDEX.json or scan directories.
-2. **Execute Phase**: Process only the checklist for the **Current Phase**. Do not hallucinate or wander into other architectural areas.
-3. **Update Status**: Mark checkboxes (`[x]`) as tasks are completed.
-4. **Archive on Completion**: When all phases are completed, append the execution report or walkthrough markdown natively at the bottom of the ticket under a `## 📜 Execution Report` header, then move the single file to `.deuk-agent-ticket/archive/TICKET-XXX.md`.
+1. **Create the Ticket**: ALWAYS use `npx deuk-agent-rule ticket create --topic <name>` to generate a new ticket. **DO NOT** manually create `.md` files or copy templates directly to bypass the CLI.
+2. **Read the Ticket**: ALWAYS use `npx deuk-agent-rule ticket use --latest` (or `npx deuk-agent-rule ticket list`) to locate and read the active ticket. DO NOT manually parse INDEX.json or scan directories.
+3. **Fill the Ticket (CRITICAL)**: The newly created ticket already contains YAML Front Matter (`--- id: ... ---`). **DO NOT** overwrite the entire file when adding your plan. ALWAYS use partial file editing tools or append text carefully to preserve the existing YAML Front Matter. Erasing the Front Matter corrupts the ticketing index.
+4. **Execute Phase**: Process only the checklist for the **Current Phase**. Do not hallucinate or wander into other architectural areas.
+5. **Update Status**: Mark checkboxes (`[x]`) as tasks are completed.
+6. **Archive on Completion**: When all phases are completed, append the execution report at the bottom under a `## 📜 Execution Report` header. **Then, YOU MUST execute `npx deuk-agent-rule ticket archive <ticket-id>` (or `--latest`)** to properly close and archive the ticket. DO NOT attempt to manually `mv` files.
 
 All Tickets are volatile and strictly local. Do not attempt to version them or mirror them to obsolete plan directories.
 

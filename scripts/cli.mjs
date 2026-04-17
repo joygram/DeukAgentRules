@@ -4,7 +4,8 @@ import { dirname, join } from "path";
 import { fileURLToPath } from "url";
 import { parseArgs, parseTicketArgs } from "./cli-args.mjs";
 import { runInit, runMerge } from "./cli-init-commands.mjs";
-import { runTicketCreate, runTicketList, runTicketUse, runTicketClose, runTicketArchive, runTicketReports, runTicketUpgrade, runTicketMeta, runTicketConnect } from "./cli-ticket-commands.mjs";
+import { runTicketCreate, runTicketList, runTicketUse, runTicketClose, runTicketArchive, runTicketReports, runTicketMeta, runTicketConnect } from "./cli-ticket-commands.mjs";
+import { performUpgradeMigration } from "./cli-ticket-logic.mjs";
 import { loadInitConfig, writeInitConfig } from "./cli-utils.mjs";
 import { runInteractive } from "./cli-prompts.mjs";
 
@@ -30,10 +31,12 @@ async function main() {
     else if (action === "close") await runTicketClose(opts);
     else if (action === "archive") await runTicketArchive(opts);
     else if (action === "reports") await runTicketReports(opts);
-    else if (action === "migrate") await runTicketMigrate(opts);
-    else if (action === "upgrade") await runTicketUpgrade(opts);
     else if (action === "meta") await runTicketMeta(opts);
     else if (action === "connect") await runTicketConnect(opts);
+    else if (action === "upgrade" || action === "migrate") {
+      const count = performUpgradeMigration(opts.cwd, opts);
+      console.log(`Migration complete: ${count} tickets upgraded.`);
+    }
     else {
       console.error("Unknown ticket action: " + action);
       printHelp();
@@ -69,7 +72,7 @@ async function main() {
   printHelp();
 }
 
-import { runTicketMigrate } from "./cli-ticket-commands.mjs";
+// Removed legacy migration runTicketMigrate
 
 async function handleInit(opts) {
   if (!opts.interactive && !opts.nonInteractive && !loadInitConfig(opts.cwd)) {

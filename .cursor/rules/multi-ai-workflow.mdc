@@ -32,7 +32,6 @@ When the user asks to prepare work for another tool:
 3. Do not include editor-specific instructions (token budgets, local rule file paths).
 4. When the task must **persist** (user asks to save or document it, or it is the canonical next-step spec), **create or update** a Markdown file under **internal implementation documentation** (see `AGENTS.md`). Prefer **`DeukAgentRules/handoff/LATEST.md`** when this repo has a top-level **`DeukAgentRules/`** folder. Use the same ticket/handoff template. In Markdown links and backtick citations, use the **full path from the repository root** — never a bare filename.
 5. **After writing a persisted ticket**, in chat include **one dedicated line** with the full repo-root-relative path so the next session can open it unambiguously, for example: `Path: \`DeukAgentRules/handoff/LATEST.md\``. Repeat the full path in links elsewhere in the same message if helpful.
-6. **Optional first line inside the persisted file** (improves search and skim): `**Handoff (repo-relative):** \`path/from/repo/root.md\`` or the same path in an HTML comment on line 1.
 7. Write persisted handoff **content** in the **user's conversation language** unless they specify another language.
 
 ## Persisted handoff vs plan UI (optional)

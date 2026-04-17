@@ -60,9 +60,13 @@ npx deuk-agent-rule init --non-interactive
 AI에게 중구난방으로 지시하지 마세요. 명확한 티켓을 발급하여 **문맥(Context)을 소속 저장소 단위로 좁혀주어야** 합니다.
 
 ```bash
-npx deuk-agent-rule ticket create --topic ui-refactoring --group frontend --project DeukUI --content "## Task: 플러그인 UI 리팩토링"
+npx deuk-agent-rule ticket create --topic ui-refactoring --group frontend --project DeukUI
 ```
 명령어를 치면 `.deuk-agent-ticket/` 폴더 내에 템플릿이 입혀진 `TICKET-ui-refactoring.md` 파일이 생성됩니다.
+
+> [!IMPORTANT]
+> **티켓 작성 (주의사항)**: 새로 생성된 티켓에는 **YAML Front Matter** (`--- id: ... ---`)가 포함되어 있습니다. 내용을 작성할 때 **파일 전체를 덮어쓰지 마십시오.** 반드시 헤더 아래에 내용을 추가하거나 부분 편집 도구를 사용하여 기존 YAML 메타데이터를 보존해야 합니다. 프론트매터가 삭제되면 티켓 인덱싱 시스템이 파손됩니다.
+
 개발자는 이 파일 내의 `[Target Submodule]` 속성에 AI가 들여다보아야 할 고립된 경로(예: `src/client`)만을 명시해 줍니다.
 
 ### [Step 2] 세션 인수인계 및 에이전트 격리 실행 (Agent Execution)
@@ -114,13 +118,13 @@ npx deuk-agent-rule ticket list
 
 | 커맨드 | 설명 / 자연어 프롬프트 지시 예시 |
 |--------|------|
-| `npx deuk-agent-rule ticket create ...` | 신규 티켓 문서 생성 (`--group`, `--project` 지정 가능) <br>💬 *"새 티켓 만들어 (주제: refactor, 타겟: sub1)"* |
-| `npx deuk-agent-rule ticket list` | 활성 티켓의 현재 상태 및 리스트업 (`--archived`, `--all` 지원) <br>💬 *"티켓 리스트"* |
+| `npx deuk-agent-rule ticket create ...` | 신규 티켓 문서 생성 (`--group`, `--project`, `--submodule` 지정 가능) <br>💬 *"새 티켓 만들어 (주제: refactor, 타겟: sub1)"* |
+| `npx deuk-agent-rule ticket list` | 활성 티켓의 현재 상태 및 리스트업 (`--archived`, `--all`, `--json` 지원) <br>💬 *"티켓 리스트"* |
 | `npx deuk-agent-rule ticket use --latest ...` | 빌드 파이프라인 연동을 위해 최근 티켓의 파일 경로만 반환 <br>💬 *"최근 티켓 경로"* |
 | `npx deuk-agent-rule ticket close ...` | 파일을 물리적으로 이동시키지 않고 상태만 완료로 잠금(Soft-close) <br>💬 *"현재 티켓 상태 닫아 (완료)"* |
+| `npx deuk-agent-rule ticket upgrade` | 과거 티켓 구조를 V2(YAML FM)로 마이그레이션 및 서브모듈 분산(DEFRAG) 실행 <br>💬 *"티켓 V2 업그레이드"* |
 | `npx deuk-agent-rule ticket archive ...` | 완료된 티켓을 안전하게 보관소(`archive/`)로 이동 및 갱신 <br>💬 *"현재 티켓 아카이브해 (보고서 첨부)"* |
 | `npx deuk-agent-rule ticket reports` | 영구 보관된 에이전트 작업 보고서(`reports/`) 목록 조회 <br>💬 *"완료된 티켓 보고서 목록"* |
-| `npx deuk-agent-rule ticket migrate` | 과거 단일 LATEST.md 데이터를 신규 모듈형 인덱스 구조로 강제 이전 <br>💬 *"이전 티켓 데이터 마이그레이션"* |
 
 ### Init 고급 옵션
 | 플래그 | 기본값 | 설명 |

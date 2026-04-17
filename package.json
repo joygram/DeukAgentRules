@@ -48,5 +48,8 @@
   },
   "devDependencies": {
     "commit-and-tag-version": "^12.7.1"
+  },
+  "dependencies": {
+    "ejs": "^5.0.2"
   }
 }

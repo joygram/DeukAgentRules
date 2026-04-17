@@ -36,7 +36,6 @@ When the user asks to prepare work for another tool:
 3. Do not include editor-specific instructions (token budgets, local rule file paths).
 4. When the ticket must persist (user asks to save or document it, or it is the canonical next-step spec), create or update a Markdown file under internal implementation documentation (see AGENTS.md, Ticket persistence). Prefer the unified .deuk-agent-ticket/ directory for both the index (TICKET_LIST.md) and the topic files; init gitignores .deuk-agent-ticket/ by default. Use the same ticket template; do not place this in public README/landing unless the project explicitly treats this as its internal log. In Markdown links and backtick citations, use the full path from the repository root — never a bare filename.
 5. After writing a persisted ticket, in chat include one dedicated line with the full repo-root-relative path so the next session can open it unambiguously, for example: `Path: .deuk-agent-ticket/sub/container-unified-20260329-120000.md` (same path you used in the file). Repeat the full path in links elsewhere in the same message if helpful.
-6. Optional last line inside the persisted file (improves search and skim): `<!-- Ticket (repo-relative): path/from/repo/root.md -->` on the very last line.
 7. Write persisted ticket content in the user's conversation language (e.g., Korean) unless they specify another language. When using Korean, follow the concise polite style (-요) as described in AGENTS.md.
 
 ## Context Preservation (New Issues)
