@@ -49,6 +49,9 @@ cpSync(join(pkgRoot, "README.ko.md"), join(ossRoot, "README.ko.md"), { force: tr
 if (existsSync(join(pkgRoot, "CHANGELOG.md"))) {
   cpSync(join(pkgRoot, "CHANGELOG.md"), join(ossRoot, "CHANGELOG.md"), { force: true });
 }
+if (existsSync(join(pkgRoot, "CHANGELOG.ko.md"))) {
+  cpSync(join(pkgRoot, "CHANGELOG.ko.md"), join(ossRoot, "CHANGELOG.ko.md"), { force: true });
+}
 if (existsSync(join(pkgRoot, "package-lock.json"))) {
   cpSync(join(pkgRoot, "package-lock.json"), join(ossRoot, "package-lock.json"), { force: true });
 }
@@ -91,6 +94,7 @@ const outPkg = {
     "README.md",
     "README.ko.md",
     "CHANGELOG.md",
+    "CHANGELOG.ko.md",
   ],
 };
 delete outPkg.private;
