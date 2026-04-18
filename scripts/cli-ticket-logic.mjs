@@ -83,10 +83,10 @@ export function renderTicketListMarkdown(cwd, entries) {
   const activeRows = sorted.filter(e => e.status !== "archived").map((e, i) => renderLine(e, i, ticketDir, cwd));
   const archivedRows = sorted.filter(e => e.status === "archived").slice(0, 50).map((e, i) => renderLine(e, i, ticketDir, cwd));
 
-  let combinedRows = "### 🚀 Active Tickets\n\n| # | Status | Title | Group | Project | Created | Path |\n|---|---|---|---|---|---|---|\n" + 
-                     (activeRows.join("\n") || "| - | - | No active tickets | - | - | - | - |") + 
-                     "\n\n### 📦 Archived Tickets\n\n| # | Status | Title | Group | Project | Created | Path |\n|---|---|---|---|---|---|---|\n" + 
-                     (archivedRows.join("\n") || "| - | - | No archived tickets | - | - | - | - |");
+  let combinedRows = "### 🚀 Active Tickets\n\n| # | Status | Pri | Title | Group | Project | Created | Path |\n|---|---|---|---|---|---|---|---|\n" + 
+                     (activeRows.join("\n") || "| - | - | - | No active tickets | - | - | - | - |") + 
+                     "\n\n### 📦 Archived Tickets\n\n| # | Status | Pri | Title | Group | Project | Created | Path |\n|---|---|---|---|---|---|---|---|\n" + 
+                     (archivedRows.join("\n") || "| - | - | - | No archived tickets | - | - | - | - |");
 
   return template
     .replaceAll("{{SOURCE_INDEX}}", `${TICKET_DIR_NAME}/${TICKET_INDEX_FILENAME}`)
@@ -100,7 +100,8 @@ function renderLine(e, i, ticketDir, cwd) {
   const relPath = toPosixPath(relative(ticketDir, join(cwd, e.path)));
   const statusIcon = e.status === "active" ? "🔥 " : (e.status === "archived" ? "📦 " : "[ ] ");
   const safeTitle = String(e.title || "").replace(/\|/g, '&#124;').replace(/(\n|\\n)+/g, ' ');
-  return `| ${i + 1} | ${statusIcon}${e.status} | ${safeTitle} | ${e.group} | ${e.project} | ${e.createdAt.split('T')[0]} | [open](${relPath}) |`;
+  const prio = e.priority || "P2";
+  return `| ${i + 1} | ${statusIcon}${e.status} | ${prio} | ${safeTitle} | ${e.group} | ${e.project} | ${e.createdAt.split('T')[0]} | [open](${relPath}) |`;
 }
 
 export function writeTicketListFile(cwd, entries, opts = {}) {

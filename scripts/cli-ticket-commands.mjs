@@ -49,6 +49,7 @@ export async function runTicketCreate(opts) {
       status: "open",
       submodule: opts.submodule || "",
       project: opts.project || "global",
+      priority: opts.priority || "P2",
       createdAt: new Date().toISOString(),
     };
 
@@ -57,6 +58,7 @@ id: <%= meta.id %>
 title: "<%- meta.title.replace(/"/g, '\\"') %>"
 topic: <%= meta.topic %>
 status: open
+priority: <%= meta.priority %>
 submodule: <%= meta.submodule %>
 project: <%= meta.project %>
 createdAt: <%= meta.createdAt %>
@@ -75,7 +77,7 @@ createdAt: <%= meta.createdAt %>
 
     appendTicketEntry(opts.cwd, {
       id: ticketId,
-      title, topic, group, project: opts.project || "global",
+      title, topic, group, project: opts.project || "global", priority: meta.priority,
       createdAt: new Date().toISOString(), path, source
     }, opts);
   }
@@ -111,12 +113,13 @@ export async function runTicketList(opts) {
     return;
   }
 
-  console.log("#  STATUS   SUBMODULE   GROUP       PROJECT     CREATED                  TITLE");
+  console.log("#  STATUS   PRI  SUBMODULE   GROUP       PROJECT     CREATED                  TITLE");
   rows.slice(0, opts.limit).forEach((e, idx) => {
     const stat = (e.status === "closed" ? "[x]" : "[ ]").padEnd(7);
+    const prio = (e.priority || "P2").padEnd(4);
     const sub = (e.submodule || "-").padEnd(11);
     const safeTitle = String(e.title || e.topic || "").replace(/(\n|\\n)+/g, " ").slice(0, 50);
-    console.log(`${String(idx+1).padEnd(2)} ${stat} ${sub} ${String(e.group||"").padEnd(10)} ${String(e.project||"").padEnd(11)} ${String(e.createdAt||"").padEnd(24)} ${safeTitle}`);
+    console.log(`${String(idx+1).padEnd(2)} ${stat} ${prio} ${sub} ${String(e.group||"").padEnd(10)} ${String(e.project||"").padEnd(11)} ${String(e.createdAt||"").padEnd(24)} ${safeTitle}`);
   });
 }
 
