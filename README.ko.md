@@ -25,16 +25,21 @@ Cursor, GitHub Copilot, Gemini / Antigravity, Claude, Windsurf, JetBrains AI Ass
 
 ## 🛠️ 워크스페이스 초기화 (Getting Started)
 
-프로젝트 루트에서 최초 1회 패키지를 설치하고 초기화합니다.
+본 패키지는 여러 서브모듈 및 프로젝트 전반에서 빈번하게 사용되는 CLI 도구이므로 **전역(Global) 설치를 강력히 권장**합니다.
 
 ```bash
-npm install deuk-agent-rule
-npx deuk-agent-rule init
+npm install -g deuk-agent-rule
+deuk-agent-rule init
 ```
+
+> [!NOTE]
+> **전역 설치(Global Install) 권한 이슈 해결방안**:
+> - **Linux/macOS**: 기본적으로 `npm install -g` 실행 시 `EACCES` 권한 오류가 발생할 수 있습니다. Node 버전 매니저(`nvm`, `fnm` 등)를 사용하여 권한 제약을 회피하는 것이 가장 좋으나, 시스템 Node를 사용하는 경우 불가피하게 `sudo npm install -g deuk-agent-rule` 명령을 사용해야 합니다.
+> - **Windows**: Node.js가 `Program Files` 등 시스템 폴더에 설치된 경우, 터미널(PowerShell/CMD)을 **관리자 권한**으로 실행한 상태에서 설치해야 오류가 발생하지 않습니다.
 
 초기화 시 프로젝트의 **기술 스택**, **사용 중인 에이전트 툴**, 그리고 **티켓 공유 정책**을 묻는 대화형 질문이 나타납니다. 
 - **티켓 공유 정책**: 각 저장소 단위의 `.deuk-agent-ticket/` 폴더를 Git으로 추적하여 팀과 공유할지, 아니면 로컬 전용으로 둘지 결정합니다.
-- 스택 변경이 필요 없으면 이후에는 `npx deuk-agent-rule init`만 쳐서 규칙을 최신화할 수 있습니다.
+- 스택 변경이 필요 없으면 이후에는 `deuk-agent-rule init`만 쳐서 규칙을 최신화할 수 있습니다. (전역 설치를 하지 않았다면 `npx deuk-agent-rule init`으로 대체 가능합니다.)
 - CI나 스크립트 환경에서는 대화형 입력을 끄기 위해 `--non-interactive` 파라미터를 추가하세요.
 
 ### 🔄 규칙 패키지 업데이트 (Update Rules)
@@ -114,6 +119,12 @@ AI는 `AGENTS.md`에 정의된 **[TICKET VERIFICATION RULE]**에 따라 즉시 3
 ## ⚙️ 부가 옵션 및 CLI 레퍼런스
 
 업무 자동화 및 타깃 제어를 위한 상세 옵션입니다.
+
+> [!NOTE]
+> **패키지 메인테이너(기여자) 전용 - 로컬 개발 환경 권한 주의사항**: 
+> 일반 사용자는 해당되지 않습니다. `DeukAgentRules` 저장소 내부 소스코드를 직접 수정하며 로컬 패치를 즉시 테스트하려는 메인테이너의 경우, 글로벌 캐시된 `npx deuk-agent-rule` 대신 `node ./scripts/cli.mjs`를 직접 호출해야 합니다.
+> - **Linux/macOS**: 로컬 심링크(`npm link`) 생성 시 `sudo` 권한이 필요할 수 있으며, 스크립트를 직접 실행(`./scripts/cli.mjs`)할 경우 실행 권한(`chmod +x`) 이슈가 발생할 수 있으므로 `node` 명령어를 통한 명시적 호출이 가장 안전합니다.
+> - **Windows**: `npm link` 사용 시 관리자 권한(또는 개발자 모드)이 필요하며, PowerShell 스크립트 실행 정책(Execution Policy)에 의해 래퍼 스크립트가 차단될 수 있으므로 권한 제약이 없는 `node ./scripts/cli.mjs` 호출 방식을 권장합니다.
 
 ### Ticket 기반 명령
 아래 CLI 명령어들은 터미널에 직접 입력하는 대신, **AI 챗봇에게 자연어 프롬프트로 지시**하여 실행을 위임할 수 있습니다.

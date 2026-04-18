@@ -25,15 +25,20 @@ It standardizes project rules (`AGENTS.md`, `.cursor/rules`) and strongly preven
 
 ## 🛠️ Getting Started (Workspace Initialization)
 
-Install and initialize the package once at the project root.
+Since this CLI tool is used frequently across multiple repositories and submodules, a **global installation is highly recommended**.
 
 ```bash
-npm install deuk-agent-rule
-npx deuk-agent-rule init
+npm install -g deuk-agent-rule
+deuk-agent-rule init
 ```
 
+> [!NOTE]
+> **Global Install Permission Troubleshooting**:
+> - **Linux/macOS**: Running `npm install -g` may result in `EACCES` permission errors. It is highly recommended to use a Node version manager (`nvm`, `fnm`, etc.) to bypass these constraints. If using the system Node installation, you may unavoidably need to use `sudo npm install -g deuk-agent-rule`.
+> - **Windows**: If Node.js is installed in a system directory like `Program Files`, you must run your terminal (PowerShell/CMD) as an **Administrator** for the global installation to complete successfully.
+
 Upon initialization, interactive questions will ask for the project's **tech stack** and **agent tools in use**. Based on your selections, optimized markdown templates and rule files (`.cursor/rules/*`) will be automatically generated and synchronized.
-- If you don't need to change the tech stack later, simply run `npx deuk-agent-rule init` to refresh the rules.
+- If you don't need to change the tech stack later, simply run `deuk-agent-rule init` to refresh the rules. (If not installed globally, you can fallback to `npx deuk-agent-rule init`).
 - Suppress interactive prompts in CI or script environments by appending the `--non-interactive` flag.
 
 ### 🔄 Updating the Rules Package
@@ -113,6 +118,12 @@ Even after installing and initializing the package, some AI agents (Cursor, Gemi
 ## ⚙️ CLI Reference & Advanced Options
 
 Advanced commands for workflow automation and target control.
+
+> [!NOTE]
+> **For Package Maintainers/Contributors Only - Local Development**:
+> This does not apply to general users. If you are modifying the `DeukAgentRules` source code and need to immediately test local patches bypassing the globally cached `npx deuk-agent-rule`, explicitly invoke `node ./scripts/cli.mjs`.
+> - **Linux/macOS**: Creating symlinks (`npm link`) may require `sudo` privileges. Direct script execution (`./scripts/cli.mjs`) may trigger `chmod +x` permission issues, making explicit `node` invocation the safest workaround.
+> - **Windows**: `npm link` requires Administrator rights (or Developer Mode) to create symlinks, and PowerShell execution policies may block `.cmd` wrapper scripts. Explicitly calling `node ./scripts/cli.mjs` safely bypasses these OS-level restrictions.
 
 ### Ticket-based Commands
 Instead of manually typing the CLI commands below into the terminal, you can **delegate their execution to your AI chatbot by giving natural language prompt instructions**.
