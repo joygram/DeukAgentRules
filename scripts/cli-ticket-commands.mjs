@@ -1,7 +1,7 @@
 import { existsSync, mkdirSync, readFileSync, writeFileSync, unlinkSync, copyFileSync, readdirSync, rmSync, statSync } from "fs";
 import { basename, join, dirname, relative, resolve } from "path";
 import { toSlug, toRepoRelativePath, inferRefTitleAndTopic, resolveReferencedTicketPath, toPosixPath, stringifyFrontMatter } from "./cli-utils.mjs";
-import { TICKET_DIR_NAME, appendTicketEntry, rebuildTicketIndexFromTopicFilesIfNeeded, detectConsumerTicketDir, readTicketIndexJson, writeTicketIndexJson, writeTicketListFile, syncActiveTicketPointer, generateTicketId, syncToPipeline } from "./cli-ticket-logic.mjs";
+import { TICKET_DIR_NAME, appendTicketEntry, rebuildTicketIndexFromTopicFilesIfNeeded, detectConsumerTicketDir, readTicketIndexJson, writeTicketIndexJson, writeTicketListFile, syncActiveTicketPointer, generateTicketId, computeNextTicketNumber, getHostnameSlug, syncToPipeline } from "./cli-ticket-logic.mjs";
 import { loadInitConfig } from "./cli-utils.mjs";
 import ejs from "ejs";
 
@@ -31,11 +31,17 @@ export async function runTicketCreate(opts) {
 
     // Find nearest or create in CWD if missing
     const ticketDir = detectConsumerTicketDir(opts.cwd, { createIfMissing: true });
-    const abs = join(ticketDir, group, `${topic}-${Date.now()}.md`);
+
+    // Read existing entries to compute next sequential number
+    const existingIndex = readTicketIndexJson(opts.cwd);
+    const { num, hostname } = computeNextTicketNumber(existingIndex.entries);
+    const numStr = String(num).padStart(3, '0');
+    const fileBaseName = `${numStr}-${hostname}-${topic}.md`;
+    const abs = join(ticketDir, group, fileBaseName);
     mkdirSync(join(ticketDir, group), { recursive: true });
     path = toRepoRelativePath(opts.cwd, abs);
 
-    const ticketId = generateTicketId(title);
+    const ticketId = generateTicketId(topic, existingIndex.entries);
     const meta = {
       id: ticketId,
       title,
