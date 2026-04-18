@@ -1,7 +1,8 @@
 import { existsSync, mkdirSync, readFileSync, writeFileSync, unlinkSync, copyFileSync, readdirSync, rmSync, statSync } from "fs";
+import { hostname } from "os";
 import { basename, join, dirname, relative, resolve } from "path";
 import { toSlug, toRepoRelativePath, inferRefTitleAndTopic, resolveReferencedTicketPath, toPosixPath, stringifyFrontMatter } from "./cli-utils.mjs";
-import { TICKET_DIR_NAME, appendTicketEntry, rebuildTicketIndexFromTopicFilesIfNeeded, detectConsumerTicketDir, readTicketIndexJson, writeTicketIndexJson, writeTicketListFile, syncActiveTicketPointer, generateTicketId, computeNextTicketNumber, getHostnameSlug, syncToPipeline } from "./cli-ticket-logic.mjs";
+import { TICKET_DIR_NAME, appendTicketEntry, rebuildTicketIndexFromTopicFilesIfNeeded, detectConsumerTicketDir, readTicketIndexJson, writeTicketIndexJson, writeTicketListFile, syncActiveTicketPointer, generateTicketId, syncToPipeline } from "./cli-ticket-logic.mjs";
 import { loadInitConfig } from "./cli-utils.mjs";
 import ejs from "ejs";
 
@@ -31,17 +32,32 @@ export async function runTicketCreate(opts) {
 
     // Find nearest or create in CWD if missing
     const ticketDir = detectConsumerTicketDir(opts.cwd, { createIfMissing: true });
+    
+    // Calculate next sequence number by scanning existing files
+    let maxSeq = 0;
+    const allFiles = [];
+    const scanDirs = [join(ticketDir, "sub"), join(ticketDir, "main"), join(ticketDir, "archive/sub"), join(ticketDir, "archive/main")];
+    for (const d of scanDirs) {
+      if (existsSync(d)) {
+        const files = readdirSync(d);
+        for (const f of files) {
+          const match = f.match(/^(\d+)-/);
+          if (match) {
+            const num = parseInt(match[1], 10);
+            if (num > maxSeq) maxSeq = num;
+          }
+        }
+      }
+    }
+    const nextSeq = String(maxSeq + 1).padStart(3, "0");
+    const hName = hostname().toLowerCase().slice(0, 8);
+    const finalFileName = `${nextSeq}-${hName}-ticket-${topic}.md`;
 
-    // Read existing entries to compute next sequential number
-    const existingIndex = readTicketIndexJson(opts.cwd);
-    const { num, hostname } = computeNextTicketNumber(existingIndex.entries);
-    const numStr = String(num).padStart(3, '0');
-    const fileBaseName = `${numStr}-${hostname}-${topic}.md`;
-    const abs = join(ticketDir, group, fileBaseName);
+    const abs = join(ticketDir, group, finalFileName);
     mkdirSync(join(ticketDir, group), { recursive: true });
     path = toRepoRelativePath(opts.cwd, abs);
 
-    const ticketId = generateTicketId(topic, existingIndex.entries);
+    const ticketId = generateTicketId(title);
     const meta = {
       id: ticketId,
       title,
@@ -49,7 +65,6 @@ export async function runTicketCreate(opts) {
       status: "open",
       submodule: opts.submodule || "",
       project: opts.project || "global",
-      priority: opts.priority || "P2",
       createdAt: new Date().toISOString(),
     };
 
@@ -58,7 +73,6 @@ id: <%= meta.id %>
 title: "<%- meta.title.replace(/"/g, '\\"') %>"
 topic: <%= meta.topic %>
 status: open
-priority: <%= meta.priority %>
 submodule: <%= meta.submodule %>
 project: <%= meta.project %>
 createdAt: <%= meta.createdAt %>
@@ -77,7 +91,7 @@ createdAt: <%= meta.createdAt %>
 
     appendTicketEntry(opts.cwd, {
       id: ticketId,
-      title, topic, group, project: opts.project || "global", priority: meta.priority,
+      title, topic, group, project: opts.project || "global",
       createdAt: new Date().toISOString(), path, source
     }, opts);
   }
@@ -113,13 +127,12 @@ export async function runTicketList(opts) {
     return;
   }
 
-  console.log("#  STATUS   PRI  SUBMODULE   GROUP       PROJECT     CREATED                  TITLE");
+  console.log("#  STATUS   SUBMODULE   GROUP       PROJECT     CREATED                  TITLE");
   rows.slice(0, opts.limit).forEach((e, idx) => {
     const stat = (e.status === "closed" ? "[x]" : "[ ]").padEnd(7);
-    const prio = (e.priority || "P2").padEnd(4);
     const sub = (e.submodule || "-").padEnd(11);
     const safeTitle = String(e.title || e.topic || "").replace(/(\n|\\n)+/g, " ").slice(0, 50);
-    console.log(`${String(idx+1).padEnd(2)} ${stat} ${prio} ${sub} ${String(e.group||"").padEnd(10)} ${String(e.project||"").padEnd(11)} ${String(e.createdAt||"").padEnd(24)} ${safeTitle}`);
+    console.log(`${String(idx+1).padEnd(2)} ${stat} ${sub} ${String(e.group||"").padEnd(10)} ${String(e.project||"").padEnd(11)} ${String(e.createdAt||"").padEnd(24)} ${safeTitle}`);
   });
 }
 
