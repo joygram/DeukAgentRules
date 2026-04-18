@@ -35,7 +35,7 @@ You **MUST** use the official Ticket Skeleton Template located at:
     - **Protocol Integrity**: Never hardcode JSON structures; always use `DeukPack` generated JS/TS codecs for communication.
 - **Ticket format (필수)**: 멀티스텝은 `.deuk-agent-templates/TICKET_TEMPLATE.md` (또는 활성 서브모듈의 템플릿) 사용
 
-By **creating a ticket using the CLI** (`npx deuk-agent-rule ticket create --topic <name>`), you ensure that:
+By **creating a ticket using the CLI** (`node /home/joy/workspace/i/DeukAgentRules/scripts/cli.mjs ticket create --topic <name>`), you ensure that:
 1. The **Target Submodule** is explicitly locked.
 2. The agent is forced to read specific **Module Rules** (e.g., `.deuk-agent-templates/MODULE_RULE_TEMPLATE.md`).
 3. Execution happens in explicit **Phases** to prevent context bleed.
@@ -60,12 +60,12 @@ By **creating a ticket using the CLI** (`npx deuk-agent-rule ticket create --top
 
 When given a ticket, you MUST run commands and write code **strictly within the boundaries** of the `[Target Submodule]` defined in the `TICKET-XXX.md`.
 
-1. **Create the Ticket**: ALWAYS use `npx deuk-agent-rule ticket create --topic <name>` to generate a new ticket. **DO NOT** manually create `.md` files or copy templates directly to bypass the CLI.
-2. **Read the Ticket**: ALWAYS use `npx deuk-agent-rule ticket use --latest` (or `npx deuk-agent-rule ticket list`) to locate and read the active ticket. DO NOT manually parse INDEX.json or scan directories.
+1. **Create the Ticket**: ALWAYS use `node /home/joy/workspace/i/DeukAgentRules/scripts/cli.mjs ticket create --topic <name>` to generate a new ticket. **DO NOT** manually create `.md` files or copy templates directly to bypass the CLI.
+2. **Read the Ticket**: ALWAYS use `node /home/joy/workspace/i/DeukAgentRules/scripts/cli.mjs ticket use --latest` (or `node /home/joy/workspace/i/DeukAgentRules/scripts/cli.mjs ticket list`) to locate and read the active ticket. DO NOT manually parse INDEX.json or scan directories.
 3. **Fill the Ticket (CRITICAL)**: The newly created ticket already contains YAML Front Matter (`--- id: ... ---`). **DO NOT** overwrite the entire file when adding your plan. ALWAYS use partial file editing tools or append text carefully to preserve the existing YAML Front Matter. Erasing the Front Matter corrupts the ticketing index.
 4. **Execute Phase**: Process only the checklist for the **Current Phase**. Do not hallucinate or wander into other architectural areas.
 5. **Update Status**: Mark checkboxes (`[x]`) as tasks are completed.
-6. **Archive on Completion**: When all phases are completed, append the execution report at the bottom under a `## 📜 Execution Report` header. **Then, YOU MUST execute `npx deuk-agent-rule ticket archive <ticket-id>` (or `--latest`)** to properly close and archive the ticket. DO NOT attempt to manually `mv` files.
+6. **Archive on Completion**: When all phases are completed, append the execution report at the bottom under a `## 📜 Execution Report` header. **Then, YOU MUST execute `node /home/joy/workspace/i/DeukAgentRules/scripts/cli.mjs ticket archive <ticket-id>` (or `--latest`)** to properly close and archive the ticket. DO NOT attempt to manually `mv` files.
 7. **[TICKET REFERENCE RULE]**: 부분 개선 또는 기능 추가 시, 구현 아티팩트(`implementation_plan.md`, `task.md`, `walkthrough.md`) 상단에 반드시 해당 티켓 번호(ID)를 명시하여 추적 가능성을 확보하십시오.
 8. **[TICKET VERIFICATION RULE]**: 사용자로부터 "티켓 검증" 요청을 받으면, 에이전트는 즉시 다음을 수행하고 보고해야 합니다:
     - **Step 1 (오류 분석)**: 방금 수정한 코드가 유발할 수 있는 사이드 이펙트(의존성 파손, 빌드 경고 등) 전수 조사.
