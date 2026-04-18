@@ -12,6 +12,8 @@
   - For Korean responses, use polite '해요체(-요)' instead of formal '하십시오체(-다/까)'.
 - **핸드오프 저장 후 채팅**: 파일로 남긴 뒤 채팅에 **`Path: \`루트기준/전체/경로.md\``** 형태로 **한 줄**을 반드시 넣어 다음 세션이 동일 파일을 연다.
 - **플랜 UI(선택)**: 플랜 전용 패널에 같은 문서를 띄우려면, 관리 중인 **multi-ai-workflow** 규칙에 적힌 **선택적 미러 경로**(예: `.cursor/plans/*.plan.md`)에 동일 본문을 둘 수 있다. 정본은 지정된 티켓 폴더를 유지하고 두 곳 내용을 맞출 것.
+- **Error Loop Prevention (하드룰)**: 명령 실행이나 컴파일 등에서 동일/유사 에러가 2회 이상 반복 발생 시, 에이전트는 절대 임의로 코드 방향을 틀거나 땜질을 시도해서는 안 됩니다. 즉시 작업을 멈추고 현상을 분석한 후 **티켓을 명시적으로 발행**해야 합니다.
+- **Plan in Ticket (하드룰)**: 문제 해결을 위한 모든 실행 계획과 설계는 `implementation_plan.md` 같은 임의의 부산물이 아닌, **정식 티켓 본문 내**에 작성하고 이를 사용자에게 확인시켜야 합니다.
 
 English sections above are canonical for tooling; this block is a short Korean mirror for the same rules.
 
@@ -64,6 +66,7 @@ When given a ticket, you MUST run commands and write code **strictly within the 
 4. **Execute Phase**: Process only the checklist for the **Current Phase**. Do not hallucinate or wander into other architectural areas.
 5. **Update Status**: Mark checkboxes (`[x]`) as tasks are completed.
 6. **Archive on Completion**: When all phases are completed, append the execution report at the bottom under a `## 📜 Execution Report` header. **Then, YOU MUST execute `npx deuk-agent-rule ticket archive <ticket-id>` (or `--latest`)** to properly close and archive the ticket. DO NOT attempt to manually `mv` files.
+7. **[TICKET REFERENCE RULE]**: 부분 개선 또는 기능 추가 시, 구현 아티팩트(`implementation_plan.md`, `task.md`, `walkthrough.md`) 상단에 반드시 해당 티켓 번호(ID)를 명시하여 추적 가능성을 확보하십시오.
 
 All Tickets are volatile and strictly local. Do not attempt to version them or mirror them to obsolete plan directories.
 

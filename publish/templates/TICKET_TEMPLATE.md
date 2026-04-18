@@ -1,4 +1,4 @@
-# Task: [Task Title / Ticket Number]
+# Task: [Task Title] | Ticket: [TICKET-XXX]
 
 > **[CAUTION FOR AI AGENTS]** 
 > You are operating within a locked multi-module monorepo. 
