@@ -1,0 +1,103 @@
+"""
+DeukPack Python Runtime — Base Classes & Constants
+"""
+import struct
+import io
+import json as _json
+from typing import Any, Dict, List, Optional, Tuple
+
+MAX_SAFE_LENGTH   = 10 * 1024 * 1024  # 10 MB
+MAX_ELEMENT_COUNT = 1_000_000
+MAX_RECURSION_DEPTH = 64
+
+DP_WIRE_ENVELOPE = bytes([0x44, 0x50, 0x02]) # "DP\x02" V2 Magic Header
+
+from deukpack_generated.dp_wire_type import DpWireType
+
+class DpProtocolError(Exception):
+    pass
+
+class DpProtocolBase:
+    """Shared safety helpers and generic metadata-driven serialization engine."""
+
+    _MAX_SAFE_LENGTH     = MAX_SAFE_LENGTH
+    _MAX_ELEMENT_COUNT   = MAX_ELEMENT_COUNT
+    _MAX_RECURSION_DEPTH = MAX_RECURSION_DEPTH
+    IS_STRICT_TYPED: bool = True
+
+    def __init__(self, buffer: Optional[io.BytesIO] = None):
+        self.buf = buffer or io.BytesIO()
+
+    def _check_length(self, length: int, name: str = "data") -> None:
+        if length < 0: raise DpProtocolError(f"negative length for {name}")
+        if length > self._MAX_SAFE_LENGTH:
+            raise DpProtocolError(f"{name} length {length} exceeds MAX_SAFE_LENGTH")
+
+    def _check_count(self, count: int, name: str = "element") -> None:
+        if count < 0: raise DpProtocolError(f"negative count for {name}")
+        if count > self._MAX_ELEMENT_COUNT:
+            raise DpProtocolError(f"{name} count {count} exceeds MAX_ELEMENT_COUNT")
+
+    def _check_depth(self, depth: int) -> None:
+        if depth > self._MAX_RECURSION_DEPTH:
+            raise DpProtocolError(f"exceeded maximum recursion depth")
+
+    def _ensure_magic_written(self, proto_id: int) -> None:
+        if not getattr(self, "_magic_written", False):
+            self.buf.write(DP_WIRE_ENVELOPE + bytes([proto_id]))
+            self._magic_written = True
+
+    def _ensure_magic_skipped(self) -> None:
+        if not getattr(self, "_magic_skipped", False):
+            saved = self.buf.tell()
+            header = self.buf.read(3)
+            if len(header) >= 3 and header == DP_WIRE_ENVELOPE:
+                self.buf.read(1) # skip proto_id
+            else:
+                self.buf.seek(saved)
+            self._magic_skipped = True
+
+    # Overridden by subclasses
+    def write_struct_begin(self, count: int) -> None: pass
+    def write_struct_end(self) -> None: pass
+    def write_field_begin(self, wire_type: int, field_id: int, field_name: str = "") -> None: pass
+    def write_field_stop(self) -> None: pass
+    def write_bool(self, value: bool) -> None: pass
+    def write_byte(self, value: int) -> None: pass
+    def write_int16(self, value: int) -> None: pass
+    def write_int32(self, value: int) -> None: pass
+    def write_int64(self, value: int) -> None: pass
+    def write_double(self, value: float) -> None: pass
+    def write_string(self, value: Optional[str]) -> None: pass
+    def write_binary(self, value: Optional[bytes]) -> None: pass
+    def write_list_begin(self, element_type: int, count: int) -> None: pass
+    def write_list_end(self) -> None: pass
+    def write_set_begin(self, element_type: int, count: int) -> None: pass
+    def write_set_end(self) -> None: pass
+    def write_map_begin(self, key_type: int, value_type: int, count: int) -> None: pass
+    def write_map_end(self) -> None: pass
+
+    def read_struct_begin(self) -> int: return -1
+    def read_struct_end(self) -> None: pass
+    def read_field_begin(self) -> Tuple[int, int, str]: return DpWireType.STOP, 0, ""
+    def read_bool(self) -> bool: return False
+    def read_byte(self) -> int: return 0
+    def read_int16(self) -> int: return 0
+    def read_int32(self) -> int: return 0
+    def read_int64(self) -> int: return 0
+    def read_double(self) -> float: return 0.0
+    def read_string(self) -> Optional[str]: return None
+    def read_binary(self) -> Optional[bytes]: return None
+    def read_list_begin(self) -> Tuple[int, int]: return 0, 0
+    def read_list_end(self) -> None: pass
+    def read_set_begin(self) -> Tuple[int, int]: return 0, 0
+    def read_set_end(self) -> None: pass
+    def read_map_begin(self) -> Tuple[int, int, int]: return 0, 0, 0
+    def read_map_end(self) -> None: pass
+
+    def get_bytes(self) -> bytes:
+        return self.buf.getvalue()
+
+    def skip(self, wire_type: int) -> None:
+        """Overridden by subclasses to skip a field of given type."""
+        pass

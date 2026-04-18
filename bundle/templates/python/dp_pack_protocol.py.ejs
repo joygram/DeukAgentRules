@@ -1,0 +1,138 @@
+"""
+DeukPack Python Runtime — Pack Protocol (DeukPack Native)
+"""
+import struct
+import io
+from typing import Any, Dict, List, Optional, Tuple
+from .dp_base import DpProtocolBase, DpWireType, DpProtocolError, DP_WIRE_ENVELOPE
+
+class DpPackProtocol(DpProtocolBase):
+    """
+    DeukPack Pack Protocol V2 — Schema-driven field-ID binary.
+    No type tags on wire; schema (generated code) decides the type.
+    """
+
+    PACK_V2_PROTO_ID = 0x12
+
+    def __init__(self, buf: Optional[io.BytesIO] = None):
+        super().__init__(buf)
+        self._magic_written = False
+        self._magic_skipped = False
+        self._field_count_stack: List[int] = []
+
+    def _ensure_magic_written(self) -> None:
+        if not self._magic_written:
+            self.buf.write(DP_WIRE_ENVELOPE + bytes([self.PACK_V2_PROTO_ID]))
+            self._magic_written = True
+
+    def _ensure_magic_skipped(self) -> None:
+        if not self._magic_skipped:
+            saved = self.buf.tell()
+            header = self.buf.read(4)
+            if len(header) >= 4 and header[:3] == DP_WIRE_ENVELOPE: pass
+            else: self.buf.seek(saved)
+            self._magic_skipped = True
+
+    @staticmethod
+    def _zigzag_encode(n: int) -> int:
+        return (n << 1) ^ (n >> 63)
+
+    @staticmethod
+    def _zigzag_decode(n: int) -> int:
+        return (n >> 1) ^ -(n & 1)
+
+    def _write_varint(self, n: int) -> None:
+        v = n & 0xFFFFFFFFFFFFFFFF
+        while v > 0x7F:
+            self.buf.write(bytes([(v & 0x7F) | 0x80]))
+            v >>= 7
+        self.buf.write(bytes([v & 0x7F]))
+
+    def _read_varint(self) -> int:
+        result, shift = 0, 0
+        while True:
+            b = self.buf.read(1)
+            if not b: raise DpProtocolError("EOF in varint")
+            b = b[0]
+            result |= (b & 0x7F) << shift
+            if (b & 0x80) == 0: break
+            shift += 7
+        return result
+
+    def write_struct_begin(self, count: int = 0) -> None:
+        self._ensure_magic_written()
+        self._write_varint(count)
+
+    def write_struct_end(self) -> None: pass
+
+    def write_field_begin(self, field_id: int, **_kwargs: Any) -> None:
+        self._write_varint(field_id)
+
+    def write_field_stop(self) -> None: pass
+
+    def read_struct_begin(self) -> int:
+        self._ensure_magic_skipped()
+        count = self._read_varint()
+        self._check_count(count, "struct fields")
+        self._field_count_stack.append(count)
+        return count
+
+    def read_struct_end(self) -> None: pass
+
+    def read_field_begin(self) -> Tuple[int, int, str]:
+        if not self._field_count_stack: return DpWireType.STOP, 0, ""
+        count = self._field_count_stack[-1]
+        if count <= 0:
+            self._field_count_stack.pop()
+            return DpWireType.STOP, 0, ""
+        self._field_count_stack[-1] = count - 1
+        return 1, self._read_varint(), "" # 1 = Void hint
+
+    def write_bool(self, value: bool) -> None: self.buf.write(struct.pack("B", 1 if value else 0))
+    def read_bool(self) -> bool: return struct.unpack("B", self.buf.read(1))[0] != 0
+    def write_byte(self, value: int) -> None: self.buf.write(struct.pack("B", value & 0xFF))
+    def read_byte(self) -> int: return struct.unpack("B", self.buf.read(1))[0]
+    def write_int16(self, value: int) -> None: self.buf.write(struct.pack("<h", value))
+    def read_int16(self) -> int: return struct.unpack("<h", self.buf.read(2))[0]
+    def write_int32(self, value: int) -> None: self.buf.write(struct.pack("<i", value))
+    def read_int32(self) -> int: return struct.unpack("<i", self.buf.read(4))[0]
+    def write_int64(self, value: int) -> None: self.buf.write(struct.pack("<q", value))
+    def read_int64(self) -> int: return struct.unpack("<q", self.buf.read(8))[0]
+    def write_double(self, value: float) -> None: self.buf.write(struct.pack("<d", value))
+    def read_double(self) -> float: return struct.unpack("<d", self.buf.read(8))[0]
+
+    def write_string(self, value: Optional[str]) -> None:
+        if value is None: self._write_varint(self._zigzag_encode(-1)); return
+        encoded = value.encode("utf-8")
+        self._write_varint(self._zigzag_encode(len(encoded)))
+        self.buf.write(encoded)
+
+    def read_string(self) -> Optional[str]:
+        length = self._zigzag_decode(self._read_varint())
+        if length < 0: return None
+        if length == 0: return ""
+        self._check_length(length, "string")
+        return self.buf.read(length).decode("utf-8")
+
+    def write_binary(self, value: Optional[bytes]) -> None:
+        if value is None: self._write_varint(self._zigzag_encode(-1)); return
+        self._write_varint(self._zigzag_encode(len(value)))
+        self.buf.write(value)
+
+    def read_binary(self) -> Optional[bytes]:
+        length = self._zigzag_decode(self._read_varint())
+        if length < 0: return None
+        if length == 0: return b""
+        self._check_length(length, "binary")
+        return self.buf.read(length)
+
+    def write_list_begin(self, count: int, **_kwargs: Any) -> None: self._write_varint(count)
+    def read_list_begin(self) -> Tuple[int, int]:
+        c = self._read_varint(); self._check_count(c, "list"); return (0, c)
+
+    def write_set_begin(self, count: int, **_kwargs: Any) -> None: self._write_varint(count)
+    def read_set_begin(self) -> Tuple[int, int]: return self.read_list_begin()
+
+    def write_map_begin(self, count: int, **_kwargs: Any) -> None: self._write_varint(count)
+    def read_map_begin(self) -> Tuple[int, int, int]:
+        c = self._read_varint(); self._check_count(c, "map"); return (0, 0, c)

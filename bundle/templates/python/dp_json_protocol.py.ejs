@@ -1,0 +1,162 @@
+"""
+DeukPack Python Runtime — JSON Protocol
+"""
+import io
+import json as _json
+from typing import Any, Dict, List, Optional, Tuple
+from .dp_base import DpProtocolBase, DpWireType, DpProtocolError
+
+class DpJsonProtocol(DpProtocolBase):
+    """
+    JSON protocol: serializes structs as JSON objects.
+    By default uses field_id as key. Set use_field_names=True for names.
+    """
+    IS_STRICT_TYPED: bool = False
+
+    def __init__(self, use_field_names: bool = False, schema: Optional[Dict[int, str]] = None):
+        super().__init__()
+        self._obj: Dict[str, Any] = {}
+        self._stack: List[Any] = [self._obj]
+        self._use_names = use_field_names
+        self._schema = schema or {}
+        self._read_data: Dict[str, Any] = {}
+        self._read_iter_stack: List[Any] = []
+        self._map_key_stack: List[Optional[str]] = []
+
+    def _key(self, field_id: int) -> str:
+        if self._use_names and field_id in self._schema: return self._schema[field_id]
+        return str(field_id)
+
+    def write_field_begin(self, wire_type: int, field_id: int, field_name: str = "") -> None:
+        self._current_key = self._key(field_id)
+
+    def _write_val(self, v: Any) -> None:
+        curr = self._stack[-1]
+        if isinstance(curr, list):
+            curr.append(v)
+        elif self._map_key_stack and self._map_key_stack[-1] is not None:
+            # We are in a map and have a key, so write the value
+            curr[self._map_key_stack[-1]] = v
+            self._map_key_stack[-1] = None
+        elif self._map_key_stack and self._map_key_stack[-1] is None:
+            # We are in a map and waiting for a key
+            self._map_key_stack[-1] = str(v)
+        else:
+            # We are in a struct
+            curr[self._current_key] = v
+
+    def write_bool(self, v: bool) -> None: self._write_val(v)
+    def write_byte(self, v: int) -> None: self._write_val(v)
+    def write_int16(self, v: int) -> None: self._write_val(v)
+    def write_int32(self, v: int) -> None: self._write_val(v)
+    def write_int64(self, v: int) -> None: self._write_val(v)
+    def write_double(self, v: float) -> None: self._write_val(v)
+    def write_string(self, v: str) -> None: self._write_val(v)
+    def write_binary(self, v: bytes) -> None:
+        import base64; self._write_val(base64.b64encode(v).decode("ascii"))
+
+    def write_list_begin(self, element_type: int, count: int) -> None:
+        lst: List[Any] = []; self._write_val(lst); self._stack.append(lst)
+    def write_list_end(self, *args: Any) -> None: self._stack.pop()
+
+    def write_set_begin(self, element_type: int, count: int) -> None: self.write_list_begin(element_type, count)
+    def write_set_end(self, *args: Any) -> None: self.write_list_end()
+
+    def write_map_begin(self, key_type: int, value_type: int, count: int) -> None:
+        d: Dict[str, Any] = {}; self._write_val(d); self._stack.append(d)
+        self._map_key_stack.append(None)
+    def write_map_end(self) -> None:
+        self._stack.pop()
+        self._map_key_stack.pop()
+
+    def get_value(self) -> bytes: return _json.dumps(self._obj, ensure_ascii=False).encode("utf-8")
+
+    @classmethod
+    def from_bytes(cls, data: bytes, **kwargs: Any) -> "DpJsonProtocol":
+        instance = cls(**kwargs)
+        instance._read_data = _json.loads(data.decode("utf-8"))
+        instance._read_iter_stack = [iter(instance._read_data.items())]
+        return instance
+
+    def read_struct_begin(self) -> int:
+        # If we just entered a nested struct, the value is already in self._current_read_val
+        if len(self._read_iter_stack) > 0 and hasattr(self, "_current_read_val") and isinstance(self._current_read_val, dict):
+            self._read_iter_stack.append(iter(self._current_read_val.items()))
+        return 0
+    def read_struct_end(self) -> None:
+        if len(self._read_iter_stack) > 1: self._read_iter_stack.pop()
+
+    def read_field_begin(self) -> Tuple[int, int, str]:
+        try:
+            key, val = next(self._read_iter_stack[-1])
+            self._current_read_val = val
+            fid = int(key) if key.isdigit() else 0
+            return self._infer_wire_type(val), fid, key
+        except (StopIteration, IndexError): return DpWireType.STOP, 0, ""
+
+    def read_list_begin(self) -> Tuple[int, int]:
+        val = self._current_read_val
+        if not isinstance(val, list): return 0, 0
+        self._read_iter_stack.append(iter(val))
+        return self._infer_wire_type(val[0]) if val else DpWireType.STRING, len(val)
+
+    def read_list_end(self) -> None:
+        if len(self._read_iter_stack) > 1: self._read_iter_stack.pop()
+
+    def read_set_begin(self) -> Tuple[int, int]: return self.read_list_begin()
+    def read_set_end(self) -> None: self.read_list_end()
+        # But for list, we don't have Peer fields to worry about in the same way.
+
+    def read_map_begin(self) -> Tuple[int, int, int]:
+        val = self._current_read_val
+        if not isinstance(val, dict): return 0, 0, 0
+        def map_kv_iter(d: Dict[str, Any]):
+            for k, v in d.items():
+                yield k
+                yield v
+        self._read_iter_stack.append(map_kv_iter(val))
+        return DpWireType.STRING, DpWireType.STRING, len(val)
+
+    def read_map_end(self) -> None:
+        if len(self._read_iter_stack) > 1: self._read_iter_stack.pop()
+
+    def _get_next_val(self) -> Any:
+        try:
+            return next(self._read_iter_stack[-1])
+        except StopIteration: return None
+
+    # Override primitives to advance iterator when inside a collection
+    def _infer_wire_type(self, val: Any) -> int:
+        if isinstance(val, bool): return DpWireType.BOOL
+        if isinstance(val, int): return DpWireType.INT64
+        if isinstance(val, float): return DpWireType.DOUBLE
+        if isinstance(val, str): return DpWireType.STRING
+        if isinstance(val, list): return DpWireType.LIST
+        if isinstance(val, dict): return DpWireType.STRUCT
+        return DpWireType.STRING
+
+    def read_bool(self) -> bool:
+        if len(self._read_iter_stack) > 1: self._current_read_val = self._get_next_val()
+        return bool(self._current_read_val)
+    def read_byte(self) -> int:
+        if len(self._read_iter_stack) > 1: self._current_read_val = self._get_next_val()
+        return int(self._current_read_val)
+    def read_int16(self) -> int:
+        if len(self._read_iter_stack) > 1: self._current_read_val = self._get_next_val()
+        return int(self._current_read_val)
+    def read_int32(self) -> int:
+        if len(self._read_iter_stack) > 1: self._current_read_val = self._get_next_val()
+        return int(self._current_read_val)
+    def read_int64(self) -> int:
+        if len(self._read_iter_stack) > 1: self._current_read_val = self._get_next_val()
+        return int(self._current_read_val)
+    def read_double(self) -> float:
+        if len(self._read_iter_stack) > 1: self._current_read_val = self._get_next_val()
+        return float(self._current_read_val)
+    def read_string(self) -> str:
+        if len(self._read_iter_stack) > 1: self._current_read_val = self._get_next_val()
+        return str(self._current_read_val)
+    def read_binary(self) -> bytes:
+        import base64; return base64.b64decode(self._current_read_val)
+
+    def skip(self, _wire_type: int) -> None: pass

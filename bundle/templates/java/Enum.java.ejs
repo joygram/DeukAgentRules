@@ -1,0 +1,17 @@
+package <%- locals.JAVA_PACKAGE %>;
+
+/**
+ * <%- locals.DOC_COMMENT %>
+ * @generated
+ */
+public enum <%- locals.ENUM_NAME %> {
+<%- locals.ENUM_VALUES %>
+
+    public final int value;
+    <%- locals.ENUM_NAME %>(int v) { this.value = v; }
+    public int getValue() { return value; }
+    public static <%- locals.ENUM_NAME %> findByValue(int v) {
+        for (<%- locals.ENUM_NAME %> t : <%- locals.ENUM_NAME %>.values()) if (t.value == v) return t;
+        return null;
+    }
+}

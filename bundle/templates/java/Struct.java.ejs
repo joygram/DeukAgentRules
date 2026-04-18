@@ -1,0 +1,152 @@
+package <%- locals.JAVA_PACKAGE %>;
+
+import java.util.*;
+import java.io.*;
+import java.nio.charset.StandardCharsets;
+
+/**
+ * <%- locals.DOC_COMMENT %>
+ * @generated
+ */
+@SuppressWarnings("serial")
+public class <%- locals.STRUCT_NAME %><%- locals.EXTENDS %> implements IDeukPack, Serializable, Cloneable {
+    private static final long serialVersionUID = 1L;
+
+<%- locals.FIELD_DECLARATIONS %>
+
+    public <%- locals.STRUCT_NAME %>() {
+<%- locals.CONSTRUCTOR_INITIALIZATION %>
+    }
+
+<%- locals.GETTERS_SETTERS %>
+
+    @Override
+    public void write(DpProtocol oprot) {
+        oprot.writeStructBegin(new DpRecord("<%- locals.STRUCT_NAME %>", <%- locals.NON_NULL_COUNT %>));
+<%- locals.WRITE_BODY %>
+        oprot.writeFieldStop();
+        oprot.writeStructEnd();
+    }
+
+    @Override
+    public void read(DpProtocol iprot) {
+        iprot.readStructBegin();
+        while (true) {
+            DpColumn field = iprot.readFieldBegin();
+            if (field.Type == DpWireType.Stop) {
+                break;
+            }
+            int id = field.ID;
+<%- locals.NAME_TO_ID_LOGIC %>
+            switch (id) {
+<%- locals.READ_SWITCH_CASES %>
+                default:
+                    iprot.skip(field.WireType);
+                    break;
+            }
+            iprot.readFieldEnd();
+        }
+        iprot.readStructEnd();
+        validate();
+    }
+
+    public <%- locals.STRUCT_NAME %> readReturn(DpProtocol iprot) {
+        this.read(iprot);
+        return this;
+    }
+
+    public void validate() {
+<%- locals.VALIDATE_BODY %>
+    }
+
+    /**
+     * Resets the object state to its default values.
+     * Collections and nested structs are recursively cleared to reuse capacity without triggering GC.
+     * Use this before pooling or partial deserialization over pooled instances to prevent data leakage.
+     */
+    public void clear() {
+<%- locals.CLEAR_BODY %>
+    }
+
+    // Unified DeukPack Serialization API
+
+    public byte[] pack() { return pack("binary"); }
+    public byte[] pack(String format) {
+        try {
+            ByteArrayOutputStream baos = new ByteArrayOutputStream();
+            if ("json".equals(format)) {
+                DpJsonProtocol prot = new DpJsonProtocol(baos);
+                this.write(prot);
+            } else {
+                DpBinaryProtocol prot = new DpBinaryProtocol(baos);
+                this.write(prot);
+            }
+            return baos.toByteArray();
+        } catch (Exception e) { throw new RuntimeException(e); }
+    }
+
+    public static byte[] pack(<%- locals.STRUCT_NAME %> obj) { return obj.pack("binary"); }
+    public static byte[] pack(<%- locals.STRUCT_NAME %> obj, String format) { return obj.pack(format); }
+
+    /**
+     * Deserializes data into a NEW instance of <%- locals.STRUCT_NAME %>.
+     * [CAUTION] Avoid using this in high-frequency network loops as it allocates memory and triggers GC pauses.
+     */
+    public static <%- locals.STRUCT_NAME %> unpack(byte[] buf) { return unpack(buf, "binary"); }
+    public static <%- locals.STRUCT_NAME %> unpack(byte[] buf, String format) {
+        <%- locals.STRUCT_NAME %> obj = new <%- locals.STRUCT_NAME %>();
+        unpack(obj, buf, format);
+        return obj;
+    }
+
+    /**
+     * Deserializes data into an EXISTING instance of <%- locals.STRUCT_NAME %>. (In-place Reuse)
+     * Use this in high-frequency network hotpaths to overwrite pooled objects and prevent GC spikes.
+     */
+    public static void unpack(<%- locals.STRUCT_NAME %> obj, byte[] buf) { unpack(obj, buf, "binary"); }
+    public static void unpack(<%- locals.STRUCT_NAME %> obj, byte[] buf, String format) {
+
+        try {
+            ByteArrayInputStream bais = new ByteArrayInputStream(buf);
+            if ("json".equals(format)) {
+                DpJsonProtocol prot = new DpJsonProtocol(bais);
+                obj.read(prot);
+            } else {
+                DpBinaryProtocol prot = new DpBinaryProtocol(bais);
+                obj.read(prot);
+            }
+        } catch (Exception e) { throw new RuntimeException(e); }
+    }
+
+    @Override
+    public String toString() {
+        StringBuilder sb = new StringBuilder("<%- locals.STRUCT_NAME %>(");
+<%- locals.TO_STRING_BODY %>
+        sb.append(")");
+        return sb.toString();
+    }
+
+    @Override
+    public boolean equals(Object o) {
+        if (this == o) return true;
+        if (o == null || getClass() != o.getClass()) return false;
+        <%- locals.STRUCT_NAME %> that = (<%- locals.STRUCT_NAME %>) o;
+        return <%- locals.EQUALS_BODY %>;
+    }
+
+    @Override
+    public int hashCode() {
+        return Objects.hash(<%- locals.HASH_CODE_BODY %>);
+    }
+
+    @Override
+    public <%- locals.STRUCT_NAME %> clone() {
+        try {
+            <%- locals.STRUCT_NAME %> cloned = (<%- locals.STRUCT_NAME %>) super.clone();
+<%- locals.CLONE_BODY %>
+            return cloned;
+        } catch (CloneNotSupportedException e) {
+            throw new AssertionError();
+        }
+    }
+}

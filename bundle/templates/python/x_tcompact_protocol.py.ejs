@@ -1,0 +1,183 @@
+"""
+DeukPack Python Runtime — TCompact Protocol
+"""
+import struct
+import io
+from typing import Any, Dict, List, Optional, Tuple
+from .dp_base import DpProtocolBase, DpWireType, DpProtocolError
+
+class DpTCompactProtocol(DpProtocolBase):
+    """Apache Thrift TCompactProtocol compatible. Varint-encoded integers."""
+
+    def __init__(self, buffer: Optional[io.BytesIO] = None):
+        super().__init__(buffer)
+        self._double_s = struct.Struct("<d")  # TCompact uses LE double
+        self._last_field_id = 0
+        self._last_field_id_stack: List[int] = []
+
+    def _write_varint(self, value: int) -> None:
+        value = value & 0xFFFFFFFFFFFFFFFF
+        while value > 0x7F:
+            self.buf.write(bytes([(value & 0x7F) | 0x80]))
+            value >>= 7
+        self.buf.write(bytes([value & 0x7F]))
+
+    def _write_zigzag_varint(self, value: int) -> None:
+        zigzag = (value << 1) ^ (value >> 31)
+        self._write_varint(zigzag & 0xFFFFFFFF)
+
+    def _read_zigzag_varint(self) -> int:
+        n = self._read_varint()
+        return (n >> 1) ^ -(n & 1)
+
+    def _read_varint(self) -> int:
+        result, shift = 0, 0
+        while True:
+            b = self.buf.read(1)
+            if not b: raise DpProtocolError("TCompact: unexpected EOF reading varint")
+            byte = b[0]
+            result |= (byte & 0x7F) << shift
+            shift += 7
+            if not (byte & 0x80): break
+        return result
+
+    def write_struct_begin(self, count: int) -> None:
+        self._ensure_magic_written(1)
+        self._last_field_id_stack.append(self._last_field_id)
+        self._last_field_id = 0
+
+    def write_struct_end(self) -> None:
+        if self._last_field_id_stack:
+            self._last_field_id = self._last_field_id_stack.pop()
+
+    def write_field_begin(self, wire_type: int, field_id: int, field_name: str = "") -> None:
+        if field_id > self._last_field_id and field_id - self._last_field_id <= 15:
+            self.buf.write(bytes([((field_id - self._last_field_id) << 4) | wire_type]))
+        else:
+            self.buf.write(bytes([wire_type]))
+            self._write_zigzag_varint(field_id)
+        self._last_field_id = field_id
+
+    def write_field_stop(self) -> None:
+        self.buf.write(bytes([DpWireType.STOP]))
+
+    def write_bool(self, v: bool) -> None:
+        self.buf.write(bytes([1 if v else 0]))
+
+    def write_byte(self, v: int) -> None:
+        self.buf.write(struct.pack("b", v))
+
+    def write_int16(self, v: int) -> None: self._write_varint(v)
+    def write_int32(self, v: int) -> None: self._write_varint(v)
+    def write_int64(self, v: int) -> None: self._write_varint(v)
+
+    def write_double(self, v: float) -> None:
+        self.buf.write(self._double_s.pack(v))
+
+    def write_string(self, v: str) -> None:
+        enc = v.encode("utf-8")
+        self._check_length(len(enc), "string")
+        self._write_varint(len(enc))
+        self.buf.write(enc)
+
+    def write_binary(self, v: bytes) -> None:
+        self._check_length(len(v), "binary")
+        self._write_varint(len(v))
+        self.buf.write(v)
+
+    def write_list_begin(self, element_type: int, count: int) -> None:
+        self._check_count(count, "list")
+        if count < 15: self.buf.write(bytes([(element_type << 4) | count]))
+        else:
+            self.buf.write(bytes([(element_type << 4) | 0x0F]))
+            self._write_varint(count - 15)
+
+    def write_set_begin(self, element_type: int, count: int) -> None:
+        self.write_list_begin(element_type, count)
+
+    def write_map_begin(self, key_type: int, value_type: int, count: int) -> None:
+        self._check_count(count, "map")
+        self._write_varint(count)
+        if count > 0: self.buf.write(bytes([(key_type << 4) | value_type]))
+
+    def read_struct_begin(self) -> int:
+        self._ensure_magic_skipped()
+        self._last_field_id_stack.append(self._last_field_id)
+        self._last_field_id = 0
+        return -1
+
+    def read_struct_end(self) -> None:
+        if self._last_field_id_stack:
+            self._last_field_id = self._last_field_id_stack.pop()
+
+    def read_field_begin(self) -> Tuple[int, int, str]:
+        raw = self.buf.read(1)
+        if not raw: return DpWireType.STOP, 0, ""
+        byte = raw[0]
+        if byte == DpWireType.STOP: return DpWireType.STOP, 0, ""
+        modifier = (byte & 0xF0) >> 4
+        if modifier == 0:
+            fid = self._read_zigzag_varint()
+        else:
+            fid = self._last_field_id + modifier
+        self._last_field_id = fid
+        return byte & 0x0F, fid, ""
+
+    def read_bool(self) -> bool: return self.buf.read(1)[0] != 0
+    def read_byte(self) -> int: return struct.unpack("b", self.buf.read(1))[0]
+    def read_int16(self) -> int: return self._read_varint()
+    def read_int32(self) -> int: return self._read_varint()
+    def read_int64(self) -> int: return self._read_varint()
+
+    def read_double(self) -> float:
+        return self._double_s.unpack(self.buf.read(8))[0]
+
+    def read_string(self) -> str:
+        length = self._read_varint()
+        self._check_length(length, "string")
+        return self.buf.read(length).decode("utf-8")
+
+    def read_binary(self) -> bytes:
+        length = self._read_varint()
+        self._check_length(length, "binary")
+        return self.buf.read(length)
+
+    def read_list_begin(self) -> Tuple[int, int]:
+        byte = self.buf.read(1)[0]
+        element_type = byte & 0x0F
+        count = byte >> 4
+        if count == 15: count = self._read_varint() + 15
+        self._check_count(count, "list")
+        return element_type, count
+
+    def read_set_begin(self) -> Tuple[int, int]: return self.read_list_begin()
+
+    def read_map_begin(self) -> Tuple[int, int, int]:
+        count = self._read_varint()
+        self._check_count(count, "map")
+        if count == 0: return 0, 0, 0
+        byte = self.buf.read(1)[0]
+        return byte >> 4, byte & 0x0F, count
+
+    def skip(self, wire_type: int, depth: int = 0) -> None:
+        self._check_depth(depth)
+        if wire_type in (DpWireType.BOOL, DpWireType.BYTE): self.buf.read(1)
+        elif wire_type in (DpWireType.INT16, DpWireType.INT32, DpWireType.INT64): self._read_varint()
+        elif wire_type == DpWireType.DOUBLE: self.buf.read(8)
+        elif wire_type == DpWireType.STRING:
+            length = self._read_varint()
+            self._check_length(length, "skip_string")
+            self.buf.read(length)
+        elif wire_type == DpWireType.STRUCT:
+            while True:
+                wt, _, _ = self.read_field_begin()
+                if wt == DpWireType.STOP: break
+                self.skip(wt, depth + 1)
+        elif wire_type in (DpWireType.LIST, DpWireType.SET):
+            et, count = self.read_list_begin()
+            for _ in range(count): self.skip(et, depth + 1)
+        elif wire_type == DpWireType.MAP:
+            kt, vt, count = self.read_map_begin()
+            for _ in range(count):
+                self.skip(kt, depth + 1)
+                self.skip(vt, depth + 1)
