@@ -53,7 +53,7 @@ Running `npx deuk-agent-rule init` deploys a **zero-touch scaffolding sandbox** 
 1. **`.deuk-agent-templates/` (Agent Templates)**: Houses the official blueprint (`TICKET_TEMPLATE.md`) dictating how AIs must process and report tasks. Committed alongside your source code to serve as the team's rulebook.
 2. **`.deuk-agent-ticket/` (Ticket Execution Space)**: The covert space where volatile instructions (`TICKET-XXX.md`) are exchanged between agents and workers. (Automatically hidden by `.gitignore` to prevent security leaks and repository bloat).
 
-The optimal **3-Step AI Coding Sequence** utilizing these sandbox folders is as follows.
+The optimal **4-Step AI Coding Sequence** utilizing these sandbox folders is as follows.
 
 ### [Step 1] Ticket Creation & Submodule Isolation
 Do not issue scattered, unbounded commands to your AI. Narrowing the **context** via a clear ticket is strictly required to prevent astronomical costs and accidental code corruption.
@@ -77,22 +77,24 @@ The AI will faithfully read the defined Phases in the ticket and write optimized
 ### [Step 3] Status Review & Closure
 As the AI writes the code, it will simultaneously update the markup checkboxes (`[x]`) inside the ticket. If the agent's session memory limit is approaching, simply leave the ticket file saved, turn off the chat window, open a fresh session, and issue [Step 2] again. The handoff (session transfer) is seamlessly completed.
 Once all steps are accomplished, promote the Phase status to `[Phase Complete]`. Instead of manually typing terminal commands, **you can simply tell your AI chatbot via natural language prompt: "Show me the list of active tickets" or "Archive the completed tickets with reports"**, and the AI will autonomously invoke the CLI to manage them for you.
-To track tickets manually from the terminal, run:
-
 ```bash
 npx deuk-agent-rule ticket list
 ```
 ```text
-📦 Agent Tickets (Direct System Scan):
-  ✅ [TICKET-DEUKUI-Button.md]
-     Title: Add Button Component
-     Target: DeukUI
-     Status: [Complete]
-  🔨 [TICKET-ui-refactoring.md]
-     Title: Plugin UI Refactoring
-     Target: DeukUI
-     Status: [In Progress]
+#  STATUS   SUBMODULE   GROUP       PROJECT     CREATED                  TITLE
+1  [ ]      DeukPack    sub         global      2026-04-18T13:34:32.484Z naming-consistency
 ```
+
+### [Step 4] Ticket Verification (Self-Correction)
+After all phases are marked as `[x]`, you should issue a final command to the AI:
+> *"Proceed with **Ticket Verification** for this task."*
+
+The AI, following the strictly defined **[TICKET VERIFICATION RULE]** in `AGENTS.md`, will then autonomously perform a 3-stage audit:
+1. **Side Effect Analysis**: Detecting potential build warnings or broken dependencies.
+2. **Convention Audit**: Re-verifying if filenames and classes perfectly match project architecture documents.
+3. **Potential Issue Reporting**: Listing breaking changes or unverified edge cases (e.g., native build constraints).
+
+This final step ensures that the agent's output is not just "functional" but "production-grade" and architecturally sound.
 
 ---
 

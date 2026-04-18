@@ -54,7 +54,7 @@ npx deuk-agent-rule init --non-interactive
 1. **`.deuk-agent-templates/` (에이전트 템플릿)**: AI가 어떠한 양식으로 작업을 처리하고 보고해야 하는지 정의된 공식 뼈대(`TICKET_TEMPLATE.md`)가 지정됩니다.
 2. **`.deuk-agent-ticket/` (티켓 실행 공간)**: 실제 지시서(`TICKET-XXX.md`)가 발급되는 공간입니다. 서브모듈 단위로 티켓을 분산 관리할 수 있어 서브모듈만 떼어가도 히스토리가 유지됩니다. (공유 정책에 따라 `.gitignore`에 자동으로 기재될 수 있습니다.)
 
-이러한 샌드박스 폴더들을 활용하여 스퍼트를 올리는 **최적의 AI 코딩 3단계**는 다음과 같습니다.
+이러한 샌드박스 폴더들을 활용하여 스퍼트를 올리는 **최적의 AI 코딩 4단계**는 다음과 같습니다.
 
 ### [Step 1] 티켓 발급 및 계층적 관리 (Ticket Creation & Delegation)
 AI에게 중구난방으로 지시하지 마세요. 명확한 티켓을 발급하여 **문맥(Context)을 소속 저장소 단위로 좁혀주어야** 합니다.
@@ -78,22 +78,24 @@ AI는 티켓 내에 정의된 Phase(진행 단계)를 충실히 읽고, **자신
 ### [Step 3] 검증 및 상태 갱신 (Review & Closure)
 AI가 코드를 작성하며 티켓 내 마크업의 체크박스(`[x]`)를 갱신합니다. 에이전트의 세션(기억 한계)이 가득 차면, 티켓 내용만 디스크에 남겨둔 채 챗봇 창을 끄고 새 창을 열어 다시 [Step 2]를 지시하면 깔끔하게 인수인계가 이루어집니다.
 모든 작업이 끝나면 Phase 상태를 `[Phase 완료]`로 승급시킵니다. 터미널 명령어를 직접 치는 대신, **AI 챗봇 프롬프트에 "현재 진행 중인 티켓 리스트를 보여줘" 또는 "완료된 티켓들을 보고서와 함께 아카이브 해 줘"라고 자연어로 지시**하여 AI가 알아서 CLI를 호출해 리스트업 및 관리하게 위임할 수도 있습니다.
-직접 터미널에서 상태를 파악하시려면 아래 명령을 사용하세요:
-
 ```bash
 npx deuk-agent-rule ticket list
 ```
 ```text
-📦 Agent Tickets (Direct System Scan):
-  ✅ [TICKET-DEUKUI-Button.md]
-     Title: 버튼 컴포넌트 추가
-     Target: DeukUI
-     Status: [완료]
-  🔨 [TICKET-ui-refactoring.md]
-     Title: 플러그인 UI 리팩토링
-     Target: DeukUI
-     Status: [진행 중]
+#  STATUS   SUBMODULE   GROUP       PROJECT     CREATED                  TITLE
+1  [ ]      DeukPack    sub         global      2026-04-18T13:34:32.484Z naming-consistency
 ```
+
+### [Step 4] 티켓 검증 (자가 교정)
+모든 진행 단계가 `[x]`로 완료되면, AI에게 마지막으로 다음과 같이 지시합니다:
+> *"이 작업에 대해 **티켓 검증**을 진행해 줘."*
+
+AI는 `AGENTS.md`에 정의된 **[TICKET VERIFICATION RULE]**에 따라 즉시 3단계 정밀 진단을 수행합니다:
+1. **오류 분석**: 잠재적인 빌드 경고나 깨진 의존성(Side Effects) 전수 조사.
+2. **규약 정합성**: 수정된 파일명과 클래스명이 프로젝트 아키텍처 가이드와 완벽히 일치하는지 재검증.
+3. **잠재 이슈 보고**: 하위 호환성 파괴 위험이나 네이티브 빌드 제약사항 등 미검증 시나리오 리스트업.
+
+이 과정을 통해 에이전트의 결과물은 단순한 "기능 구현"을 넘어 "프로덕션 레벨"의 아키텍처 정합성을 갖추게 됩니다.
 
 ---
 
