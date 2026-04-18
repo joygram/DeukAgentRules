@@ -66,6 +66,7 @@ When given a ticket, you MUST run commands and write code **strictly within the 
 4. **Execute Phase**: Process only the checklist for the **Current Phase**. Do not hallucinate or wander into other architectural areas.
 5. **Update Status**: Mark checkboxes (`[x]`) as tasks are completed.
 6. **Archive on Completion**: When all phases are completed, append the execution report at the bottom under a `## 📜 Execution Report` header. **Then, YOU MUST execute `npx deuk-agent-rule ticket archive <ticket-id>` (or `--latest`)** to properly close and archive the ticket. DO NOT attempt to manually `mv` files.
+7. **[TICKET REFERENCE RULE]**: 부분 개선 또는 기능 추가 시, 구현 아티팩트(`implementation_plan.md`, `task.md`, `walkthrough.md`) 상단에 반드시 해당 티켓 번호(ID)를 명시하여 추적 가능성을 확보하십시오.
 
 All Tickets are volatile and strictly local. Do not attempt to version them or mirror them to obsolete plan directories.
 
