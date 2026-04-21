@@ -115,9 +115,14 @@ By **creating a ticket using the CLI** (`npx deuk-agent-rule ticket create --top
 - **[RAG-FIRST POLICY (하드룰)]**: MCP 환경이 제공되는 경우, 에이전트는 계획 수립 및 코드 수정 전에 반드시 `mcp_deukrag_search_*` (또는 활성화된 지식 검색 도구)를 사용하여 과거 결정 내역과 아키텍처 규칙을 최우선으로 검색해야 합니다. 로컬 파일 검색(`grep_search`)보다 RAG 엔진의 지식을 상위의 진실(Single Source of Truth)로 간주합니다.
 - **[MANDATORY MCP RESEARCH]**: 모든 작업의 Phase 0(Research) 단계에서 에이전트는 반드시 최소 1회 이상의 `mcp_deukrag_search_*` 도구를 호출하여 관련 컨텍스트를 확인해야 합니다. MCP 연결이 확인되었음에도 이 과정을 생략하는 것은 규칙 위반으로 간주됩니다.
 
-## 🔗 Modernized Ticket-Driven Development (TDD)
+## 🚀 Fast-Track Workflow (Minor Tasks)
+간단한 버그 수정, 오타 교정, 명확한 단일 기능 추가 등 **규모가 작은 작업의 경우 티켓 시스템을 완전히 생략(SKIP)** 하십시오.
+- **절대 `ticket list`, `ticket archive` 명령어를 반복 호출하며 티켓 목록을 뒤지지 마십시오.** (시간 낭비 금지)
+- 티켓 생성 없이 즉시 코드를 수정하고 RAG 검색(`mcp_deukrag_search_*`)만 활용하여 작업을 완료하십시오.
 
-에이전트는 모든 작업 수행 시 반드시 아래 **5단계 워크플로우**를 준수해야 합니다.
+## 🔗 Standard Ticket-Driven Development (TDD)
+
+대규모 아키텍처 변경이나 사용자가 명시적으로 티켓 기반 작업을 요구한 경우에만 아래 **5단계 워크플로우**를 준수하십시오.
 
 1.  **Phase 0: RAG Research**
     - `mcp_deukrag_search_*`를 호출하여 관련 규약, 과거 티켓, 유사 구현 사례를 수집하고 티켓의 근거로 삼으십시오.
