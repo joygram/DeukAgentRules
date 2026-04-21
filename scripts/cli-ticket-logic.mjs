@@ -334,15 +334,19 @@ export function discoverAllTicketDirs(baseCwd, out = []) {
   if (existsSync(localNew) && statSync(localNew).isDirectory()) {
     out.push(localNew);
   }
-  // Legacy path check
-  const localLegacy = join(baseCwd, ".deuk-agent-ticket");
-  if (existsSync(localLegacy) && statSync(localLegacy).isDirectory()) {
-    out.push(localLegacy);
+  // Legacy path check (singular and plural)
+  const localLegacy1 = join(baseCwd, ".deuk-agent-ticket");
+  if (existsSync(localLegacy1) && statSync(localLegacy1).isDirectory()) {
+    out.push(localLegacy1);
+  }
+  const localLegacy2 = join(baseCwd, ".deuk-agent-tickets");
+  if (existsSync(localLegacy2) && statSync(localLegacy2).isDirectory()) {
+    out.push(localLegacy2);
   }
 
   for (const ent of entries) {
     if (!ent.isDirectory()) continue;
-    if (ent.name === "node_modules" || ent.name === ".git" || ent.name === AGENT_ROOT_DIR || ent.name === ".deuk-agent-ticket") continue;
+    if (ent.name === "node_modules" || ent.name === ".git" || ent.name === AGENT_ROOT_DIR || ent.name === ".deuk-agent-ticket" || ent.name === ".deuk-agent-tickets") continue;
     discoverAllTicketDirs(join(baseCwd, ent.name), out);
   }
   return out;
@@ -417,36 +421,6 @@ export function rebuildTicketIndexFromTopicFilesIfNeeded(cwd, opts = {}) {
   return indexJson;
 }
 
-export function parseLegacyTicketMeta(legacyBody) {
-  // Supports ## Task: ... or # Plan: ... or # Implementation Plan: ...
-  const titleMatch = legacyBody.match(/^(?:##\s+Task:|#\s+Plan:|#\s+Implementation Plan:)\s*(.+)$/m);
-  const title = titleMatch ? titleMatch[1].trim() : "Migrated legacy plan";
-
-  let group = "sub";
-  const lower = legacyBody.toLowerCase();
-  if (lower.includes("discussion")) group = "discussion";
-  else if (lower.includes("main")) group = "main";
-
-  return { title, group, project: detectProjectFromBody(legacyBody) };
-}
-
-export function getLegacyMigrationCandidate(cwd) {
-  const candidateFiles = ["LATEST.md"];
-  const candidateDirs = [cwd, detectConsumerTicketDir(cwd), join(cwd, "ticket")].filter(Boolean);
-  for (const dir of candidateDirs) {
-    for (const file of candidateFiles) {
-      const p = join(dir, file);
-      if (existsSync(p)) {
-        const body = readFileSync(p, "utf8");
-        // Check for common plan or task markers
-        if (body.length > 50 && (/^##\s+Task:/m.test(body) || /^#\s+Plan:/m.test(body))) {
-          return { latestPath: p, body };
-        }
-      }
-    }
-  }
-  return null;
-}
 
 export function syncActiveTicketId(cwd) {
   const index = readTicketIndexJson(cwd);

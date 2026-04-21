@@ -5,18 +5,31 @@ import { ensureTicketDirAndGitignore } from "./cli-init-logic.mjs";
 import { loadInitConfig, writeInitConfig } from "./cli-utils.mjs";
 import { runInteractive } from "./cli-prompts.mjs";
 
-import { AGENT_ROOT_DIR, TICKET_SUBDIR, TEMPLATE_SUBDIR, RULES_SUBDIR } from "./cli-utils.mjs";
+import { AGENT_ROOT_DIR, TICKET_SUBDIR, TEMPLATE_SUBDIR, RULES_SUBDIR, discoverAllSubmodules } from "./cli-utils.mjs";
 import { unlinkSync, rmSync, renameSync } from "fs";
 
 function migrateLegacyStructure(cwd, dryRun) {
   const legacyTemplates = join(cwd, ".deuk-agent-templates");
   const newTemplates = join(cwd, AGENT_ROOT_DIR, TEMPLATE_SUBDIR);
   
-  if (existsSync(legacyTemplates) && !existsSync(newTemplates)) {
-    console.log(`[MIGRATE] Moving legacy templates to ${AGENT_ROOT_DIR}/${TEMPLATE_SUBDIR}`);
-    if (!dryRun) {
-      mkdirSync(join(cwd, AGENT_ROOT_DIR), { recursive: true });
-      renameSync(legacyTemplates, newTemplates);
+  if (existsSync(legacyTemplates)) {
+    if (!existsSync(newTemplates)) {
+      console.log(`[MIGRATE] Moving legacy templates to ${AGENT_ROOT_DIR}/${TEMPLATE_SUBDIR}`);
+      if (!dryRun) {
+        mkdirSync(join(cwd, AGENT_ROOT_DIR), { recursive: true });
+        renameSync(legacyTemplates, newTemplates);
+      }
+    } else {
+      console.log(`[MIGRATE] Merging legacy templates into ${AGENT_ROOT_DIR}/${TEMPLATE_SUBDIR}`);
+      if (!dryRun) {
+        const files = readdirSync(legacyTemplates);
+        for (const f of files) {
+          const src = join(legacyTemplates, f);
+          const dest = join(newTemplates, f);
+          if (!existsSync(dest)) renameSync(src, dest);
+        }
+        if (readdirSync(legacyTemplates).length === 0) rmSync(legacyTemplates, { recursive: true });
+      }
     }
   }
 
@@ -25,11 +38,18 @@ function migrateLegacyStructure(cwd, dryRun) {
   const newTickets = join(cwd, AGENT_ROOT_DIR, TICKET_SUBDIR);
 
   // 1. Move singular legacy
-  if (existsSync(legacyTickets) && !existsSync(newTickets)) {
-    console.log(`[MIGRATE] Moving legacy ticket directory to ${AGENT_ROOT_DIR}/${TICKET_SUBDIR}`);
+  // 1. Move singular legacy
+  if (existsSync(legacyTickets)) {
+    console.log(`[MIGRATE] Merging legacy singular ticket directory into ${AGENT_ROOT_DIR}/${TICKET_SUBDIR}`);
     if (!dryRun) {
-      mkdirSync(join(cwd, AGENT_ROOT_DIR), { recursive: true });
-      renameSync(legacyTickets, newTickets);
+      mkdirSync(newTickets, { recursive: true });
+      const files = readdirSync(legacyTickets);
+      for (const f of files) {
+        const src = join(legacyTickets, f);
+        const dest = join(newTickets, f);
+        if (!existsSync(dest)) renameSync(src, dest);
+      }
+      if (readdirSync(legacyTickets).length === 0) rmSync(legacyTickets, { recursive: true });
     }
   }
 
@@ -205,7 +225,14 @@ function deploySpokePointers(cwd, dryRun) {
 }
 
 export async function runInit(opts, bundleRoot) {
-  migrateLegacyStructure(opts.cwd, opts.dryRun);
+  const submodules = discoverAllSubmodules(opts.cwd);
+  if (!submodules.includes(opts.cwd)) submodules.push(opts.cwd);
+
+  for (const subCwd of submodules) {
+    migrateLegacyStructure(subCwd, opts.dryRun);
+    ensureTicketDirAndGitignore({ ...opts, cwd: subCwd });
+    deploySpokePointers(subCwd, opts.dryRun);
+  }
 
   const markers = resolveMarkers(opts);
   const agentsResult = applyAgents({
@@ -230,8 +257,8 @@ export async function runInit(opts, bundleRoot) {
   });
   ruleActions.forEach(r => console.log(`hub rule ${r.action}: ${r.dest || r.src}`));
 
-  // Deploy Spokes
-  deploySpokePointers(opts.cwd, opts.dryRun);
+  // Deploy Spokes to root (submodules already handled in loop above)
+  // deploySpokePointers(opts.cwd, opts.dryRun);
   
   const geminiBundle = join(bundleRoot, "gemini.md");
   const geminiDest = join(opts.cwd, "gemini.md");

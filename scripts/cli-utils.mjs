@@ -1,4 +1,4 @@
-import { existsSync, readFileSync, writeFileSync } from "fs";
+import { existsSync, readFileSync, writeFileSync, readdirSync } from "fs";
 import { basename, dirname, join, relative } from "path";
 import YAML from "yaml";
 
@@ -192,4 +192,32 @@ export async function checkUpdateNotifier() {
   } catch(e) {
     // Ignore timeout or network errors silently
   }
+}
+
+/**
+ * Recursively finds all directories containing deuk-agent ticket structures.
+ */
+export function discoverAllSubmodules(baseCwd, out = new Set()) {
+  if (!existsSync(baseCwd)) return Array.from(out);
+
+  const hasLegacy1 = existsSync(join(baseCwd, ".deuk-agent-ticket"));
+  const hasLegacy2 = existsSync(join(baseCwd, ".deuk-agent-tickets"));
+  const hasNew = existsSync(join(baseCwd, AGENT_ROOT_DIR, TICKET_SUBDIR));
+
+  if (hasLegacy1 || hasLegacy2 || hasNew) {
+    out.add(baseCwd);
+  }
+
+  try {
+    const entries = readdirSync(baseCwd, { withFileTypes: true });
+    for (const ent of entries) {
+      if (!ent.isDirectory()) continue;
+      // Skip system or noisy directories
+      if (ent.name === "node_modules" || ent.name === ".git" || ent.name === AGENT_ROOT_DIR || ent.name.startsWith(".deuk-agent")) continue;
+      discoverAllSubmodules(join(baseCwd, ent.name), out);
+    }
+  } catch {
+    // Ignore permission errors on specific subfolders
+  }
+  return Array.from(out);
 }

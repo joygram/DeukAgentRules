@@ -1,3 +1,5 @@
 bundle/
 node_modules/
 .deuk-agent-ticket/
+
+.deuk-agent/docs/scratch/
