@@ -177,6 +177,7 @@ export async function runTicketClose(opts) {
 
 export async function runTicketUse(opts) {
   const index = rebuildTicketIndexFromTopicFilesIfNeeded(opts.cwd, opts);
+  syncActiveTicketPointer(opts.cwd);
   
   let targetTopic = opts.topic;
   if (!targetTopic && !opts.latest) {
@@ -292,6 +293,7 @@ export async function runTicketArchive(opts) {
 
   writeTicketIndexJson(opts.cwd, indexJson, opts);
   writeTicketListFile(opts.cwd, indexJson.entries, opts);
+  syncActiveTicketPointer(opts.cwd);
 }
 
 export async function runTicketReports(opts) {

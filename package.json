@@ -45,7 +45,6 @@
     "node": ">=18"
   },
   "bin": {
-    "deuk-agent-rule": "./scripts/cli.mjs"
   },
   "devDependencies": {
     "commit-and-tag-version": "^12.7.1"

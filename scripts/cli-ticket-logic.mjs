@@ -1,5 +1,5 @@
 import { existsSync, mkdirSync, readdirSync, readFileSync, statSync, writeFileSync, unlinkSync, copyFileSync } from "fs";
-import { basename, dirname, join, relative } from "path";
+import { basename, dirname, join, relative, resolve } from "path";
 import { createHash } from "crypto";
 import { hostname as osHostname } from "os";
 import { toPosixPath, toRepoRelativePath, toSlug, formatTimestampForFile, makeEntryId, detectProjectFromBody, deriveTopicFromBaseName, parseFrontMatter, stringifyFrontMatter, loadInitConfig } from "./cli-utils.mjs";
@@ -32,7 +32,7 @@ const DEFAULT_TICKET_LIST_TEMPLATE = `# Ticket List
 `;
 
 export function detectConsumerTicketDir(startDir, opts = {}) {
-  let curr = startDir;
+  let curr = resolve(startDir);
   while (curr && curr !== dirname(curr)) {
     const p = join(curr, TICKET_DIR_NAME);
     if (existsSync(p)) return p;
@@ -47,7 +47,9 @@ export function readTicketIndexJson(cwd) {
   const dir = detectConsumerTicketDir(cwd);
   if (!dir) return { version: 1, updatedAt: null, entries: [] };
   const p = join(dir, TICKET_INDEX_FILENAME);
-  if (!existsSync(p)) return { version: 1, updatedAt: null, entries: [] };
+  if (!existsSync(p)) {
+    return { version: 1, updatedAt: null, entries: [] };
+  }
   try {
     const j = JSON.parse(readFileSync(p, "utf8"));
     const entries = Array.isArray(j.entries) ? j.entries.map(e => ({ ...e, status: e.status || "open" })) : [];
@@ -505,7 +507,7 @@ export function computeNextTicketNumber(existingEntries) {
     const m = mLegacy || mNew;
     if (m) {
       const n = parseInt(m[1], 10);
-      if (n > max) max = n;
+      if (n > max && n < 10000) max = n; // Sanity check for 4-digit limit
     }
   }
   return { num: max + 1, hostname };
