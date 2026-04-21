@@ -1,4 +1,4 @@
-import { join, dirname } from "path";
+import { join, dirname, basename } from "path";
 import { existsSync, readFileSync, writeFileSync, mkdirSync, copyFileSync, readdirSync } from "fs";
 import { resolveMarkers, resolveCursorrulesMarkers, applyAgents, applyRules, applyCursorrules, readBundleAgents } from "./merge-logic.mjs";
 import { ensureTicketDirAndGitignore } from "./cli-init-logic.mjs";
@@ -9,70 +9,59 @@ import { AGENT_ROOT_DIR, TICKET_SUBDIR, TEMPLATE_SUBDIR, RULES_SUBDIR, discoverA
 import { unlinkSync, rmSync, renameSync } from "fs";
 
 function migrateLegacyStructure(cwd, dryRun) {
-  const legacyTemplates = join(cwd, ".deuk-agent-templates");
-  const newTemplates = join(cwd, AGENT_ROOT_DIR, TEMPLATE_SUBDIR);
-  
-  if (existsSync(legacyTemplates)) {
-    if (!existsSync(newTemplates)) {
-      console.log(`[MIGRATE] Moving legacy templates to ${AGENT_ROOT_DIR}/${TEMPLATE_SUBDIR}`);
+  const recursiveMerge = (src, dest) => {
+    if (!existsSync(src)) return;
+    if (!existsSync(dest)) {
       if (!dryRun) {
-        mkdirSync(join(cwd, AGENT_ROOT_DIR), { recursive: true });
-        renameSync(legacyTemplates, newTemplates);
+        mkdirSync(dirname(dest), { recursive: true });
+        renameSync(src, dest);
       }
-    } else {
-      console.log(`[MIGRATE] Merging legacy templates into ${AGENT_ROOT_DIR}/${TEMPLATE_SUBDIR}`);
-      if (!dryRun) {
-        const files = readdirSync(legacyTemplates);
-        for (const f of files) {
-          const src = join(legacyTemplates, f);
-          const dest = join(newTemplates, f);
-          if (!existsSync(dest)) renameSync(src, dest);
+      return;
+    }
+    // Both exist, merge contents
+    const entries = readdirSync(src, { withFileTypes: true });
+    for (const ent of entries) {
+      const sPath = join(src, ent.name);
+      const dPath = join(dest, ent.name);
+      if (ent.isDirectory()) {
+        recursiveMerge(sPath, dPath);
+      } else {
+        if (!existsSync(dPath)) {
+          if (!dryRun) renameSync(sPath, dPath);
+        } else {
+          // If destination exists, we could overwrite or skip. 
+          // For tickets, we skip to avoid data loss, but log it.
+          if (basename(sPath) !== "INDEX.json" && basename(sPath) !== "TICKET_LIST.md") {
+             // console.warn(`[MIGRATE] Skipping existing file: ${dPath}`);
+          }
+          if (!dryRun) unlinkSync(sPath); // Remove migrated/redundant file
         }
-        if (readdirSync(legacyTemplates).length === 0) rmSync(legacyTemplates, { recursive: true });
       }
     }
+    // Clean up src if empty
+    try {
+      if (!dryRun && readdirSync(src).length === 0) rmSync(src, { recursive: true });
+    } catch {}
+  };
+
+  const legacyTemplates = join(cwd, ".deuk-agent-templates");
+  const newTemplates = join(cwd, AGENT_ROOT_DIR, TEMPLATE_SUBDIR);
+  if (existsSync(legacyTemplates)) {
+    console.log(`[MIGRATE] Merging legacy templates into ${AGENT_ROOT_DIR}/${TEMPLATE_SUBDIR}`);
+    recursiveMerge(legacyTemplates, newTemplates);
   }
 
   const legacyTickets = join(cwd, ".deuk-agent-ticket");
   const legacyTicketsPlural = join(cwd, ".deuk-agent-tickets");
   const newTickets = join(cwd, AGENT_ROOT_DIR, TICKET_SUBDIR);
 
-  // 1. Move singular legacy
-  // 1. Move singular legacy
   if (existsSync(legacyTickets)) {
     console.log(`[MIGRATE] Merging legacy singular ticket directory into ${AGENT_ROOT_DIR}/${TICKET_SUBDIR}`);
-    if (!dryRun) {
-      mkdirSync(newTickets, { recursive: true });
-      const files = readdirSync(legacyTickets);
-      for (const f of files) {
-        const src = join(legacyTickets, f);
-        const dest = join(newTickets, f);
-        if (!existsSync(dest)) renameSync(src, dest);
-      }
-      if (readdirSync(legacyTickets).length === 0) rmSync(legacyTickets, { recursive: true });
-    }
+    recursiveMerge(legacyTickets, newTickets);
   }
-
-  // 2. Move plural legacy (may coexist or be the only one)
   if (existsSync(legacyTicketsPlural)) {
-    console.log(`[MIGRATE] Found plural legacy tickets directory. Merging contents to ${AGENT_ROOT_DIR}/${TICKET_SUBDIR}`);
-    if (!dryRun) {
-      mkdirSync(newTickets, { recursive: true });
-      const files = readdirSync(legacyTicketsPlural);
-      for (const f of files) {
-        const src = join(legacyTicketsPlural, f);
-        const dest = join(newTickets, f);
-        if (!existsSync(dest)) {
-          renameSync(src, dest);
-        } else {
-          console.warn(`[MIGRATE] Skipping duplicate: ${f}`);
-        }
-      }
-      // Clean up plural dir if empty
-      if (readdirSync(legacyTicketsPlural).length === 0) {
-        rmSync(legacyTicketsPlural, { recursive: true });
-      }
-    }
+    console.log(`[MIGRATE] Merging legacy plural tickets directory into ${AGENT_ROOT_DIR}/${TICKET_SUBDIR}`);
+    recursiveMerge(legacyTicketsPlural, newTickets);
   }
 
   const legacyConfig = join(cwd, ".deuk-agent-rule.config.json");
