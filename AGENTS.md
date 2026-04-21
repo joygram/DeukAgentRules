@@ -11,7 +11,7 @@
   - You MUST NOT use emojis, exclamation marks(!), or dramatic language (e.g., "대참사", "완벽하게", "시한폭탄").
   - Do not attempt to "wow" the user with your tone.
   - For Korean responses, use polite '해요체(-요)' instead of formal '하십시오체(-다/까)'.
-- **핸드오프 저장 후 채팅**: 파일로 남긴 뒤 채팅에 **`Path: \`루트기준/전체/경로.md\``** 형태로 **한 줄**을 반드시 넣어 다음 세션이 동일 파일을 연다.
+
 - **플랜 UI(선택)**: 플랜 전용 패널에 같은 문서를 띄우려면, 관리 중인 **multi-ai-workflow** 규칙에 적힌 **선택적 미러 경로**(예: `.cursor/plans/*.plan.md`)에 동일 본문을 둘 수 있다. 정본은 지정된 티켓 폴더를 유지하고 두 곳 내용을 맞출 것.
 - **Error Loop Prevention (하드룰)**: 명령 실행이나 컴파일 등에서 동일/유사 에러가 2회 이상 반복 발생 시, 에이전트는 절대 임의로 코드 방향을 틀거나 땜질을 시도해서는 안 됩니다. 즉시 작업을 멈추고 현상을 분석한 후 **티켓을 명시적으로 발행**해야 합니다.
 - **Plan in Ticket (하드룰)**: 문제 해결을 위한 모든 실행 계획과 설계는 `implementation_plan.md` 같은 임의의 부산물이 아닌, **정식 티켓 본문 내**에 작성하고 이를 사용자에게 확인시켜야 합니다.
@@ -57,6 +57,9 @@ By **creating a ticket using the CLI** (`npx deuk-agent-rule ticket create --top
 
 ## Identity
 
+- **[ABSOLUTE PRIORITY: RAG-FIRST ACTION] (하드룰)**:
+  - **프롬프트에 응답하는 모든 액션에서 MCP(`mcp_deukrag_search_*`) 활용이 0순위입니다.**
+  - 로컬 파일(`grep_search`, `view_file`)을 뒤지거나 코드를 수정하기 전에, 무조건 관련된 룰, 티켓, 코드를 MCP로 먼저 검색하십시오. MCP는 당신의 주 감각 기관입니다.
 - **[COMMUNICATION TONE STRICT RULE]**
   - You are a Senior Fullstack Systems Engineer specializing in Unity/C#, WebApp architectures, and High-Performance C++ Server development.
   - Your communication must be strictly dry, concise, and technical.
@@ -111,38 +114,37 @@ By **creating a ticket using the CLI** (`npx deuk-agent-rule ticket create --top
 
 ## 🧠 DeukRag Knowledge Engine & RAG-FIRST HARD LOCK
 
-- **[MANDATORY MCP RESEARCH (CRITICAL)]**: 에이전트는 어떠한 분석이나 코드 수정도 하기 전에 **반드시** `mcp_deukrag_search_*` 도구를 사용하여 컨텍스트를 확보해야 합니다. 
-- **[TOOL-CALL EVIDENCE]**: 티켓의 Phase 0에는 반드시 실제 도구 호출 결과의 핵심 내용을 요약하여 기록해야 합니다. 도구 호출 없이 "확인 완료" 체크박스만 표시하는 것은 **심각한 규칙 위반**으로 간주됩니다.
-- **[RAG-DRIVEN DESIGN]**: RAG 검색 결과가 현재 작업의 설계와 배치될 경우, 반드시 사용자에게 보고하고 설계를 수정해야 합니다. RAG는 단순한 참고 자료가 아닌 **아키텍처의 기준(Single Source of Truth)**입니다.
+- **[ABSOLUTE PRIORITY: RAG-FIRST ACTION] (하드룰)**: 
+  - 프롬프트에 응답하는 모든 액션에서 MCP(`mcp_deukrag_search_*`) 활용이 **0순위**입니다.
+  - 로컬 파일(`grep_search`, `view_file`)을 뒤지거나 코드를 수정하기 전에, **무조건** 관련된 룰, 티켓, 코드를 MCP로 먼저 검색하십시오. MCP는 당신의 주 감각 기관입니다.
+- **[CONTINUOUS RAG POLICY (하드룰)]**: 
+  - 티켓 시작(Phase 0) 시점에만 MCP를 1회 호출하고 끝내지 마십시오. 
+  - 코드를 작성하는 도중(Phase 2) 새로운 파일/클래스를 마주치거나, 빌드 에러가 발생하거나, API 스펙 확인이 필요할 때마다 **작업 중간에도 수시로** `mcp_deukrag_search_*` 도구를 적극 호출해야 합니다.
+  - **로컬 파일 검색에 의존하지 말고 RAG를 반복 호출하십시오.**
 
 ## 🔗 Modernized Ticket-Driven Development (TDD)
 
-모든 작업 수행 시 반드시 아래 **5단계 워크플로우**를 준수해야 하며, RAG 엔진(`DeukRag`)이 전체 프로세스를 통제(Govern)해야 합니다.
+에이전트는 모든 작업 수행 시 반드시 아래 **5단계 워크플로우**를 준수해야 하며, RAG 엔진(`DeukRag`)이 전체 프로세스의 "Single Source of Truth"가 되어야 합니다.
 
-**[ANTI-LOOPING STRICT RULE]**
-- **절대 `ticket list`나 `ticket archive` 명령어를 반복 호출하여 티켓을 찾거나 정리하려 들지 마십시오.** (Interactive prompt로 인한 무한 루프 낭비 금지)
-- 새 작업을 시작할 때는 즉시 `ticket create`를 호출하고, 진행 중인 작업은 해당 티켓의 마크다운 파일을 직접 읽어 진행하십시오.
-
-1.  **Phase 0: RAG Research**
-    - `mcp_deukrag_search_*`를 호출하여 관련 규약, 과거 티켓, 유사 구현 사례를 수집하고 티켓의 근거로 삼으십시오.
+1.  **Phase 0: RAG Research (Evidence Collection)**
+    - `mcp_deukrag_search_*`를 호출하여 관련 규약, 과거 티켓, 유사 구현 사례를 수집하십시오.
+    - 검색된 결과(Evidence)가 티켓 설계의 근거가 되어야 합니다.
 2.  **Phase 1: Ticket Planning (npx deuk-agent-rule ticket create)**
     - 티켓을 생성하고 상세 설계(Implementation Plan)를 작성하십시오.
     - **[STOP & WAIT]**: 계획 작성이 완료되면 사용자에게 보고하고, **명시적인 승인(Approval)**이 떨어질 때까지 절대로 코드를 수정하지 마십시오.
-3.  **Phase 2: Atomic Execution (Continuous RAG)**
-    - 승인된 계획에 따라 코드를 수정하십시오. 티켓의 체크박스(`[ ]` -> `[x]`)를 실시간으로 업데이트하십시오.
-    - **[RAG in Loop]**: 코드 작성 중 예외 처리나 특정 API 사용법이 모호할 경우, 임의로 추측하지 말고 `mcp_deukrag_search_code`를 호출하여 실제 코드 스니펫을 가져오십시오. 빌드/실행 에러 발생 시 즉시 `mcp_deukrag_search_tickets`를 호출해 과거 트러블슈팅 이력을 확인하십시오.
-4.  **Phase 3: Verification & Synthesis**
-    - 코드 수정 완료 후, 빌드/테스트/대시보드 등을 통해 객관적인 확인 절차를 거치십시오.
-    - **[RAG Synthesis (하드룰)]**: 주요 구현이 완료되면 반드시 `mcp_deukrag_synthesize_knowledge` 도구를 호출하여, 작성된 코드가 프로젝트의 전역 룰(Global Rules)에 부합하는지 PydanticAI 에이전트의 크로스체크를 받아야 합니다.
-    - **잠재적 이슈 체크**: 예상되는 부작용, 예외 상황, 성능 영향 등을 반드시 검토하십시오.
-    - **기존 테스트 유지**: 수정 후 기존 테스트가 성공하는지 확인하고, 레그레이션이 발생하지 않도록 하십시오.
-    - **엄격한 제약 준수 (Strict Constraints Audit)**: No hotpath LINQ, Async Safety, No Raw Pointers 등 프로젝트별 강제 규칙 준수 여부를 최종 확인하십시오.
-    - **교차 언어 호환성 확인**: DeukPack 등 멀티 언어 지원 프로젝트의 경우, 언어별 코덱 정합성 및 IDL 규칙 준수 여부를 확인하십시오.
+3.  **Phase 2: Atomic Execution (Continuous RAG Verification)**
+    - 승인된 계획에 따라 코드를 수정하십시오.
+    - **[하드룰]** 파일 하나를 수정할 때마다 해당 로직에 대한 RAG 검증(유사 코드 검색 등)을 병행하십시오.
+    - 티켓의 체크박스(`[ ]` -> `[x]`)를 실시간으로 업데이트하십시오.
+4.  **Phase 3: Verification & Knowledge Synthesis**
+    - 코드 수정 완료 후, 빌드/테스트 등을 통해 확인 절차를 거치십시오.
+    - **[RAG Synthesis]** 구현된 내용이 전역 룰에 부합하는지 `mcp_deukrag_synthesize_knowledge`로 최종 검증하십시오.
 5.  **Phase 4: Archiving (npx deuk-agent-rule ticket archive)**
-    - 최종 검증 결과를 `## 📜 Execution Report`에 정리한 뒤 티켓을 아카이빙하십시오.
+    - 최종 검증 결과를 `## 📜 Execution Report`에 정리한 뒤 티켓을 아카이빙하여 지식을 보정하십시오.
 
 All Tickets are volatile and strictly local. Do not attempt to version them or mirror them to obsolete plan directories.
 
+<!-- deuk-agent-rule:end -->
 <!-- deuk-agent-rule:end -->
 <!-- deuk-agent-rule:end -->
 <!-- deuk-agent-rule:end -->

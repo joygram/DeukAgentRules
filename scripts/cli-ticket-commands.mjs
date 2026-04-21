@@ -1,8 +1,15 @@
 import { existsSync, mkdirSync, readFileSync, writeFileSync, unlinkSync, copyFileSync, readdirSync, rmSync, statSync } from "fs";
 import { hostname } from "os";
 import { basename, join, dirname, relative, resolve } from "path";
-import { toSlug, toRepoRelativePath, inferRefTitleAndTopic, resolveReferencedTicketPath, toPosixPath, stringifyFrontMatter } from "./cli-utils.mjs";
-import { TICKET_DIR_NAME, appendTicketEntry, rebuildTicketIndexFromTopicFilesIfNeeded, detectConsumerTicketDir, readTicketIndexJson, writeTicketIndexJson, writeTicketListFile, syncActiveTicketPointer, generateTicketId, syncToPipeline } from "./cli-ticket-logic.mjs";
+import { 
+  toSlug, toRepoRelativePath, inferRefTitleAndTopic, resolveReferencedTicketPath, toPosixPath, stringifyFrontMatter,
+  AGENT_ROOT_DIR, TICKET_SUBDIR, TEMPLATE_SUBDIR, TICKET_DIR_NAME
+} from "./cli-utils.mjs";
+import { 
+  appendTicketEntry, rebuildTicketIndexFromTopicFilesIfNeeded, detectConsumerTicketDir, 
+  readTicketIndexJson, writeTicketIndexJson, writeTicketListFile, syncActiveTicketId, 
+  generateTicketId, syncToPipeline, updateTicketEntryStatus 
+} from "./cli-ticket-logic.mjs";
 import { loadInitConfig } from "./cli-utils.mjs";
 import ejs from "ejs";
 
@@ -23,12 +30,14 @@ export async function runTicketCreate(opts) {
     source = "ticket-reference";
   } else {
     let tplText = "";
-    const consumerTplPath = join(opts.cwd, ".deuk-agent-templates", "TICKET_TEMPLATE.md");
+    const consumerTplPath = join(opts.cwd, AGENT_ROOT_DIR, TEMPLATE_SUBDIR, "TICKET_TEMPLATE.md");
+    const legacyTplPath = join(opts.cwd, ".deuk-agent-templates", "TICKET_TEMPLATE.md");
     const bundleTplPath = join(new URL('.', import.meta.url).pathname, "..", "bundle", "templates", "TICKET_TEMPLATE.md");
     
     if (existsSync(consumerTplPath)) tplText = readFileSync(consumerTplPath, "utf8");
+    else if (existsSync(legacyTplPath)) tplText = readFileSync(legacyTplPath, "utf8");
     else if (existsSync(bundleTplPath)) tplText = readFileSync(bundleTplPath, "utf8");
-    else throw new Error("ticket create: Template not found. Refusing to create an empty ticket.");
+    else throw new Error("ticket create: Template not found. Please run 'npx deuk-agent-rule init' to deploy templates.");
 
     // Find nearest or create in CWD if missing
     const ticketDir = detectConsumerTicketDir(opts.cwd, { createIfMissing: true });
@@ -79,7 +88,7 @@ createdAt: <%= meta.createdAt %>
     }, opts);
   }
 
-  syncActiveTicketPointer(opts.cwd);
+  syncActiveTicketId(opts.cwd);
 }
 
 export async function runTicketList(opts) {
@@ -88,7 +97,7 @@ export async function runTicketList(opts) {
     throw new Error("No ticket system found. Please run 'npx deuk-agent-rule init' first.");
   }
   const index = rebuildTicketIndexFromTopicFilesIfNeeded(opts.cwd, opts);
-  syncActiveTicketPointer(opts.cwd);
+  syncActiveTicketId(opts.cwd);
   let rows = index.entries;
 
   
@@ -146,7 +155,6 @@ export async function runTicketConnect(opts) {
   }
 }
 
-import { updateTicketEntryStatus } from "./cli-ticket-logic.mjs";
 
 export async function runTicketClose(opts) {
   if (!opts.topic && !opts.latest) {
@@ -171,13 +179,13 @@ export async function runTicketClose(opts) {
   }
   opts.status = "closed";
   const entry = updateTicketEntryStatus(opts.cwd, opts);
-  syncActiveTicketPointer(opts.cwd);
+  syncActiveTicketId(opts.cwd);
   console.log(`ticket: closed -> ${entry.topic} (${entry.path})`);
 }
 
 export async function runTicketUse(opts) {
   const index = rebuildTicketIndexFromTopicFilesIfNeeded(opts.cwd, opts);
-  syncActiveTicketPointer(opts.cwd);
+  syncActiveTicketId(opts.cwd);
   
   let targetTopic = opts.topic;
   if (!targetTopic && !opts.latest) {
@@ -218,15 +226,15 @@ export function pickTicketEntry(opts, indexJson) {
 }
 
 export async function runTicketArchive(opts) {
+  const indexJson = rebuildTicketIndexFromTopicFilesIfNeeded(opts.cwd, opts);
+  const ticketDir = detectConsumerTicketDir(opts.cwd);
+
   if (!opts.latest && !opts.topic) {
     if (process.stdout.isTTY) {
-      const index = rebuildTicketIndexFromTopicFilesIfNeeded(opts.cwd, opts);
-      const choices = index.entries
+      const choices = indexJson.entries
         .filter(e => e.status !== "archived")
         .map(e => ({ label: `[${e.group}] ${e.title}`, value: e.topic }));
       if (choices.length > 0) {
-        const { createInterface } = await import("readline");
-        const { selectOne } = await import("./cli-prompts.mjs");
         const rl = createInterface({ input: process.stdin, output: process.stdout });
         try {
           opts.topic = await selectOne(rl, "Choose a ticket to archive (this will move the file to archive/):", choices);
@@ -241,7 +249,6 @@ export async function runTicketArchive(opts) {
     }
   }
   
-  const indexJson = rebuildTicketIndexFromTopicFilesIfNeeded(opts.cwd, opts);
   const found = pickTicketEntry(opts, indexJson);
   if (!found) throw new Error("ticket archive: no matching entry");
 
@@ -250,7 +257,7 @@ export async function runTicketArchive(opts) {
     throw new Error("ticket archive: file not found " + found.path);
   }
 
-  const archiveDir = join(opts.cwd, TICKET_DIR_NAME, "archive", found.group || "sub");
+  const archiveDir = join(ticketDir, "archive", found.group || "sub");
   if (!opts.dryRun) mkdirSync(archiveDir, { recursive: true });
   
   const fileName = found.path.split(/[/\\]/).pop();
@@ -262,7 +269,7 @@ export async function runTicketArchive(opts) {
     if (!existsSync(reportSrc)) {
       throw new Error("ticket archive: report file not found " + opts.report);
     }
-    const reportDir = join(opts.cwd, TICKET_DIR_NAME, "reports");
+    const reportDir = join(ticketDir, "reports");
     if (!opts.dryRun) mkdirSync(reportDir, { recursive: true });
     
     const reportDest = join(reportDir, `REPORT-${fileName}`);
@@ -292,12 +299,14 @@ export async function runTicketArchive(opts) {
   }
 
   writeTicketIndexJson(opts.cwd, indexJson, opts);
-  writeTicketListFile(opts.cwd, indexJson.entries, opts);
-  syncActiveTicketPointer(opts.cwd);
+  if (opts.render) writeTicketListFile(opts.cwd, indexJson.entries, opts);
+  syncActiveTicketId(opts.cwd);
 }
 
 export async function runTicketReports(opts) {
-  const reportDir = join(opts.cwd, TICKET_DIR_NAME, "reports");
+  const ticketDir = detectConsumerTicketDir(opts.cwd);
+  if (!ticketDir) throw new Error("No ticket system found.");
+  const reportDir = join(ticketDir, "reports");
   console.log("\n📄 Agent Reports:");
   if (!existsSync(reportDir)) {
     console.log("  No reports found.");

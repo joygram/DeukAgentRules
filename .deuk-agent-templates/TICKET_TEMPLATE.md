@@ -34,7 +34,9 @@
    - [ ] (필수 작성) 검색된 핵심 컨텍스트 요약: 
 1. [Phase 1> Setup / Parsing]
 2. [Phase 2> Core Logic Change]
+   - [ ] (CONTINUOUS RAG) 새로운 함수/클래스 수정 전 `mcp_deukrag_search_code` 및 `search_rules`로 관련 패턴 수시 검색
 3. [Phase 3> Cleanup / Verification]
+   - [ ] (VERIFY RAG) 디버깅 및 에러 발생 시 로그 덤프 전 `mcp_deukrag_search_tickets` 로 과거 해결책 우선 탐색
 
 ## ✅ Verification / QA
 - [ ] Potential Issues Check: [Identify side effects, edge cases, or performance impacts]
