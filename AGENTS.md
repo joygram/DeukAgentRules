@@ -113,6 +113,7 @@ By **creating a ticket using the CLI** (`npx deuk-agent-rule ticket create --top
 
 - **[MCP Availability Check]**: 모든 에이전트는 작업을 시작하기 전 현재 환경에 `DeukRag` 등 지식 검색을 위한 MCP 서버가 연결되어 있는지 확인해야 합니다.
 - **[RAG-FIRST POLICY (하드룰)]**: MCP 환경이 제공되는 경우, 에이전트는 계획 수립 및 코드 수정 전에 반드시 `mcp_deukrag_search_*` (또는 활성화된 지식 검색 도구)를 사용하여 과거 결정 내역과 아키텍처 규칙을 최우선으로 검색해야 합니다. 로컬 파일 검색(`grep_search`)보다 RAG 엔진의 지식을 상위의 진실(Single Source of Truth)로 간주합니다.
+- **[MANDATORY MCP RESEARCH]**: 모든 작업의 Phase 0(Research) 단계에서 에이전트는 반드시 최소 1회 이상의 `mcp_deukrag_search_*` 도구를 호출하여 관련 컨텍스트를 확인해야 합니다. MCP 연결이 확인되었음에도 이 과정을 생략하는 것은 규칙 위반으로 간주됩니다.
 
 ## 🔗 Modernized Ticket-Driven Development (TDD)
 
@@ -123,14 +124,21 @@ By **creating a ticket using the CLI** (`npx deuk-agent-rule ticket create --top
 2.  **Phase 1: Ticket Planning (npx deuk-agent-rule ticket create)**
     - 티켓을 생성하고 상세 설계(Implementation Plan)를 작성하십시오.
     - **[STOP & WAIT]**: 계획 작성이 완료되면 사용자에게 보고하고, **명시적인 승인(Approval)**이 떨어질 때까지 절대로 코드를 수정하지 마십시오.
-3.  **Phase 2: Atomic Execution**
+3.  **Phase 2: Atomic Execution (Continuous RAG)**
     - 승인된 계획에 따라 코드를 수정하십시오. 티켓의 체크박스(`[ ]` -> `[x]`)를 실시간으로 업데이트하십시오.
-4.  **Phase 3: Verification**
+    - **[RAG in Loop]**: 코드 작성 중 예외 처리나 특정 API 사용법이 모호할 경우, 임의로 추측하지 말고 `mcp_deukrag_search_code`를 호출하여 실제 코드 스니펫을 가져오십시오. 빌드/실행 에러 발생 시 즉시 `mcp_deukrag_search_tickets`를 호출해 과거 트러블슈팅 이력을 확인하십시오.
+4.  **Phase 3: Verification & Synthesis**
     - 코드 수정 완료 후, 빌드/테스트/대시보드 등을 통해 객관적인 확인 절차를 거치십시오.
+    - **[RAG Synthesis (하드룰)]**: 주요 구현이 완료되면 반드시 `mcp_deukrag_synthesize_knowledge` 도구를 호출하여, 작성된 코드가 프로젝트의 전역 룰(Global Rules)에 부합하는지 PydanticAI 에이전트의 크로스체크를 받아야 합니다.
+    - **잠재적 이슈 체크**: 예상되는 부작용, 예외 상황, 성능 영향 등을 반드시 검토하십시오.
+    - **기존 테스트 유지**: 수정 후 기존 테스트가 성공하는지 확인하고, 레그레이션이 발생하지 않도록 하십시오.
+    - **엄격한 제약 준수 (Strict Constraints Audit)**: No hotpath LINQ, Async Safety, No Raw Pointers 등 프로젝트별 강제 규칙 준수 여부를 최종 확인하십시오.
+    - **교차 언어 호환성 확인**: DeukPack 등 멀티 언어 지원 프로젝트의 경우, 언어별 코덱 정합성 및 IDL 규칙 준수 여부를 확인하십시오.
 5.  **Phase 4: Archiving (npx deuk-agent-rule ticket archive)**
     - 최종 검증 결과를 `## 📜 Execution Report`에 정리한 뒤 티켓을 아카이빙하십시오.
 
 All Tickets are volatile and strictly local. Do not attempt to version them or mirror them to obsolete plan directories.
 
+<!-- deuk-agent-rule:end -->
 <!-- deuk-agent-rule:end -->
 <!-- deuk-agent-rule:end -->
