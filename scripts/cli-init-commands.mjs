@@ -62,6 +62,13 @@ export async function runInit(opts, bundleRoot) {
     dryRun: opts.dryRun, backup: opts.backup
   });
   console.log(`.cursorrules: ${crResult.action} (${crResult.mode || ""})`);
+  
+  const geminiBundle = join(bundleRoot, "gemini.md");
+  const geminiDest = join(opts.cwd, "gemini.md");
+  if (existsSync(geminiBundle)) {
+    if (!opts.dryRun) copyFileSync(geminiBundle, geminiDest);
+    console.log(`gemini.md: synced to root`);
+  }
 
   ensureTicketDirAndGitignore(opts);
   syncTemplates(opts.cwd, bundleRoot, opts.dryRun);
