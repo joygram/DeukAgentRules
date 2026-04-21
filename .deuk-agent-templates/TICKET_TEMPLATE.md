@@ -28,10 +28,18 @@
 
 ## 🔄 Phased Execution Steps
 > Agent: Do NOT attempt to do Phase 3 before Phase 1 is fully tested. Use separate chat messages per phase if the task is large.
+0. [Phase 0> RAG Research (MCP)]
+   - [ ] `mcp_deukrag_search_rules` 기반 규약 검토 완료
+   - [ ] `mcp_deukrag_search_tickets` 과거 유사 티켓 이력 열람 완료
+   - [ ] (필수 작성) 검색된 핵심 컨텍스트 요약: 
 1. [Phase 1> Setup / Parsing]
 2. [Phase 2> Core Logic Change]
 3. [Phase 3> Cleanup / Verification]
 
 ## ✅ Verification / QA
+- [ ] Potential Issues Check: [Identify side effects, edge cases, or performance impacts]
+- [ ] Existing Tests Maintenance: [Ensure all existing tests pass and no regression occurs]
+- [ ] Strict Constraints Audit: [No hotpath LINQ, Async Safety, No Raw Pointers, etc.]
+- [ ] Cross-Language Compatibility: [Ensure codec consistency across target languages]
 - [e.g., Check CLI command output `npm run test`]
 - [e.g., Validate Inspector mounts properly in Figma]

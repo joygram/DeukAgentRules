@@ -109,11 +109,11 @@ By **creating a ticket using the CLI** (`npx deuk-agent-rule ticket create --top
 1. **Flash Models**: Use for strict template filling, simple code generation, porting, and repetitive ticket execution (`.deuk-agent-ticket/*`) where strict compliance is mandatory.
 2. **High/Pro Models**: Use for architectural planning, deep legacy code comprehension, complex bug squashing, and creative solutions. Supply heavy failure warnings in the prompt to force formatting compliance.
 
-## 🧠 DeukRag Knowledge Engine & RAG-First Policy
+## 🧠 DeukRag Knowledge Engine & RAG-FIRST HARD LOCK
 
-- **[MCP Availability Check]**: 모든 에이전트는 작업을 시작하기 전 현재 환경에 `DeukRag` 등 지식 검색을 위한 MCP 서버가 연결되어 있는지 확인해야 합니다.
-- **[RAG-FIRST POLICY (하드룰)]**: MCP 환경이 제공되는 경우, 에이전트는 계획 수립 및 코드 수정 전에 반드시 `mcp_deukrag_search_*` (또는 활성화된 지식 검색 도구)를 사용하여 과거 결정 내역과 아키텍처 규칙을 최우선으로 검색해야 합니다. 로컬 파일 검색(`grep_search`)보다 RAG 엔진의 지식을 상위의 진실(Single Source of Truth)로 간주합니다.
-- **[MANDATORY MCP RESEARCH]**: 모든 작업의 Phase 0(Research) 단계에서 에이전트는 반드시 최소 1회 이상의 `mcp_deukrag_search_*` 도구를 호출하여 관련 컨텍스트를 확인해야 합니다. MCP 연결이 확인되었음에도 이 과정을 생략하는 것은 규칙 위반으로 간주됩니다.
+- **[MANDATORY MCP RESEARCH (CRITICAL)]**: 에이전트는 어떠한 분석이나 코드 수정도 하기 전에 **반드시** `mcp_deukrag_search_*` 도구를 사용하여 컨텍스트를 확보해야 합니다. 
+- **[TOOL-CALL EVIDENCE]**: 티켓의 Phase 0에는 반드시 실제 도구 호출 결과의 핵심 내용을 요약하여 기록해야 합니다. 도구 호출 없이 "확인 완료" 체크박스만 표시하는 것은 **심각한 규칙 위반**으로 간주됩니다.
+- **[RAG-DRIVEN DESIGN]**: RAG 검색 결과가 현재 작업의 설계와 배치될 경우, 반드시 사용자에게 보고하고 설계를 수정해야 합니다. RAG는 단순한 참고 자료가 아닌 **아키텍처의 기준(Single Source of Truth)**입니다.
 
 ## 🔗 Modernized Ticket-Driven Development (TDD)
 
