@@ -172,7 +172,8 @@ export function parseFrontMatter(content) {
 
 export function stringifyFrontMatter(meta, content) {
   const yamlStr = YAML.stringify(meta).trim();
-  return `---\n${yamlStr}\n---\n\n${content.trim()}\n`;
+  // Double newline after frontmatter to ensure markdown rendering integrity
+  return `---\n${yamlStr}\n---\n\n\n${content.trim()}\n`;
 }
 
 /**

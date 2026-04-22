@@ -227,9 +227,10 @@ export async function runTicketUse(opts) {
   const found = opts.latest ? index.entries[0] : index.entries.find(e => e.topic.includes(targetTopic));
   if (!found) throw new Error("No matching ticket found");
   
-  if (opts.pathOnly) console.log(found.path);
+  const posixPath = toPosixPath(found.path);
+  if (opts.pathOnly) process.stdout.write(posixPath);
   else {
-    console.log(`Path: ${found.path}`);
+    console.log(`Path: ${posixPath}`);
     if (opts.printContent) console.log("\n" + readFileSync(join(opts.cwd, found.path), "utf8"));
   }
 }

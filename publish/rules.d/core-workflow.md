@@ -46,3 +46,10 @@ All Tickets and docs are volatile and strictly local. Do not attempt to version 
 
 ### RAG 보존
 `.deuk-agent/docs/plans/`와 `walkthroughs/`의 파일은 DeukRag에 의해 자동 인덱싱되어 과거 설계 히스토리를 차기 세션에서 `mcp_deukrag_search_tickets`로 검색할 수 있습니다.
+
+### 🚀 Ticket Finding & Starting Protocol (Anti-Shoveling Rule)
+- **[탐색 금지 (하드룰)]**: "다음 티켓 진행" 요청을 받았을 때, 에이전트가 임의로 `.deuk-agent/tickets/*` 폴더를 탐색(Exploring)하거나 `INDEX.json` 등을 열어보는 '삽질'을 엄격히 금지합니다.
+- **[가장 빠른 진행 (Fast-Track)]**:
+  1. 즉시 `npx deuk-agent-rule ticket use --latest --path-only` 명령을 실행하여 진행할 가장 최근 티켓의 **정확한 파일 경로만** 획득하십시오.
+  2. 얻어낸 파일 경로를 에디터 도구(`view_file`, `cat` 등)로 **직접 읽으십시오**. (이미 식별된 티켓 본문을 찾기 위해 불필요하게 MCP/RAG 검색을 호출하여 토큰과 시간을 낭비하지 마십시오).
+  3. 티켓 내용을 파악한 후 바로 실행 계획(Phase 1/2)으로 진입하십시오.
