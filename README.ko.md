@@ -66,6 +66,14 @@ npm install deuk-agent-rule@latest
 deuk-agent-rule init --non-interactive
 ```
 
+> [!TIP]
+> **💡 구버전 마이그레이션 실패 시 강제 초기화 방법**
+> 기존 템플릿 구조가 너무 구버전이거나 설정 파일(`.config.json`)이 꼬여서 마이그레이션 및 동기화가 계속 실패한다면, 기존 룰셋을 날리고 새로 세팅하는 것이 가장 빠릅니다. **(기존 작성된 티켓들은 영향을 받지 않습니다)**
+> ```bash
+> rm -rf .deuk-agent-templates .deuk-agent-rule.config.json
+> deuk-agent-rule init --interactive
+> ```
+
 ---
 
 ## 🎯 핵심 워크플로우 (The Distributed Ticket Workflow)
@@ -77,13 +85,23 @@ deuk-agent-rule init --non-interactive
 
 ### 💡 Workflow Overview
 ```mermaid
-graph TD
-    A[Step 1: Ticket Creation<br/>cli: ticket create] --> B[Step 2: Agent Execution<br/>Prompt: Read Ticket]
-    B --> C[Step 3: Verification & Closure<br/>Checkbox Updates]
-    C --> D{Issues Found?}
-    D -- Yes --> E[Follow-up Chaining<br/>cli: ticket create]
-    E --> F[Step 4: Archiving<br/>cli: ticket archive]
-    D -- No --> F
+flowchart TD
+    classDef phase fill:#f9f9f9,stroke:#333,stroke-width:2px,color:#333;
+    classDef decision fill:#e1f5fe,stroke:#0288d1,stroke-width:2px,color:#01579b;
+    classDef action fill:#e8f5e9,stroke:#388e3c,stroke-width:2px,color:#1b5e20;
+    classDef highlight fill:#fff3e0,stroke:#f57c00,stroke-width:2px,color:#e65100;
+
+    subgraph TDD["🚀 DeukAgent Ticket-Driven Workflow"]
+        direction TB
+        A["[Step 1] Ticket Creation<br/>(deuk-agent-rule ticket create)"]:::action --> B["[Step 2] Agent Execution<br/>(Prompt: Read Ticket)"]:::phase
+        B --> C["[Step 3] Verification & Closure<br/>(Checkbox Updates)"]:::phase
+        
+        C --> D{"Issues Found<br/>During Work?"}:::decision
+        
+        D -- "Yes (Risks)" --> E["Follow-up Chaining<br/>(MANDATORY Issue Tracker)"]:::highlight
+        E --> F["[Step 4] Archiving<br/>(deuk-agent-rule ticket archive)"]:::action
+        D -- "No (Clear)" --> F
+    end
 ```
 
 이러한 샌드박스 폴더들을 활용하여 스퍼트를 올리는 **최적의 AI 코딩 4단계**는 다음과 같습니다.

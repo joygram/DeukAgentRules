@@ -58,6 +58,18 @@ if (existsSync(templatesSrc)) {
   }
 }
 
+const dynamicRulesSrc = join(publishDir, "rules.d");
+const dynamicRulesDest = join(pkgRoot, "bundle", "rules.d");
+if (existsSync(dynamicRulesSrc)) {
+  if (existsSync(dynamicRulesDest)) {
+    rmSync(dynamicRulesDest, { recursive: true });
+  }
+  mkdirSync(dynamicRulesDest, { recursive: true });
+  for (const name of readdirSync(dynamicRulesSrc)) {
+    copyFileSync(join(dynamicRulesSrc, name), join(dynamicRulesDest, name));
+  }
+}
+
 const agentsBody = readFileSync(agentsSrc, "utf8");
 writeFileSync(agentsDest, agentsBody, "utf8");
 copyFileSync(cursorrulesSrc, cursorrulesDest);
