@@ -237,8 +237,14 @@ export async function runInit(opts, bundleRoot) {
     deploySpokePointers(subCwd, opts.dryRun);
 
     // 4. Agents Setup (AGENTS.md)
+    let cleanBundleAgents = bundleAgents;
+    const firstRuleIdxAgents = cleanBundleAgents.indexOf("<!-- RULE MODULE: ");
+    if (firstRuleIdxAgents !== -1) {
+      cleanBundleAgents = cleanBundleAgents.substring(0, firstRuleIdxAgents).trimEnd();
+    }
+    
     const compiledAgentsAdditions = compileDynamicRules(subCwd, bundleRoot, "AGENTS.md");
-    const fullBundleAgents = bundleAgents + "\n\n" + compiledAgentsAdditions;
+    const fullBundleAgents = cleanBundleAgents + "\n\n" + compiledAgentsAdditions;
 
     const agentsResult = applyAgents({
       targetPath: join(subCwd, "AGENTS.md"),
@@ -264,7 +270,12 @@ export async function runInit(opts, bundleRoot) {
     const geminiBundle = join(bundleRoot, "gemini.md");
     const geminiDest = join(subCwd, "gemini.md");
     if (existsSync(geminiBundle)) {
-      const baseGemini = readFileSync(geminiBundle, "utf8");
+      let baseGemini = readFileSync(geminiBundle, "utf8");
+      // Prune any dynamically appended rule modules that might already be at the bottom
+      const firstRuleIdx = baseGemini.indexOf("<!-- RULE MODULE: ");
+      if (firstRuleIdx !== -1) {
+        baseGemini = baseGemini.substring(0, firstRuleIdx).trimEnd();
+      }
       const compiledGeminiAdditions = compileDynamicRules(subCwd, bundleRoot, "gemini.md");
       if (!opts.dryRun) {
         writeFileSync(geminiDest, baseGemini + "\n\n" + compiledGeminiAdditions, "utf8");

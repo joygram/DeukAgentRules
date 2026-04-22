@@ -1,4 +1,14 @@
-# [Execution] Task: <%= meta.title %> | ID: <%= meta.id %>
+---
+id: 052-cli-ux-and-markdown-hygiene-joy-nucb
+title: "cli-ux-and-markdown-hygiene"
+topic: cli-ux-and-markdown-hygiene
+status: open
+submodule: 
+project: DeukAgentRules
+createdAt: 2026-04-22T06:10:39.200Z
+---
+
+# [Execution] Task: cli-ux-and-markdown-hygiene | ID: 052-cli-ux-and-markdown-hygiene-joy-nucb
 
 > **[CAUTION FOR AI AGENTS]**
 > You are operating within a locked multi-module monorepo.
@@ -7,7 +17,7 @@
 > 3. DO NOT leak configuration, logic, or dependencies from other submodules.
 
 ## 🎯 Scope Bounds
-- **Target Submodule:** `<%- meta.submodule || '[e.g., DeukUI | DeukPack | DeukNavigation]' %>`
+- **Target Submodule:** `[e.g., DeukUI | DeukPack | DeukNavigation]`
 - **Context Files:** 
   - `[e.g., DeukAgentRules/templates/MODULE_RULE_TEMPLATE.md]`
   - `[e.g., path/to/your/specific/rules.md]`
@@ -16,7 +26,7 @@
 - `path/from/root/to/target1`: [Specific instructions. Don't write 'refactor', describe WHAT to refactor.]
 
 ## 🏗️ Design Decisions (Refer to Plan)
-- **Plan Reference**: <%- meta.planLink %>
+- **Plan Reference**: [052-cli-ux-and-markdown-hygiene-joy-nucb-plan.md](file:///home/joy/workspace/i/DeukAgentRules/.deuk-agent/docs/plans/052-cli-ux-and-markdown-hygiene-joy-nucb-plan.md)
 - [Briefly restate critical decisions if necessary]
 
 ## 🛑 Strict Constraints (Rules to never break)
@@ -29,7 +39,7 @@
    - [ ] `mcp_deukrag_search_rules` 기반 규약 검토 완료
    - [ ] `mcp_deukrag_search_tickets` 과거 유사 티켓 이력 열람 완료
    - [ ] (필수 작성) 검색된 핵심 컨텍스트 요약: 
-   - [ ] (RAG Miss 시 필수 작성) 로컬 검색 결과 `mcp_deukrag_add_knowledge` 도구로 즉시 주입 완료 여부 및 주입된 파일 목록: 
+   - [ ] (RAG Miss 시 필수 작성) 로컬 검색 결과 `add_knowledge` 도구로 즉시 주입 완료 여부 및 주입된 파일 목록: 
 
 0.5 [Phase 0.5> Deep Analysis (Optional)]
    - [ ] 복잡한 아키텍처 변경 시 별도 분석 아티팩트 작성 및 승인 완료

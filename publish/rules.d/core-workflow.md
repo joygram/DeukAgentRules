@@ -11,9 +11,9 @@ inject_target: ["AGENTS.md", "gemini.md"]
     - 검색된 결과(Evidence)가 티켓 설계의 근거가 되어야 합니다.
 2.  **Phase 0.5: Deep Analysis (Optional)**
     - 복잡한 아키텍처 변경이나 타 모듈 영향도가 높은 경우, 코드를 건드리기 전 별도의 분석 아티팩트를 작성하여 승인받으십시오.
-3.  **Phase 1: Ticket Planning (deuk-agent-rule ticket create)**
-    - 티켓을 생성하고 상세 설계(티켓 본문 또는 `.deuk-agent/docs/plans/`)를 작성하십시오.
-    - **[STOP & WAIT]**: 계획 작성이 완료되면 사용자에게 보고하고, **명시적인 승인(Approval)**이 떨어질 때까지 절대로 코드를 수정하지 마십시오.
+3.  **Phase 1: Ticket Planning (MANDATORY START)**
+    - **[하드룰]** 코드를 수정하기 전, 무조건 `npx deuk-agent-rule ticket create`를 실행하여 티켓을 생성하십시오. 티켓 미생성 시 코드 수정은 심각한 규약 위반입니다.
+    - **[STOP & WAIT]**: 티켓 본문에 상세 설계(Implementation Plan)를 작성한 후, 사용자에게 보고하고 **명시적인 승인(Approval)**이 떨어질 때까지 절대로 코드를 수정하지 마십시오.
 4.  **Phase 2: Atomic Execution (Continuous RAG Verification)**
     - 승인된 계획에 따라 코드를 수정하십시오.
     - **[하드룰]** 파일 하나를 수정할 때마다 해당 로직에 대한 RAG 검증(유사 코드 검색 등)을 병행하십시오.
@@ -21,12 +21,11 @@ inject_target: ["AGENTS.md", "gemini.md"]
 5.  **Phase 3: Verification & Post-Mortem (MANDATORY)**
     - 코드 수정 완료 후, 빌드/테스트 등을 통해 확인 절차를 거치십시오.
     - **[RAG Synthesis]** 구현된 내용이 전역 룰에 부합하는지 `mcp_deukrag_synthesize_knowledge`로 최종 검증하십시오.
-    - **[Post-Mortem Hard Lock]**: 심층 분석이나 구현 중 발견된 모든 제약사항, 부작용, 기술 부채를 반드시 `Potential Issue Table`에 기록하십시오. 이 단계를 건너뛰는 것은 심각한 규약 위반입니다.
+    - **[Post-Mortem Hard Lock]**: 심층 분석이나 구현 중 발견된 모든 제약사항, 부작용, 기술 부채를 반드시 `Potential Issue Table`에 기록하십시오.
 6.  **Phase 4: Follow-up Chaining (Next Tickets MANDATORY)**
-    - Phase 3의 `Potential Issue Table`에 기록된 이슈 중 당장 해결하지 않은 항목이 있다면, 티켓 종료 전 **반드시 CLI(`deuk-agent-rule ticket create`)를 통해 별도의 후속 티켓으로 발행**하십시오 (예: `048-F1-memory-leak-fix`).
-    - 후속 티켓이 발행되지 않으면 현재 티켓을 완료(Archive)할 수 없습니다.
-7.  **Phase 5: Archiving (deuk-agent-rule ticket archive)**
-    - 최종 검증 결과를 정리한 뒤 티켓을 아카이빙하여 지식을 보정하십시오.
+    - Phase 3의 `Potential Issue Table`에서 당장 해결하지 않은 항목은 반드시 별도의 후속 티켓으로 발행하십시오.
+7.  **Phase 5: Archiving (Knowledge Pulse Preservation)**
+    - 최종 검증 결과를 정리한 뒤 티켓을 아카이빙(`ticket archive`)하여 지식을 보존하십시오. 이 단계가 생략되면 RAG 품질이 저하됩니다.
 
 All Tickets and docs are volatile and strictly local. Do not attempt to version them or mirror them to obsolete plan directories.
 
@@ -51,5 +50,5 @@ All Tickets and docs are volatile and strictly local. Do not attempt to version 
 - **[탐색 금지 (하드룰)]**: "다음 티켓 진행" 요청을 받았을 때, 에이전트가 임의로 `.deuk-agent/tickets/*` 폴더를 탐색(Exploring)하거나 `INDEX.json` 등을 열어보는 '삽질'을 엄격히 금지합니다.
 - **[가장 빠른 진행 (Fast-Track)]**:
   1. 즉시 `npx deuk-agent-rule ticket use --latest --path-only` 명령을 실행하여 진행할 가장 최근 티켓의 **정확한 파일 경로만** 획득하십시오.
-  2. 얻어낸 파일 경로를 에디터 도구(`view_file`, `cat` 등)로 **직접 읽으십시오**. (이미 식별된 티켓 본문을 찾기 위해 불필요하게 MCP/RAG 검색을 호출하여 토큰과 시간을 낭비하지 마십시오).
-  3. 티켓 내용을 파악한 후 바로 실행 계획(Phase 1/2)으로 진입하십시오.
+  2. 얻어낸 파일 경로를 에디터 도구(`view_file`, `cat` 등)로 **직접 읽으십시오**. 
+  3. **[하드룰]** 경로를 획득한 후 다른 탐색 명령(`ticket list`, `ls`, `grep_search`, `mcp_search_*`)을 실행하는 것은 금지됩니다. 즉시 `view_file`로 진입하십시오. 이를 어길 시 작업 효율성 미달로 간주됩니다.
