@@ -84,19 +84,20 @@ deuk-agent-rule init --non-interactive
 
 ### 💡 Workflow Overview
 ```mermaid
+%%{init: {"flowchart": {"htmlLabels": false}}}%%
 graph TD
     classDef action fill:#3b82f6,stroke:#2563eb,stroke-width:2px,color:#ffffff;
     classDef phase fill:#64748b,stroke:#475569,stroke-width:2px,color:#ffffff;
     classDef decision fill:#f59e0b,stroke:#d97706,stroke-width:2px,color:#ffffff;
     classDef highlight fill:#ef4444,stroke:#dc2626,stroke-width:2px,color:#ffffff;
 
-    A(Step 1: Ticket Creation<br>cli: ticket create):::action --> B(Step 2: Agent Execution<br>Prompt: Read Ticket):::phase
-    B --> C(Step 3: Verification & Closure<br>Checkbox Updates):::phase
+    A(Step 1: Ticket Creation):::action --> B(Step 2: Agent Execution):::phase
+    B --> C(Step 3: Verification & Closure):::phase
     
-    C --> D{Issues Found<br>During Work?}:::decision
+    C --> D{Issues Found?}:::decision
     
-    D -->|Yes| E(Follow-up Chaining<br>MANDATORY Issue Tracker):::highlight
-    E --> F(Step 4: Archiving<br>cli: ticket archive):::action
+    D -->|Yes| E(MANDATORY Follow-up Chaining):::highlight
+    E --> F(Step 4: Archiving):::action
     D -->|No| F
 ```
 
