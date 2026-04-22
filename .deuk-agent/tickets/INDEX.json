@@ -1,8 +1,30 @@
 {
   "version": 1,
-  "updatedAt": "2026-04-22T01:42:03.516Z",
-  "activeTicketId": "048-dual-mode-and-workflow-joy-nucb",
+  "updatedAt": "2026-04-22T04:09:24.898Z",
+  "activeTicketId": "050-fix-marker-nesting-agents-md-joy-nucb",
   "entries": [
+    {
+      "id": "050-fix-marker-nesting-agents-md-joy-nucb",
+      "title": "fix-marker-nesting-agents-md",
+      "topic": "fix-marker-nesting-agents-md",
+      "group": "sub",
+      "project": "global",
+      "createdAt": "2026-04-22T04:09:24.898Z",
+      "path": ".deuk-agent/tickets/sub/050-fix-marker-nesting-agents-md-joy-nucb.md",
+      "source": "ticket-create",
+      "status": "open"
+    },
+    {
+      "id": "049-workspace-wide-agent-link-joy-nucb",
+      "title": "049-workspace-wide-agent-link",
+      "topic": "049-workspace-wide-agent-link",
+      "group": "core",
+      "project": "DeukAgentRules",
+      "createdAt": "2026-04-22T02:02:57.565Z",
+      "path": ".deuk-agent/tickets/core/049-workspace-wide-agent-link-joy-nucb.md",
+      "source": "ticket-create",
+      "status": "open"
+    },
     {
       "id": "048-dual-mode-and-workflow-joy-nucb",
       "title": "048-dual-mode-and-workflow",
