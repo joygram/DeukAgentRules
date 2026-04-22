@@ -6,84 +6,17 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 
 ## [2.5.11] - 2026-04-22
 
+### Added
 
-### Changed
-
--  force native SVG text rendering in mermaid to eliminate IDE text background bugs
--  tone down mermaid background colors and remove text stroke
-
-## [2.5.10] - 2026-04-22
-
-
-### Changed
-
--  redesign mermaid diagrams with a solid tailwind color palette
-
-## [2.5.9] - 2026-04-22
-
-
-### Changed
-
--  remove rx/ry from mermaid classDef to fix v8.8.0 syntax errors
-
-## [2.5.8] - 2026-04-22
-
-
-### Changed
-
--  apply technical blue theme and fix stadium node syntax error for older mermaid parsers
-
-## [2.5.7] - 2026-04-22
-
-
-### Changed
-
--  apply tokyo night theme to mermaid diagrams to fix text background rendering bugs in IDEs
-
-## [2.5.6] - 2026-04-22
-
-
-### Changed
-
--  remove custom mermaid classDefs to fix IDE dark mode text rendering bugs
-
-## [2.5.5] - 2026-04-22
-
-
-### Changed
-
--  redesign mermaid diagrams with industry standard github primer colors
-
-## [2.5.4] - 2026-04-22
-
-
-### Changed
-
--  redesign mermaid diagrams with a modern dark theme aesthetic
-
-## [2.5.3] - 2026-04-22
-
-
-### Changed
-
--  remove flowchart and subgraph for mermaid v8.8.0 backward compatibility
-
-## [2.5.2] - 2026-04-22
-
-
-### Changed
-
--  fix mermaid syntax errors in workflow diagrams
+- implement modernized workflow diagrams with Mermaid v8.8.0 compatibility, semantic color palette, and native SVG text rendering for IDE dark mode compatibility
 
 ## [2.5.1] - 2026-04-22
-
 
 ### Added
 
 - **cli:** add --clean flag to init command for safe configuration reset
 
 ## [2.5.0] - 2026-04-22
-
 
 ### Added
 
