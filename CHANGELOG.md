@@ -4,6 +4,14 @@ All notable changes to this project will be documented in this file.
 
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/), and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [2.5.11] - 2026-04-22
+
+
+### Changed
+
+-  force native SVG text rendering in mermaid to eliminate IDE text background bugs
+-  tone down mermaid background colors and remove text stroke
+
 ## [2.5.10] - 2026-04-22
 
 
