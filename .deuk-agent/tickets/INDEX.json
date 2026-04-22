@@ -1,8 +1,30 @@
 {
   "version": 1,
-  "updatedAt": "2026-04-21T23:55:21.808Z",
-  "activeTicketId": "044-deukagentrules-hardening-joy-nucb",
+  "updatedAt": "2026-04-22T00:29:03.292Z",
+  "activeTicketId": "045-frontmatter-rule-assembly-joy-nucb",
   "entries": [
+    {
+      "id": "045-frontmatter-rule-assembly-joy-nucb",
+      "title": "045-frontmatter-rule-assembly",
+      "topic": "045-frontmatter-rule-assembly",
+      "group": "core",
+      "project": "DeukAgentRules",
+      "createdAt": "2026-04-22T00:29:03.292Z",
+      "path": ".deuk-agent/tickets/core/045-frontmatter-rule-assembly-joy-nucb.md",
+      "source": "ticket-create",
+      "status": "open"
+    },
+    {
+      "id": "045-frontmatter-rule-assembly-joy-nucb",
+      "title": "045-frontmatter-rule-assembly",
+      "topic": "045-frontmatter-rule-assembly",
+      "group": "core",
+      "project": "global",
+      "createdAt": "2026-04-22T00:27:30.808Z",
+      "path": ".deuk-agent/tickets/core/045-frontmatter-rule-assembly-joy-nucb.md",
+      "source": "ticket-create",
+      "status": "open"
+    },
     {
       "id": "044-deukagentrules-hardening-joy-nucb",
       "title": "Hardening DeukAgentRules: Recursive Consistency and Index Normalization",

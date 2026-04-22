@@ -3,6 +3,7 @@ import { existsSync, readFileSync, writeFileSync, mkdirSync, copyFileSync, readd
 import { resolveMarkers, resolveCursorrulesMarkers, applyAgents, applyRules, applyCursorrules, readBundleAgents } from "./merge-logic.mjs";
 import { ensureTicketDirAndGitignore } from "./cli-init-logic.mjs";
 import { normalizeTicketPaths } from "./cli-ticket-logic.mjs";
+import { compileDynamicRules } from "./cli-rule-compiler.mjs";
 import { loadInitConfig, writeInitConfig } from "./cli-utils.mjs";
 import { runInteractive } from "./cli-prompts.mjs";
 
@@ -234,9 +235,12 @@ export async function runInit(opts, bundleRoot) {
     deploySpokePointers(subCwd, opts.dryRun);
 
     // 4. Agents Setup (AGENTS.md)
+    const compiledAgentsAdditions = compileDynamicRules(subCwd, bundleRoot, "AGENTS.md");
+    const fullBundleAgents = bundleAgents + "\n\n" + compiledAgentsAdditions;
+
     const agentsResult = applyAgents({
       targetPath: join(subCwd, "AGENTS.md"),
-      bundleContent: bundleAgents,
+      bundleContent: fullBundleAgents,
       markers, flavor: "init",
       appendIfNoMarkers: opts.appendIfNoMarkers,
       dryRun: opts.dryRun, backup: opts.backup,
@@ -258,8 +262,12 @@ export async function runInit(opts, bundleRoot) {
     const geminiBundle = join(bundleRoot, "gemini.md");
     const geminiDest = join(subCwd, "gemini.md");
     if (existsSync(geminiBundle)) {
-      if (!opts.dryRun) copyFileSync(geminiBundle, geminiDest);
-      console.log(`gemini.md: synced`);
+      const baseGemini = readFileSync(geminiBundle, "utf8");
+      const compiledGeminiAdditions = compileDynamicRules(subCwd, bundleRoot, "gemini.md");
+      if (!opts.dryRun) {
+        writeFileSync(geminiDest, baseGemini + "\n\n" + compiledGeminiAdditions, "utf8");
+      }
+      console.log(`gemini.md: synced with dynamic rules`);
     }
 
     // 7. Templates Sync (.deuk-agent/templates/)

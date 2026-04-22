@@ -48,48 +48,11 @@ By **creating a ticket using the CLI** (`npx deuk-agent-rule ticket create --top
 2. The agent is forced to read specific **Module Rules** (e.g., `.deuk-agent/rules/`).
 3. Execution happens in explicit **Phases** to prevent context bleed.
 
-## DeukPack Codec & IDL Strict Rules (득팩 코어 체재 하드 룰)
 
-- **IDL Field Syntax (앵글 브래킷)**: 득팩의 필드 정의는 `1> int32 id` 형식을 따릅니다. Thrift 레거시 문법인 `:`(콜론), 세미콜론(`;`), `i32`, `i64`를 더 이상 문서나 코드에 사용하지 마십시오. 오로지 `id> type name` 및 `int32`, `int64` 표준 명칭을 강제합니다.
-- **Unified Pack API**: 과거의 `DeukPackSerializer`, `DeukPackEngine`, `WriteWithOverrides`, `toJsonWithOverrides` 등은 모두 폐기되었습니다. 모든 코드에는 `DeukPackCodec` 식별자와 유니파이드 API(`byte[] bin = Dto.Hero.Pack(format, fieldIds, overrides)`, `hero.UnpackFrom(bin)`)만 사용해야 합니다.
-- **Namespace Requirement**: Every `.deuk` schema MUST explicitly declare a namespace (e.g., `namespace Dto`). Never define global structs without a namespace. Code examples MUST use the fully qualified namespace path (e.g., `Dto.Hero.Pack()`).
+<!-- deuk-agent-rule:end -->
 
-## AI Model Compliance & Selection Policy
 
-**Model Over-alignment vs Compliance (High vs Flash)**
-- **Flash/Fast Models**: Highly instruct-tuned for strict mechanical task execution. Due to a smaller parameter footprint and less internal "world knowledge", they explicitly follow literal agent rules and format templates exactly as instructed. 
-- **High/Pro Models**: Possess vast world knowledge and are optimized for helpfulness. This often leads to "overthinking" (prioritizing a helpful or natural answer over rigid, arbitrary constraints), resulting in frequent rule violations like ignoring length limits or template structures. They also experience attention dilution in deep analysis tasks.
-
-**Assignment Strategy**:
-1. **Flash Models**: Use for strict template filling, simple code generation, porting, and repetitive ticket execution (`.deuk-agent/tickets/*`) where strict compliance is mandatory.
-2. **High/Pro Models**: Use for architectural planning, deep legacy code comprehension, complex bug squashing, and creative solutions. Supply heavy failure warnings in the prompt to force formatting compliance.
-
-## 🧠 DeukRag Knowledge Engine & RAG-FIRST HARD LOCK
-
-- **[ABSOLUTE PRIORITY: RAG-FIRST ACTION] (하드룰)**: 
-  - 프롬프트에 응답하는 모든 액션에서 MCP(`mcp_deukrag_search_*`) 활용이 **0순위**입니다.
-  - 로컬 파일(`grep_search`, `view_file`)을 뒤지거나 코드를 수정하기 전에, **무조건** 관련된 룰, 티켓, 코드를 MCP로 먼저 검색하십시오. MCP는 당신의 주 감각 기관입니다.
-- **[CONTINUOUS RAG POLICY (하드룰)]**: 
-  - 티켓 시작(Phase 0) 시점에만 MCP를 1회 호출하고 끝내지 마십시오. 
-  - 코드를 작성하는 도중(Phase 2) 새로운 파일/클래스를 마주치거나, 빌드 에러가 발생하거나, API 스펙 확인이 필요할 때마다 **작업 중간에도 수시로** `mcp_deukrag_search_*` 도구를 적극 호출해야 합니다.
-  - **로컬 파일 검색에 의존하지 말고 RAG를 반복 호출하십시오.**
-
-## 📡 RAG Connectivity & Fallback Protocol (RAG 상태별 행동 지침)
-
-에이전트는 현재 환경의 RAG(MCP) 연결 상태에 따라 아래와 같이 행동 유형을 즉시 전환해야 합니다.
-
-### State A: RAG-Normal (Strict RAG-First)
-- **상태**: MCP 도구(`mcp_deukrag_search_*`)가 정상 작동함.
-- **행동**: 모든 분석과 코드 작성 전 반드시 RAG를 호출하십시오. 로컬 파일 검색(`grep`, `ls`)보다 RAG 결과를 우선 신뢰하십시오.
-
-### State B: RAG-Missing (Graceful Fallback)
-- **상태**: 환경에 MCP 도구가 설치되어 있지 않거나 설정되지 않음.
-- **행동**: 즉시 로컬 파일 기반 검색(`grep_search`, `list_dir`, `view_file`)으로 전환하십시오. RAG 부재를 사용자에게 불평하지 말고, 가용한 로컬 컨텍스트 내에서 최선을 다해 작업을 완수하십시오.
-
-### State C: RAG-Error (Loop Prevention)
-- **상태**: MCP 호출 시 타임아웃, 연결 오류, 또는 동일 에러가 2회 이상 반복됨.
-- **행동**: **즉시 RAG 호출을 중단**하고 State B(로컬 검색)로 강제 전환하십시오. 에러 루프에 빠져 작업 시간을 낭비하지 마십시오. 문제 상황을 `## 📜 Execution Report`에 기록하여 추후 복구 티켓을 발행할 수 있게 하십시오.
-
+<!-- RULE MODULE: core-workflow -->
 ## 🔗 Modernized Ticket-Driven Development (TDD)
 
 에이전트는 모든 작업 수행 시 반드시 아래 워크플로우를 준수해야 하며, RAG 엔진(`DeukRag`)이 전체 프로세스의 "Single Source of Truth"가 되어야 합니다.
@@ -134,6 +97,33 @@ All Tickets and docs are volatile and strictly local. Do not attempt to version 
 ### RAG 보존
 `.deuk-agent/docs/plans/`와 `walkthroughs/`의 파일은 DeukRag에 의해 자동 인덱싱되어 과거 설계 히스토리를 차기 세션에서 `mcp_deukrag_search_tickets`로 검색할 수 있습니다.
 
+<!-- RULE MODULE: deukrag-mcp -->
+## 🧠 DeukRag Knowledge Engine & RAG-FIRST HARD LOCK
+
+- **[ABSOLUTE PRIORITY: RAG-FIRST ACTION] (하드룰)**: 
+  - 프롬프트에 응답하는 모든 액션에서 MCP(`mcp_deukrag_search_*`) 활용이 **0순위**입니다.
+  - 로컬 파일(`grep_search`, `view_file`)을 뒤지거나 코드를 수정하기 전에, **무조건** 관련된 룰, 티켓, 코드를 MCP로 먼저 검색하십시오. MCP는 당신의 주 감각 기관입니다.
+- **[CONTINUOUS RAG POLICY (하드룰)]**: 
+  - 티켓 시작(Phase 0) 시점에만 MCP를 1회 호출하고 끝내지 마십시오. 
+  - 코드를 작성하는 도중(Phase 2) 새로운 파일/클래스를 마주치거나, 빌드 에러가 발생하거나, API 스펙 확인이 필요할 때마다 **작업 중간에도 수시로** `mcp_deukrag_search_*` 도구를 적극 호출해야 합니다.
+  - **로컬 파일 검색에 의존하지 말고 RAG를 반복 호출하십시오.**
+
+## 📡 RAG Connectivity & Fallback Protocol (RAG 상태별 행동 지침)
+
+에이전트는 현재 환경의 RAG(MCP) 연결 상태에 따라 아래와 같이 행동 유형을 즉시 전환해야 합니다.
+
+### State A: RAG-Normal (Strict RAG-First)
+- **상태**: MCP 도구(`mcp_deukrag_search_*`)가 정상 작동함.
+- **행동**: 모든 분석과 코드 작성 전 반드시 RAG를 호출하십시오. 로컬 파일 검색(`grep`, `ls`)보다 RAG 결과를 우선 신뢰하십시오.
+
+### State B: RAG-Missing (Graceful Fallback)
+- **상태**: 환경에 MCP 도구가 설치되어 있지 않거나 설정되지 않음.
+- **행동**: 즉시 로컬 파일 기반 검색(`grep_search`, `list_dir`, `view_file`)으로 전환하십시오. RAG 부재를 사용자에게 불평하지 말고, 가용한 로컬 컨텍스트 내에서 최선을 다해 작업을 완수하십시오.
+
+### State C: RAG-Error (Loop Prevention)
+- **상태**: MCP 호출 시 타임아웃, 연결 오류, 또는 동일 에러가 2회 이상 반복됨.
+- **행동**: **즉시 RAG 호출을 중단**하고 State B(로컬 검색)로 강제 전환하십시오. 에러 루프에 빠져 작업 시간을 낭비하지 마십시오. 문제 상황을 `## 📜 Execution Report`에 기록하여 추후 복구 티켓을 발행할 수 있게 하십시오.
+<!-- deuk-agent-rule:end -->
 <!-- deuk-agent-rule:end -->
 <!-- deuk-agent-rule:end -->
 <!-- deuk-agent-rule:end -->

@@ -1,4 +1,14 @@
-# [Execution] Task: <%= meta.title %> | ID: <%= meta.id %>
+---
+id: 045-frontmatter-rule-assembly-joy-nucb
+title: "045-frontmatter-rule-assembly"
+topic: 045-frontmatter-rule-assembly
+status: open
+submodule: 
+project: DeukAgentRules
+createdAt: 2026-04-22T00:29:03.289Z
+---
+
+# [Execution] Task: 045-frontmatter-rule-assembly | ID: 045-frontmatter-rule-assembly-joy-nucb
 
 > **[CAUTION FOR AI AGENTS]**
 > You are operating within a locked multi-module monorepo.
@@ -7,7 +17,7 @@
 > 3. DO NOT leak configuration, logic, or dependencies from other submodules.
 
 ## 🎯 Scope Bounds
-- **Target Submodule:** `<%- meta.submodule || '[e.g., DeukUI | DeukPack | DeukNavigation]' %>`
+- **Target Submodule:** `[e.g., DeukUI | DeukPack | DeukNavigation]`
 - **Context Files:** 
   - `[e.g., DeukAgentRules/templates/MODULE_RULE_TEMPLATE.md]`
   - `[e.g., path/to/your/specific/rules.md]`
@@ -16,8 +26,8 @@
 - `path/from/root/to/target1`: [Specific instructions. Don't write 'refactor', describe WHAT to refactor.]
 
 ## 🏗️ Design Decisions (Refer to Plan)
-- **Plan Reference**: [Link to Plan Document]
-- [Briefly restate critical decisions if necessary]
+- **Plan Reference**: [045-plan.md](file:///home/joy/workspace/i/DeukAgentRules/.deuk-agent/docs/plans/045-plan.md)
+- **Architecture**: Modular Frontmatter-driven rule assembly.
 
 ## 🛑 Strict Constraints (Rules to never break)
 - [e.g., No hotpath LINQ, Async Safety, No Raw Pointers]
@@ -42,9 +52,3 @@
      | | | | |
 4. [Phase 4> Follow-up Chaining]
    - [ ] 위 표에서 즉시 해결 불가능한 항목을 차기 티켓으로 발행 및 기록
-
-## ✅ Verification / QA
-- [ ] **Deep Analysis Verification**: Phase 0.5에서 도출된 핵심 설계 및 구조적 결정사항이 코드에 모두 올바르게 반영되었는지 확인.
-- [ ] **Potential Issues Check**: [Identify side effects, edge cases, or performance impacts]
-- [ ] **Strict Constraints Audit**: [No hotpath LINQ, Async Safety, No Raw Pointers, etc.]
-- [ ] `npm run test` 또는 관련 검증 명령 실행 결과 확인
