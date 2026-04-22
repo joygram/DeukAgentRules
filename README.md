@@ -84,18 +84,18 @@ Running `deuk-agent-rule init` deploys a **zero-touch scaffolding sandbox** at y
 ### 💡 Workflow Overview
 ```mermaid
 graph TD
-    %% Technical Blue (Professional & Trust)
-    classDef base fill:#f6f5f4,stroke:#1a5fb4,stroke-width:2px,color:#2e3436;
-    classDef main fill:#1a5fb4,stroke:#1a5fb4,stroke-width:2px,color:#ffffff;
-    classDef sub fill:#3584e4,stroke:#3584e4,stroke-width:2px,color:#ffffff;
+    classDef action fill:#3b82f6,stroke:#2563eb,stroke-width:2px,color:#ffffff;
+    classDef phase fill:#64748b,stroke:#475569,stroke-width:2px,color:#ffffff;
+    classDef decision fill:#f59e0b,stroke:#d97706,stroke-width:2px,color:#ffffff;
+    classDef highlight fill:#ef4444,stroke:#dc2626,stroke-width:2px,color:#ffffff;
 
-    A(Step 1: Ticket Creation<br>cli: ticket create):::main --> B(Step 2: Agent Execution<br>Prompt: Read Ticket):::sub
-    B --> C(Step 3: Verification & Closure<br>Checkbox Updates):::sub
+    A(Step 1: Ticket Creation<br>cli: ticket create):::action --> B(Step 2: Agent Execution<br>Prompt: Read Ticket):::phase
+    B --> C(Step 3: Verification & Closure<br>Checkbox Updates):::phase
     
-    C --> D{Issues Found<br>During Work?}:::base
+    C --> D{Issues Found<br>During Work?}:::decision
     
-    D -->|Yes| E(Follow-up Chaining<br>MANDATORY Issue Tracker):::sub
-    E --> F(Step 4: Archiving<br>cli: ticket archive):::main
+    D -->|Yes| E(Follow-up Chaining<br>MANDATORY Issue Tracker):::highlight
+    E --> F(Step 4: Archiving<br>cli: ticket archive):::action
     D -->|No| F
 ```
 
