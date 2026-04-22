@@ -85,10 +85,10 @@ deuk-agent-rule init --non-interactive
 ### 💡 Workflow Overview
 ```mermaid
 graph TD
-    classDef phase fill:#1A1A1A,stroke:#444444,stroke-width:1px,color:#EAEAEA,rx:8px,ry:8px;
-    classDef decision fill:#1A1A1A,stroke:#0070F3,stroke-width:2px,color:#0070F3,rx:8px,ry:8px;
-    classDef action fill:#1A1A1A,stroke:#17C964,stroke-width:2px,color:#17C964,rx:8px,ry:8px;
-    classDef highlight fill:#1A1A1A,stroke:#F5A623,stroke-width:2px,color:#F5A623,rx:8px,ry:8px;
+    classDef phase fill:#f6f8fa,stroke:#d0d7de,color:#24292f;
+    classDef decision fill:#ddf4ff,stroke:#54aeff,color:#0969da;
+    classDef action fill:#dafbe1,stroke:#4ac26b,color:#1a7f37;
+    classDef highlight fill:#fff8c5,stroke:#d4a72c,color:#9a6700;
 
     A(Step 1: Ticket Creation<br>deuk-agent-rule ticket create):::action --> B(Step 2: Agent Execution<br>Prompt: Read Ticket):::phase
     B --> C(Step 3: Verification & Closure<br>Checkbox Updates):::phase
