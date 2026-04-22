@@ -86,14 +86,14 @@ deuk-agent-rule init --non-interactive
 ```mermaid
 graph TD
     %% Technical Blue (Professional & Trust)
-    classDef default fill:#f6f5f4,stroke:#1a5fb4,stroke-width:2px,color:#2e3436,rx:5px,ry:5px;
+    classDef base fill:#f6f5f4,stroke:#1a5fb4,stroke-width:2px,color:#2e3436;
     classDef main fill:#1a5fb4,stroke:#1a5fb4,stroke-width:2px,color:#ffffff;
     classDef sub fill:#3584e4,stroke:#3584e4,stroke-width:2px,color:#ffffff;
 
     A(Step 1: Ticket Creation<br>cli: ticket create):::main --> B(Step 2: Agent Execution<br>Prompt: Read Ticket):::sub
     B --> C(Step 3: Verification & Closure<br>Checkbox Updates):::sub
     
-    C --> D{Issues Found<br>During Work?}:::default
+    C --> D{Issues Found<br>During Work?}:::base
     
     D -->|Yes| E(Follow-up Chaining<br>MANDATORY Issue Tracker):::sub
     E --> F(Step 4: Archiving<br>cli: ticket archive):::main
