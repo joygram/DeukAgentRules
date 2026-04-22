@@ -39,6 +39,12 @@ export async function runTicketCreate(opts) {
     else if (existsSync(bundleTplPath)) tplText = readFileSync(bundleTplPath, "utf8");
     else throw new Error("ticket create: Template not found. Please run 'npx deuk-agent-rule init' to deploy templates.");
 
+    let planTplText = "";
+    const consumerPlanTplPath = join(opts.cwd, AGENT_ROOT_DIR, TEMPLATE_SUBDIR, "PLAN_TEMPLATE.md");
+    const bundlePlanTplPath = join(new URL('.', import.meta.url).pathname, "..", "bundle", "templates", "PLAN_TEMPLATE.md");
+    if (existsSync(consumerPlanTplPath)) planTplText = readFileSync(consumerPlanTplPath, "utf8");
+    else if (existsSync(bundlePlanTplPath)) planTplText = readFileSync(bundlePlanTplPath, "utf8");
+
     // Find nearest or create in CWD if missing
     const ticketDir = detectConsumerTicketDir(opts.cwd, { createIfMissing: true });
     
@@ -50,6 +56,12 @@ export async function runTicketCreate(opts) {
     mkdirSync(join(ticketDir, group), { recursive: true });
     path = toRepoRelativePath(opts.cwd, abs);
 
+    // Auto-Scaffold Plan Document
+    const plansDir = join(opts.cwd, AGENT_ROOT_DIR, "docs", "plans");
+    const planFileName = `${ticketId}-plan.md`;
+    const planAbs = join(plansDir, planFileName);
+    const planLink = `[${planFileName}](file://${planAbs})`;
+    
     const meta = {
       id: ticketId,
       title,
@@ -57,6 +69,7 @@ export async function runTicketCreate(opts) {
       status: "open",
       submodule: opts.submodule || "",
       project: opts.project || "global",
+      planLink: planLink,
       createdAt: new Date().toISOString(),
     };
 
@@ -74,6 +87,14 @@ createdAt: <%= meta.createdAt %>
     const finalContent = ejs.render(ejsFrontMatter + tplText, { meta });
     writeFileSync(abs, finalContent, "utf8");
     source = "ticket-create";
+    
+    // Write Plan Document
+    if (planTplText) {
+      mkdirSync(plansDir, { recursive: true });
+      const planContent = ejs.render(planTplText, { meta });
+      writeFileSync(planAbs, planContent, "utf8");
+      console.log(`Plan scaffolded: ${toRepoRelativePath(opts.cwd, planAbs)}`);
+    }
     
     // Remote Sync Hook
     const config = loadInitConfig(opts.cwd);

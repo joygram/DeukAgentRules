@@ -1,4 +1,4 @@
-# [Design] Plan Title
+# [Design] <%= meta.title %>
 
 ## 🎯 Background & Motivation
 - [Why are we doing this? Current problem description.]

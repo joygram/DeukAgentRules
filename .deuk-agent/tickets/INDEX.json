@@ -1,8 +1,30 @@
 {
   "version": 1,
-  "updatedAt": "2026-04-22T00:29:03.292Z",
-  "activeTicketId": "045-frontmatter-rule-assembly-joy-nucb",
+  "updatedAt": "2026-04-22T01:24:29.555Z",
+  "activeTicketId": "047-test-scaffold-joy-nucb",
   "entries": [
+    {
+      "id": "047-test-scaffold-joy-nucb",
+      "title": "047-test-scaffold",
+      "topic": "047-test-scaffold",
+      "group": "core",
+      "project": "DeukAgentRules",
+      "createdAt": "2026-04-22T01:24:29.554Z",
+      "path": ".deuk-agent/tickets/core/047-test-scaffold-joy-nucb.md",
+      "source": "ticket-create",
+      "status": "open"
+    },
+    {
+      "id": "046-advanced-condition-eval-joy-nucb",
+      "title": "046-advanced-condition-eval",
+      "topic": "046-advanced-condition-eval",
+      "group": "core",
+      "project": "DeukAgentRules",
+      "createdAt": "2026-04-22T01:18:48.858Z",
+      "path": ".deuk-agent/tickets/core/046-advanced-condition-eval-joy-nucb.md",
+      "source": "ticket-create",
+      "status": "open"
+    },
     {
       "id": "045-frontmatter-rule-assembly-joy-nucb",
       "title": "045-frontmatter-rule-assembly",

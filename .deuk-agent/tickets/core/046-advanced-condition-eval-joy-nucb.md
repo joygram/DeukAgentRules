@@ -1,4 +1,14 @@
-# [Execution] Task: <%= meta.title %> | ID: <%= meta.id %>
+---
+id: 046-advanced-condition-eval-joy-nucb
+title: "046-advanced-condition-eval"
+topic: 046-advanced-condition-eval
+status: open
+submodule: 
+project: DeukAgentRules
+createdAt: 2026-04-22T01:18:48.854Z
+---
+
+# [Execution] Task: 046-advanced-condition-eval | ID: 046-advanced-condition-eval-joy-nucb
 
 > **[CAUTION FOR AI AGENTS]**
 > You are operating within a locked multi-module monorepo.
@@ -7,7 +17,7 @@
 > 3. DO NOT leak configuration, logic, or dependencies from other submodules.
 
 ## 🎯 Scope Bounds
-- **Target Submodule:** `<%- meta.submodule || '[e.g., DeukUI | DeukPack | DeukNavigation]' %>`
+- **Target Submodule:** `[e.g., DeukUI | DeukPack | DeukNavigation]`
 - **Context Files:** 
   - `[e.g., DeukAgentRules/templates/MODULE_RULE_TEMPLATE.md]`
   - `[e.g., path/to/your/specific/rules.md]`
@@ -16,8 +26,8 @@
 - `path/from/root/to/target1`: [Specific instructions. Don't write 'refactor', describe WHAT to refactor.]
 
 ## 🏗️ Design Decisions (Refer to Plan)
-- **Plan Reference**: <%- meta.planLink %>
-- [Briefly restate critical decisions if necessary]
+- **Plan Reference**: [046-plan.md](file:///home/joy/workspace/i/DeukAgentRules/.deuk-agent/docs/plans/046-plan.md)
+- **Architecture**: Parsing DeukRag config.yaml to accurately detect managed projects.
 
 ## 🛑 Strict Constraints (Rules to never break)
 - [e.g., No hotpath LINQ, Async Safety, No Raw Pointers]

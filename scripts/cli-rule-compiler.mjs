@@ -1,6 +1,7 @@
-import { join, basename } from "path";
+import { join, basename, resolve, dirname } from "path";
 import { existsSync, readdirSync, readFileSync } from "fs";
 import { parseFrontMatter, AGENT_ROOT_DIR } from "./cli-utils.mjs";
+import YAML from "yaml";
 
 /**
  * Scans directories for rule markdown files, evaluates their Frontmatter conditions,
@@ -54,6 +55,30 @@ export function compileDynamicRules(cwd, bundleRoot, targetFileName) {
 }
 
 /**
+ * Attempts to locate and parse the DeukRag config.yaml from the workspace root.
+ */
+function resolveDeukRagConfig(cwd) {
+  // Go up directories until we find a sibling DeukRag folder, or hit root
+  let current = resolve(cwd);
+  while (current && current !== "/") {
+    const candidatePath = join(current, "DeukRag", ".local", "config.yaml");
+    if (existsSync(candidatePath)) {
+      try {
+        const raw = readFileSync(candidatePath, "utf8");
+        return YAML.parse(raw);
+      } catch (e) {
+        console.error("Failed to parse DeukRag config.yaml:", e);
+        return null;
+      }
+    }
+    const parent = dirname(current);
+    if (parent === current) break;
+    current = parent;
+  }
+  return null;
+}
+
+/**
  * Evaluates Frontmatter conditions to determine if a rule should be included.
  */
 function evaluateCondition(condition, cwd) {
@@ -61,14 +86,16 @@ function evaluateCondition(condition, cwd) {
 
   // Example: condition: { mcp: "deukrag" }
   if (condition.mcp === "deukrag") {
-    // Basic heuristic: check if DeukRag is in the workspace parent dir
-    // This can be enhanced later to check IDE config files
-    const parentDir = join(cwd, "..");
-    if (existsSync(join(parentDir, "DeukRag")) || cwd.includes("DeukRag")) {
-      return true;
-    }
-    // Alternatively, assume true by default if we want RAG-first globally
-    return true;
+    const ragConfig = resolveDeukRagConfig(cwd);
+    if (!ragConfig || !ragConfig.projects) return false;
+
+    // Check if the current cwd is managed by DeukRag
+    const isManaged = ragConfig.projects.some(p => {
+      // If the project path is a prefix of cwd, it's managed
+      return cwd.startsWith(p.path);
+    });
+    
+    return isManaged;
   }
 
   return true;
