@@ -83,23 +83,20 @@ Running `deuk-agent-rule init` deploys a **zero-touch scaffolding sandbox** at y
 
 ### 💡 Workflow Overview
 ```mermaid
-flowchart TD
+graph TD
     classDef phase fill:#f9f9f9,stroke:#333,stroke-width:2px,color:#333;
     classDef decision fill:#e1f5fe,stroke:#0288d1,stroke-width:2px,color:#01579b;
     classDef action fill:#e8f5e9,stroke:#388e3c,stroke-width:2px,color:#1b5e20;
     classDef highlight fill:#fff3e0,stroke:#f57c00,stroke-width:2px,color:#e65100;
 
-    subgraph TDD [🚀 DeukAgent Ticket-Driven Workflow]
-        direction TB
-        A(Step 1: Ticket Creation<br>deuk-agent-rule ticket create):::action --> B(Step 2: Agent Execution<br>Prompt: Read Ticket):::phase
-        B --> C(Step 3: Verification & Closure<br>Checkbox Updates):::phase
-        
-        C --> D{Issues Found<br>During Work?}:::decision
-        
-        D -->|Yes| E(Follow-up Chaining<br>MANDATORY Issue Tracker):::highlight
-        E --> F(Step 4: Archiving<br>deuk-agent-rule ticket archive):::action
-        D -->|No| F
-    end
+    A(Step 1: Ticket Creation<br>deuk-agent-rule ticket create):::action --> B(Step 2: Agent Execution<br>Prompt: Read Ticket):::phase
+    B --> C(Step 3: Verification & Closure<br>Checkbox Updates):::phase
+    
+    C --> D{Issues Found<br>During Work?}:::decision
+    
+    D -->|Yes| E(Follow-up Chaining<br>MANDATORY Issue Tracker):::highlight
+    E --> F(Step 4: Archiving<br>deuk-agent-rule ticket archive):::action
+    D -->|No| F
 ```
 
 The optimal **4-Step AI Coding Sequence** utilizing these sandbox folders is as follows.
