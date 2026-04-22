@@ -90,16 +90,16 @@ flowchart TD
     classDef action fill:#e8f5e9,stroke:#388e3c,stroke-width:2px,color:#1b5e20;
     classDef highlight fill:#fff3e0,stroke:#f57c00,stroke-width:2px,color:#e65100;
 
-    subgraph TDD["🚀 DeukAgent Ticket-Driven Workflow"]
+    subgraph TDD [🚀 DeukAgent Ticket-Driven Workflow]
         direction TB
-        A["[Step 1] Ticket Creation<br/>(deuk-agent-rule ticket create)"]:::action --> B["[Step 2] Agent Execution<br/>(Prompt: Read Ticket)"]:::phase
-        B --> C["[Step 3] Verification & Closure<br/>(Checkbox Updates)"]:::phase
+        A(Step 1: Ticket Creation<br>deuk-agent-rule ticket create):::action --> B(Step 2: Agent Execution<br>Prompt: Read Ticket):::phase
+        B --> C(Step 3: Verification & Closure<br>Checkbox Updates):::phase
         
-        C --> D{"Issues Found<br/>During Work?"}:::decision
+        C --> D{Issues Found<br>During Work?}:::decision
         
-        D -- "Yes (Risks)" --> E["Follow-up Chaining<br/>(MANDATORY Issue Tracker)"]:::highlight
-        E --> F["[Step 4] Archiving<br/>(deuk-agent-rule ticket archive)"]:::action
-        D -- "No (Clear)" --> F
+        D -->|Yes| E(Follow-up Chaining<br>MANDATORY Issue Tracker):::highlight
+        E --> F(Step 4: Archiving<br>deuk-agent-rule ticket archive):::action
+        D -->|No| F
     end
 ```
 
