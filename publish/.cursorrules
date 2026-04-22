@@ -1,7 +1,11 @@
-# Cursor — AGENTS.md is authoritative
+<!-- deuk-agent-rule-cursorrules:begin -->
+# 💎 RAG-FIRST HARD LOCK IS AUTHORITATIVE
 
-You MUST read and strictly follow the workflows, rules, and ticket formats defined in AGENTS.md at the repository root before writing or modifying any code. If AGENTS.md is not yet in your context for this task, open it and use it.
+For Antigravity (Gemini), the **RAG-FIRST ACTION [ACTION 0]** and **CONTINUOUS RAG POLICY** defined in **AGENTS.md** and **gemini.md** are the absolute Single Source of Truth.
 
-Precedence: Repository root AGENTS.md defines project rules (structure, constraints, tickets). .cursor/rules/*.mdc files add editor-specific behavior (for example token discipline and multi-tool handoff). If anything conflicts, follow AGENTS.md for project facts and tickets.
+1. **[ABSOLUTE PRIORITY]**: Every request MUST begin with `mcp_deukrag_search_*`.
+2. **[gemini.md]**: You MUST read and follow the specific hard locks in `gemini.md` at the root.
+3. **[TICKET SYSTEM]**: Follow the TDD workflow in `AGENTS.md` strictly.
 
-Do not assume stacks or repo layouts (microservices, api-gateway, OpenAPI-only workflows) unless they appear in this repository and AGENTS.md.
+Do not skip RAG research by relying on local file reads (`view_file`, `grep_search`). Local files are for details; RAG is for architectural truth and zero-regression.
+<!-- deuk-agent-rule-cursorrules:end -->
