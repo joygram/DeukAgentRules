@@ -84,13 +84,19 @@ Running `deuk-agent-rule init` deploys a **zero-touch scaffolding sandbox** at y
 ### 💡 Workflow Overview
 ```mermaid
 graph TD
-    A(Step 1: Ticket Creation<br>deuk-agent-rule ticket create) --> B(Step 2: Agent Execution<br>Prompt: Read Ticket)
-    B --> C(Step 3: Verification & Closure<br>Checkbox Updates)
+    classDef default fill:#1a1b26,stroke:#a9b1d6,stroke-width:2px,color:#c0caf5,rx:5px,ry:5px;
+    classDef phase fill:#1a1b26,stroke:#565f89,stroke-width:2px,color:#c0caf5;
+    classDef decision fill:#1a1b26,stroke:#bb9af7,stroke-width:2px,color:#c0caf5;
+    classDef action fill:#1a1b26,stroke:#9ece6a,stroke-width:2px,color:#c0caf5;
+    classDef highlight fill:#1a1b26,stroke:#e0af68,stroke-width:2px,color:#c0caf5;
+
+    A([Step 1: Ticket Creation<br>cli: ticket create]):::action --> B(Step 2: Agent Execution<br>Prompt: Read Ticket):::phase
+    B --> C(Step 3: Verification & Closure<br>Checkbox Updates):::phase
     
-    C --> D{Issues Found<br>During Work?}
+    C --> D{Issues Found<br>During Work?}:::decision
     
-    D -->|Yes| E(Follow-up Chaining<br>MANDATORY Issue Tracker)
-    E --> F(Step 4: Archiving<br>deuk-agent-rule ticket archive)
+    D -->|Yes| E(Follow-up Chaining<br>MANDATORY Issue Tracker):::highlight
+    E --> F([Step 4: Archiving<br>cli: ticket archive]):::action
     D -->|No| F
 ```
 
