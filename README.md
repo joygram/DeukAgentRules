@@ -84,10 +84,10 @@ Running `deuk-agent-rule init` deploys a **zero-touch scaffolding sandbox** at y
 ### 💡 Workflow Overview
 ```mermaid
 graph TD
-    classDef phase fill:#f9f9f9,stroke:#333,stroke-width:2px,color:#333;
-    classDef decision fill:#e1f5fe,stroke:#0288d1,stroke-width:2px,color:#01579b;
-    classDef action fill:#e8f5e9,stroke:#388e3c,stroke-width:2px,color:#1b5e20;
-    classDef highlight fill:#fff3e0,stroke:#f57c00,stroke-width:2px,color:#e65100;
+    classDef phase fill:#1A1A1A,stroke:#444444,stroke-width:1px,color:#EAEAEA,rx:8px,ry:8px;
+    classDef decision fill:#1A1A1A,stroke:#0070F3,stroke-width:2px,color:#0070F3,rx:8px,ry:8px;
+    classDef action fill:#1A1A1A,stroke:#17C964,stroke-width:2px,color:#17C964,rx:8px,ry:8px;
+    classDef highlight fill:#1A1A1A,stroke:#F5A623,stroke-width:2px,color:#F5A623,rx:8px,ry:8px;
 
     A(Step 1: Ticket Creation<br>deuk-agent-rule ticket create):::action --> B(Step 2: Agent Execution<br>Prompt: Read Ticket):::phase
     B --> C(Step 3: Verification & Closure<br>Checkbox Updates):::phase
