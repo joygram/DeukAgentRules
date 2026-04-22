@@ -83,12 +83,12 @@ Running `deuk-agent-rule init` deploys a **zero-touch scaffolding sandbox** at y
 
 ### 💡 Workflow Overview
 ```mermaid
-%%{init: {"flowchart": {"htmlLabels": false}}}%%
+%%{init: {"flowchart": {"htmlLabels": false}, "themeCSS": ".node text { fill: #ffffff !important; stroke: none !important; }"} }%%
 graph TD
-    classDef action fill:#3b82f6,stroke:#2563eb,stroke-width:2px,color:#ffffff;
-    classDef phase fill:#64748b,stroke:#475569,stroke-width:2px,color:#ffffff;
-    classDef decision fill:#f59e0b,stroke:#d97706,stroke-width:2px,color:#ffffff;
-    classDef highlight fill:#ef4444,stroke:#dc2626,stroke-width:2px,color:#ffffff;
+    classDef action fill:#2563eb,stroke:#1d4ed8,stroke-width:2px,color:#ffffff;
+    classDef phase fill:#475569,stroke:#334155,stroke-width:2px,color:#ffffff;
+    classDef decision fill:#d97706,stroke:#b45309,stroke-width:2px,color:#ffffff;
+    classDef highlight fill:#dc2626,stroke:#b91c1c,stroke-width:2px,color:#ffffff;
 
     A(Step 1: Ticket Creation):::action --> B(Step 2: Agent Execution):::phase
     B --> C(Step 3: Verification & Closure):::phase
