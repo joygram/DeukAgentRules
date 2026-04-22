@@ -1,0 +1,18 @@
+{
+  "version": 1,
+  "updatedAt": "2026-04-21T23:55:21.808Z",
+  "activeTicketId": "044-deukagentrules-hardening-joy-nucb",
+  "entries": [
+    {
+      "id": "044-deukagentrules-hardening-joy-nucb",
+      "title": "Hardening DeukAgentRules: Recursive Consistency and Index Normalization",
+      "topic": "044-deukagentrules-hardening",
+      "group": "",
+      "project": "global",
+      "createdAt": "2026-04-21T23:55:21.808Z",
+      "path": ".deuk-agent/tickets/044-deukagentrules-hardening-joy-nucb.md",
+      "source": "ticket-create",
+      "status": "open"
+    }
+  ]
+}

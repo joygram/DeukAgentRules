@@ -91,6 +91,21 @@ export function makeEntryId() {
   return `000-fallback-${Date.now().toString(36)}`;
 }
 
+export function findFileRecursively(dir, fileName) {
+  if (!existsSync(dir)) return null;
+  const entries = readdirSync(dir, { withFileTypes: true });
+  for (const entry of entries) {
+    const res = join(dir, entry.name);
+    if (entry.isDirectory()) {
+      const found = findFileRecursively(res, fileName);
+      if (found) return found;
+    } else if (entry.name === fileName) {
+      return res;
+    }
+  }
+  return null;
+}
+
 export function detectProjectFromBody(body) {
   const content = String(body || "");
   const metaMatch = content.match(/^project:\s*(.+)$/mi);

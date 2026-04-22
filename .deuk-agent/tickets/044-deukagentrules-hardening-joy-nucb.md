@@ -1,12 +1,23 @@
-# [Execution] Task: [Task Title] | ID: [auto-generated]
+---
+id: 001-044-deukagentrules-hardening-joy-nucb
+title: "044-deukagentrules-hardening"
+topic: 044-deukagentrules-hardening
+status: open
+submodule: 
+project: global
+createdAt: 2026-04-21T23:55:21.805Z
+---
 
-> **[CAUTION FOR AI AGENTS]**
-> You are operating within a locked multi-module monorepo.
+# Task: [Task Title] | ID: [auto-generated]
+
+> **[CAUTION FOR AI AGENTS]** 
+> You are operating within a locked multi-module monorepo. 
 > 1. Restrict absolutely all analysis, file creation, and modifications to the declared **[Target Submodule]** below.
 > 2. Read the files listed in **[Context Files]** before doing ANY code generation.
 > 3. DO NOT leak configuration, logic, or dependencies from other submodules.
 
 ## 🎯 Scope Bounds
+
 - **Target Submodule:** `[e.g., DeukUI | DeukPack | DeukNavigation]`
 - **Context Files:** 
   - `[e.g., DeukAgentRules/templates/MODULE_RULE_TEMPLATE.md]`
@@ -15,16 +26,14 @@
 ## 📁 Files to Modify
 - `path/from/root/to/target1`: [Specific instructions. Don't write 'refactor', describe WHAT to refactor.]
 
-## 🏗️ Design Decisions (Refer to Plan)
-- **Plan Reference**: [Link to Plan Document]
-- [Briefly restate critical decisions if necessary]
+## 🏗️ Design Decisions (For Context)
+- [Why are we doing this? E.g., "To isolate the IR Layout bindings from DOM events"]
 
 ## 🛑 Strict Constraints (Rules to never break)
 - [e.g., No hotpath LINQ, Async Safety, No Raw Pointers]
 
 ## 🔄 Phased Execution Steps
 > Agent: Do NOT attempt to do Phase 3 before Phase 1 is fully tested. 
-
 0. [Phase 0> RAG Research (MCP)]
    - [ ] `mcp_deukrag_search_rules` 기반 규약 검토 완료
    - [ ] `mcp_deukrag_search_tickets` 과거 유사 티켓 이력 열람 완료
@@ -42,3 +51,8 @@
      | | | | |
 4. [Phase 4> Follow-up Chaining]
    - [ ] 위 표에서 즉시 해결 불가능한 항목을 차기 티켓으로 발행 및 기록
+
+## ✅ Verification / QA
+- [ ] Potential Issues Check: [Identify side effects, edge cases, or performance impacts]
+- [ ] Strict Constraints Audit: [No hotpath LINQ, Async Safety, No Raw Pointers, etc.]
+- [ ] `npm run test` 또는 관련 검증 명령 실행 결과 확인

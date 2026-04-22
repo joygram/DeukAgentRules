@@ -14,7 +14,8 @@
   - You MUST NOT use emojis, exclamation marks(!), or dramatic language (e.g., "대참사", "완벽하게", "시한폭탄").
   - Do not attempt to "wow" the user with your tone.
   - For Korean responses, use polite '해요체(-요)' instead of formal '하십시오체(-다/까)'.
-- **핸드오프 저장 후 채팅**: 파일로 남긴 뒤 채팅에 **`Path: \`루트기준/전체/경로.md\``** 형태로 **한 줄**을 반드시 넣어 다음 세션이 동일 파일을 연다.
+- **[KR] 핸드오프 저장 후 채팅**: 완료 후 반드시 한국어로 핵심 요약(1~2줄)을 작성하고, 상세 내용은 walkthrough 리포트 링크를 제공하십시오. 채팅에 반드시 아래 형식의 클릭 가능한 링크를 **한 줄** 포함할 것:
+  `Path: [상대경로](file:///절대경로)` (예: `Path: [.deuk-agent/docs/walkthroughs/044-report.md](file:///home/user/project/.deuk-agent/docs/walkthroughs/044-report.md)`)
 - **플랜 UI(선택)**: 플랜 전용 패널에 같은 문서를 띄우려면, 관리 중인 **multi-ai-workflow** 규칙에 적힌 **선택적 미러 경로**(예: `.cursor/plans/*.plan.md`)에 동일 본문을 둘 수 있다. 정본은 지정된 티켓 폴더를 유지하고 두 곳 내용을 맞출 것.
 - **Error Loop Prevention (하드룰)**: 명령 실행이나 컴파일 등에서 동일/유사 에러가 2회 이상 반복 발생 시, 에이전트는 절대 임의로 코드 방향을 틀거나 땜질을 시도해서는 안 됩니다. 즉시 작업을 멈추고 현상을 분석한 후 **티켓을 명시적으로 발행**해야 합니다.
 - **Plan in Ticket (하드룰)**: 문제 해결을 위한 모든 실행 계획은 다음 중 하나에 작성:
@@ -133,6 +134,8 @@ All Tickets and docs are volatile and strictly local. Do not attempt to version 
 ### RAG 보존
 `.deuk-agent/docs/plans/`와 `walkthroughs/`의 파일은 DeukRag에 의해 자동 인덱싱되어 과거 설계 히스토리를 차기 세션에서 `mcp_deukrag_search_tickets`로 검색할 수 있습니다.
 
+<!-- deuk-agent-rule:end -->
+<!-- deuk-agent-rule:end -->
 <!-- deuk-agent-rule:end -->
 <!-- deuk-agent-rule:end -->
 <!-- deuk-agent-rule:end -->

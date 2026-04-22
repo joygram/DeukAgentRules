@@ -1,12 +1,12 @@
 import { join, dirname, basename } from "path";
-import { existsSync, readFileSync, writeFileSync, mkdirSync, copyFileSync, readdirSync } from "fs";
+import { existsSync, readFileSync, writeFileSync, mkdirSync, copyFileSync, readdirSync, unlinkSync, rmSync, renameSync } from "fs";
 import { resolveMarkers, resolveCursorrulesMarkers, applyAgents, applyRules, applyCursorrules, readBundleAgents } from "./merge-logic.mjs";
 import { ensureTicketDirAndGitignore } from "./cli-init-logic.mjs";
+import { normalizeTicketPaths } from "./cli-ticket-logic.mjs";
 import { loadInitConfig, writeInitConfig } from "./cli-utils.mjs";
 import { runInteractive } from "./cli-prompts.mjs";
 
 import { AGENT_ROOT_DIR, TICKET_SUBDIR, TEMPLATE_SUBDIR, RULES_SUBDIR, discoverAllSubmodules } from "./cli-utils.mjs";
-import { unlinkSync, rmSync, renameSync } from "fs";
 
 function migrateLegacyStructure(cwd, dryRun) {
   const recursiveMerge = (src, dest) => {
@@ -217,47 +217,54 @@ export async function runInit(opts, bundleRoot) {
   const submodules = discoverAllSubmodules(opts.cwd);
   if (!submodules.includes(opts.cwd)) submodules.push(opts.cwd);
 
+  const markers = resolveMarkers(opts);
+  const bundleAgents = readBundleAgents(bundleRoot);
+
   for (const subCwd of submodules) {
+    console.log(`\nInitializing ${basename(subCwd)}...`);
+    
+    // 1. Migration & Directory Setup
     migrateLegacyStructure(subCwd, opts.dryRun);
     ensureTicketDirAndGitignore({ ...opts, cwd: subCwd });
+    
+    // 2. Normalize INDEX.json paths (fix stale paths)
+    normalizeTicketPaths(subCwd, { silent: false });
+
+    // 3. Spoke Pointers (e.g. .cursor/rules/deuk-agent.mdc)
     deploySpokePointers(subCwd, opts.dryRun);
+
+    // 4. Agents Setup (AGENTS.md)
+    const agentsResult = applyAgents({
+      targetPath: join(subCwd, "AGENTS.md"),
+      bundleContent: bundleAgents,
+      markers, flavor: "init",
+      appendIfNoMarkers: opts.appendIfNoMarkers,
+      dryRun: opts.dryRun, backup: opts.backup,
+      agentsMode: opts.agents || "inject"
+    });
+    console.log(`AGENTS.md: ${agentsResult.action}`);
+
+    // 5. Hub Rules Sync (.deuk-agent/rules/)
+    const hubRulesDir = join(subCwd, AGENT_ROOT_DIR, RULES_SUBDIR);
+    if (!opts.dryRun) mkdirSync(hubRulesDir, { recursive: true });
+    applyRules({
+      bundleRulesDir: join(bundleRoot, "rules"),
+      targetRulesDir: hubRulesDir,
+      rulesMode: opts.rules || "overwrite",
+      dryRun: opts.dryRun, backup: opts.backup
+    });
+
+    // 6. Gemini Rule Sync (root rule)
+    const geminiBundle = join(bundleRoot, "gemini.md");
+    const geminiDest = join(subCwd, "gemini.md");
+    if (existsSync(geminiBundle)) {
+      if (!opts.dryRun) copyFileSync(geminiBundle, geminiDest);
+      console.log(`gemini.md: synced`);
+    }
+
+    // 7. Templates Sync (.deuk-agent/templates/)
+    syncTemplates(subCwd, bundleRoot, opts.dryRun);
   }
-
-  const markers = resolveMarkers(opts);
-  const agentsResult = applyAgents({
-    targetPath: join(opts.cwd, "AGENTS.md"),
-    bundleContent: readBundleAgents(bundleRoot),
-    markers, flavor: "init",
-    appendIfNoMarkers: opts.appendIfNoMarkers,
-    dryRun: opts.dryRun, backup: opts.backup,
-    agentsMode: opts.agents || "inject"
-  });
-  console.log(`AGENTS.md: ${agentsResult.action} (${agentsResult.mode || ""})`);
-
-  // Hub Rules Sync
-  const hubRulesDir = join(opts.cwd, AGENT_ROOT_DIR, RULES_SUBDIR);
-  if (!opts.dryRun) mkdirSync(hubRulesDir, { recursive: true });
-  
-  const ruleActions = applyRules({
-    bundleRulesDir: join(bundleRoot, "rules"),
-    targetRulesDir: hubRulesDir,
-    rulesMode: opts.rules || "overwrite", // Hub always gets fresh bundle rules
-    dryRun: opts.dryRun, backup: opts.backup
-  });
-  ruleActions.forEach(r => console.log(`hub rule ${r.action}: ${r.dest || r.src}`));
-
-  // Deploy Spokes to root (submodules already handled in loop above)
-  // deploySpokePointers(opts.cwd, opts.dryRun);
-  
-  const geminiBundle = join(bundleRoot, "gemini.md");
-  const geminiDest = join(opts.cwd, "gemini.md");
-  if (existsSync(geminiBundle)) {
-    if (!opts.dryRun) copyFileSync(geminiBundle, geminiDest);
-    console.log(`gemini.md: synced to root`);
-  }
-
-  ensureTicketDirAndGitignore(opts);
-  syncTemplates(opts.cwd, bundleRoot, opts.dryRun);
 
   if (!loadInitConfig(opts.cwd)) {
     writeInitConfig(opts.cwd, opts);

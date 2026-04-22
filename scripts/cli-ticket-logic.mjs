@@ -5,7 +5,7 @@ import { hostname as osHostname } from "os";
 import { 
   toPosixPath, toRepoRelativePath, toSlug, formatTimestampForFile, makeEntryId, 
   detectProjectFromBody, deriveTopicFromBaseName, parseFrontMatter, stringifyFrontMatter, 
-  loadInitConfig,
+  loadInitConfig, findFileRecursively,
   AGENT_ROOT_DIR, TICKET_SUBDIR, TEMPLATE_SUBDIR, RULES_SUBDIR,
   TICKET_DIR_NAME, TICKET_INDEX_FILENAME, TICKET_LIST_FILENAME, TICKET_LIST_TEMPLATE_FILENAME
 } from "./cli-utils.mjs";
@@ -462,6 +462,41 @@ export function getHostnameSlug() {
 }
 
 /**
+ * Normalizes all paths in INDEX.json by finding the actual files in the ticket directory.
+ * Useful after migration or manual folder restructuring.
+ */
+export function normalizeTicketPaths(cwd, opts = {}) {
+  const index = readTicketIndexJson(cwd);
+  const ticketDir = detectConsumerTicketDir(cwd);
+  const entries = index.entries || [];
+  let modified = false;
+
+  for (const entry of entries) {
+    if (!entry.path) continue;
+    
+    const currentAbs = join(cwd, entry.path);
+    if (!existsSync(currentAbs)) {
+      const fileName = basename(entry.path);
+      const found = findFileRecursively(ticketDir, fileName);
+      if (found) {
+        const newRel = toRepoRelativePath(cwd, found);
+        if (entry.path !== newRel) {
+          entry.path = newRel;
+          modified = true;
+        }
+      }
+    }
+  }
+
+  if (modified) {
+    index.updatedAt = new Date().toISOString();
+    writeTicketIndexJson(cwd, index);
+    if (!opts.silent) console.log(`[NORMALIZE] Corrected stale paths in ${basename(cwd)}/INDEX.json`);
+  }
+  return modified;
+}
+
+/**
  * Computes next sequential 3-digit ticket number by scanning all entries
  * in the current INDEX.json. Parses new (`NNN-topic-hostname`) format.
  *
@@ -493,10 +528,21 @@ export function computeNextTicketNumber(existingEntries) {
  * @param {object[]} existingEntries - entries array from INDEX.json (may be empty)
  */
 export function generateTicketId(topicSlug, existingEntries) {
-  const { num, hostname } = computeNextTicketNumber(existingEntries);
+  const hostname = getHostnameSlug();
+  const slug = toSlug(topicSlug || 'ticket');
+  
+  // If topicSlug already starts with NNN-, respect it
+  const match = slug.match(/^(\d{3,4})-(.*)/);
+  if (match) {
+    const numStr = match[1];
+    const restSlug = match[2].slice(0, 32);
+    return `${numStr}-${restSlug}-${hostname}`;
+  }
+
+  const { num } = computeNextTicketNumber(existingEntries);
   const numStr = String(num).padStart(3, '0');
-  const slug = toSlug(topicSlug || 'ticket').slice(0, 32);
-  return `${numStr}-${slug}-${hostname}`;
+  const finalSlug = slug.slice(0, 32);
+  return `${numStr}-${finalSlug}-${hostname}`;
 }
 
 /**
