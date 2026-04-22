@@ -85,19 +85,18 @@ deuk-agent-rule init --non-interactive
 ### 💡 Workflow Overview
 ```mermaid
 graph TD
-    classDef default fill:#1a1b26,stroke:#a9b1d6,stroke-width:2px,color:#c0caf5,rx:5px,ry:5px;
-    classDef phase fill:#1a1b26,stroke:#565f89,stroke-width:2px,color:#c0caf5;
-    classDef decision fill:#1a1b26,stroke:#bb9af7,stroke-width:2px,color:#c0caf5;
-    classDef action fill:#1a1b26,stroke:#9ece6a,stroke-width:2px,color:#c0caf5;
-    classDef highlight fill:#1a1b26,stroke:#e0af68,stroke-width:2px,color:#c0caf5;
+    %% Technical Blue (Professional & Trust)
+    classDef default fill:#f6f5f4,stroke:#1a5fb4,stroke-width:2px,color:#2e3436,rx:5px,ry:5px;
+    classDef main fill:#1a5fb4,stroke:#1a5fb4,stroke-width:2px,color:#ffffff;
+    classDef sub fill:#3584e4,stroke:#3584e4,stroke-width:2px,color:#ffffff;
 
-    A([Step 1: Ticket Creation<br>cli: ticket create]):::action --> B(Step 2: Agent Execution<br>Prompt: Read Ticket):::phase
-    B --> C(Step 3: Verification & Closure<br>Checkbox Updates):::phase
+    A(Step 1: Ticket Creation<br>cli: ticket create):::main --> B(Step 2: Agent Execution<br>Prompt: Read Ticket):::sub
+    B --> C(Step 3: Verification & Closure<br>Checkbox Updates):::sub
     
-    C --> D{Issues Found<br>During Work?}:::decision
+    C --> D{Issues Found<br>During Work?}:::default
     
-    D -->|Yes| E(Follow-up Chaining<br>MANDATORY Issue Tracker):::highlight
-    E --> F([Step 4: Archiving<br>cli: ticket archive]):::action
+    D -->|Yes| E(Follow-up Chaining<br>MANDATORY Issue Tracker):::sub
+    E --> F(Step 4: Archiving<br>cli: ticket archive):::main
     D -->|No| F
 ```
 
