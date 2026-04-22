@@ -85,18 +85,13 @@ deuk-agent-rule init --non-interactive
 ### 💡 Workflow Overview
 ```mermaid
 graph TD
-    classDef phase fill:#f6f8fa,stroke:#d0d7de,color:#24292f;
-    classDef decision fill:#ddf4ff,stroke:#54aeff,color:#0969da;
-    classDef action fill:#dafbe1,stroke:#4ac26b,color:#1a7f37;
-    classDef highlight fill:#fff8c5,stroke:#d4a72c,color:#9a6700;
-
-    A(Step 1: Ticket Creation<br>deuk-agent-rule ticket create):::action --> B(Step 2: Agent Execution<br>Prompt: Read Ticket):::phase
-    B --> C(Step 3: Verification & Closure<br>Checkbox Updates):::phase
+    A(Step 1: Ticket Creation<br>deuk-agent-rule ticket create) --> B(Step 2: Agent Execution<br>Prompt: Read Ticket)
+    B --> C(Step 3: Verification & Closure<br>Checkbox Updates)
     
-    C --> D{Issues Found<br>During Work?}:::decision
+    C --> D{Issues Found<br>During Work?}
     
-    D -->|Yes| E(Follow-up Chaining<br>MANDATORY Issue Tracker):::highlight
-    E --> F(Step 4: Archiving<br>deuk-agent-rule ticket archive):::action
+    D -->|Yes| E(Follow-up Chaining<br>MANDATORY Issue Tracker)
+    E --> F(Step 4: Archiving<br>deuk-agent-rule ticket archive)
     D -->|No| F
 ```
 
