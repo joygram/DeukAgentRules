@@ -68,10 +68,9 @@ deuk-agent-rule init --non-interactive
 
 > [!TIP]
 > **💡 구버전 마이그레이션 실패 시 강제 초기화 방법**
-> 기존 템플릿 구조가 너무 구버전이거나 설정 파일(`.config.json`)이 꼬여서 마이그레이션 및 동기화가 계속 실패한다면, 기존 룰셋을 날리고 새로 세팅하는 것이 가장 빠릅니다. **(기존 작성된 티켓들은 영향을 받지 않습니다)**
+> 기존 템플릿 구조가 너무 구버전이거나 설정 파일(`.config.json`)이 꼬여서 마이그레이션 및 동기화가 계속 실패한다면, `--clean` 옵션으로 기존 룰셋과 설정을 날리고 새로 세팅하는 것이 가장 빠릅니다. **(기존 작성된 티켓들은 영향을 받지 않습니다)**
 > ```bash
-> rm -rf .deuk-agent-templates .deuk-agent-rule.config.json
-> deuk-agent-rule init --interactive
+> deuk-agent-rule init --clean --interactive
 > ```
 
 ---
@@ -189,6 +188,7 @@ AI는 `AGENTS.md`에 정의된 **[TICKET VERIFICATION RULE]**에 따라 즉시 3
 |--------|--------|------|
 | `--non-interactive` | 끔 | CI/스크립트용. 대화형 인터페이스를 끄고 기존 설정(`.config.json`)을 채택 |
 | `--interactive` | 끔 | 이미 생성된 설정값이 있어도 무시하고 강제로 다시 묻기 설정 시작 |
+| `--clean` | 끔 | 기존 템플릿과 설정 파일을 강제로 삭제한 뒤 초기화 진행 |
 | `--cwd <path>` | 현재 디렉터리 | 타깃이 되는 프로젝트의 워크스페이스 Root 절대/상대경로 지정 |
 | `--dry-run` | 끔 | 실제 파일을 생성/변조하지 않고 콘솔에 동작 결과 텍스트만 출력 |
 | `--backup` | 끔 | `AGENTS.md`나 룰 파일 덮어쓰기 전 원본을 `*.bak`으로 안전 보관 |

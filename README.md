@@ -67,10 +67,9 @@ deuk-agent-rule init --non-interactive
 
 > [!TIP]
 > **💡 Troubleshooting: Legacy Version Migration Failures**
-> If you are migrating from a very old version and `init` repeatedly fails due to corrupted configurations or heavily modified template structures, the fastest fix is to perform a clean initialization. **(This will not affect your existing tickets.)**
+> If you are migrating from a very old version and `init` repeatedly fails due to corrupted configurations or heavily modified template structures, the fastest fix is to perform a clean initialization using the `--clean` flag. **(This will not affect your existing tickets.)**
 > ```bash
-> rm -rf .deuk-agent-templates .deuk-agent-rule.config.json
-> deuk-agent-rule init --interactive
+> deuk-agent-rule init --clean --interactive
 > ```
 
 ---
@@ -188,6 +187,7 @@ Instead of manually typing the CLI commands below into the terminal, you can **d
 |--------|--------|------|
 | `--non-interactive` | Off | For CI/Scripts. Disables interactive UI and adopts existing `.config.json` |
 | `--interactive` | Off | Forces the interactive setup to reappear even if config already exists |
+| `--clean` | Off | Deletes legacy templates and configs before initializing |
 | `--cwd <path>` | Current dir | Adjust target workspace root (absolute/relative path) |
 | `--dry-run` | Off | Simulates the execution text in the console without generating/altering files |
 | `--backup` | Off | Safely creates `*.bak` copies of `AGENTS.md` and rule files before overwriting |
