@@ -1,8 +1,19 @@
 {
   "version": 1,
-  "updatedAt": "2026-04-22T01:24:29.555Z",
-  "activeTicketId": "047-test-scaffold-joy-nucb",
+  "updatedAt": "2026-04-22T01:42:03.516Z",
+  "activeTicketId": "048-dual-mode-and-workflow-joy-nucb",
   "entries": [
+    {
+      "id": "048-dual-mode-and-workflow-joy-nucb",
+      "title": "048-dual-mode-and-workflow",
+      "topic": "048-dual-mode-and-workflow",
+      "group": "core",
+      "project": "DeukAgentRules",
+      "createdAt": "2026-04-22T01:42:03.516Z",
+      "path": ".deuk-agent/tickets/core/048-dual-mode-and-workflow-joy-nucb.md",
+      "source": "ticket-create",
+      "status": "open"
+    },
     {
       "id": "047-test-scaffold-joy-nucb",
       "title": "047-test-scaffold",

@@ -1,4 +1,14 @@
-# [Execution] Task: <%= meta.title %> | ID: <%= meta.id %>
+---
+id: 048-dual-mode-and-workflow-joy-nucb
+title: "048-dual-mode-and-workflow"
+topic: 048-dual-mode-and-workflow
+status: open
+submodule: 
+project: DeukAgentRules
+createdAt: 2026-04-22T01:42:03.508Z
+---
+
+# [Execution] Task: 048-dual-mode-and-workflow | ID: 048-dual-mode-and-workflow-joy-nucb
 
 > **[CAUTION FOR AI AGENTS]**
 > You are operating within a locked multi-module monorepo.
@@ -7,7 +17,7 @@
 > 3. DO NOT leak configuration, logic, or dependencies from other submodules.
 
 ## 🎯 Scope Bounds
-- **Target Submodule:** `<%- meta.submodule || '[e.g., DeukUI | DeukPack | DeukNavigation]' %>`
+- **Target Submodule:** `[e.g., DeukUI | DeukPack | DeukNavigation]`
 - **Context Files:** 
   - `[e.g., DeukAgentRules/templates/MODULE_RULE_TEMPLATE.md]`
   - `[e.g., path/to/your/specific/rules.md]`
@@ -16,7 +26,7 @@
 - `path/from/root/to/target1`: [Specific instructions. Don't write 'refactor', describe WHAT to refactor.]
 
 ## 🏗️ Design Decisions (Refer to Plan)
-- **Plan Reference**: <%- meta.planLink %>
+- **Plan Reference**: [048-dual-mode-and-workflow-joy-nucb-plan.md](file:///home/joy/workspace/i/DeukAgentRules/.deuk-agent/docs/plans/048-dual-mode-and-workflow-joy-nucb-plan.md)
 - [Briefly restate critical decisions if necessary]
 
 ## 🛑 Strict Constraints (Rules to never break)
@@ -40,10 +50,8 @@
      | 이슈 | 심각도 | 설명 | 조치 계획 |
      |---|---|---|---|
      | | | | |
-4. [Phase 4> Follow-up Chaining (MANDATORY if issues exist)]
-   - [ ] 위 표에서 즉시 해결 불가능한 항목에 대해 별도 티켓 발행 완료
-     > CLI Command Example: `npx deuk-agent-rule ticket create --topic 048-F1-fix-issue --title "Fix the issue" --group <group>`
-   - [ ] (필수 작성) 발행된 후속 티켓 번호 리스트:
+4. [Phase 4> Follow-up Chaining]
+   - [ ] 위 표에서 즉시 해결 불가능한 항목을 차기 티켓으로 발행 및 기록
 
 ## ✅ Verification / QA
 - [ ] **Deep Analysis Verification**: Phase 0.5에서 도출된 핵심 설계 및 구조적 결정사항이 코드에 모두 올바르게 반영되었는지 확인.

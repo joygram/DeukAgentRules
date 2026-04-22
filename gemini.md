@@ -48,12 +48,13 @@ You are Antigravity, powered by Google Gemini. To ensure zero-regression and arc
     - 승인된 계획에 따라 코드를 수정하십시오.
     - **[하드룰]** 파일 하나를 수정할 때마다 해당 로직에 대한 RAG 검증(유사 코드 검색 등)을 병행하십시오.
     - 티켓의 체크박스(`[ ]` -> `[x]`)를 실시간으로 업데이트하십시오.
-5.  **Phase 3: Verification & Post-Mortem**
+5.  **Phase 3: Verification & Post-Mortem (MANDATORY)**
     - 코드 수정 완료 후, 빌드/테스트 등을 통해 확인 절차를 거치십시오.
     - **[RAG Synthesis]** 구현된 내용이 전역 룰에 부합하는지 `mcp_deukrag_synthesize_knowledge`로 최종 검증하십시오.
-    - **[Potential Issue Table]**: 발생한 부작용, 미해결 잠재 이슈, 기술 부채를 표로 정리하십시오.
-6.  **Phase 4: Follow-up Chaining (Next Tickets)**
-    - Phase 3에서 발견된 이슈 중 즉시 해결이 어려운 항목을 별도 티켓(예: `TICKET-NNN-F1`)으로 자동 생성하거나 목록화하십시오.
+    - **[Post-Mortem Hard Lock]**: 심층 분석이나 구현 중 발견된 모든 제약사항, 부작용, 기술 부채를 반드시 `Potential Issue Table`에 기록하십시오. 이 단계를 건너뛰는 것은 심각한 규약 위반입니다.
+6.  **Phase 4: Follow-up Chaining (Next Tickets MANDATORY)**
+    - Phase 3의 `Potential Issue Table`에 기록된 이슈 중 당장 해결하지 않은 항목이 있다면, 티켓 종료 전 **반드시 CLI(`npx deuk-agent-rule ticket create`)를 통해 별도의 후속 티켓으로 발행**하십시오 (예: `048-F1-memory-leak-fix`).
+    - 후속 티켓이 발행되지 않으면 현재 티켓을 완료(Archive)할 수 없습니다.
 7.  **Phase 5: Archiving (npx deuk-agent-rule ticket archive)**
     - 최종 검증 결과를 정리한 뒤 티켓을 아카이빙하여 지식을 보정하십시오.
 
