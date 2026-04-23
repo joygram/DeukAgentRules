@@ -1,4 +1,12 @@
-# [Execution] Task: <%= meta.title %> | ID: <%= meta.id %>
+---
+id: 056-ticket-chaining-feature-joy-nucb
+title: "ticket-chaining-feature"
+status: open
+project: DeukAgentRules
+createdAt: 2026-04-23 00:07:38
+---
+
+# [Execution] Task: ticket-chaining-feature | ID: 056-ticket-chaining-feature-joy-nucb
 
 > **[CAUTION FOR AI AGENTS]**
 > You are operating within a locked multi-module monorepo.
@@ -7,7 +15,7 @@
 > 3. DO NOT leak configuration, logic, or dependencies from other submodules.
 
 ## 🎯 Scope Bounds
-- **Target Submodule:** `<%- meta.submodule || '[e.g., DeukUI | DeukPack | DeukNavigation]' %>`
+- **Target Submodule:** `[e.g., DeukUI | DeukPack | DeukNavigation]`
 - **Context Files:** 
   - `[e.g., DeukAgentRules/templates/MODULE_RULE_TEMPLATE.md]`
   - `[e.g., path/to/your/specific/rules.md]`
@@ -16,7 +24,7 @@
 - `path/from/root/to/target1`: [Specific instructions. Don't write 'refactor', describe WHAT to refactor.]
 
 ## 🏗️ Design Decisions (Refer to Plan)
-- **Plan Reference**: <%- meta.planLink %>
+- **Plan Reference**: [056-ticket-chaining-feature-joy-nucb-plan.md](file:///home/joy/workspace/i/DeukAgentRules/.deuk-agent/docs/plans/056-ticket-chaining-feature-joy-nucb-plan.md)
 - [Briefly restate critical decisions if necessary]
 
 ## 🛑 Strict Constraints (Rules to never break)
@@ -35,12 +43,15 @@
    - [ ] 복잡한 아키텍처 변경 시 별도 분석 아티팩트 작성 및 승인 완료
 
 1. [Phase 1> Setup / Parsing]
+   - [x] CLI arguments updated with `--chain` flag
 
 2. [Phase 2> Core Logic Change]
-   - [ ] (CONTINUOUS RAG) 새로운 함수/클래스 수정 전 `mcp_deukrag_search_code` 및 `search_rules`로 관련 패턴 수시 검색
+   - [x] (CONTINUOUS RAG) 새로운 함수/클래스 수정 전 `mcp_deukrag_search_code` 및 `search_rules`로 관련 패턴 수시 검색
+   - [x] `runTicketCreate` modified to inject `prevTicket` and `nextTicket`
 
 3. [Phase 3> Cleanup / Verification]
-   - [ ] (VERIFY RAG) 디버깅 및 에러 발생 시 로그 덤프 전 `mcp_deukrag_search_tickets` 로 과거 해결책 우선 탐색
+   - [x] (VERIFY RAG) 디버깅 및 에러 발생 시 로그 덤프 전 `mcp_deukrag_search_tickets` 로 과거 해결책 우선 탐색
+   - [x] Tested creating tickets sequentially using `--chain` flag
    - [ ] **Potential Issue Table**:
      | 이슈 | 심각도 | 설명 | 조치 계획 |
      |---|---|---|---|
@@ -48,7 +59,7 @@
 
 4. [Phase 4> Follow-up Chaining (MANDATORY if issues exist)]
    - [ ] 위 표에서 즉시 해결 불가능한 항목에 대해 별도 티켓 발행 완료
-     > CLI Command Example: `deuk-agent-rule ticket create --topic 048-F1-fix-issue --chain --group <group>`
+     > CLI Command Example: `deuk-agent-rule ticket create --topic 048-F1-fix-issue --title "Fix the issue" --group <group>`
    - [ ] (필수 작성) 발행된 후속 티켓 번호 리스트:
 
 ## ✅ Verification / QA

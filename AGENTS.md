@@ -75,6 +75,7 @@ By **creating a ticket using the CLI** (`npx deuk-agent-rule ticket create --top
     - **[Post-Mortem Hard Lock]**: 심층 분석이나 구현 중 발견된 모든 제약사항, 부작용, 기술 부채를 반드시 `Potential Issue Table`에 기록하십시오.
 6.  **Phase 4: Follow-up Chaining (Next Tickets MANDATORY)**
     - Phase 3의 `Potential Issue Table`에서 당장 해결하지 않은 항목은 반드시 별도의 후속 티켓으로 발행하십시오.
+    - **[Chaining Hard Rule]**: 연관된 후속 티켓을 발행할 때는 반드시 `--chain` 옵션을 사용하여 이전 티켓과 문맥을 이어주는 양방향 링크(`prevTicket`, `nextTicket`)를 형성하십시오. (예: `npx deuk-agent-rule ticket create --topic <name> --chain`)
 7.  **Phase 5: Archiving (Knowledge Pulse Preservation)**
     - 최종 검증 결과를 정리한 뒤 티켓을 아카이빙(`ticket archive`)하여 지식을 보존하십시오. 이 단계가 생략되면 RAG 품질이 저하됩니다.
 

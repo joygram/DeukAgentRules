@@ -62,6 +62,11 @@ export async function runTicketCreate(opts) {
     const planAbs = join(plansDir, planFileName);
     const planLink = `[${planFileName}](file://${planAbs})`;
     
+    let prevTicketEntry = null;
+    if (opts.chain) {
+      prevTicketEntry = pickTicketEntry({ latest: true }, indexJson);
+    }
+
     const meta = {
       id: ticketId,
       title,
@@ -70,6 +75,7 @@ export async function runTicketCreate(opts) {
       project: opts.project || "global",
       planLink: planLink,
       createdAt: new Date().toISOString().replace('T', ' ').split('.')[0],
+      prevTicket: prevTicketEntry ? prevTicketEntry.id : "",
     };
 
     const ejsFrontMatter = `---
@@ -78,6 +84,7 @@ title: "<%- meta.title.replace(/"/g, '\\"') %>"
 status: open
 <% if (meta.submodule) { %>submodule: <%= meta.submodule %>
 <% } %><% if (meta.project && meta.project !== 'global') { %>project: <%= meta.project %>
+<% } %><% if (meta.prevTicket) { %>prevTicket: <%= meta.prevTicket %>
 <% } %>createdAt: <%= meta.createdAt %>
 ---
 
@@ -86,6 +93,21 @@ status: open
     writeFileSync(abs, finalContent, "utf8");
     source = "ticket-create";
     
+    if (prevTicketEntry) {
+      const prevAbsPath = join(opts.cwd, prevTicketEntry.path);
+      if (existsSync(prevAbsPath)) {
+        let prevContent = readFileSync(prevAbsPath, "utf8");
+        prevContent = prevContent.replace(/^---\n([\s\S]*?)\n---/, (match, fm) => {
+          if (!fm.includes('nextTicket:')) {
+            return `---\n${fm.trim()}\nnextTicket: ${ticketId}\n---`;
+          }
+          return match;
+        });
+        writeFileSync(prevAbsPath, prevContent, "utf8");
+        console.log(`Linked to previous ticket: ${prevTicketEntry.id}`);
+      }
+    }
+
     // Write Plan Document
     if (planTplText) {
       mkdirSync(plansDir, { recursive: true });
