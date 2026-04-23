@@ -43,26 +43,25 @@ createdAt: 2026-04-23 00:22:02
    - [ ] 복잡한 아키텍처 변경 시 별도 분석 아티팩트 작성 및 승인 완료
 
 1. [Phase 1> Setup / Parsing]
-   - [x] Identify Codex CLI rule convention (AGENTS.md and .codexrules)
+   - [x] Identify Codex CLI rule convention (Global AGENTS.md preferred over .codexrules)
 
 2. [Phase 2> Core Logic Change]
    - [x] (CONTINUOUS RAG) 새로운 함수/클래스 수정 전 `mcp_deukrag_search_code` 및 `search_rules`로 관련 패턴 수시 검색
-   - [x] Add codex to SPOKE_REGISTRY in cli-init-commands.mjs
-   - [x] Fix relative path bug in generateSpokeContent
+   - [x] Add `syncGlobalCodexInstructions` to `cli-init-commands.mjs`
+   - [x] Revert redundant `.codexrules` logic from SPOKE_REGISTRY
 
 3. [Phase 3> Cleanup / Verification]
    - [x] (VERIFY RAG) 디버깅 및 에러 발생 시 로그 덤프 전 `mcp_deukrag_search_tickets` 로 과거 해결책 우선 탐색
-   - [x] Run `npm run sync` to update bundle
-   - [x] Test `init` over the workspace to verify `.codexrules` generation
+   - [x] Test `init` to verify `~/.codex/AGENTS.md` synchronization
+   - [x] Deleted redundant `.codexrules` and `.codex` file from workspace root
    - [ ] **Potential Issue Table**:
      | 이슈 | 심각도 | 설명 | 조치 계획 |
      |---|---|---|---|
      | | | | |
 
 4. [Phase 4> Follow-up Chaining (MANDATORY if issues exist)]
-   - [ ] 위 표에서 즉시 해결 불가능한 항목에 대해 별도 티켓 발행 완료
-     > CLI Command Example: `deuk-agent-rule ticket create --topic 048-F1-fix-issue --title "Fix the issue" --group <group>`
-   - [ ] (필수 작성) 발행된 후속 티켓 번호 리스트:
+   - [x] Global Codex support verified. No immediate follow-up required.
+   - [x] (필수 작성) 발행된 후속 티켓 번호 리스트: N/A
 
 ## ✅ Verification / QA
 - [ ] **Deep Analysis Verification**: Phase 0.5에서 도출된 핵심 설계 및 구조적 결정사항이 코드에 모두 올바르게 반영되었는지 확인.
