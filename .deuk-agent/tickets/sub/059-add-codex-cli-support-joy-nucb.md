@@ -43,12 +43,17 @@ createdAt: 2026-04-23 00:22:02
    - [ ] 복잡한 아키텍처 변경 시 별도 분석 아티팩트 작성 및 승인 완료
 
 1. [Phase 1> Setup / Parsing]
+   - [x] Identify Codex CLI rule convention (AGENTS.md and .codexrules)
 
 2. [Phase 2> Core Logic Change]
-   - [ ] (CONTINUOUS RAG) 새로운 함수/클래스 수정 전 `mcp_deukrag_search_code` 및 `search_rules`로 관련 패턴 수시 검색
+   - [x] (CONTINUOUS RAG) 새로운 함수/클래스 수정 전 `mcp_deukrag_search_code` 및 `search_rules`로 관련 패턴 수시 검색
+   - [x] Add codex to SPOKE_REGISTRY in cli-init-commands.mjs
+   - [x] Fix relative path bug in generateSpokeContent
 
 3. [Phase 3> Cleanup / Verification]
-   - [ ] (VERIFY RAG) 디버깅 및 에러 발생 시 로그 덤프 전 `mcp_deukrag_search_tickets` 로 과거 해결책 우선 탐색
+   - [x] (VERIFY RAG) 디버깅 및 에러 발생 시 로그 덤프 전 `mcp_deukrag_search_tickets` 로 과거 해결책 우선 탐색
+   - [x] Run `npm run sync` to update bundle
+   - [x] Test `init` over the workspace to verify `.codexrules` generation
    - [ ] **Potential Issue Table**:
      | 이슈 | 심각도 | 설명 | 조치 계획 |
      |---|---|---|---|

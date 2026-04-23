@@ -1,4 +1,5 @@
 import { join, dirname, basename } from "path";
+import { homedir } from "os";
 import { existsSync, readFileSync, writeFileSync, mkdirSync, copyFileSync, readdirSync, unlinkSync, rmSync, renameSync } from "fs";
 import { resolveMarkers, resolveCursorrulesMarkers, applyAgents, applyRules, applyCursorrules, readBundleAgents } from "./merge-logic.mjs";
 import { ensureTicketDirAndGitignore } from "./cli-init-logic.mjs";
@@ -112,6 +113,31 @@ function syncTemplates(cwd, bundleRoot, dryRun) {
   }
 }
 
+function syncGlobalCodexInstructions(dryRun) {
+  const codexDir = join(homedir(), ".codex");
+  if (!existsSync(codexDir)) return;
+
+  const target = join(codexDir, "AGENTS.md");
+  const content = `<!-- deuk-agent-rule:begin -->
+# Global DeukAgentRules Pointer
+
+This environment is configured to use DeukAgentRules.
+When working in a repository, always look for a local \`AGENTS.md\` or \`.deuk-agent/\` directory for project-specific rules.
+
+## Core Directives
+- Follow TDD (Ticket-Driven Development) workflow.
+- Use \`npx deuk-agent-rule ticket create\` for new tasks.
+- Prioritize RAG search via \`mcp_deukrag_search_*\` tools.
+- Never refactor without a ticket or explicit instruction.
+<!-- deuk-agent-rule:end -->
+`;
+
+  if (!dryRun) {
+    writeFileSync(target, content, "utf8");
+    console.log(`global codex instructions synced: ${target}`);
+  }
+}
+
 const SPOKE_REGISTRY = [
   {
     id: "cursor",
@@ -139,13 +165,6 @@ const SPOKE_REGISTRY = [
     detect: (cwd) => existsSync(join(cwd, ".windsurf")),
     legacy: ".windsurfrules",
     target: ".windsurf/rules/deuk-agent.md",
-    format: "markdown",
-  },
-  {
-    id: "codex",
-    detect: (cwd) => existsSync(join(cwd, ".codex")),
-    legacy: null,
-    target: ".codexrules",
     format: "markdown",
   },
   {
@@ -227,6 +246,10 @@ function deploySpokePointers(cwd, dryRun) {
 export async function runInit(opts, bundleRoot) {
   const savedConfig = loadInitConfig(opts.cwd) || {};
   const ignoreDirs = savedConfig.ignoreDirs;
+
+  // 0. Sync Global Codex Instructions
+  syncGlobalCodexInstructions(opts.dryRun);
+
   const submodules = discoverAllSubmodules(opts.cwd, ignoreDirs);
   if (!submodules.includes(opts.cwd)) submodules.push(opts.cwd);
 
