@@ -2,8 +2,8 @@
 # Deuk Agent Rules
 
 This project follows the Deuk Agent Rules framework.
-- Read the full rules: [AGENTS.md](../../AGENTS.md)
-- Module-specific rules: [.deuk-agent/rules/](../../.deuk-agent/rules/)
+- Read the full rules: [AGENTS.md](../AGENTS.md)
+- Module-specific rules: [.deuk-agent/rules/](../.deuk-agent/rules/)
 
 ## Critical Rules
 - Use `.deuk-agent/templates/TICKET_TEMPLATE.md` for multi-step tasks.

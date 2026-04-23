@@ -142,6 +142,13 @@ const SPOKE_REGISTRY = [
     format: "markdown",
   },
   {
+    id: "codex",
+    detect: (cwd) => existsSync(join(cwd, ".codex")),
+    legacy: null,
+    target: ".codexrules",
+    format: "markdown",
+  },
+  {
     id: "jetbrains",
     detect: (cwd) => existsSync(join(cwd, ".aiassistant")) || existsSync(join(cwd, ".idea")),
     legacy: null,
@@ -158,11 +165,14 @@ const SPOKE_REGISTRY = [
 ];
 
 function generateSpokeContent(spoke) {
+  const depth = spoke.target.split('/').length - 1;
+  const prefix = depth > 0 ? '../'.repeat(depth) : './';
+  
   const commonContent = `# Deuk Agent Rules
 
 This project follows the Deuk Agent Rules framework.
-- Read the full rules: [AGENTS.md](../../AGENTS.md)
-- Module-specific rules: [.deuk-agent/rules/](../../.deuk-agent/rules/)
+- Read the full rules: [AGENTS.md](${prefix}AGENTS.md)
+- Module-specific rules: [.deuk-agent/rules/](${prefix}.deuk-agent/rules/)
 
 ## Critical Rules
 - Use \`.deuk-agent/templates/TICKET_TEMPLATE.md\` for multi-step tasks.

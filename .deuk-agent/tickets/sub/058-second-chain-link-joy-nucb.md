@@ -4,6 +4,7 @@ title: "second-chain-link"
 status: open
 prevTicket: 057-first-chain-link-joy-nucb
 createdAt: 2026-04-23 00:08:57
+nextTicket: 059-add-codex-cli-support-joy-nucb
 ---
 
 # [Execution] Task: second-chain-link | ID: 058-second-chain-link-joy-nucb

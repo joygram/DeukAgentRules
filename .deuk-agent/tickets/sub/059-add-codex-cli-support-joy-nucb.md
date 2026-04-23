@@ -1,4 +1,12 @@
-# [Execution] Task: <%= meta.title %> | ID: <%= meta.id %>
+---
+id: 059-add-codex-cli-support-joy-nucb
+title: "add-codex-cli-support"
+status: open
+prevTicket: 058-second-chain-link-joy-nucb
+createdAt: 2026-04-23 00:22:02
+---
+
+# [Execution] Task: add-codex-cli-support | ID: 059-add-codex-cli-support-joy-nucb
 
 > **[CAUTION FOR AI AGENTS]**
 > You are operating within a locked multi-module monorepo.
@@ -7,7 +15,7 @@
 > 3. DO NOT leak configuration, logic, or dependencies from other submodules.
 
 ## 🎯 Scope Bounds
-- **Target Submodule:** `<%- meta.submodule || '[e.g., DeukUI | DeukPack | DeukNavigation]' %>`
+- **Target Submodule:** `[e.g., DeukUI | DeukPack | DeukNavigation]`
 - **Context Files:** 
   - `[e.g., DeukAgentRules/templates/MODULE_RULE_TEMPLATE.md]`
   - `[e.g., path/to/your/specific/rules.md]`
@@ -16,7 +24,7 @@
 - `path/from/root/to/target1`: [Specific instructions. Don't write 'refactor', describe WHAT to refactor.]
 
 ## 🏗️ Design Decisions (Refer to Plan)
-- **Plan Reference**: <%- meta.planLink %>
+- **Plan Reference**: [059-add-codex-cli-support-joy-nucb-plan.md](file:///home/joy/workspace/i/DeukAgentRules/.deuk-agent/docs/plans/059-add-codex-cli-support-joy-nucb-plan.md)
 - [Briefly restate critical decisions if necessary]
 
 ## 🛑 Strict Constraints (Rules to never break)
@@ -48,7 +56,7 @@
 
 4. [Phase 4> Follow-up Chaining (MANDATORY if issues exist)]
    - [ ] 위 표에서 즉시 해결 불가능한 항목에 대해 별도 티켓 발행 완료
-     > CLI Command Example: `deuk-agent-rule ticket create --topic 048-F1-fix-issue --chain --group <group>`
+     > CLI Command Example: `deuk-agent-rule ticket create --topic 048-F1-fix-issue --title "Fix the issue" --group <group>`
    - [ ] (필수 작성) 발행된 후속 티켓 번호 리스트:
 
 ## ✅ Verification / QA

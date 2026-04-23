@@ -1,8 +1,19 @@
 {
   "version": 1,
-  "updatedAt": "2026-04-23T00:09:03.612Z",
-  "activeTicketId": "058-second-chain-link-joy-nucb",
+  "updatedAt": "2026-04-23T00:22:02.905Z",
+  "activeTicketId": "059-add-codex-cli-support-joy-nucb",
   "entries": [
+    {
+      "id": "059-add-codex-cli-support-joy-nucb",
+      "title": "add-codex-cli-support",
+      "topic": "add-codex-cli-support",
+      "group": "sub",
+      "project": "global",
+      "createdAt": "2026-04-23T00:22:02.905Z",
+      "path": ".deuk-agent/tickets/sub/059-add-codex-cli-support-joy-nucb.md",
+      "source": "ticket-create",
+      "status": "open"
+    },
     {
       "id": "058-second-chain-link-joy-nucb",
       "title": "second-chain-link",
