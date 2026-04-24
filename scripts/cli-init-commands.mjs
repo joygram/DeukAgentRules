@@ -5,7 +5,7 @@ import { resolveMarkers, resolveCursorrulesMarkers, applyAgents, applyRules, app
 import { ensureTicketDirAndGitignore } from "./cli-init-logic.mjs";
 import { normalizeTicketPaths } from "./cli-ticket-logic.mjs";
 import { compileDynamicRules } from "./cli-rule-compiler.mjs";
-import { loadInitConfig, writeInitConfig } from "./cli-utils.mjs";
+import { loadInitConfig, writeInitConfig, isWorkflowExecute, normalizeWorkflowMode } from "./cli-utils.mjs";
 import { runInteractive } from "./cli-prompts.mjs";
 
 import { AGENT_ROOT_DIR, TICKET_SUBDIR, TEMPLATE_SUBDIR, RULES_SUBDIR, discoverAllSubmodules } from "./cli-utils.mjs";
@@ -272,8 +272,18 @@ function deploySpokePointers(cwd, dryRun, selectedTools = []) {
 
 export async function runInit(opts, bundleRoot) {
   const savedConfig = loadInitConfig(opts.cwd) || {};
+  const workflowMode = normalizeWorkflowMode(
+    opts.workflowMode ?? opts.workflow ?? opts.approval ?? savedConfig.workflowMode ?? savedConfig.approvalState
+  );
+  const executionEnabled = isWorkflowExecute({ ...opts, workflowMode }, savedConfig);
   const ignoreDirs = savedConfig.ignoreDirs;
   const selectedTools = opts.agentTools || savedConfig.agentTools || [];
+
+  if (!opts.dryRun && !executionEnabled) {
+    throw new Error(
+      `[WORKFLOW BLOCKED] plan mode is active for ${opts.cwd}. Re-run with --workflow execute or --approval approved to apply file mutations. Use --dry-run for preparation only.`
+    );
+  }
 
   // 0. Sync Global Codex Instructions
   syncGlobalCodexInstructions(opts.dryRun);
@@ -354,10 +364,32 @@ export async function runInit(opts, bundleRoot) {
 }
 
 export function runMerge(opts, bundleRoot) {
+  const savedConfig = loadInitConfig(opts.cwd) || {};
+  const workflowMode = normalizeWorkflowMode(
+    opts.workflowMode ?? opts.workflow ?? opts.approval ?? savedConfig.workflowMode ?? savedConfig.approvalState
+  );
+  const executionEnabled = isWorkflowExecute({ ...opts, workflowMode }, savedConfig);
+  if (!opts.dryRun && !executionEnabled) {
+    throw new Error(
+      `[WORKFLOW BLOCKED] plan mode is active for ${opts.cwd}. Re-run with --workflow execute or --approval approved to apply file mutations. Use --dry-run for preparation only.`
+    );
+  }
   const markers = resolveMarkers(opts);
+  const bundleAgents = readBundleAgents(bundleRoot);
+
+  // Modular rule compilation (similar to runInit)
+  let cleanBundleAgents = bundleAgents;
+  const firstRuleIdxAgents = cleanBundleAgents.indexOf("<!-- RULE MODULE: ");
+  if (firstRuleIdxAgents !== -1) {
+    cleanBundleAgents = cleanBundleAgents.substring(0, firstRuleIdxAgents).trimEnd();
+  }
+  
+  const compiledAgentsAdditions = compileDynamicRules(opts.cwd, bundleRoot, "AGENTS.md");
+  const fullBundleAgents = cleanBundleAgents + "\n\n" + compiledAgentsAdditions;
+
   const agentsResult = applyAgents({
     targetPath: join(opts.cwd, "AGENTS.md"),
-    bundleContent: readBundleAgents(bundleRoot),
+    bundleContent: fullBundleAgents,
     markers, flavor: "merge",
     appendIfNoMarkers: opts.appendIfNoMarkers,
     dryRun: opts.dryRun, backup: opts.backup,
