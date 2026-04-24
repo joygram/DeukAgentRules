@@ -26,6 +26,7 @@ export function parseTicketArgs(argv) {
     else if (a === "--sync") out.sync = true;
     else if (a === "--no-sync") out.sync = false;
     else if (a === "--chain") out.chain = true;
+    else if (a === "--docs-language") out.docsLanguage = argv[++i];
   }
   return out;
 }
@@ -47,10 +48,13 @@ export function parseArgs(argv) {
     else if (a === "--rules") out.rules = argv[++i];
     else if (a === "--cursorrules") out.cursorrules = argv[++i];
     else if (a === "--append-if-no-markers") out.appendIfNoMarkers = true;
+    else if (a === "--workflow") out.workflowMode = argv[++i];
+    else if (a === "--approval") out.approval = argv[++i];
     else if (a === "--json") out.json = true;
     else if (a === "--remote") out.remote = argv[++i];
     else if (a === "--sync") out.sync = true;
     else if (a === "--no-sync") out.sync = false;
+    else if (a === "--docs-language") out.docsLanguage = argv[++i];
     else if (a === "-h" || a === "--help") out.help = true;
   }
   return out;

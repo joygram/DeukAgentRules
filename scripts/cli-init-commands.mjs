@@ -51,6 +51,7 @@ function migrateLegacyStructure(cwd, dryRun) {
   if (existsSync(legacyTemplates)) {
     console.log(`[MIGRATE] Merging legacy templates into ${AGENT_ROOT_DIR}/${TEMPLATE_SUBDIR}`);
     recursiveMerge(legacyTemplates, newTemplates);
+    if (!dryRun && existsSync(legacyTemplates)) rmSync(legacyTemplates, { recursive: true, force: true });
   }
 
   const legacyTickets = join(cwd, ".deuk-agent-ticket");
@@ -60,19 +61,26 @@ function migrateLegacyStructure(cwd, dryRun) {
   if (existsSync(legacyTickets)) {
     console.log(`[MIGRATE] Merging legacy singular ticket directory into ${AGENT_ROOT_DIR}/${TICKET_SUBDIR}`);
     recursiveMerge(legacyTickets, newTickets);
+    if (!dryRun && existsSync(legacyTickets)) rmSync(legacyTickets, { recursive: true, force: true });
   }
   if (existsSync(legacyTicketsPlural)) {
     console.log(`[MIGRATE] Merging legacy plural tickets directory into ${AGENT_ROOT_DIR}/${TICKET_SUBDIR}`);
     recursiveMerge(legacyTicketsPlural, newTickets);
+    if (!dryRun && existsSync(legacyTicketsPlural)) rmSync(legacyTicketsPlural, { recursive: true, force: true });
   }
 
   const legacyConfig = join(cwd, ".deuk-agent-rule.config.json");
   const newConfig = join(cwd, AGENT_ROOT_DIR, "config.json");
-  if (existsSync(legacyConfig) && !existsSync(newConfig)) {
-    console.log(`[MIGRATE] Moving legacy config to ${AGENT_ROOT_DIR}/config.json`);
-    if (!dryRun) {
-      mkdirSync(join(cwd, AGENT_ROOT_DIR), { recursive: true });
-      renameSync(legacyConfig, newConfig);
+  if (existsSync(legacyConfig)) {
+    if (!existsSync(newConfig)) {
+      console.log(`[MIGRATE] Moving legacy config to ${AGENT_ROOT_DIR}/config.json`);
+      if (!dryRun) {
+        mkdirSync(join(cwd, AGENT_ROOT_DIR), { recursive: true });
+        renameSync(legacyConfig, newConfig);
+      }
+    } else {
+      console.log(`[MIGRATE] Removing redundant legacy config`);
+      if (!dryRun) unlinkSync(legacyConfig);
     }
   }
 
@@ -237,15 +245,6 @@ ${content}`;
   return `<!-- deuk-agent-rule:begin -->\n${content}\n<!-- deuk-agent-rule:end -->\n`;
 }
 
-function generateLegacyDeprecationNotice(spoke) {
-  return `<!-- deuk-agent-rule:deprecated -->
-This file is deprecated. Rules have moved to:
-- Target: ${spoke.target}
-- All agents: AGENTS.md
-<!-- deuk-agent-rule:deprecated:end -->
-`;
-}
-
 function deploySpokePointers(cwd, dryRun, selectedTools = []) {
   for (const spoke of SPOKE_REGISTRY) {
     if (!spoke.detect(cwd, selectedTools)) continue;
@@ -259,12 +258,12 @@ function deploySpokePointers(cwd, dryRun, selectedTools = []) {
     }
     console.log(`spoke synced: ${spoke.target} (${spoke.id})`);
     
-    // Deprecate legacy file if it exists
+    // Remove legacy file if it exists
     if (spoke.legacy) {
       const legacyPath = join(cwd, spoke.legacy);
       if (existsSync(legacyPath)) {
-        if (!dryRun) writeFileSync(legacyPath, generateLegacyDeprecationNotice(spoke), "utf8");
-        console.log(`spoke deprecated: ${spoke.legacy} -> ${spoke.target}`);
+        if (!dryRun) unlinkSync(legacyPath);
+        console.log(`[MIGRATE] removed legacy spoke: ${spoke.legacy} -> ${spoke.target}`);
       }
     }
   }

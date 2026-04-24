@@ -1,8 +1,73 @@
 {
   "version": 1,
-  "updatedAt": "2026-04-23T23:26:26.584Z",
-  "activeTicketId": "061-codex-copilot-first-class-suppor-joy-nucb",
+  "updatedAt": "2026-04-24T21:26:39.566Z",
+  "activeTicketId": "067-oss-path-migration-sync-joy-nucb",
   "entries": [
+    {
+      "id": "067-oss-path-migration-sync-joy-nucb",
+      "title": "oss-path-migration-sync",
+      "topic": "067-oss-path-migration-sync-joy-nucb",
+      "group": "sub",
+      "project": "global",
+      "submodule": "",
+      "createdAt": "2026-04-24 21:26:33",
+      "updatedAt": "2026-04-24T21:26:33.457Z",
+      "path": ".deuk-agent/tickets/sub/067-oss-path-migration-sync-joy-nucb.md",
+      "source": "ticket-sync",
+      "status": "open"
+    },
+    {
+      "id": "066-canonical-rule-normalization-joy-nucb",
+      "title": "066-canonical-rule-normalization",
+      "topic": "066-canonical-rule-normalization-joy-nucb",
+      "group": "sub",
+      "project": "global",
+      "submodule": "",
+      "createdAt": "2026-04-24 09:51:39",
+      "updatedAt": "2026-04-24T09:59:54.215Z",
+      "path": ".deuk-agent/tickets/archive/sub/066-canonical-rule-normalization-joy-nucb.md",
+      "source": "ticket-sync",
+      "status": "archived"
+    },
+    {
+      "id": "064-readme-concept-structure-princip-joy-nucb",
+      "title": "readme-concept-structure-principles-docs",
+      "topic": "064-readme-concept-structure-princip-joy-nucb",
+      "group": "sub",
+      "project": "DeukAgentRules",
+      "submodule": "DeukAgentRules",
+      "createdAt": "2026-04-24 01:36:33",
+      "updatedAt": "2026-04-24T01:38:05.229Z",
+      "path": ".deuk-agent/tickets/sub/064-readme-concept-structure-princip-joy-nucb.md",
+      "source": "ticket-sync",
+      "status": "open"
+    },
+    {
+      "id": "063-force-rule-approval-gate-joy-nucb",
+      "title": "force-rule-approval-gate",
+      "topic": "063-force-rule-approval-gate-joy-nucb",
+      "group": "sub",
+      "project": "DeukAgentRules",
+      "submodule": "DeukAgentRules",
+      "createdAt": "2026-04-24 01:17:01",
+      "updatedAt": "2026-04-24T01:34:14.248Z",
+      "path": ".deuk-agent/tickets/archive/sub/063-force-rule-approval-gate-joy-nucb.md",
+      "source": "ticket-sync",
+      "status": "archived"
+    },
+    {
+      "id": "062-user-language-doc-localization-joy-nucb",
+      "title": "user-language-doc-localization",
+      "topic": "062-user-language-doc-localization-joy-nucb",
+      "group": "sub",
+      "project": "global",
+      "submodule": "",
+      "createdAt": "2026-04-24 00:57:40",
+      "updatedAt": "2026-04-24T00:57:40.261Z",
+      "path": ".deuk-agent/tickets/sub/062-user-language-doc-localization-joy-nucb.md",
+      "source": "ticket-sync",
+      "status": "open"
+    },
     {
       "id": "061-codex-copilot-first-class-suppor-joy-nucb",
       "title": "codex-copilot-first-class-support",
@@ -11,7 +76,7 @@
       "project": "DeukAgentRules",
       "submodule": "",
       "createdAt": "2026-04-23 22:55:29",
-      "updatedAt": "2026-04-23T22:55:29.325Z",
+      "updatedAt": "2026-04-24T00:05:20.602Z",
       "path": ".deuk-agent/tickets/sub/061-codex-copilot-first-class-suppor-joy-nucb.md",
       "source": "ticket-sync",
       "status": "open"
@@ -95,7 +160,7 @@
       "status": "open"
     },
     {
-      "id": "000-fallback-moc41vri",
+      "id": "000-fallback-modf7ow5",
       "title": "REPORT-051-agent-fast-track-hardening-joy-nucb",
       "topic": "report-051-agent-fast-track-hardening-joy-nucb",
       "group": "reports",

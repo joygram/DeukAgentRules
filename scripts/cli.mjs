@@ -6,7 +6,7 @@ import { parseArgs, parseTicketArgs } from "./cli-args.mjs";
 import { runInit, runMerge } from "./cli-init-commands.mjs";
 import { runTicketCreate, runTicketList, runTicketUse, runTicketClose, runTicketArchive, runTicketReports, runTicketMeta, runTicketConnect } from "./cli-ticket-commands.mjs";
 import { performUpgradeMigration } from "./cli-ticket-logic.mjs";
-import { loadInitConfig, writeInitConfig, checkUpdateNotifier } from "./cli-utils.mjs";
+import { loadInitConfig, writeInitConfig, checkUpdateNotifier, normalizeWorkflowMode, WORKFLOW_MODE_EXECUTE } from "./cli-utils.mjs";
 import { runInteractive } from "./cli-prompts.mjs";
 
 const updatePromise = checkUpdateNotifier();
@@ -88,11 +88,21 @@ async function handleInit(opts) {
   if (!opts.interactive && !opts.nonInteractive && !loadInitConfig(opts.cwd)) {
     // If no config and not interactive, prompt unless non-interactive
     await runInteractive(opts);
-    if (!opts.dryRun) writeInitConfig(opts.cwd, opts);
   } else if (opts.interactive) {
     await runInteractive(opts);
-    if (!opts.dryRun) writeInitConfig(opts.cwd, opts);
   }
+
+  if (!opts.dryRun) writeInitConfig(opts.cwd, opts);
+
+  const savedAfterWrite = loadInitConfig(opts.cwd) || {};
+  const workflowMode = normalizeWorkflowMode(
+    opts.workflowMode ?? opts.workflow ?? opts.approval ?? savedAfterWrite.workflowMode ?? savedAfterWrite.approvalState
+  );
+  if (!opts.dryRun && workflowMode !== WORKFLOW_MODE_EXECUTE) {
+    console.log(`[WORKFLOW] Plan mode saved. Re-run with --workflow execute or --approval approved to apply file mutations.`);
+    return;
+  }
+
   await runInit(opts, bundleRoot);
 }
 
@@ -112,6 +122,9 @@ Options:
   --agents <mode>       inject | skip | overwrite
   --rules <mode>        prefix | skip | overwrite
   --cursorrules <mode>  inject | skip | overwrite
+  --workflow <mode>     plan | execute
+  --approval <state>    pending | approved (alias for workflow)
+  --docs-language <lang> auto | ko | en
   --json                Output result in JSON format
   --remote <url>        Temporary pipeline URL
   --sync                Force enable remote sync
@@ -122,6 +135,7 @@ Ticket Options:
   --group <name>        Ticket group (sub|main|discussion)
   --project <name>      Project filter (DeukUI|DeukAgentRules)
   --submodule <name>    Submodule filter (DeukPack|DeukUI)
+  --docs-language <lang> auto | ko | en
   --latest              Use most recent ticket (default if no topic)
   --path-only           Print only the file path
   --json                Output result in JSON format

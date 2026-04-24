@@ -11,6 +11,16 @@
   - Do not attempt to "wow" the user with your tone.
   - For Korean responses, use polite '해요체(-요)' instead of formal '하십시오체(-다/까)'.
 
+## 🔋 Self-Thrift Protocol (Token Governance & Self-Reporting)
+
+모든 에이전트는 불필요한 컨텍스트 팽창을 막기 위해 스스로 대화 길이를 추정하고 보고할 의무가 있습니다.
+- **[MANDATORY SELF-REPORTING]**: `mcp_deukrag_set_workflow_context` 또는 `trigger_handoff` 도구 호출 시, 반드시 다음 두 파라미터를 계산하여 전송하십시오:
+  1. `turn_count`: 현재 대화창(세션)에서 사용자와 주고받은 총 턴(Turn) 수.
+  2. `reported_cumulative_tokens`: `turn_count * 1500` 공식으로 대략적인 누적 토큰을 계산한 정수 값.
+- 이 지표는 서버 측 RAG 주입량과 비교되어 대시보드에 'Agent Self-Thrift Metrics'로 시각화되며, 너무 높은 격차가 발생할 경우(즉, RAG 없이 잡담이나 삽질만 길어질 경우) 페널티를 받을 수 있습니다.
+
+## 🗂️ Document Archiving Protocol
+
 - **Plan UI (Optional)**: To display the same document in a dedicated plan panel, you can place identical content in the **optional mirror path** (e.g., `.cursor/plans/*.plan.md`) specified in the **multi-ai-workflow** rules. The canonical version must remain in the designated ticket folder, and both locations must be kept in sync.
 - **Error Loop Prevention (Hard Rule)**: If the same or similar error occurs more than twice during command execution or compilation, the agent must NOT attempt to change direction or apply "band-aid" fixes arbitrarily. Stop work immediately, analyze the phenomenon, and **explicitly issue a ticket**.
 - **Plan in Ticket (Hard Rule)**: All implementation plans and designs for problem-solving must be written **within the formal ticket body**, not in temporary artifacts like `implementation_plan.md`, and must be confirmed by the user.

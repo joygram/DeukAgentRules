@@ -9,7 +9,8 @@ import { fileURLToPath } from "url";
 const __dirname = dirname(fileURLToPath(import.meta.url));
 const pkgRoot = join(__dirname, "..");
 const repoRoot = join(pkgRoot, "..");
-const ossRoot = join(repoRoot, "DeukAgentRulesOSS");
+// OSS moved to workspace/OSS/DeukAgentRulesOSS (sibling of monorepo root)
+const ossRoot = join(repoRoot, "..", "OSS", "DeukAgentRulesOSS");
 const ossPublic = join(pkgRoot, "oss-public");
 
 /** Set DEUK_AGENT_RULES_OSS_REPO to override, e.g. https://github.com/you/DeukAgentRulesOSS */

@@ -3,6 +3,7 @@ import { hostname } from "os";
 import { basename, join, dirname, relative, resolve } from "path";
 import { 
   toSlug, toRepoRelativePath, toFileUri, inferRefTitleAndTopic, resolveReferencedTicketPath, toPosixPath, stringifyFrontMatter,
+  selectLocalizedTemplatePath, resolveDocsLanguage,
   AGENT_ROOT_DIR, TICKET_SUBDIR, TEMPLATE_SUBDIR, TICKET_DIR_NAME
 } from "./cli-utils.mjs";
 import { 
@@ -29,21 +30,30 @@ export async function runTicketCreate(opts) {
     path = resolveReferencedTicketPath(opts);
     source = "ticket-reference";
   } else {
-    let tplText = "";
-    const consumerTplPath = join(opts.cwd, AGENT_ROOT_DIR, TEMPLATE_SUBDIR, "TICKET_TEMPLATE.md");
-    const legacyTplPath = join(opts.cwd, ".deuk-agent-templates", "TICKET_TEMPLATE.md");
-    const bundleTplPath = join(new URL('.', import.meta.url).pathname, "..", "bundle", "templates", "TICKET_TEMPLATE.md");
-    
-    if (existsSync(consumerTplPath)) tplText = readFileSync(consumerTplPath, "utf8");
-    else if (existsSync(legacyTplPath)) tplText = readFileSync(legacyTplPath, "utf8");
-    else if (existsSync(bundleTplPath)) tplText = readFileSync(bundleTplPath, "utf8");
-    else throw new Error("ticket create: Template not found. Please run 'npx deuk-agent-rule init' to deploy templates.");
+    const config = loadInitConfig(opts.cwd) || {};
+    const docsLanguage = resolveDocsLanguage(opts.docsLanguage || config.docsLanguage || "auto");
 
-    let planTplText = "";
-    const consumerPlanTplPath = join(opts.cwd, AGENT_ROOT_DIR, TEMPLATE_SUBDIR, "PLAN_TEMPLATE.md");
-    const bundlePlanTplPath = join(new URL('.', import.meta.url).pathname, "..", "bundle", "templates", "PLAN_TEMPLATE.md");
-    if (existsSync(consumerPlanTplPath)) planTplText = readFileSync(consumerPlanTplPath, "utf8");
-    else if (existsSync(bundlePlanTplPath)) planTplText = readFileSync(bundlePlanTplPath, "utf8");
+    const templateDir = join(opts.cwd, AGENT_ROOT_DIR, TEMPLATE_SUBDIR);
+    const legacyTplDir = join(opts.cwd, ".deuk-agent-templates");
+    const bundleTplDir = join(new URL(".", import.meta.url).pathname, "..", "bundle", "templates");
+
+    const ticketTemplateCandidates = [
+      selectLocalizedTemplatePath(templateDir, "TICKET_TEMPLATE.md", docsLanguage),
+      selectLocalizedTemplatePath(legacyTplDir, "TICKET_TEMPLATE.md", docsLanguage),
+      selectLocalizedTemplatePath(bundleTplDir, "TICKET_TEMPLATE.md", docsLanguage),
+    ];
+    const ticketTemplatePath = ticketTemplateCandidates.find(p => existsSync(p));
+    if (!ticketTemplatePath) {
+      throw new Error("ticket create: Template not found. Please run 'npx deuk-agent-rule init' to deploy templates.");
+    }
+    const tplText = readFileSync(ticketTemplatePath, "utf8");
+
+    const planTemplateCandidates = [
+      selectLocalizedTemplatePath(templateDir, "PLAN_TEMPLATE.md", docsLanguage),
+      selectLocalizedTemplatePath(bundleTplDir, "PLAN_TEMPLATE.md", docsLanguage),
+    ];
+    const planTemplatePath = planTemplateCandidates.find(p => existsSync(p));
+    const planTplText = planTemplatePath ? readFileSync(planTemplatePath, "utf8") : "";
 
     // Find nearest or create in CWD if missing
     const ticketDir = detectConsumerTicketDir(opts.cwd, { createIfMissing: true });
@@ -73,6 +83,7 @@ export async function runTicketCreate(opts) {
       status: "open",
       submodule: opts.submodule || "",
       project: opts.project || "global",
+      docsLanguage,
       planLink: planLink,
       createdAt: new Date().toISOString().replace('T', ' ').split('.')[0],
       prevTicket: prevTicketEntry ? prevTicketEntry.id : "",
@@ -110,16 +121,17 @@ status: open
 
     // Write Plan Document
     mkdirSync(plansDir, { recursive: true });
-    const planContent = planTplText
+    const planBody = planTplText
       ? ejs.render(planTplText, { meta })
       : `# Plan: ${title}\n\n## Summary\n- 목적:\n- 범위:\n- 비범위:\n`;
-    writeFileSync(planAbs, planContent, "utf8");
+    const planFrontMatter = `---\nid: ${ticketId}\ntitle: "${String(title).replace(/"/g, '\\"')}"\nlanguage: ${docsLanguage}\ncreatedAt: ${meta.createdAt}\n---\n\n`;
+    writeFileSync(planAbs, planFrontMatter + planBody, "utf8");
     console.log(`Plan scaffolded: ${toFileUri(planAbs)}`);
     
     // Remote Sync Hook
-    const config = loadInitConfig(opts.cwd);
-    if (config && config.remoteSync && config.pipelineUrl) {
-      syncToPipeline(config.pipelineUrl, { action: "create", ticket: meta });
+    const configSync = loadInitConfig(opts.cwd);
+    if (configSync && configSync.remoteSync && configSync.pipelineUrl) {
+      syncToPipeline(configSync.pipelineUrl, { action: "create", ticket: meta });
     }
 
     appendTicketEntry(opts.cwd, {

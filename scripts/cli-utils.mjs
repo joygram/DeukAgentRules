@@ -12,6 +12,8 @@ export const AGENT_ROOT_DIR = ".deuk-agent";
 export const TICKET_SUBDIR = "tickets";
 export const TEMPLATE_SUBDIR = "templates";
 export const RULES_SUBDIR = "rules";
+export const WORKFLOW_MODE_PLAN = "plan";
+export const WORKFLOW_MODE_EXECUTE = "execute";
 
 export const TICKET_DIR_NAME = `${AGENT_ROOT_DIR}/${TICKET_SUBDIR}`;
 export const TICKET_INDEX_FILENAME = "INDEX.json";
@@ -39,6 +41,40 @@ export const AGENT_TOOLS = [
   { label: "Claude / Dev", value: "claude" },
 ];
 
+export const DOC_LANGUAGE_CHOICES = [
+  { label: "Auto (match system locale)", value: "auto" },
+  { label: "Korean", value: "ko" },
+  { label: "English", value: "en" },
+];
+
+export function normalizeDocsLanguage(value) {
+  const normalized = String(value || "").trim().toLowerCase();
+  if (!normalized || normalized === "auto") return "auto";
+  if (["ko", "kr", "korean", "kor"].includes(normalized)) return "ko";
+  if (["en", "eng", "english"].includes(normalized)) return "en";
+  return "auto";
+}
+
+export function inferDocsLanguageFromEnv(env = process.env) {
+  const locale = String(env.LANG || env.LC_ALL || env.LC_MESSAGES || "").toLowerCase();
+  if (locale.includes("ko")) return "ko";
+  return "en";
+}
+
+export function resolveDocsLanguage(value, env = process.env) {
+  const normalized = normalizeDocsLanguage(value);
+  if (normalized === "auto") return inferDocsLanguageFromEnv(env);
+  return normalized;
+}
+
+export function selectLocalizedTemplatePath(baseDir, templateName, docsLanguage = "en") {
+  const normalized = resolveDocsLanguage(docsLanguage);
+  const localizedName = `${templateName.replace(/\.md$/i, "")}.${normalized}.md`;
+  const localizedPath = join(baseDir, localizedName);
+  if (existsSync(localizedPath)) return localizedPath;
+  return join(baseDir, templateName);
+}
+
 export function loadInitConfig(cwd) {
   const p = join(cwd, INIT_CONFIG_FILENAME);
   const legacyP = join(cwd, LEGACY_INIT_CONFIG_FILENAME);
@@ -49,6 +85,10 @@ export function loadInitConfig(cwd) {
   try {
     const j = JSON.parse(readFileSync(target, "utf8"));
     if (j.version !== INIT_CONFIG_VERSION) return null;
+    if (!j.docsLanguage) j.docsLanguage = "auto";
+    const workflowMode = normalizeWorkflowMode(j.workflowMode ?? j.approvalState);
+    j.workflowMode = workflowMode;
+    j.approvalState = workflowMode === WORKFLOW_MODE_EXECUTE ? "approved" : "pending";
     return j;
   } catch {
     return null;
@@ -57,11 +97,15 @@ export function loadInitConfig(cwd) {
 
 export function writeInitConfig(cwd, opts) {
   const p = join(cwd, INIT_CONFIG_FILENAME);
+  const workflowMode = normalizeWorkflowMode(opts.workflowMode ?? opts.workflow ?? opts.approvalState ?? opts.approval);
   const data = {
     version: INIT_CONFIG_VERSION,
     agentsMode: opts.agents || "inject",
+    workflowMode,
+    approvalState: workflowMode === WORKFLOW_MODE_EXECUTE ? "approved" : "pending",
     stack: opts.stack,
     agentTools: opts.agentTools,
+    docsLanguage: normalizeDocsLanguage(opts.docsLanguage || "auto"),
     shareTickets: !!opts.shareTickets,
     remoteSync: !!opts.remoteSync,
     pipelineUrl: opts.pipelineUrl,
@@ -69,6 +113,29 @@ export function writeInitConfig(cwd, opts) {
     updatedAt: new Date().toISOString(),
   };
   writeFileSync(p, JSON.stringify(data, null, 2), "utf8");
+}
+
+export function normalizeWorkflowMode(value) {
+  const normalized = String(value || "").trim().toLowerCase();
+  if (!normalized) return WORKFLOW_MODE_PLAN;
+  if (["execute", "approved", "approval", "apply", "apply-changes"].includes(normalized)) {
+    return WORKFLOW_MODE_EXECUTE;
+  }
+  if (["plan", "pending", "review", "prepare", "prepare-only"].includes(normalized)) {
+    return WORKFLOW_MODE_PLAN;
+  }
+  return normalized === WORKFLOW_MODE_EXECUTE ? WORKFLOW_MODE_EXECUTE : WORKFLOW_MODE_PLAN;
+}
+
+export function isWorkflowExecute(opts = {}, savedConfig = null) {
+  return normalizeWorkflowMode(
+    opts.workflowMode ??
+    opts.workflow ??
+    opts.approval ??
+    opts.approvalState ??
+    savedConfig?.workflowMode ??
+    savedConfig?.approvalState
+  ) === WORKFLOW_MODE_EXECUTE;
 }
 
 export function toPosixPath(p) {
