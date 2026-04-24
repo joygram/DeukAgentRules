@@ -15,7 +15,7 @@
 
 **Korean:** [README.ko.md](https://github.com/joygram/DeukAgentRules/blob/master/README.ko.md)
 
-A **submodule-isolated collaborative framework** designed to be used alongside various coding agents such as Cursor, GitHub Copilot, Gemini / Antigravity, Claude, Windsurf, and JetBrains AI Assistant.
+A **submodule-isolated collaborative framework** designed to be used alongside various coding agents such as Cursor, GitHub Copilot, Codex / OpenAI, Gemini / Antigravity, Claude, Windsurf, and JetBrains AI Assistant.
 It standardizes project rules (`AGENTS.md`, `.cursor/rules`) and strongly prevents wasteful prompt token consumption and AI context hallucination through a **ticket-based workflow**.
 
 > **🚀 Core Value:**
@@ -56,6 +56,20 @@ deuk-agent-rule init
 Upon initialization, interactive questions will ask for the project's **tech stack** and **agent tools in use**. Based on your selections, optimized markdown templates and rule files (`.cursor/rules/*`) will be automatically generated and synchronized.
 - If you don't need to change the tech stack later, simply run `deuk-agent-rule init` to refresh the rules. (If not installed globally, you can fallback to `npx deuk-agent-rule init`).
 - Suppress interactive prompts in CI or script environments by appending the `--non-interactive` flag.
+
+### Agent Support Matrix
+
+| Agent | Generated file | Role |
+|---|---|---|
+| Cursor | `.cursor/rules/deuk-agent.mdc` | IDE rule entrypoint |
+| GitHub Copilot | `.github/copilot-instructions.md` | Copilot-specific execution guardrails |
+| Codex / OpenAI | `.codex/AGENTS.md` + `~/.codex/AGENTS.md` | Repo-local execution guide + global pointer |
+| Claude | `CLAUDE.md` | Claude project pointer |
+| Gemini / Antigravity | `gemini.md` | Gemini root rule file |
+| Windsurf | `.windsurf/rules/deuk-agent.md` | Windsurf project rule file |
+| JetBrains AI | `.aiassistant/rules/deuk-agent.md` | JetBrains AI project rule file |
+
+`AGENTS.md` remains the canonical project rule document. Spoke files are fast-start entrypoints optimized for each agent environment.
 
 ### 🔄 Updating the Rules Package
 When a new version of the agent rules or templates is released, you can sync the latest instructions to your project by updating the package and re-running `init`.
@@ -154,6 +168,11 @@ Even after installing and initializing the package, some AI agents (Cursor, Gemi
 
 ### 2. Ticket Execution (Recommended)
 > *"Open the recently issued `.deuk-agent-ticket/TICKET-XXX.md` ticket. Restrict all your file exploration, analysis, and modifications STRICTLY to the target submodule path explicitly specified in the ticket. Do not wander into other submodules or accidentally modify unrelated files."*
+
+### 3. Copilot / Codex Session Starters
+> *"Read `AGENTS.md` first, then use the active ticket as the execution contract. If a plan is linked, use it only as detailed design reference."*
+
+> *"For multi-step work, do not proceed without a ticket. Keep changes inside the declared submodule and stop after repeated errors."*
 
 ---
 

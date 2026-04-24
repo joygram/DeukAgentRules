@@ -15,7 +15,7 @@
 
 **English:** [README.md](https://github.com/joygram/DeukAgentRules/blob/master/README.md)
 
-Cursor, GitHub Copilot, Gemini / Antigravity, Claude, Windsurf, JetBrains AI Assistant 등 다양한 코딩 에이전트와 함께 활용하는 **서브모듈 격리형 협업 프레임워크**입니다. 
+Cursor, GitHub Copilot, Codex / OpenAI, Gemini / Antigravity, Claude, Windsurf, JetBrains AI Assistant 등 다양한 코딩 에이전트와 함께 활용하는 **서브모듈 격리형 협업 프레임워크**입니다. 
 프로젝트 규칙(`AGENTS.md`, `.cursor/rules`)을 표준화하고, **티켓 기반 워크플로우**를 통해 쓸데없는 프롬프트 토큰 낭비와 AI의 맥락 환각(Hallucination)을 강력하게 방어합니다.
 
 > **🚀 핵심 가치:**
@@ -57,6 +57,20 @@ deuk-agent-rule init
 - **티켓 공유 정책**: 각 저장소 단위의 `.deuk-agent-ticket/` 폴더를 Git으로 추적하여 팀과 공유할지, 아니면 로컬 전용으로 둘지 결정합니다.
 - 스택 변경이 필요 없으면 이후에는 `deuk-agent-rule init`만 쳐서 규칙을 최신화할 수 있습니다. (전역 설치를 하지 않았다면 `npx deuk-agent-rule init`으로 대체 가능합니다.)
 - CI나 스크립트 환경에서는 대화형 입력을 끄기 위해 `--non-interactive` 파라미터를 추가하세요.
+
+### 에이전트 지원 매트릭스
+
+| 에이전트 | 생성 파일 | 역할 |
+|---|---|---|
+| Cursor | `.cursor/rules/deuk-agent.mdc` | IDE 규칙 진입점 |
+| GitHub Copilot | `.github/copilot-instructions.md` | Copilot 전용 실행 지침 |
+| Codex / OpenAI | `.codex/AGENTS.md` + `~/.codex/AGENTS.md` | 저장소 로컬 실행 가이드 + 전역 포인터 |
+| Claude | `CLAUDE.md` | Claude 프로젝트 포인터 |
+| Gemini / Antigravity | `gemini.md` | Gemini 루트 규칙 파일 |
+| Windsurf | `.windsurf/rules/deuk-agent.md` | Windsurf 프로젝트 규칙 파일 |
+| JetBrains AI | `.aiassistant/rules/deuk-agent.md` | JetBrains AI 프로젝트 규칙 파일 |
+
+정본은 항상 `AGENTS.md`이며, 각 spoke 파일은 에이전트별 빠른 진입 문서로 동작해요.
 
 ### 🔄 규칙 패키지 업데이트 (Update Rules)
 새로운 에이전트 워크플로우나 템플릿이 릴리즈되었을 경우, 패키지를 최신 버전으로 갱신하고 `init` 명령을 재실행하여 변경 사항을 쉽게 프로젝트에 동기화할 수 있습니다.
@@ -155,6 +169,11 @@ AI는 `AGENTS.md`에 정의된 **[TICKET VERIFICATION RULE]**에 따라 즉시 3
 
 ### 2. 티켓 기반 타깃 작업 시작 (권장)
 > *"방금 설치/발급된 `.deuk-agent-ticket/TICKET-XXX.md` 티켓을 열고, 현재 저장소(Target Submodule) 경로 내에서만 파일 탐색 및 작업을 진행해. 다른 서브모듈로 벗어나거나 임의의 파일을 건드리지 마."*
+
+### 3. Copilot / Codex 시작 프롬프트 (권장)
+> *"`AGENTS.md`를 먼저 읽고, 현재 티켓을 실행 정본으로 사용해. plan 문서가 연결돼 있으면 상세 설계 참고용으로만 열어."*
+
+> *"멀티스텝 작업은 티켓 없이 진행하지 말고, 선언된 서브모듈 범위를 벗어나지 마. 같은 오류가 반복되면 멈추고 티켓을 갱신해."*
 
 ---
 

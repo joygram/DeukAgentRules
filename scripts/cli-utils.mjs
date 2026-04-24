@@ -33,6 +33,8 @@ export const STACKS = [
 
 export const AGENT_TOOLS = [
   { label: "Cursor (Rule System)", value: "cursor" },
+  { label: "GitHub Copilot", value: "copilot" },
+  { label: "Codex / OpenAI", value: "codex" },
   { label: "Gemini / Antigravity", value: "gemini" },
   { label: "Claude / Dev", value: "claude" },
 ];

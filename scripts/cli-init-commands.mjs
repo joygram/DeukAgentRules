@@ -155,9 +155,16 @@ const SPOKE_REGISTRY = [
   },
   {
     id: "copilot",
-    detect: (cwd) => existsSync(join(cwd, ".github")),
+    detect: (cwd, selectedTools = []) => selectedTools.includes("copilot") || existsSync(join(cwd, ".github")),
     legacy: null,
     target: ".github/copilot-instructions.md",
+    format: "markdown",
+  },
+  {
+    id: "codex",
+    detect: (cwd, selectedTools = []) => selectedTools.includes("codex") || existsSync(join(cwd, ".codex")),
+    legacy: null,
+    target: ".codex/AGENTS.md",
     format: "markdown",
   },
   {
@@ -186,18 +193,38 @@ const SPOKE_REGISTRY = [
 function generateSpokeContent(spoke) {
   const depth = spoke.target.split('/').length - 1;
   const prefix = depth > 0 ? '../'.repeat(depth) : './';
-  
-  const commonContent = `# Deuk Agent Rules
+
+  const baseIntro = `# Deuk Agent Rules
 
 This project follows the Deuk Agent Rules framework.
 - Read the full rules: [AGENTS.md](${prefix}AGENTS.md)
 - Module-specific rules: [.deuk-agent/rules/](${prefix}.deuk-agent/rules/)
+`;
 
-## Critical Rules
+  const commonRules = `## Critical Rules
 - Use \`.deuk-agent/templates/TICKET_TEMPLATE.md\` for multi-step tasks.
 - RAG-First: Use MCP tools before local file search when available.
 - Error Loop Prevention: Stop after 2 repeated errors, create a ticket.
 `;
+
+  const agentSpecificRules = {
+    copilot: `## Copilot Execution Rules
+- Treat this file as the fast-start entrypoint for Copilot chat sessions.
+- Read \`AGENTS.md\` before implementing broad or multi-file changes.
+- Use a ticket before multi-step work; do not improvise scope outside the ticket.
+- If MCP is available, search rules and tickets first; otherwise fall back to local files.
+- Keep changes inside the declared submodule and stop after two repeated errors.
+`,
+    codex: `## Codex Execution Rules
+- This repository-local Codex guide supplements the global \`~/.codex/AGENTS.md\` pointer.
+- Start from the local \`AGENTS.md\`, then open the latest or assigned ticket before editing code.
+- Use the ticket as the execution contract and the linked plan as detailed design reference.
+- Prefer MCP ticket/rule lookup first when available; fall back locally without looping on MCP errors.
+- Do not expand scope beyond the active ticket or silently refactor unrelated modules.
+`,
+  };
+
+  const content = `${baseIntro}${agentSpecificRules[spoke.id] || ""}\n${commonRules}`;
 
   if (spoke.format === "mdc") {
     return `---
@@ -205,9 +232,9 @@ description: "Deuk Agent Rules - Project conventions and ticket workflow"
 globs: ["**/*"]
 alwaysApply: true
 ---
-${commonContent}`;
+${content}`;
   }
-  return `<!-- deuk-agent-rule:begin -->\n${commonContent}\n<!-- deuk-agent-rule:end -->\n`;
+  return `<!-- deuk-agent-rule:begin -->\n${content}\n<!-- deuk-agent-rule:end -->\n`;
 }
 
 function generateLegacyDeprecationNotice(spoke) {
@@ -219,9 +246,9 @@ This file is deprecated. Rules have moved to:
 `;
 }
 
-function deploySpokePointers(cwd, dryRun) {
+function deploySpokePointers(cwd, dryRun, selectedTools = []) {
   for (const spoke of SPOKE_REGISTRY) {
-    if (!spoke.detect(cwd)) continue;
+    if (!spoke.detect(cwd, selectedTools)) continue;
     
     const targetPath = join(cwd, spoke.target);
     const targetDir = dirname(targetPath);
@@ -246,6 +273,7 @@ function deploySpokePointers(cwd, dryRun) {
 export async function runInit(opts, bundleRoot) {
   const savedConfig = loadInitConfig(opts.cwd) || {};
   const ignoreDirs = savedConfig.ignoreDirs;
+  const selectedTools = opts.agentTools || savedConfig.agentTools || [];
 
   // 0. Sync Global Codex Instructions
   syncGlobalCodexInstructions(opts.dryRun);
@@ -267,7 +295,7 @@ export async function runInit(opts, bundleRoot) {
     normalizeTicketPaths(subCwd, { silent: false });
 
     // 3. Spoke Pointers (e.g. .cursor/rules/deuk-agent.mdc)
-    deploySpokePointers(subCwd, opts.dryRun);
+    deploySpokePointers(subCwd, opts.dryRun, selectedTools);
 
     // 4. Agents Setup (AGENTS.md)
     let cleanBundleAgents = bundleAgents;

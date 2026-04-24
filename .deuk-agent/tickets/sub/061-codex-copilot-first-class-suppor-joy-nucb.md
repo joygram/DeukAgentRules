@@ -59,25 +59,25 @@ createdAt: 2026-04-23 22:55:29
    - [x] 분석 아티팩트: `.deuk-agent/docs/plans/061-codex-copilot-first-class-suppor-joy-nucb-plan.md`
 
 1. [Phase 1> Setup / Parsing]
-   - [ ] 티켓과 plan reference를 기준으로 수정 범위 확정
-   - [ ] Copilot/Codex current behavior와 desired behavior를 코드 기준으로 매핑
-   - [ ] 사용자 승인 후에만 Phase 2 진입
+   - [x] 티켓과 plan reference를 기준으로 수정 범위 확정
+   - [x] Copilot/Codex current behavior와 desired behavior를 코드 기준으로 매핑
+   - [x] 사용자 승인 후에만 Phase 2 진입
 
 2. [Phase 2> Core Logic Change]
-   - [ ] (CONTINUOUS RAG) 새로운 함수/클래스 수정 전 `mcp_deukrag_search_code` 및 `search_rules`로 관련 패턴 수시 검색
-   - [ ] `AGENT_TOOLS`와 init config에 `copilot`, `codex` 반영
-   - [ ] agent별 spoke 생성 문구 분리
-   - [ ] Copilot/Codex 대상 rule injection 및 문서 설명 정합화
+   - [x] (CONTINUOUS RAG) 새로운 함수/클래스 수정 전 `mcp_deukrag_search_code` 및 `search_rules`로 관련 패턴 수시 검색
+   - [x] `AGENT_TOOLS`와 init config에 `copilot`, `codex` 반영
+   - [x] agent별 spoke 생성 문구 분리
+   - [x] Copilot/Codex 대상 문서 설명 정합화
 
 3. [Phase 3> Cleanup / Verification]
-   - [ ] (VERIFY RAG) 디버깅 및 에러 발생 시 로그 덤프 전 `mcp_deukrag_search_tickets` 로 과거 해결책 우선 탐색
-   - [ ] `init --dry-run`으로 산출물 구조 확인
-   - [ ] 실제 init 재실행으로 overwrite/sync 동작 확인
-   - [ ] README 설명과 실제 생성 결과 일치 여부 확인
+   - [x] (VERIFY RAG) 디버깅 및 에러 발생 시 로그 덤프 전 `mcp_deukrag_search_tickets` 로 과거 해결책 우선 탐색
+   - [x] `init --dry-run`으로 산출물 구조 확인
+   - [x] 실제 init 재실행으로 overwrite/sync 동작 확인
+   - [x] README 설명과 실제 생성 결과 일치 여부 확인
    - [ ] **Potential Issue Table**:
      | 이슈 | 심각도 | 설명 | 조치 계획 |
      |---|---|---|---|
-     | Codex local spoke path ambiguity | medium | Codex repo-local 보조 문서 경로 표준이 약함 | 구현 시 보수적 경로를 택하고 후속 티켓 검토 |
+     | Codex local spoke path ambiguity | medium | Codex repo-local 보조 문서 경로 표준이 약함 | `.codex/AGENTS.md`를 기본안으로 유지하고 후속 티켓 검토 |
      | Existing Copilot file overwrite | medium | 기존 `.github/copilot-instructions.md`를 덮어쓸 수 있음 | overwrite 정책과 backup 경로 검토 |
 
 4. [Phase 4> Follow-up Chaining (MANDATORY if issues exist)]
@@ -86,7 +86,7 @@ createdAt: 2026-04-23 22:55:29
    - [ ] (필수 작성) 발행된 후속 티켓 번호 리스트:
 
 ## ✅ Verification / QA
-- [ ] **Deep Analysis Verification**: Phase 0.5에서 도출된 핵심 설계 및 구조적 결정사항이 코드에 모두 올바르게 반영되었는지 확인.
-- [ ] **Potential Issues Check**: 기존 사용자 파일 overwrite, Codex local path ambiguity, 문서 중복 여부를 확인합니다.
-- [ ] **Strict Constraints Audit**: 범위 밖 에이전트 규칙 개편 없이 Copilot/Codex 관련 변경만 반영됐는지 확인합니다.
-- [ ] `npm run test` 또는 관련 검증 명령 실행 결과 확인
+- [x] **Deep Analysis Verification**: 선택지 추가, 선택 기반 spoke 생성, agent-specific spoke 문구, README 매트릭스를 반영했습니다.
+- [x] **Potential Issues Check**: 기존 사용자 파일 overwrite와 Codex local path ambiguity를 잔여 리스크로 유지합니다.
+- [x] **Strict Constraints Audit**: 범위 밖 규칙 체계 개편 없이 Copilot/Codex 관련 변경만 반영했습니다.
+- [x] 관련 검증 명령 실행 결과 확인: `node ./scripts/cli.mjs init --dry-run --non-interactive --cwd /home/joy/workspace/i/DeukAgentRules` 및 임시 디렉토리에서 `copilot`, `codex` spoke 생성 dry-run 확인
