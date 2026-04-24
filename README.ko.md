@@ -15,11 +15,25 @@
 
 **English:** [README.md](https://github.com/joygram/DeukAgentRules/blob/master/README.md)
 
-Cursor, GitHub Copilot, Codex / OpenAI, Gemini / Antigravity, Claude, Windsurf, JetBrains AI Assistant 등 다양한 코딩 에이전트와 함께 활용하는 **서브모듈 격리형 협업 프레임워크**입니다. 
+Cursor, GitHub Copilot, Codex / OpenAI, Gemini / Antigravity, Claude, Windsurf, JetBrains AI Assistant 등 다양한 코딩 에이전트와 함께 활용하는 **서브모듈 격리형 협업 프레임워크**입니다.
 프로젝트 규칙(`AGENTS.md`, `.cursor/rules`)을 표준화하고, **티켓 기반 워크플로우**를 통해 쓸데없는 프롬프트 토큰 낭비와 AI의 맥락 환각(Hallucination)을 강력하게 방어합니다.
 
 > **🚀 핵심 가치:**
 > 세션당 약 1,500~2,000 토큰에 달하는 강제 로드 컨텍스트를 200~300 토큰 수준으로 압축합니다. AI가 모놀리식 전체 레포지토리를 헤매지 않도록, 작업이 속한 **"해당 서브모듈(Submodule)"** 내부에 티켓을 격리하여 가장 정확한 맥락에서 작업을 지시할 수 있습니다.
+
+### 개념 확장
+- `deuk-agent-rule`은 단순한 파일 생성기가 아니라 워크플로우 제어면(Control Plane) 역할을 해요.
+- 티켓은 실행 계약서 역할을 하며, 대상 서브모듈과 작업 범위, 단계 경계를 함께 정의해요.
+- `README.md`는 진입점이고, 상세 구조와 운영 원리는 별도 문서로 분리해 두었어요.
+- `AGENTS.md`는 저장소 안에서 실행되는 에이전트의 정본 규칙 파일이에요.
+
+### 상세 문서
+| 문서 | 용도 |
+|---|---|
+| [docs/how-it-works.ko.md](docs/how-it-works.ko.md) | 워크플로우 구조, 파일 역할, 실행 경계의 상세 설명 |
+| [docs/principles.ko.md](docs/principles.ko.md) | 운영 원리와 워크플로우가 이렇게 구성된 이유 |
+
+문서를 수정하거나 추가한 뒤에는 handoff 전에 `npm run lint:md -- <touched markdown files>`를 실행해야 해요.
 
 ### 📢 What's New in v2.4 (최신 버전 소개)
 최신 2.4 버전에서는 **Dynamic Rule Assembly(동적 룰 조립) 엔진**이 도입되어, 프로젝트 환경(예: DeukRag 활성화 여부 등)을 스크립트가 스스로 감지하고 필요한 룰만 조합하여 `AGENTS.md`에 주입합니다.
@@ -53,7 +67,7 @@ deuk-agent-rule init
 2. **실행 속도 최적화**: 매번 임시로 패키지를 다운로드/확인하는 `npx` 방식 대비 챗봇 에이전트가 즉각적으로 CLI 응답을 받을 수 있습니다.
 3. **크로스 레포지토리 일관성**: Deuk Family의 여러 서브모듈 및 독립된 마이크로서비스 저장소들을 오가며 항상 동일한 버전의 에이전트 룰 엔진을 적용할 수 있습니다.
 
-초기화 시 프로젝트의 **기술 스택**, **사용 중인 에이전트 툴**, 그리고 **티켓 공유 정책**을 묻는 대화형 질문이 나타납니다. 
+초기화 시 프로젝트의 **기술 스택**, **사용 중인 에이전트 툴**, 그리고 **티켓 공유 정책**을 묻는 대화형 질문이 나타납니다.
 - **티켓 공유 정책**: 각 저장소 단위의 `.deuk-agent-ticket/` 폴더를 Git으로 추적하여 팀과 공유할지, 아니면 로컬 전용으로 둘지 결정합니다.
 - 스택 변경이 필요 없으면 이후에는 `deuk-agent-rule init`만 쳐서 규칙을 최신화할 수 있습니다. (전역 설치를 하지 않았다면 `npx deuk-agent-rule init`으로 대체 가능합니다.)
 - CI나 스크립트 환경에서는 대화형 입력을 끄기 위해 `--non-interactive` 파라미터를 추가하세요.
@@ -91,7 +105,7 @@ deuk-agent-rule init --non-interactive
 
 ## 🎯 핵심 워크플로우 (The Distributed Ticket Workflow)
 
-`deuk-agent-rule init`을 실행하면 현재 저장소 루트(서브모듈 포함)에 아래 두 개의 핵심 폴더가 등장합니다. 
+`deuk-agent-rule init`을 실행하면 현재 저장소 루트(서브모듈 포함)에 아래 두 개의 핵심 폴더가 등장합니다.
 
 1. **`.deuk-agent-templates/` (에이전트 템플릿)**: AI가 어떠한 양식으로 작업을 처리하고 보고해야 하는지 정의된 공식 뼈대(`TICKET_TEMPLATE.md`)가 지정됩니다.
 2. **`.deuk-agent-ticket/` (티켓 실행 공간)**: 실제 지시서(`TICKET-XXX.md`)가 발급되는 공간입니다. 서브모듈 단위로 티켓을 분산 관리할 수 있어 서브모듈만 떼어가도 히스토리가 유지됩니다. (공유 정책에 따라 `.gitignore`에 자동으로 기재될 수 있습니다.)
@@ -107,9 +121,9 @@ graph TD
 
     A(Step 1: Ticket Creation):::action --> B(Step 2: Agent Execution):::phase
     B --> C(Step 3: Verification & Closure):::phase
-    
+
     C --> D{Issues Found?}:::decision
-    
+
     D -->|Yes| E(MANDATORY Follow-up Chaining):::highlight
     E --> F(Step 4: Archiving):::action
     D -->|No| F
@@ -182,7 +196,7 @@ AI는 `AGENTS.md`에 정의된 **[TICKET VERIFICATION RULE]**에 따라 즉시 3
 업무 자동화 및 타깃 제어를 위한 상세 옵션입니다.
 
 > [!NOTE]
-> **패키지 메인테이너(기여자) 전용 - 로컬 개발 환경 권한 주의사항**: 
+> **패키지 메인테이너(기여자) 전용 - 로컬 개발 환경 권한 주의사항**:
 > 일반 사용자는 해당되지 않습니다. `DeukAgentRules` 저장소 내부 소스코드를 직접 수정하며 로컬 패치를 즉시 테스트하려는 메인테이너의 경우, 글로벌 캐시된 `npx deuk-agent-rule` 대신 `node ./scripts/cli.mjs`를 직접 호출해야 합니다.
 > - **Linux/macOS**: 로컬 심링크(`npm link`) 생성 시 `sudo` 권한이 필요할 수 있으며, 스크립트를 직접 실행(`./scripts/cli.mjs`)할 경우 실행 권한(`chmod +x`) 이슈가 발생할 수 있으므로 `node` 명령어를 통한 명시적 호출이 가장 안전합니다.
 > - **Windows**: `npm link` 사용 시 관리자 권한(또는 개발자 모드)이 필요하며, PowerShell 스크립트 실행 정책(Execution Policy)에 의해 래퍼 스크립트가 차단될 수 있으므로 권한 제약이 없는 `node ./scripts/cli.mjs` 호출 방식을 권장합니다.
@@ -219,7 +233,7 @@ AI는 `AGENTS.md`에 정의된 **[TICKET VERIFICATION RULE]**에 따라 즉시 3
    * Patch (버그 수정): `npm run bump:patch`
    * Minor (기능 추가): `npm run bump:minor`
    * Major (룰/템플릿 대격변): `npm run bump:major`
-   
+
    위 명령어를 실행하면 내부적으로 `commit-and-tag-version` 툴이 작동되어 `package.json` 버전 상향, `CHANGELOG.md` 자동 갱신 요약, 릴리즈 커밋, 그리고 태깅 작업까지 한번에 즉시 처리됩니다.
 3. **분산 배포 보정 (OSS Sync)**: 에이전트를 통해 `npm run sync:oss`를 실행하면 자동화 스크립트가 릴리즈 에셋을 스캔하여 OSS 미러 저장소(`DeukAgentRulesOSS`)로 최종적인 퍼블리시 버전을 복제 및 반영합니다.
 

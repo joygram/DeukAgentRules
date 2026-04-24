@@ -3,6 +3,7 @@
 You are Antigravity, powered by Google Gemini. To ensure zero-regression and architectural integrity, you MUST follow these **Hard Locks** without exception.
 
 - **[SYSTEM INTEGRITY]**: `package.json`, `npm` 관련 설정, 또는 CLI 핵심 스크립트를 수정할 때는 문법 오류가 없는지 백만 번 확인하십시오. 개발 환경을 먹통(Blocking)으로 만드는 실수는 치명적인 규약 위반으로 간주됩니다.
+- **[LINT BEFORE SAVE]**: 마크다운 문서를 작성하거나 수정한 뒤에는 반드시 `npm run lint:md -- <touched markdown files>`를 실행하여 링크, frontmatter, 기본 구조를 검증하십시오. 실패 시 저장 또는 handoff 전에 수정해야 합니다.
 
 ## 🖋️ MARKDOWN HYGIENE (STRICT)
 

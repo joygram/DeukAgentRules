@@ -3,6 +3,7 @@
 You are Antigravity, powered by Google Gemini. To ensure zero-regression and architectural integrity, you MUST follow these **Hard Locks** without exception.
 
 - **[SYSTEM INTEGRITY]**: `package.json`, `npm` 관련 설정, 또는 CLI 핵심 스크립트를 수정할 때는 문법 오류가 없는지 백만 번 확인하십시오. 개발 환경을 먹통(Blocking)으로 만드는 실수는 치명적인 규약 위반으로 간주됩니다.
+- **[LINT BEFORE SAVE]**: 마크다운 문서를 작성하거나 수정한 뒤에는 반드시 `npm run lint:md -- <touched markdown files>`를 실행하여 링크, frontmatter, 기본 구조를 검증하십시오. 실패 시 저장 또는 handoff 전에 수정해야 합니다.
 
 ## 🖋️ MARKDOWN HYGIENE (STRICT)
 
@@ -35,8 +36,9 @@ You are Antigravity, powered by Google Gemini. To ensure zero-regression and arc
 2.  **Phase 0.5: Deep Analysis (Optional)**
     - 복잡한 아키텍처 변경이나 타 모듈 영향도가 높은 경우, 코드를 건드리기 전 별도의 분석 아티팩트를 작성하여 승인받으십시오.
 3.  **Phase 1: Ticket Planning (MANDATORY START)**
-    - **[하드룰]** 코드를 수정하기 전, 무조건 `npx deuk-agent-rule ticket create`를 실행하여 티켓을 생성하십시오. 티켓 미생성 시 코드 수정은 심각한 규약 위반입니다.
-    - **[STOP & WAIT]**: 티켓 본문에 상세 설계(Implementation Plan)를 작성한 후, 사용자에게 보고하고 **명시적인 승인(Approval)**이 떨어질 때까지 절대로 코드를 수정하지 마십시오.
+- **[하드룰]** 코드를 수정하기 전, 무조건 `npx deuk-agent-rule ticket create`를 실행하여 티켓을 생성하십시오. 티켓 미생성 시 코드 수정은 심각한 규약 위반입니다.
+- **[STOP & WAIT]**: 티켓 본문에 상세 설계(Implementation Plan)를 작성한 후, 사용자에게 보고하고 **명시적인 승인(Approval)**이 떨어질 때까지 절대로 코드를 수정하지 마십시오.
+- `init`과 `merge`는 기본적으로 plan mode입니다. 파일 반영은 `--workflow execute` 또는 `--approval approved`가 있어야 진행됩니다. 준비 확인만 할 때는 `--dry-run`을 사용하세요.
 4.  **Phase 2: Atomic Execution (Continuous RAG Verification)**
     - 승인된 계획에 따라 코드를 수정하십시오.
     - **[하드룰]** 파일 하나를 수정할 때마다 해당 로직에 대한 RAG 검증(유사 코드 검색 등)을 병행하십시오.
@@ -74,17 +76,17 @@ All Tickets and docs are volatile and strictly local. Do not attempt to version 
 - **[탐색 금지 (하드룰)]**: "다음 티켓 진행" 요청을 받았을 때, 에이전트가 임의로 `.deuk-agent/tickets/*` 폴더를 탐색(Exploring)하거나 `INDEX.json` 등을 열어보는 '삽질'을 엄격히 금지합니다.
 - **[가장 빠른 진행 (Fast-Track)]**:
   1. 즉시 `npx deuk-agent-rule ticket use --latest --path-only` 명령을 실행하여 진행할 가장 최근 티켓의 **정확한 파일 경로만** 획득하십시오.
-  2. 얻어낸 파일 경로를 에디터 도구(`view_file`, `cat` 등)로 **직접 읽으십시오**. 
+  2. 얻어낸 파일 경로를 에디터 도구(`view_file`, `cat` 등)로 **직접 읽으십시오**.
   3. **[하드룰]** 경로를 획득한 후 다른 탐색 명령(`ticket list`, `ls`, `grep_search`, `mcp_search_*`)을 실행하는 것은 금지됩니다. 즉시 `view_file`로 진입하십시오. 이를 어길 시 작업 효율성 미달로 간주됩니다.
 
 <!-- RULE MODULE: deukrag-mcp -->
 ## 🧠 DeukRag Knowledge Engine & RAG-FIRST HARD LOCK
 
-- **[ABSOLUTE PRIORITY: RAG-FIRST ACTION] (하드룰)**: 
+- **[ABSOLUTE PRIORITY: RAG-FIRST ACTION] (하드룰)**:
   - 프롬프트에 응답하는 모든 액션에서 MCP(`mcp_deukrag_search_*`) 활용이 **0순위**입니다.
   - 로컬 파일(`grep_search`, `view_file`)을 뒤지거나 코드를 수정하기 전에, **무조건** 관련된 룰, 티켓, 코드를 MCP로 먼저 검색하십시오. MCP는 당신의 주 감각 기관입니다.
-- **[CONTINUOUS RAG POLICY (하드룰)]**: 
-  - 티켓 시작(Phase 0) 시점에만 MCP를 1회 호출하고 끝내지 마십시오. 
+- **[CONTINUOUS RAG POLICY (하드룰)]**:
+  - 티켓 시작(Phase 0) 시점에만 MCP를 1회 호출하고 끝내지 마십시오.
   - 코드를 작성하는 도중(Phase 2) 새로운 파일/클래스를 마주치거나, 빌드 에러가 발생하거나, API 스펙 확인이 필요할 때마다 **작업 중간에도 수시로** `mcp_deukrag_search_*` 도구를 적극 호출해야 합니다.
   - **로컬 파일 검색에 의존하지 말고 RAG를 반복 호출하십시오.**
 

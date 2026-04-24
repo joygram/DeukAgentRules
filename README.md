@@ -21,6 +21,20 @@ It standardizes project rules (`AGENTS.md`, `.cursor/rules`) and strongly preven
 > **🚀 Core Value:**
 > Compresses the mandatory loaded context of approx. 1,500~2,000 tokens per session down to a mere 200~300 tokens. By isolating the AI to a specific **"Target Submodule"** using exact tickets (work orders), it prevents the AI from wandering through an entire monolithic repository.
 
+### Concept Map
+- `deuk-agent-rule` is a workflow control plane, not just a file generator.
+- A ticket is the execution contract: it defines the target submodule, scope, and phase boundaries.
+- `README.md` is the entry point, while detailed structure and operating principles live in separate docs.
+- `AGENTS.md` remains the canonical runtime rule file for agents that execute inside a repository.
+
+### Detailed Docs
+| Doc | Purpose |
+|---|---|
+| [docs/how-it-works.md](docs/how-it-works.md) | Detailed workflow structure, file roles, and execution boundaries |
+| [docs/principles.md](docs/principles.md) | Operating principles and the rationale behind the workflow design |
+
+Documentation updates should be followed by `npm run lint:md -- <touched markdown files>` before handoff.
+
 ### 📢 What's New in v2.4
 In the latest v2.4 release, the **Dynamic Rule Assembly Engine** has been introduced. The script automatically detects your project environment (e.g., DeukRag MCP integration) and injects only the necessary context-aware rules into `AGENTS.md`.
 The CLI ticketing system has also been upgraded: running `deuk-agent-rule ticket create` now automatically scaffolds design Plan documents and links them to the ticket, heavily reinforcing the Phase-based issue tracking workflow.
@@ -106,9 +120,9 @@ graph TD
 
     A(Step 1: Ticket Creation):::action --> B(Step 2: Agent Execution):::phase
     B --> C(Step 3: Verification & Closure):::phase
-    
+
     C --> D{Issues Found?}:::decision
-    
+
     D -->|Yes| E(MANDATORY Follow-up Chaining):::highlight
     E --> F(Step 4: Archiving):::action
     D -->|No| F
@@ -218,7 +232,7 @@ Before pushing any core updates, system templates, or feature changes to this pa
    * Patch (Bug fixes): `npm run bump:patch`
    * Minor (New features): `npm run bump:minor`
    * Major (Core/Breaking changes): `npm run bump:major`
-   
+
    Executing the bump command will trigger the `commit-and-tag-version` pipeline: it bumps the version in `package.json`, auto-generates the `CHANGELOG.md` log, creates a release commit, and applies the release tag.
 3. **Synchronize & Mirror (OSS Sync)**: As a final step, ask your agent to run `npm run sync:oss`. The automation script will clean the release assets and push the bundled versions to the mirror repository (`DeukAgentRulesOSS`).
 
