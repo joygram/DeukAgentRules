@@ -17,6 +17,7 @@
 
 ## 🏗️ Design Decisions (Refer to Plan)
 - **Plan Reference**: <%- meta.planLink %>
+- **Plan Path Rule**: `.deuk-agent/docs/plans/<ticket-id>-plan.md`
 - [Briefly restate critical decisions if necessary]
 
 ## 🛑 Strict Constraints (Rules to never break)

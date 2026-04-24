@@ -98,6 +98,7 @@ All Tickets and docs are volatile and strictly local. Do not attempt to version 
 `.deuk-agent/docs/plans/`와 `walkthroughs/`의 파일은 DeukRag에 의해 자동 인덱싱되어 과거 설계 히스토리를 차기 세션에서 `mcp_deukrag_search_tickets`로 검색할 수 있습니다.
 
 ### 🚀 Ticket Finding & Starting Protocol (Anti-Shoveling Rule)
+- **[JSON 조작 절대 금지 (하드룰)]**: 절대 `sed`, `awk`, `echo` 등의 텍스트 정규식 치환 명령어나 스크립트를 사용하여 `.deuk-agent/tickets/INDEX.json` 혹은 티켓 파일에 강제로 데이터를 끼워 넣거나 수정하지 마십시오. 새로운 티켓 생성은 오로지 `npx deuk-agent-rule ticket create` 명령어를 통해서만 수행해야 합니다. 이를 어길 시 심각한 규약 위반으로 간주됩니다.
 - **[탐색 금지 (하드룰)]**: "다음 티켓 진행" 요청을 받았을 때, 에이전트가 임의로 `.deuk-agent/tickets/*` 폴더를 탐색(Exploring)하거나 `INDEX.json` 등을 열어보는 '삽질'을 엄격히 금지합니다.
 - **[가장 빠른 진행 (Fast-Track)]**:
   1. 즉시 `npx deuk-agent-rule ticket use --latest --path-only` 명령을 실행하여 진행할 가장 최근 티켓의 **정확한 파일 경로만** 획득하십시오.

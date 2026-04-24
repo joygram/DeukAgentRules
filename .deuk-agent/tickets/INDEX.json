@@ -1,17 +1,45 @@
 {
   "version": 1,
-  "updatedAt": "2026-04-23T00:22:02.905Z",
-  "activeTicketId": "059-add-codex-cli-support-joy-nucb",
+  "updatedAt": "2026-04-23T23:26:26.584Z",
+  "activeTicketId": "061-codex-copilot-first-class-suppor-joy-nucb",
   "entries": [
+    {
+      "id": "061-codex-copilot-first-class-suppor-joy-nucb",
+      "title": "codex-copilot-first-class-support",
+      "topic": "061-codex-copilot-first-class-suppor-joy-nucb",
+      "group": "sub",
+      "project": "DeukAgentRules",
+      "submodule": "",
+      "createdAt": "2026-04-23 22:55:29",
+      "updatedAt": "2026-04-23T22:55:29.325Z",
+      "path": ".deuk-agent/tickets/sub/061-codex-copilot-first-class-suppor-joy-nucb.md",
+      "source": "ticket-sync",
+      "status": "open"
+    },
+    {
+      "id": "060-harden-anti-shoveling-joy-nucb",
+      "title": "harden-anti-shoveling",
+      "topic": "060-harden-anti-shoveling-joy-nucb",
+      "group": "global",
+      "project": "DeukAgentRules",
+      "submodule": "",
+      "createdAt": "2026-04-23 13:05:42",
+      "updatedAt": "2026-04-23T13:07:15.036Z",
+      "path": ".deuk-agent/tickets/archive/global/060-harden-anti-shoveling-joy-nucb.md",
+      "source": "ticket-sync",
+      "status": "archived"
+    },
     {
       "id": "059-add-codex-cli-support-joy-nucb",
       "title": "add-codex-cli-support",
-      "topic": "add-codex-cli-support",
+      "topic": "059-add-codex-cli-support-joy-nucb",
       "group": "sub",
       "project": "global",
-      "createdAt": "2026-04-23T00:22:02.905Z",
+      "submodule": "",
+      "createdAt": "2026-04-23 00:22:02",
+      "updatedAt": "2026-04-23T00:56:24.682Z",
       "path": ".deuk-agent/tickets/sub/059-add-codex-cli-support-joy-nucb.md",
-      "source": "ticket-create",
+      "source": "ticket-sync",
       "status": "open"
     },
     {
@@ -22,7 +50,7 @@
       "project": "global",
       "submodule": "",
       "createdAt": "2026-04-23 00:08:57",
-      "updatedAt": "2026-04-23T00:08:57.886Z",
+      "updatedAt": "2026-04-23T00:22:02.902Z",
       "path": ".deuk-agent/tickets/sub/058-second-chain-link-joy-nucb.md",
       "source": "ticket-sync",
       "status": "open"
@@ -48,7 +76,7 @@
       "project": "DeukAgentRules",
       "submodule": "",
       "createdAt": "2026-04-23 00:07:38",
-      "updatedAt": "2026-04-23T00:07:38.509Z",
+      "updatedAt": "2026-04-23T00:09:29.256Z",
       "path": ".deuk-agent/tickets/sub/056-ticket-chaining-feature-joy-nucb.md",
       "source": "ticket-sync",
       "status": "open"
@@ -67,7 +95,7 @@
       "status": "open"
     },
     {
-      "id": "000-fallback-moaq4u43",
+      "id": "000-fallback-moc41vri",
       "title": "REPORT-051-agent-fast-track-hardening-joy-nucb",
       "topic": "report-051-agent-fast-track-hardening-joy-nucb",
       "group": "reports",

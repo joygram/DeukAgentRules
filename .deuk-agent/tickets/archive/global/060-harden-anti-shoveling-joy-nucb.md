@@ -1,4 +1,12 @@
-# [Execution] Task: <%= meta.title %> | ID: <%= meta.id %>
+---
+id: 060-harden-anti-shoveling-joy-nucb
+title: "harden-anti-shoveling"
+status: open
+project: DeukAgentRules
+createdAt: 2026-04-23 13:05:42
+---
+
+# [Execution] Task: harden-anti-shoveling | ID: 060-harden-anti-shoveling-joy-nucb
 
 > **[CAUTION FOR AI AGENTS]**
 > You are operating within a locked multi-module monorepo.
@@ -7,7 +15,7 @@
 > 3. DO NOT leak configuration, logic, or dependencies from other submodules.
 
 ## 🎯 Scope Bounds
-- **Target Submodule:** `<%- meta.submodule || '[e.g., DeukUI | DeukPack | DeukNavigation]' %>`
+- **Target Submodule:** `[e.g., DeukUI | DeukPack | DeukNavigation]`
 - **Context Files:** 
   - `[e.g., DeukAgentRules/templates/MODULE_RULE_TEMPLATE.md]`
   - `[e.g., path/to/your/specific/rules.md]`
@@ -16,8 +24,7 @@
 - `path/from/root/to/target1`: [Specific instructions. Don't write 'refactor', describe WHAT to refactor.]
 
 ## 🏗️ Design Decisions (Refer to Plan)
-- **Plan Reference**: <%- meta.planLink %>
-- **Plan Path Rule**: `.deuk-agent/docs/plans/<ticket-id>-plan.md`
+- **Plan Reference**: [060-harden-anti-shoveling-joy-nucb-plan.md](file:///home/joy/workspace/i/DeukAgentRules/.deuk-agent/docs/plans/060-harden-anti-shoveling-joy-nucb-plan.md)
 - [Briefly restate critical decisions if necessary]
 
 ## 🛑 Strict Constraints (Rules to never break)

@@ -60,7 +60,7 @@ export async function runTicketCreate(opts) {
     const plansDir = join(opts.cwd, AGENT_ROOT_DIR, "docs", "plans");
     const planFileName = `${ticketId}-plan.md`;
     const planAbs = join(plansDir, planFileName);
-    const planLink = `[${planFileName}](file://${planAbs})`;
+    const planLink = `[${planFileName}](file://${toPosixPath(planAbs)})`;
     
     let prevTicketEntry = null;
     if (opts.chain) {
@@ -109,12 +109,12 @@ status: open
     }
 
     // Write Plan Document
-    if (planTplText) {
-      mkdirSync(plansDir, { recursive: true });
-      const planContent = ejs.render(planTplText, { meta });
-      writeFileSync(planAbs, planContent, "utf8");
-      console.log(`Plan scaffolded: ${toFileUri(planAbs)}`);
-    }
+    mkdirSync(plansDir, { recursive: true });
+    const planContent = planTplText
+      ? ejs.render(planTplText, { meta })
+      : `# Plan: ${title}\n\n## Summary\n- 목적:\n- 범위:\n- 비범위:\n`;
+    writeFileSync(planAbs, planContent, "utf8");
+    console.log(`Plan scaffolded: ${toFileUri(planAbs)}`);
     
     // Remote Sync Hook
     const config = loadInitConfig(opts.cwd);
@@ -312,10 +312,11 @@ export async function runTicketArchive(opts) {
     if (!existsSync(reportSrc)) {
       throw new Error("ticket archive: report file not found " + opts.report);
     }
-    const reportDir = join(ticketDir, "reports");
+    const reportDir = join(opts.cwd, AGENT_ROOT_DIR, "docs", "walkthroughs");
     if (!opts.dryRun) mkdirSync(reportDir, { recursive: true });
     
-    const reportDest = join(reportDir, `REPORT-${fileName}`);
+    const reportBaseName = fileName.replace(/\.md$/i, "-report.md");
+    const reportDest = join(reportDir, reportBaseName);
     if (!opts.dryRun) copyFileSync(reportSrc, reportDest);
     console.log("ticket archive: copied report to " + toFileUri(reportDest));
     
@@ -349,13 +350,13 @@ export async function runTicketArchive(opts) {
 export async function runTicketReports(opts) {
   const ticketDir = detectConsumerTicketDir(opts.cwd);
   if (!ticketDir) throw new Error("No ticket system found.");
-  const reportDir = join(ticketDir, "reports");
+  const reportDir = join(opts.cwd, AGENT_ROOT_DIR, "docs", "walkthroughs");
   console.log("\n📄 Agent Reports:");
   if (!existsSync(reportDir)) {
     console.log("  No reports found.");
     return;
   }
-  const files = readdirSync(reportDir).filter(f => f.startsWith("REPORT-") && f.endsWith(".md"));
+  const files = readdirSync(reportDir).filter(f => f.endsWith("-report.md"));
   if (files.length === 0) {
     console.log("  No reports found.");
     return;
