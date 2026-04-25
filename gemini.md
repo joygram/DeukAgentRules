@@ -28,7 +28,7 @@ You are Antigravity, powered by Google Gemini. To ensure zero-regression and arc
 <!-- RULE MODULE: core-workflow -->
 ## 🔗 Modernized Ticket-Driven Development (TDD)
 
-에이전트는 모든 작업 수행 시 반드시 아래 워크플로우를 준수해야 하며, RAG 엔진(`DeukContext`)이 전체 프로세스의 "Single Source of Truth"가 되어야 합니다.
+에이전트는 모든 작업 수행 시 반드시 아래 워크플로우를 준수해야 하며, Context 엔진(`DeukContext`)이 전체 프로세스의 "Single Source of Truth"가 되어야 합니다.
 
 1.  **Phase 0: RAG Research (Evidence Collection)**
     - `mcp_deukcontext_search_*`를 호출하여 관련 규약, 과거 티켓, 유사 구현 사례를 수집하십시오.
@@ -68,7 +68,7 @@ All Tickets and docs are volatile and strictly local. Do not attempt to version 
 - **기타 에이전트**: 인라인 출력만 가능한 경우, 설계가 필요한 작업은 직접 `.deuk-agent/docs/plans/`에 파일을 생성할 것
 
 ### RAG 보존
-`.deuk-agent/docs/plans/`와 `walkthroughs/`의 파일은 DeukContext에 의해 자동 인덱싱되어 과거 설계 히스토리를 차기 세션에서 `mcp_deukcontext_search_tickets`로 검색할 수 있습니다.
+`.deuk-agent/docs/plans/`와 `walkthroughs/`의 파일은 DeukContext에 의해 자동 인덱싱되어 과거 설계 히스토리 및 컨텍스트를 차기 세션에서 `mcp_deukcontext_search_tickets`로 검색할 수 있습니다.
 
 ### 🚀 Ticket Finding & Starting Protocol (Anti-Shoveling Rule)
 - **[JSON 조작 절대 금지 (하드룰)]**: 절대 `sed`, `awk`, `echo` 등의 텍스트 정규식 치환 명령어나 스크립트를 사용하여 `.deuk-agent/tickets/INDEX.json` 혹은 티켓 파일에 강제로 데이터를 끼워 넣거나 수정하지 마십시오. 새로운 티켓 생성은 오로지 `npx deuk-agent-rule ticket create` 명령어를 통해서만 수행해야 합니다. 이를 어길 시 심각한 규약 위반으로 간주됩니다.
@@ -77,3 +77,38 @@ All Tickets and docs are volatile and strictly local. Do not attempt to version 
   1. 즉시 `npx deuk-agent-rule ticket use --latest --path-only` 명령을 실행하여 진행할 가장 최근 티켓의 **정확한 파일 경로만** 획득하십시오.
   2. 얻어낸 파일 경로를 에디터 도구(`view_file`, `cat` 등)로 **직접 읽으십시오**. 
   3. **[하드룰]** 경로를 획득한 후 다른 탐색 명령(`ticket list`, `ls`, `grep_search`, `mcp_search_*`)을 실행하는 것은 금지됩니다. 즉시 `view_file`로 진입하십시오. 이를 어길 시 작업 효율성 미달로 간주됩니다.
+
+<!-- RULE MODULE: deukcontext-mcp -->
+## 🧠 DeukContext Knowledge Engine & RAG-FIRST HARD LOCK
+
+- **[ABSOLUTE PRIORITY: RAG-FIRST ACTION] (하드룰)**: 
+  - 프롬프트에 응답하는 모든 액션에서 MCP(`mcp_deukcontext_search_*`) 활용이 **0순위**입니다.
+  - 로컬 파일(`grep_search`, `view_file`)을 뒤지거나 코드를 수정하기 전에, **무조건** 관련된 룰, 티켓, 코드를 MCP로 먼저 검색하십시오. MCP는 당신의 주 감각 기관입니다.
+- **[CONTINUOUS RAG POLICY (하드룰)]**: 
+  - 티켓 시작(Phase 0) 시점에만 MCP를 1회 호출하고 끝내지 마십시오. 
+  - 코드를 작성하는 도중(Phase 2) 새로운 파일/클래스를 마주치거나, 빌드 에러가 발생하거나, API 스펙 확인이 필요할 때마다 **작업 중간에도 수시로** `mcp_deukcontext_search_*` 도구를 적극 호출해야 합니다.
+  - **로컬 파일 검색에 의존하지 말고 RAG를 반복 호출하십시오.**
+
+## 📡 RAG Connectivity & Fallback Protocol (RAG 상태별 행동 지침)
+
+에이전트는 현재 환경의 RAG(MCP) 연결 상태에 따라 아래와 같이 행동 유형을 즉시 전환해야 합니다.
+
+### State A: RAG-Normal (Strict RAG-First)
+- **상태**: MCP 도구(`mcp_deukcontext_search_*`)가 정상 작동함.
+- **행동**: 모든 분석과 코드 작성 전 반드시 RAG를 호출하십시오. 로컬 파일 검색(`grep`, `ls`)보다 RAG 결과를 우선 신뢰하십시오.
+
+### State B: RAG-Missing (Graceful Fallback)
+- **상태**: 환경에 MCP 도구가 설치되어 있지 않거나 설정되지 않음.
+- **행동**: 즉시 로컬 파일 기반 검색(`grep_search`, `list_dir`, `view_file`)으로 전환하십시오. RAG 부재를 사용자에게 불평하지 말고, 가용한 로컬 컨텍스트 내에서 최선을 다해 작업을 완수하십시오.
+
+### State C: RAG-Error (Loop Prevention)
+- **상태**: MCP 호출 시 타임아웃, 연결 오류, 또는 동일 에러가 2회 이상 반복됨.
+- **행동**: **즉시 RAG 호출을 중단**하고 State B(로컬 검색)로 강제 전환하십시오. 에러 루프에 빠져 작업 시간을 낭비하지 마십시오. 문제 상황을 `## 📜 Execution Report`에 기록하여 추후 복구 티켓을 발행할 수 있게 하십시오.
+
+### State D: RAG-Miss (Zero Results)
+- **상태**: MCP 도구가 `[RAG-MISS]` 메시지를 반환하거나 검색 결과가 없음.
+- **[MANDATORY EXECUTION CHAIN]**: `[RAG-MISS]` 인지 즉시 아래 단계를 순차 실행하십시오.
+  1. **Evidence Collection**: 즉시 `grep_search` 또는 `list_dir`을 실행하여 로컬 파일 시스템에서 관련 근거를 최소 2개 이상 확보하십시오.
+  2. **Knowledge Injection**: 수집된 근거(코드 스니펫, 파일 경로)를 `mcp_deukcontext_add_knowledge` 도구로 즉시 주입하십시오. (이 단계 없이 작업을 계속하는 것은 심각한 규약 위반입니다.)
+  3. **Verification**: 주입 후 다시 동일한 쿼리로 RAG 검색을 1회 재시도하여 지식이 정상 반영되었는지 확인하십시오.
+- **보고 의무**: 티켓이나 보고서 작성 시 반드시 "RAG Miss 발생: 로컬 검색 근거 파일 목록[...]"을 명시적으로 기록하십시오. 이 기록이 없으면 Phase 3 검증을 통과할 수 없습니다.

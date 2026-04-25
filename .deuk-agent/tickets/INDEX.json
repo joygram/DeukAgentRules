@@ -1,17 +1,58 @@
 {
   "version": 1,
-  "updatedAt": "2026-04-25T02:50:34.484Z",
-  "activeTicketId": "069-rebranding-deukrag-to-deuk-agent-joy-nucb",
+  "updatedAt": "2026-04-25T09:32:02.879Z",
+  "activeTicketId": "078-test-final-evidence-joy-nucb",
   "entries": [
+    {
+      "id": "078-test-final-evidence-joy-nucb",
+      "title": "test-final-evidence",
+      "topic": "078-test-final-evidence-joy-nucb",
+      "group": "sub",
+      "project": "global",
+      "submodule": "",
+      "createdAt": "2026-04-25 09:31:37",
+      "updatedAt": "2026-04-25T09:31:37.215Z",
+      "path": ".deuk-agent/tickets/sub/078-test-final-evidence-joy-nucb.md",
+      "source": "ticket-sync",
+      "status": "open"
+    },
+    {
+      "id": "077-test-evidence-gate-joy-nucb",
+      "title": "test-evidence-gate",
+      "topic": "077-test-evidence-gate-joy-nucb",
+      "group": "sub",
+      "project": "global",
+      "submodule": "",
+      "createdAt": "2026-04-25 09:30:40",
+      "updatedAt": "2026-04-25T09:30:40.856Z",
+      "path": ".deuk-agent/tickets/sub/077-test-evidence-gate-joy-nucb.md",
+      "source": "ticket-sync",
+      "status": "open"
+    },
+    {
+      "id": "076-enforce-phase0-rag-validation-joy-nucb",
+      "title": "076-enforce-phase0-rag-validation",
+      "topic": "076-enforce-phase0-rag-validation-joy-nucb",
+      "group": "sub",
+      "project": "DeukAgentRules",
+      "submodule": "",
+      "createdAt": "2026-04-25 09:24:43",
+      "updatedAt": "2026-04-25T09:32:02.879Z",
+      "path": ".deuk-agent/tickets/sub/076-enforce-phase0-rag-validation-joy-nucb.md",
+      "source": "ticket-sync",
+      "status": "closed"
+    },
     {
       "id": "069-rebranding-deukrag-to-deuk-agent-joy-nucb",
       "title": "rebranding-deukrag-to-deuk-agent-context",
-      "topic": "rebranding-deukrag-to-deuk-agent-context",
+      "topic": "069-rebranding-deukrag-to-deuk-agent-joy-nucb",
       "group": "sub",
       "project": "global",
-      "createdAt": "2026-04-25T02:50:34.484Z",
+      "submodule": "",
+      "createdAt": "2026-04-25 02:50:34",
+      "updatedAt": "2026-04-25T02:50:34.480Z",
       "path": ".deuk-agent/tickets/sub/069-rebranding-deukrag-to-deuk-agent-joy-nucb.md",
-      "source": "ticket-create",
+      "source": "ticket-sync",
       "status": "open"
     },
     {
@@ -22,7 +63,7 @@
       "project": "DeukAgentRules",
       "submodule": "",
       "createdAt": "2026-04-25 01:58:59",
-      "updatedAt": "2026-04-25T01:58:59.089Z",
+      "updatedAt": "2026-04-25T01:59:27.444Z",
       "path": ".deuk-agent/tickets/main/068-doc-overhaul-v3-branding-joy-nucb.md",
       "source": "ticket-sync",
       "status": "open"
@@ -184,7 +225,7 @@
       "status": "open"
     },
     {
-      "id": "000-fallback-modoy0l1",
+      "id": "000-fallback-moe54joq",
       "title": "REPORT-051-agent-fast-track-hardening-joy-nucb",
       "topic": "report-051-agent-fast-track-hardening-joy-nucb",
       "group": "reports",

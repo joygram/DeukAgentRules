@@ -25,6 +25,40 @@ export async function runTicketCreate(opts) {
   const title = opts.topic || inferred?.title || "ticket";
   const group = toSlug(opts.group || "sub");
 
+  if (!opts.evidence && !opts.skipPhase0) {
+    if (process.stdout.isTTY) {
+      const rl = createInterface({ input: process.stdin, output: process.stdout });
+      try {
+        const response = await selectOne(rl, "Did you perform Phase 0 RAG search? Please provide a brief summary of the evidence found (or press Enter to skip):", []);
+        if (response) {
+          opts.evidence = response;
+        } else {
+          opts.skipPhase0 = true;
+        }
+      } catch (e) {
+        opts.skipPhase0 = true;
+      } finally {
+        rl.close();
+      }
+    } else {
+      throw new Error("ticket create: Phase 0 RAG validation failed. Agents MUST perform Phase 0 RAG search first and provide the summary using the `--evidence` flag, or explicitly bypass using `--skip-phase0`.");
+    }
+  }
+
+  if (opts.skipPhase0) {
+    let isMcpRunning = false;
+    try {
+      const { execSync } = await import("child_process");
+      const stdout = execSync(process.platform === "win32" ? "tasklist" : "ps aux").toString();
+      isMcpRunning = stdout.includes("src.mcp.server");
+    } catch (e) {
+      // ignore
+    }
+    if (isMcpRunning) {
+      throw new Error("ticket create: --skip-phase0 is restricted and ONLY allowed when the MCP server is disconnected. The MCP server is currently running. Please perform Phase 0 RAG search and provide --evidence.");
+    }
+  }
+
   let path, source;
   if (opts.ref) {
     path = resolveReferencedTicketPath(opts);
@@ -85,6 +119,7 @@ export async function runTicketCreate(opts) {
       project: opts.project || "global",
       docsLanguage,
       planLink: planLink,
+      evidence: opts.evidence || "",
       createdAt: new Date().toISOString().replace('T', ' ').split('.')[0],
       prevTicket: prevTicketEntry ? prevTicketEntry.id : "",
     };

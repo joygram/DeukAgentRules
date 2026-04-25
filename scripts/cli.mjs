@@ -136,6 +136,8 @@ Ticket Options:
   --project <name>      Project filter (DeukUI|DeukAgentRules)
   --submodule <name>    Submodule filter (DeukPack|DeukUI)
   --docs-language <lang> auto | ko | en
+  --evidence <text>     Provide Phase 0 RAG evidence summary
+  --skip-phase0         Bypass Phase 0 RAG validation
   --latest              Use most recent ticket (default if no topic)
   --path-only           Print only the file path
   --json                Output result in JSON format

@@ -1,4 +1,11 @@
-# [실행] 작업: <%= meta.title %> | ID: <%= meta.id %>
+---
+id: 077-test-evidence-gate-joy-nucb
+title: "test-evidence-gate"
+status: open
+createdAt: 2026-04-25 09:30:40
+---
+
+# [실행] 작업: test-evidence-gate | ID: 077-test-evidence-gate-joy-nucb
 
 > **[에이전트 주의]**
 > 이 작업은 잠긴 멀티 모듈 모노레포 안에서 진행돼요.
@@ -7,7 +14,7 @@
 > 3. 다른 서브모듈의 설정, 로직, 의존성을 섞어 쓰지 마세요.
 
 ## 🎯 범위
-- **Target Submodule:** `<%- meta.submodule || '[예: DeukUI | DeukPack | DeukNavigation]' %>`
+- **Target Submodule:** `[예: DeukUI | DeukPack | DeukNavigation]`
 - **Context Files:**
   - `[예: DeukAgentRules/templates/MODULE_RULE_TEMPLATE.md]`
   - `[예: path/to/your/specific/rules.md]`
@@ -16,7 +23,7 @@
 - `path/from/root/to/target1`: [무엇을 수정하는지 구체적으로 적으세요.]
 
 ## 🏗️ 설계 결정사항
-- **Plan Reference**: <%- meta.planLink %>
+- **Plan Reference**: [077-test-evidence-gate-joy-nucb-plan.md](file:///home/joy/workspace/DeukAgentRules/.deuk-agent/docs/plans/077-test-evidence-gate-joy-nucb-plan.md)
 - **Plan Path Rule**: `.deuk-agent/docs/plans/<ticket-id>-plan.md`
 - [필요한 핵심 결정을 간단히 적으세요]
 
@@ -27,10 +34,10 @@
 > Agent: Phase 3 전에 Phase 1이 완전히 검증되기 전까지는 진행하지 마세요.
 
 0. [Phase 0> RAG 조사 (MCP)]
-   - [ ] `mcp_deukcontext_search_rules` 기반 규약 검토 완료
-   - [ ] `mcp_deukcontext_search_tickets` 과거 유사 티켓 이력 열람 완료
+   - [ ] `mcp_deukrag_search_rules` 기반 규약 검토 완료
+   - [ ] `mcp_deukrag_search_tickets` 과거 유사 티켓 이력 열람 완료
    - [ ] (필수 작성) 검색된 핵심 컨텍스트 요약:
-   - [ ] (RAG Miss 시 필수 작성) 로컬 검색 결과 `mcp_deukcontext_add_knowledge` 도구로 즉시 주입 완료 여부 및 주입된 파일 목록:
+   - [ ] (RAG Miss 시 필수 작성) 로컬 검색 결과 `mcp_deukrag_add_knowledge` 도구로 즉시 주입 완료 여부 및 주입된 파일 목록:
 
 0.5 [Phase 0.5> 심층 분석 (선택)]
    - [ ] 복잡한 아키텍처 변경 시 별도 분석 아티팩트 작성 및 승인 완료
@@ -38,10 +45,10 @@
 1. [Phase 1> 준비 / 파싱]
 
 2. [Phase 2> 핵심 로직 변경]
-   - [ ] (CONTINUOUS RAG) 새로운 함수/클래스 수정 전 `mcp_deukcontext_search_code` 및 `search_rules`로 관련 패턴 수시 검색
+   - [ ] (CONTINUOUS RAG) 새로운 함수/클래스 수정 전 `mcp_deukrag_search_code` 및 `search_rules`로 관련 패턴 수시 검색
 
 3. [Phase 3> 정리 / 검증]
-   - [ ] (VERIFY RAG) 디버깅 및 에러 발생 시 로그 덤프 전 `mcp_deukcontext_search_tickets` 로 과거 해결책 우선 탐색
+   - [ ] (VERIFY RAG) 디버깅 및 에러 발생 시 로그 덤프 전 `mcp_deukrag_search_tickets` 로 과거 해결책 우선 탐색
    - [ ] **Potential Issue Table**:
      | 이슈 | 심각도 | 설명 | 조치 계획 |
      |---|---|---|---|

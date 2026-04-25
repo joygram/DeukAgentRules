@@ -27,6 +27,8 @@ export function parseTicketArgs(argv) {
     else if (a === "--no-sync") out.sync = false;
     else if (a === "--chain") out.chain = true;
     else if (a === "--docs-language") out.docsLanguage = argv[++i];
+    else if (a === "--evidence") out.evidence = argv[++i];
+    else if (a === "--skip-phase0") out.skipPhase0 = true;
   }
   return out;
 }

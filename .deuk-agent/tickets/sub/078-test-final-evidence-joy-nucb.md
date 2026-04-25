@@ -1,4 +1,11 @@
-# [실행] 작업: <%= meta.title %> | ID: <%= meta.id %>
+---
+id: 078-test-final-evidence-joy-nucb
+title: "test-final-evidence"
+status: open
+createdAt: 2026-04-25 09:31:37
+---
+
+# [실행] 작업: test-final-evidence | ID: 078-test-final-evidence-joy-nucb
 
 > **[에이전트 주의]**
 > 이 작업은 잠긴 멀티 모듈 모노레포 안에서 진행돼요.
@@ -7,7 +14,7 @@
 > 3. 다른 서브모듈의 설정, 로직, 의존성을 섞어 쓰지 마세요.
 
 ## 🎯 범위
-- **Target Submodule:** `<%- meta.submodule || '[예: DeukUI | DeukPack | DeukNavigation]' %>`
+- **Target Submodule:** `[예: DeukUI | DeukPack | DeukNavigation]`
 - **Context Files:**
   - `[예: DeukAgentRules/templates/MODULE_RULE_TEMPLATE.md]`
   - `[예: path/to/your/specific/rules.md]`
@@ -16,7 +23,7 @@
 - `path/from/root/to/target1`: [무엇을 수정하는지 구체적으로 적으세요.]
 
 ## 🏗️ 설계 결정사항
-- **Plan Reference**: <%- meta.planLink %>
+- **Plan Reference**: [078-test-final-evidence-joy-nucb-plan.md](file:///home/joy/workspace/DeukAgentRules/.deuk-agent/docs/plans/078-test-final-evidence-joy-nucb-plan.md)
 - **Plan Path Rule**: `.deuk-agent/docs/plans/<ticket-id>-plan.md`
 - [필요한 핵심 결정을 간단히 적으세요]
 
@@ -27,10 +34,18 @@
 > Agent: Phase 3 전에 Phase 1이 완전히 검증되기 전까지는 진행하지 마세요.
 
 0. [Phase 0> RAG 조사 (MCP)]
-   - [ ] `mcp_deukcontext_search_rules` 기반 규약 검토 완료
-   - [ ] `mcp_deukcontext_search_tickets` 과거 유사 티켓 이력 열람 완료
-   - [ ] (필수 작성) 검색된 핵심 컨텍스트 요약:
-   - [ ] (RAG Miss 시 필수 작성) 로컬 검색 결과 `mcp_deukcontext_add_knowledge` 도구로 즉시 주입 완료 여부 및 주입된 파일 목록:
+   > **[필수 작성: EVIDENCE SUMMARY]**
+   > 아래 항목은 RAG 검색(`mcp_deukcontext_search_*`) 결과를 바탕으로 작성되어야 합니다. 로컬 검색으로 대체할 수 없습니다.
+
+   ### RAG 검색 결과
+   - **유사 티켓**: 
+   - **관련 규약**: 
+   - **코드 패턴**: 
+
+   ### 발견사항 (RAG 기반)
+   - Final test evidence string
+   
+   - [ ] (RAG Miss 시 필수) `mcp_deukcontext_add_knowledge` 주입 완료:
 
 0.5 [Phase 0.5> 심층 분석 (선택)]
    - [ ] 복잡한 아키텍처 변경 시 별도 분석 아티팩트 작성 및 승인 완료
