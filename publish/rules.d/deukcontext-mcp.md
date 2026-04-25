@@ -1,17 +1,17 @@
 ---
-id: deukrag-mcp
+id: deukcontext-mcp
 condition:
-  mcp: deukrag
+  mcp: deuk-agent-context
 inject_target: ["AGENTS.md", "gemini.md"]
 ---
-## 🧠 DeukRag Knowledge Engine & RAG-FIRST HARD LOCK
+## 🧠 DeukContext Knowledge Engine & RAG-FIRST HARD LOCK
 
 - **[ABSOLUTE PRIORITY: RAG-FIRST ACTION] (하드룰)**: 
-  - 프롬프트에 응답하는 모든 액션에서 MCP(`mcp_deukrag_search_*`) 활용이 **0순위**입니다.
+  - 프롬프트에 응답하는 모든 액션에서 MCP(`mcp_deukcontext_search_*`) 활용이 **0순위**입니다.
   - 로컬 파일(`grep_search`, `view_file`)을 뒤지거나 코드를 수정하기 전에, **무조건** 관련된 룰, 티켓, 코드를 MCP로 먼저 검색하십시오. MCP는 당신의 주 감각 기관입니다.
 - **[CONTINUOUS RAG POLICY (하드룰)]**: 
   - 티켓 시작(Phase 0) 시점에만 MCP를 1회 호출하고 끝내지 마십시오. 
-  - 코드를 작성하는 도중(Phase 2) 새로운 파일/클래스를 마주치거나, 빌드 에러가 발생하거나, API 스펙 확인이 필요할 때마다 **작업 중간에도 수시로** `mcp_deukrag_search_*` 도구를 적극 호출해야 합니다.
+  - 코드를 작성하는 도중(Phase 2) 새로운 파일/클래스를 마주치거나, 빌드 에러가 발생하거나, API 스펙 확인이 필요할 때마다 **작업 중간에도 수시로** `mcp_deukcontext_search_*` 도구를 적극 호출해야 합니다.
   - **로컬 파일 검색에 의존하지 말고 RAG를 반복 호출하십시오.**
 
 ## 📡 RAG Connectivity & Fallback Protocol (RAG 상태별 행동 지침)
@@ -19,7 +19,7 @@ inject_target: ["AGENTS.md", "gemini.md"]
 에이전트는 현재 환경의 RAG(MCP) 연결 상태에 따라 아래와 같이 행동 유형을 즉시 전환해야 합니다.
 
 ### State A: RAG-Normal (Strict RAG-First)
-- **상태**: MCP 도구(`mcp_deukrag_search_*`)가 정상 작동함.
+- **상태**: MCP 도구(`mcp_deukcontext_search_*`)가 정상 작동함.
 - **행동**: 모든 분석과 코드 작성 전 반드시 RAG를 호출하십시오. 로컬 파일 검색(`grep`, `ls`)보다 RAG 결과를 우선 신뢰하십시오.
 
 ### State B: RAG-Missing (Graceful Fallback)
@@ -34,6 +34,6 @@ inject_target: ["AGENTS.md", "gemini.md"]
 - **상태**: MCP 도구가 `[RAG-MISS]` 메시지를 반환하거나 검색 결과가 없음.
 - **[MANDATORY EXECUTION CHAIN]**: `[RAG-MISS]` 인지 즉시 아래 단계를 순차 실행하십시오.
   1. **Evidence Collection**: 즉시 `grep_search` 또는 `list_dir`을 실행하여 로컬 파일 시스템에서 관련 근거를 최소 2개 이상 확보하십시오.
-  2. **Knowledge Injection**: 수집된 근거(코드 스니펫, 파일 경로)를 `mcp_deukrag_add_knowledge` 도구로 즉시 주입하십시오. (이 단계 없이 작업을 계속하는 것은 심각한 규약 위반입니다.)
+  2. **Knowledge Injection**: 수집된 근거(코드 스니펫, 파일 경로)를 `mcp_deukcontext_add_knowledge` 도구로 즉시 주입하십시오. (이 단계 없이 작업을 계속하는 것은 심각한 규약 위반입니다.)
   3. **Verification**: 주입 후 다시 동일한 쿼리로 RAG 검색을 1회 재시도하여 지식이 정상 반영되었는지 확인하십시오.
 - **보고 의무**: 티켓이나 보고서 작성 시 반드시 "RAG Miss 발생: 로컬 검색 근거 파일 목록[...]"을 명시적으로 기록하십시오. 이 기록이 없으면 Phase 3 검증을 통과할 수 없습니다.

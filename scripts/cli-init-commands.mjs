@@ -137,7 +137,7 @@ When working in a repository, always look for a local \`AGENTS.md\` or \`.deuk-a
 ## Core Directives
 - Follow TDD (Ticket-Driven Development) workflow.
 - Use \`npx deuk-agent-rule ticket create\` for new tasks.
-- Prioritize RAG search via \`mcp_deukrag_search_*\` tools.
+- Prioritize RAG search via \`mcp_deukcontext_search_*\` tools.
 - Never refactor without a ticket or explicit instruction.
 <!-- deuk-agent-rule:end -->
 `;
@@ -224,21 +224,28 @@ ${content}`;
   return `<!-- deuk-agent-rule:begin -->\n${content}\n<!-- deuk-agent-rule:end -->\n`;
 }
 
-function isDeprecatedMarker(filePath) {
+function hasCustomUserRules(filePath) {
   try {
     const content = readFileSync(filePath, "utf8");
-    return content.includes("deuk-agent-rule:deprecated") || content.includes("DEPRECATED");
+    const stripped = content.replace(/<!-- deuk-agent-rule:begin -->[\s\S]*?<!-- deuk-agent-rule:end -->/g, '');
+    return stripped.trim().length > 0;
   } catch { return false; }
 }
 
 function deploySpokePointers(cwd, dryRun, selectedTools = []) {
   for (const spoke of SPOKE_REGISTRY) {
-    // Always clean deprecated legacy files regardless of detection
+    // Always clean legacy files, but backup if they contain custom user rules
     if (spoke.legacy) {
       const legacyPath = join(cwd, spoke.legacy);
-      if (existsSync(legacyPath) && isDeprecatedMarker(legacyPath)) {
-        if (!dryRun) unlinkSync(legacyPath);
-        console.log(`[CLEANUP] removed deprecated legacy: ${spoke.legacy}`);
+      if (existsSync(legacyPath)) {
+        if (hasCustomUserRules(legacyPath)) {
+          const bakPath = legacyPath + ".bak";
+          if (!dryRun) renameSync(legacyPath, bakPath);
+          console.log(`[MIGRATE] Backed up user rules to ${spoke.legacy}.bak`);
+        } else {
+          if (!dryRun) unlinkSync(legacyPath);
+          console.log(`[CLEANUP] removed legacy: ${spoke.legacy}`);
+        }
       }
     }
 

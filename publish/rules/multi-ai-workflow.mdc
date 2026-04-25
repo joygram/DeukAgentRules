@@ -79,7 +79,7 @@ Some environments show plan-style documents in a separate panel from ordinary Ma
 
 The core philosophy of this project dictates a strict separation of 'Reasoning' and 'Execution' via boundary tickets. The definitive workflow cycle is:
 
-1. Explore & Plan (Reasoning AI): High-reasoning agents (e.g., Gemini, Claude) MUST perform Phase 0 RAG Research using `mcp_deukrag_search_*` tools to research past architectural decisions, rules, and tickets. Only after fully understanding the historical constraints through MCP should the agent explore the local codebase and propose an implementation plan. DO NOT propose a plan without checking the MCP knowledge base first.
+1. Explore & Plan (Reasoning AI): High-reasoning agents (e.g., Gemini, Claude) MUST perform Phase 0 RAG Research using `mcp_deukcontext_search_*` tools to research past architectural decisions, rules, and tickets. Only after fully understanding the historical constraints through MCP should the agent explore the local codebase and propose an implementation plan. DO NOT propose a plan without checking the MCP knowledge base first.
 2. Decision (User): The user actively reviews and approves the plan.
 3. Persist Ticket (Handoff): The reasoning agent explicitly writes the approved plan into a .deuk-agent-ticket/ Markdown file, making sure to fill out the Phase 0 MCP Research summaries.
 4. Execution (Coding AI): IDE execution agents (e.g., Cursor, Windsurf) read the single ticket and strictly execute the code without deviating from the constraints.

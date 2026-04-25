@@ -1,77 +1,58 @@
 # Principles
 
-These principles explain why the documentation and workflow are organized the way they are.
+These principles define the philosophy behind **DeukAgentRules** as an AI Engineering Orchestration Protocol.
 
-## 1. Ticket-First Execution
+## 1. Hub-Spoke Architecture (SSoT)
 
-Work starts with a ticket, not with ad hoc file editing.
+The documentation and rule system must have a single source of truth.
 
-Why:
+- **Hub**: `AGENTS.md` contains all canonical rules.
+- **Spoke**: IDE-specific files are thin pointers.
+- **Why**: Mismatched rules across IDEs create agent drift and unpredictable behavior.
 
-- it makes scope explicit
-- it gives the agent a bounded contract
-- it prevents accidental cross-module edits
+## 2. Zero-Legacy Policy
 
-## 2. Submodule Isolation
+Maintain repository cleanliness by physically purging obsolete structures.
 
-Every task should name the target submodule before execution.
+- **Why**: Legacy `.cursorrules` or stale submodule stubs confuse agents and bloat the context window.
+- **Mechanism**: Unconditional cleanup of deprecated markers and empty stubs during `init`.
 
-Why:
+## 3. Kind Src (Source Sovereignty)
 
-- the repository can contain multiple modules with different rules
-- submodule-level scope keeps agent behavior predictable
-- the same workflow can be reused across different projects
+Prioritize local development source over distributed binaries.
 
-## 3. Plan Before Mutation
+- **Why**: Distributed packages (npm) often lag behind local rule updates.
+- **Mechanism**: The Global CLI Proxy ensures that `npx` always routes to the local `scripts/cli.mjs` if present.
 
-Design belongs in the plan document. File changes belong in execution.
+## 4. Smart Backup (Custom Rule Protection)
 
-Why:
+Respect human-authored content while cleaning system-generated noise.
 
-- readers can review intent before state changes happen
-- approval can happen on a concrete design
-- the implementation can be checked against the original plan
+- **Why**: Users often add valuable custom rules to generated files.
+- **Mechanism**: Files are only deleted if they contain pure system blocks. Anything else is backed up as `*.bak`.
 
-## 4. Canonical Rule Source
+## 5. Submodule Isolation
 
-`AGENTS.md` remains the source of truth for runtime behavior.
+Execution must be bounded by a target submodule.
 
-Why:
+- **Why**: AI agents wander without boundaries. Explicit submodule locking reduces token usage and prevents scope-creep.
 
-- agents need one authoritative file during execution
-- mirrored entrypoints should remain thin
-- the workflow stays consistent across IDEs and assistants
+## 6. Plan Before Mutation
 
-## 5. README as Entry Point
+Design must be explicit before state changes occur.
 
-The README should help the reader orient themselves, not duplicate every rule.
-
-Why:
-
-- short entry points are easier to maintain
-- detailed explanations can evolve independently
-- links can point readers to the exact depth they need
-
-## 6. Bilingual Parity
-
-English and Korean documentation should describe the same workflow model.
-
-Why:
-
-- the repository is used in both languages
-- mismatched documentation creates workflow drift
-- mirrored docs reduce translation ambiguity during execution
+- **Why**: Intent should be reviewed and approved before files are modified. Separation of concerns prevents "blind coding".
 
 ## 7. Documentation Complements RAG
 
-Docs and RAG solve different parts of the same problem.
+Stable principles and dynamic knowledge must work together.
 
-Why:
+- **Docs**: Explain the stable model and operating assumptions.
+- **RAG (DeukAgentContext)**: Synchronizes engineering memory and past decisions.
+- **Why**: Together they provide the highest signal for agent intelligence.
 
-- RAG finds prior decisions quickly
-- docs explain the stable model and operating assumptions
-- together they reduce repeated interpretation errors
+## 8. Bilingual Parity
 
-## Practical Rule
+English and Korean documentation are mirrors of a single model.
 
-If the workflow changes, update the README summary and the detailed principle/structure docs together.
+- **Why**: Engineering teams are often bilingual. Mismatched docs lead to workflow fragmentation.

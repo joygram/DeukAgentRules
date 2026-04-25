@@ -1,4 +1,4 @@
-import { existsSync, readFileSync, writeFileSync, readdirSync } from "fs";
+import { existsSync, readFileSync, writeFileSync, readdirSync, mkdirSync, unlinkSync, rmSync } from "fs";
 import { basename, dirname, join, relative } from "path";
 import { pathToFileURL } from "url";
 import YAML from "yaml";
@@ -29,7 +29,7 @@ export function cleanSubmoduleStubs(cwd, dryRun) {
       try {
         if (readdirSync(modPath).length === 0) {
           if (!dryRun) {
-            import("fs").then(fs => fs.rmSync(modPath, { recursive: true, force: true }));
+            rmSync(modPath, { recursive: true, force: true });
           }
           console.log(`[CLEANUP] Removed empty submodule stub: ${modName}`);
         }
@@ -51,10 +51,10 @@ export function cleanSubmoduleStubs(cwd, dryRun) {
 
   if (gitmodulesChanged) {
     if (gitmodulesContent === "") {
-      if (!dryRun) import("fs").then(fs => fs.unlinkSync(gitmodulesPath));
+      if (!dryRun) unlinkSync(gitmodulesPath);
       console.log(`[CLEANUP] Removed empty .gitmodules`);
     } else {
-      if (!dryRun) import("fs").then(fs => fs.writeFileSync(gitmodulesPath, gitmodulesContent, "utf8"));
+      if (!dryRun) writeFileSync(gitmodulesPath, gitmodulesContent, "utf8");
     }
   }
 }
@@ -141,6 +141,10 @@ export function loadInitConfig(cwd) {
 
 export function writeInitConfig(cwd, opts) {
   const p = join(cwd, INIT_CONFIG_FILENAME);
+  const dir = dirname(p);
+  if (!existsSync(dir)) {
+    mkdirSync(dir, { recursive: true });
+  }
   const workflowMode = normalizeWorkflowMode(opts.workflowMode ?? opts.workflow ?? opts.approvalState ?? opts.approval);
   const data = {
     version: INIT_CONFIG_VERSION,
