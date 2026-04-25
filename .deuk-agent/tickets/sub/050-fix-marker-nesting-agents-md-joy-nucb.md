@@ -15,7 +15,7 @@ createdAt: 2026-04-22T04:09:24.895Z
 
 ## 🎯 Scope Bounds
 - **Target Submodule:** `DeukAgentRules`
-- **Context Files:** 
+- **Context Files:**
   - `scripts/merge-logic.mjs` — findMarkerRegion, handleAgentInject, applyAgents
   - `bundle/AGENTS.md` — 번들 소스
 

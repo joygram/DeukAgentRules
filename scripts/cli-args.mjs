@@ -5,7 +5,7 @@ export function parseTicketArgs(argv) {
     if (a === "--cwd") out.cwd = argv[++i];
     else if (a === "--dry-run") out.dryRun = true;
     else if (a === "--non-interactive") out.nonInteractive = true;
-    else if (a === "--topic") out.topic = argv[++i];
+    else if (a === "--topic" || a === "--id") out.topic = argv[++i];
     else if (a === "--group") out.group = argv[++i];
     else if (a === "--project") out.project = argv[++i];
     else if (a === "--content") out.content = argv[++i];
@@ -13,7 +13,7 @@ export function parseTicketArgs(argv) {
     else if (a === "--ref") out.ref = argv[++i];
     else if (a === "--limit") out.limit = Number(argv[++i]);
     else if (a === "--submodule") out.submodule = argv[++i];
-    else if (a === "--latest") out.latest = true;
+    else if (a === "--latest" || a === "-l") out.latest = true;
     else if (a === "--path-only") out.pathOnly = true;
     else if (a === "--print-content") out.printContent = true;
     else if (a === "--all") out.all = true;
@@ -26,6 +26,7 @@ export function parseTicketArgs(argv) {
     else if (a === "--sync") out.sync = true;
     else if (a === "--no-sync") out.sync = false;
     else if (a === "--chain") out.chain = true;
+    else if (a === "--render") out.render = true;
     else if (a === "--docs-language") out.docsLanguage = argv[++i];
     else if (a === "--evidence") out.evidence = argv[++i];
     else if (a === "--skip-phase0") out.skipPhase0 = true;

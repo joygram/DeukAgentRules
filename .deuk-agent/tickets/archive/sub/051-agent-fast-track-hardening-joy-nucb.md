@@ -3,7 +3,7 @@ id: 051-agent-fast-track-hardening-joy-nucb
 title: "agent-fast-track-hardening"
 topic: agent-fast-track-hardening
 status: open
-submodule: 
+submodule:
 project: DeukAgentRules
 createdAt: 2026-04-22T06:03:10.097Z
 ---
@@ -18,7 +18,7 @@ createdAt: 2026-04-22T06:03:10.097Z
 
 ## 🎯 Scope Bounds
 - **Target Submodule:** `[e.g., DeukUI | DeukPack | DeukNavigation]`
-- **Context Files:** 
+- **Context Files:**
   - `[e.g., DeukAgentRules/templates/MODULE_RULE_TEMPLATE.md]`
   - `[e.g., path/to/your/specific/rules.md]`
 
@@ -33,13 +33,13 @@ createdAt: 2026-04-22T06:03:10.097Z
 - [e.g., No hotpath LINQ, Async Safety, No Raw Pointers]
 
 ## 🔄 Phased Execution Steps
-> Agent: Do NOT attempt to do Phase 3 before Phase 1 is fully tested. 
+> Agent: Do NOT attempt to do Phase 3 before Phase 1 is fully tested.
 
 0. [Phase 0> RAG Research (MCP)]
    - [ ] `mcp_deukrag_search_rules` 기반 규약 검토 완료
    - [ ] `mcp_deukrag_search_tickets` 과거 유사 티켓 이력 열람 완료
-   - [ ] (필수 작성) 검색된 핵심 컨텍스트 요약: 
-   - [ ] (RAG Miss 시 필수 작성) 로컬 검색 결과 `add_knowledge` 도구로 즉시 주입 완료 여부 및 주입된 파일 목록: 
+   - [ ] (필수 작성) 검색된 핵심 컨텍스트 요약:
+   - [ ] (RAG Miss 시 필수 작성) 로컬 검색 결과 `add_knowledge` 도구로 즉시 주입 완료 여부 및 주입된 파일 목록:
 
 0.5 [Phase 0.5> Deep Analysis (Optional)]
    - [ ] 복잡한 아키텍처 변경 시 별도 분석 아티팩트 작성 및 승인 완료

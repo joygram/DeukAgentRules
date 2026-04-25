@@ -1,6 +1,7 @@
 import { existsSync, readFileSync, writeFileSync, readdirSync, mkdirSync, unlinkSync, rmSync } from "fs";
-import { basename, dirname, join, relative } from "path";
+import { basename, dirname, join, relative, resolve } from "path";
 import { pathToFileURL } from "url";
+import { createInterface } from "readline";
 import YAML from "yaml";
 
 /** Converts an absolute path to a clickable file:/// URI */
@@ -15,54 +16,24 @@ export const RULES_SUBDIR = "rules";
 export const WORKFLOW_MODE_PLAN = "plan";
 export const WORKFLOW_MODE_EXECUTE = "execute";
 
-export const PRUNE_SUBMODULE_LIST = ["DeukAgentRules", "DeukUI", "DeukPack", "DeukNavigation", "DeukSpace"];
-
-export function cleanSubmoduleStubs(cwd, dryRun) {
-  const gitmodulesPath = join(cwd, ".gitmodules");
-  let gitmodulesChanged = false;
-  let gitmodulesContent = existsSync(gitmodulesPath) ? readFileSync(gitmodulesPath, "utf8") : "";
-
-  for (const modName of PRUNE_SUBMODULE_LIST) {
-    const modPath = join(cwd, modName);
-    // Remove empty directory stub
-    if (existsSync(modPath)) {
-      try {
-        if (readdirSync(modPath).length === 0) {
-          if (!dryRun) {
-            rmSync(modPath, { recursive: true, force: true });
-          }
-          console.log(`[CLEANUP] Removed empty submodule stub: ${modName}`);
-        }
-      } catch (e) {
-        // ignore errors
-      }
-    }
-
-    // Remove section from .gitmodules
-    if (gitmodulesContent) {
-      const regex = new RegExp(`\\[submodule\\s+"${modName}"\\][\\s\\S]*?(?=\\[submodule|$)`, "g");
-      if (regex.test(gitmodulesContent)) {
-        gitmodulesContent = gitmodulesContent.replace(regex, "").trim();
-        gitmodulesChanged = true;
-        console.log(`[CLEANUP] Removed submodule reference from .gitmodules: ${modName}`);
-      }
-    }
-  }
-
-  if (gitmodulesChanged) {
-    if (gitmodulesContent === "") {
-      if (!dryRun) unlinkSync(gitmodulesPath);
-      console.log(`[CLEANUP] Removed empty .gitmodules`);
-    } else {
-      if (!dryRun) writeFileSync(gitmodulesPath, gitmodulesContent, "utf8");
-    }
-  }
-}
-
 export const TICKET_DIR_NAME = `${AGENT_ROOT_DIR}/${TICKET_SUBDIR}`;
 export const TICKET_INDEX_FILENAME = "INDEX.json";
 export const TICKET_LIST_FILENAME = "TICKET_LIST.md";
 export const TICKET_LIST_TEMPLATE_FILENAME = "TICKET_LIST.template.md";
+
+/**
+ * Computes the canonical repository-relative path for a ticket based on its state.
+ */
+export function computeTicketPath(entry) {
+  const isArchived = entry.status === "archived";
+  const parts = [
+    TICKET_DIR_NAME,
+    isArchived ? "archive" : null,
+    entry.group || "sub",
+    `${entry.id}.md`
+  ].filter(Boolean);
+  return parts.join("/");
+}
 
 export const INIT_CONFIG_FILENAME = `${AGENT_ROOT_DIR}/config.json`;
 export const LEGACY_INIT_CONFIG_FILENAME = ".deuk-agent-rule.config.json";
@@ -85,6 +56,16 @@ export const AGENT_TOOLS = [
   { label: "Claude / Dev", value: "claude" },
 ];
 
+export const SPOKE_REGISTRY = [
+  { id: "cursor", detect: (cwd) => existsSync(join(cwd, ".cursor")), legacy: ".cursorrules", target: ".cursor/rules/deuk-agent.mdc", format: "mdc" },
+  { id: "claude", detect: (cwd) => existsSync(join(cwd, "CLAUDE.md")) || existsSync(join(cwd, ".claude")), legacy: null, target: "CLAUDE.md", format: "markdown" },
+  { id: "copilot", detect: (cwd, tools = []) => tools.includes("copilot") || existsSync(join(cwd, ".github")), legacy: null, target: ".github/copilot-instructions.md", format: "markdown" },
+  { id: "codex", detect: (cwd, tools = []) => tools.includes("codex") || existsSync(join(cwd, ".codex")), legacy: null, target: ".codex/AGENTS.md", format: "markdown" },
+  { id: "windsurf", detect: (cwd) => existsSync(join(cwd, ".windsurf")), legacy: ".windsurfrules", target: ".windsurf/rules/deuk-agent.md", format: "markdown" },
+  { id: "jetbrains", detect: (cwd) => existsSync(join(cwd, ".aiassistant")) || existsSync(join(cwd, ".idea")), legacy: null, target: ".aiassistant/rules/deuk-agent.md", format: "markdown" },
+  { id: "antigravity", detect: (cwd) => existsSync(join(cwd, "GEMINI.md")) || existsSync(join(cwd, ".gemini")), legacy: null, target: "GEMINI.md", format: "markdown" }
+];
+
 export const DOC_LANGUAGE_CHOICES = [
   { label: "Auto (match system locale)", value: "auto" },
   { label: "Korean", value: "ko" },
@@ -94,8 +75,8 @@ export const DOC_LANGUAGE_CHOICES = [
 export function normalizeDocsLanguage(value) {
   const normalized = String(value || "").trim().toLowerCase();
   if (!normalized || normalized === "auto") return "auto";
-  if (["ko", "kr", "korean", "kor"].includes(normalized)) return "ko";
-  if (["en", "eng", "english"].includes(normalized)) return "en";
+  if (normalized.startsWith("ko") || normalized === "kr" || normalized === "korean") return "ko";
+  if (normalized.startsWith("en") || normalized === "english") return "en";
   return "auto";
 }
 
@@ -134,7 +115,8 @@ export function loadInitConfig(cwd) {
     j.workflowMode = workflowMode;
     j.approvalState = workflowMode === WORKFLOW_MODE_EXECUTE ? "approved" : "pending";
     return j;
-  } catch {
+  } catch (err) {
+    if (process.env.DEBUG) console.warn(`[DEBUG] Failed to parse config ${target}:`, err);
     return null;
   }
 }
@@ -186,6 +168,47 @@ export function isWorkflowExecute(opts = {}, savedConfig = null) {
   ) === WORKFLOW_MODE_EXECUTE;
 }
 
+/**
+ * Resolves the final workflow mode by checking opts, then saved config, with fallback.
+ */
+export function resolveWorkflowMode(opts = {}, savedConfig = null) {
+  return normalizeWorkflowMode(
+    opts.workflowMode ??
+    opts.workflow ??
+    opts.approval ??
+    opts.approvalState ??
+    savedConfig?.workflowMode ??
+    savedConfig?.approvalState
+  );
+}
+
+/**
+ * Strips dynamically appended rule modules from content.
+ */
+export function pruneRuleModules(content) {
+  const marker = "<!-- RULE MODULE: ";
+  const idx = content.indexOf(marker);
+  if (idx !== -1) {
+    return content.substring(0, idx).trimEnd();
+  }
+  return content.trimEnd();
+}
+
+/**
+ * Higher-order function to wrap interactive readline sessions.
+ */
+export async function withReadline(callback) {
+  if (!process.stdout.isTTY) {
+    throw new Error("Interactive terminal required.");
+  }
+  const rl = createInterface({ input: process.stdin, output: process.stdout });
+  try {
+    return await callback(rl);
+  } finally {
+    rl.close();
+  }
+}
+
 export function toPosixPath(p) {
   return p.replace(/\\/g, "/");
 }
@@ -232,20 +255,31 @@ export function findFileRecursively(dir, fileName) {
 
 export function detectProjectFromBody(body) {
   const content = String(body || "");
-  const metaMatch = content.match(/^project:\s*(.+)$/mi);
-  if (metaMatch) return metaMatch[1].trim();
-
-  const headerMatch = content.match(/^##?\s+Project:\s*(.+)$/mi);
-  if (headerMatch) return headerMatch[1].trim();
-
-  const legacyMatch = content.match(/\b(YourProject)\b/i);
-  return legacyMatch ? legacyMatch[1] : "global";
+  const lines = content.split("\n");
+  for (const line of lines) {
+    const l = line.trim();
+    if (l.toLowerCase().startsWith("project:")) {
+      return l.split(":")[1].trim();
+    }
+    if (l.startsWith("# Project:") || l.startsWith("## Project:")) {
+      return l.split(":")[1].trim();
+    }
+  }
+  return "global";
 }
 
 export function deriveTopicFromBaseName(baseName) {
-  const raw = String(baseName || "").replace(/\.md$/i, "");
-  const topic = raw.replace(/-\d{8}-\d{6}$/i, "");
-  return toSlug(topic || raw || "ticket");
+  const raw = String(baseName || "").split(".")[0];
+  // Remove trailing timestamp if present (e.g. topic-20260426-071208)
+  const parts = raw.split("-");
+  if (parts.length >= 3) {
+    const last = parts[parts.length - 1];
+    const prev = parts[parts.length - 2];
+    if (last.length === 6 && prev.length === 8) {
+      return parts.slice(0, -2).join("-");
+    }
+  }
+  return toSlug(raw);
 }
 
 export function resolveReferencedTicketPath(opts) {
@@ -264,33 +298,54 @@ export function inferRefTitleAndTopic(opts) {
   let body = "";
   try {
     body = readFileSync(refAbs, "utf8");
-  } catch {
-    body = "";
+  } catch (err) {
+    if (process.env.DEBUG) console.warn(`[DEBUG] Failed to read ref ${refAbs}:`, err);
+    return null;
   }
 
-  const taskTitleMatch = body.match(/^##\s+Task:\s*(.+)$/m);
-  const headingMatch = body.match(/^#\s+(.+)$/m);
-  const base = basename(refAbs).replace(/\.[^.]+$/, "");
+  const lines = body.split("\n");
+  let title = "";
+  for (const line of lines) {
+    const l = line.trim();
+    if (l.startsWith("## Task:")) {
+      title = l.replace("## Task:", "").trim();
+      break;
+    }
+    if (l.startsWith("# ")) {
+      title = l.replace("# ", "").trim();
+      break;
+    }
+  }
 
-  const title = (taskTitleMatch && taskTitleMatch[1]) || (headingMatch && headingMatch[1]) || base;
-  const topic = toSlug(title || base);
-
+  const base = basename(refAbs).split(".")[0];
+  const finalTitle = title || base;
   return {
-    title: String(title || base).trim(),
-    topic,
+    title: String(finalTitle).trim(),
+    topic: toSlug(finalTitle),
   };
 }
 
 export function parseFrontMatter(content) {
-  const match = content.match(/^---\r?\n([\s\S]+?)\r?\n---\r?\n?([\s\S]*)$/);
-  if (!match) return { meta: {}, content };
-  try {
-    const meta = YAML.parse(match[1]);
-    return { meta: meta || {}, content: match[2] };
-  } catch (e) {
-    console.error("YAML Parse Error:", e);
+  const lines = content.split("\n");
+  if (lines.length < 3 || lines[0].trim() !== "---") {
     return { meta: {}, content };
   }
+
+  let endIdx = -1;
+  for (let i = 1; i < lines.length; i++) {
+    if (lines[i].trim() === "---") {
+      endIdx = i;
+      break;
+    }
+  }
+
+  if (endIdx === -1) return { meta: {}, content };
+
+  const metaStr = lines.slice(1, endIdx).join("\n");
+  const bodyStr = lines.slice(endIdx + 1).join("\n");
+  // Let YAML.parse throw if malformed (intentional behavior change to prevent data loss)
+  const meta = YAML.parse(metaStr); 
+  return { meta: meta || {}, content: bodyStr };
 }
 
 export function stringifyFrontMatter(meta, content) {
@@ -348,16 +403,41 @@ export async function checkUpdateNotifier() {
 export const DEFAULT_IGNORE_DIRS = ["node_modules", ".git", ".deuk-agent", "tmp", "temp", ".tmp", ".cache"];
 
 /**
- * Recursively finds all directories containing deuk-agent ticket structures.
+ * Resolves all potential ticket directories for a given path.
+ * Returns { primary, legacy: [] }
  */
-export function discoverAllSubmodules(baseCwd, ignoreDirs = DEFAULT_IGNORE_DIRS, out = new Set()) {
+export function resolveTicketSystemPaths(cwd) {
+  return {
+    primary: join(cwd, AGENT_ROOT_DIR, TICKET_SUBDIR),
+    legacy: [
+      join(cwd, ".deuk-agent-ticket"),
+      join(cwd, ".deuk-agent-tickets")
+    ].filter(p => existsSync(p))
+  };
+}
+
+/**
+ * Detects the closest active ticket directory by traversing upwards.
+ */
+export function detectConsumerTicketDir(startDir, opts = {}) {
+  let curr = resolve(startDir);
+  while (curr && curr !== dirname(curr)) {
+    const paths = resolveTicketSystemPaths(curr);
+    if (existsSync(paths.primary)) return paths.primary;
+    if (paths.legacy.length > 0) return paths.legacy[0];
+    curr = dirname(curr);
+  }
+  return opts.createIfMissing ? resolveTicketSystemPaths(startDir).primary : null;
+}
+
+/**
+ * Unified workspace/submodule discovery.
+ */
+export function discoverAllWorkspaces(baseCwd, ignoreDirs = DEFAULT_IGNORE_DIRS, out = new Set()) {
   if (!existsSync(baseCwd)) return Array.from(out);
 
-  const hasLegacy1 = existsSync(join(baseCwd, ".deuk-agent-ticket"));
-  const hasLegacy2 = existsSync(join(baseCwd, ".deuk-agent-tickets"));
-  const hasNew = existsSync(join(baseCwd, AGENT_ROOT_DIR, TICKET_SUBDIR));
-
-  if (hasLegacy1 || hasLegacy2 || hasNew) {
+  const paths = resolveTicketSystemPaths(baseCwd);
+  if (existsSync(paths.primary) || paths.legacy.length > 0) {
     out.add(baseCwd);
   }
 
@@ -365,12 +445,52 @@ export function discoverAllSubmodules(baseCwd, ignoreDirs = DEFAULT_IGNORE_DIRS,
     const entries = readdirSync(baseCwd, { withFileTypes: true });
     for (const ent of entries) {
       if (!ent.isDirectory()) continue;
-      // Skip system or noisy directories based on ignoreDirs configuration
       if (ignoreDirs.includes(ent.name) || ent.name.startsWith(".deuk-agent")) continue;
-      discoverAllSubmodules(join(baseCwd, ent.name), ignoreDirs, out);
+      discoverAllWorkspaces(join(baseCwd, ent.name), ignoreDirs, out);
     }
-  } catch {
-    // Ignore permission errors on specific subfolders
+  } catch (err) {
+    if (process.env.DEBUG) console.warn(`[DEBUG] Failed to read directory ${baseCwd}:`, err);
   }
   return Array.from(out);
+}
+
+/**
+ * Checks if the deuk-agent-context MCP server is active for the given workspace.
+ * Detects .mcp.json, .cursor/mcp.json, or .vscode/mcp.json and pings SSE servers if applicable.
+ */
+export async function isMcpActive(cwd) {
+  const mcpPaths = [
+    join(cwd, ".mcp.json"),
+    join(cwd, ".cursor", "mcp.json"),
+    join(cwd, ".vscode", "mcp.json")
+  ];
+  for (const p of mcpPaths) {
+    if (existsSync(p)) {
+      try {
+        const config = JSON.parse(readFileSync(p, "utf8"));
+        const servers = config.mcpServers || config.servers || {};
+        const deuk = servers["deuk-agent-context"] || servers["deuk_agent_context"];
+        if (deuk) {
+          if (deuk.command) return true; // Stdio is managed by IDE
+          if (deuk.url) {
+            // SSE: Try to ping (HEAD or GET)
+            try {
+              const controller = new AbortController();
+              const timeoutId = setTimeout(() => controller.abort(), 1000);
+              const res = await fetch(deuk.url, { method: "HEAD", signal: controller.signal });
+              clearTimeout(timeoutId);
+              return res.ok;
+            } catch (err) {
+              if (process.env.DEBUG) console.warn(`[DEBUG] SSE Ping failed for ${deuk.url}:`, err);
+              return false;
+            }
+          }
+        }
+      } catch (err) {
+        if (process.env.DEBUG) console.warn(`[DEBUG] Failed to parse MCP config ${p}:`, err);
+        return false;
+      }
+    }
+  }
+  return false;
 }

@@ -15,7 +15,7 @@ createdAt: 2026-04-22 08:44:03
 
 ## 🎯 Scope Bounds
 - **Target Submodule:** `[e.g., DeukUI | DeukPack | DeukNavigation]`
-- **Context Files:** 
+- **Context Files:**
   - `[e.g., DeukAgentRules/templates/MODULE_RULE_TEMPLATE.md]`
   - `[e.g., path/to/your/specific/rules.md]`
 
@@ -30,7 +30,7 @@ createdAt: 2026-04-22 08:44:03
 - [e.g., No hotpath LINQ, Async Safety, No Raw Pointers]
 
 ## 🔄 Phased Execution Steps
-> Agent: Do NOT attempt to do Phase 3 before Phase 1 is fully tested. 
+> Agent: Do NOT attempt to do Phase 3 before Phase 1 is fully tested.
 
 0. [Phase 0> RAG Research (MCP)]
    - [x] `mcp_deukrag_search_rules` 기반 규약 검토 완료

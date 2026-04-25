@@ -1,0 +1,261 @@
+import { existsSync, readdirSync, readFileSync, statSync, mkdirSync, writeFileSync } from "fs";
+import { basename, dirname, join } from "path";
+import { 
+  AGENT_ROOT_DIR, TICKET_SUBDIR, TICKET_INDEX_FILENAME, TICKET_LIST_FILENAME, TICKET_LIST_TEMPLATE_FILENAME,
+  toPosixPath, toRepoRelativePath, makeEntryId, detectProjectFromBody, deriveTopicFromBaseName,
+  parseFrontMatter, stringifyFrontMatter, discoverAllWorkspaces, detectConsumerTicketDir
+} from "./cli-utils.mjs";
+import { readTicketIndexJson, writeTicketIndexJson } from "./cli-ticket-index.mjs";
+import ejs from "ejs";
+
+const DEFAULT_TICKET_LIST_TEMPLATE = `# Ticket List
+
+> Source index: \`<%= sourceIndex %>\`
+
+## Latest
+
+<% if (latest) { %>
+- [<%= latest.safeTitle %>](<%= latest.fileUri %>)
+- status: \`<%= latest.status %>\` / group: \`<%= latest.group %>\` / project: \`<%= latest.project %>\`
+<% } else { %>
+- No active ticket entries yet.
+<% } %>
+
+## Entries
+
+### 🚀 Active Tickets
+
+| # | Status | Pri | ID | Title | Group | Project | Created | Path |
+|---|---|---|---|---|---|---|---|---|
+<% if (activeRows.length > 0) { %>
+<% activeRows.forEach(row => { %>
+<%- row %>
+<% }) %>
+<% } else { %>
+| - | - | - | - | No active tickets | - | - | - | - |
+<% } %>
+
+### 📦 Archived Tickets
+
+| # | Status | Pri | ID | Title | Group | Project | Created | Path |
+|---|---|---|---|---|---|---|---|---|
+<% if (archivedRows.length > 0) { %>
+<% archivedRows.forEach(row => { %>
+<%- row %>
+<% }) %>
+<% } else { %>
+| - | - | - | - | No archived tickets | - | - | - | - |
+<% } %>
+
+## Commands
+
+\`\`\`bash
+<%= cmdList %>
+<%= cmdUseLatest %>
+\`\`\`
+`;
+
+export function collectTicketMarkdownFiles(dir, out = []) {
+  if (!existsSync(dir)) return out;
+  for (const ent of readdirSync(dir, { withFileTypes: true })) {
+    const abs = join(dir, ent.name);
+    if (ent.name === "node_modules" || ent.name === ".git") continue;
+    if (ent.isDirectory()) collectTicketMarkdownFiles(abs, out);
+    else if (ent.isFile() && /\.md$/i.test(ent.name)) {
+      const base = ent.name;
+      if (base === "LATEST.md" || base === TICKET_LIST_FILENAME || base === TICKET_LIST_TEMPLATE_FILENAME || base === "ACTIVE_TICKET.md") continue;
+      out.push(abs);
+    }
+  }
+  return out;
+}
+
+export function discoverAllTicketDirs(baseCwd, out = []) {
+  return discoverAllWorkspaces(baseCwd, undefined, new Set(out));
+}
+
+export function rebuildTicketIndexFromTopicFilesIfNeeded(cwd, opts = {}) {
+  const indexJson = readTicketIndexJson(cwd);
+  
+  if (indexJson.entries.length > 0 && !opts.force && !opts.rebuild) {
+    return indexJson;
+  }
+
+  const ticketDir = detectConsumerTicketDir(cwd);
+  if (!ticketDir) return indexJson;
+
+  // Strictly scan only the official ticket system directory and its subdirectories
+  const ticketDirs = [ticketDir];
+
+
+  if (ticketDirs.length === 0) return indexJson;
+
+  const files = [];
+  for (const dir of ticketDirs) {
+    collectTicketMarkdownFiles(dir, files);
+  }
+
+  let dirty = false;
+  const newEntries = [];
+
+  for (let i = 0; i < files.length; i++) {
+    const entry = processTicketFile(files[i], cwd, indexJson, opts);
+    if (entry) newEntries.push(entry);
+  }
+
+  if (JSON.stringify(indexJson.entries) !== JSON.stringify(newEntries)) {
+    dirty = true;
+  }
+
+  if (dirty || opts.force || opts.rebuild) {
+    newEntries.sort((a,b) => String(b.createdAt||"").localeCompare(String(a.createdAt||"")));
+    const next = { version: 1, updatedAt: new Date().toISOString(), entries: newEntries };
+    writeTicketIndexJson(cwd, next, opts);
+    writeTicketListFile(cwd, next.entries, opts);
+    if (opts.rebuild) console.log(`[REBUILD] INDEX.json rebuilt with ${newEntries.length} entries.`);
+    return next;
+  }
+
+  return indexJson;
+}
+
+function processTicketFile(abs, cwd, indexJson, opts) {
+  const rel = toPosixPath(toRepoRelativePath(cwd, abs));
+  const filename = basename(abs);
+  const idFromFilename = filename.replace(/\.md$/i, "");
+  const isAlreadyInArchive = rel.includes("/archive/");
+  const group = basename(dirname(abs));
+
+  // Optimization: If entry already exists in index and not forced, reuse metadata to save I/O & tokens
+  const existing = indexJson.entries.find(e => e.id === idFromFilename);
+  if (existing && !opts.force) {
+    return {
+      ...existing,
+      group,
+      status: isAlreadyInArchive ? "archived" : (existing.status === "archived" ? "open" : existing.status),
+      updatedAt: statSync(abs).mtime.toISOString()
+    };
+  }
+
+  // New or forced entry: Parse file content
+  let meta = {}, content = "";
+  try {
+    const body = readFileSync(abs, "utf8");
+    const parsed = parseFrontMatter(body);
+    meta = parsed.meta;
+    content = parsed.content;
+  } catch (err) {
+    console.warn(`[WARNING] Failed to parse ${rel}: ${err.message}`);
+  }
+
+  const title = meta.title || idFromFilename;
+  const project = meta.project || detectProjectFromBody(content);
+
+  return {
+    id: meta.id || idFromFilename,
+    title,
+    topic: deriveTopicFromBaseName(filename),
+    group,
+    project,
+    submodule: meta.submodule || (rel.startsWith(AGENT_ROOT_DIR) ? "" : rel.split("/")[0]),
+    createdAt: meta.createdAt || statSync(abs).mtime.toISOString(),
+    updatedAt: statSync(abs).mtime.toISOString(),
+    source: "ticket-sync",
+    status: isAlreadyInArchive ? "archived" : (meta.status || "open"),
+  };
+}
+
+export function renderTicketListMarkdown(cwd, entries) {
+  const sorted = [...entries].sort((a, b) => String(b.createdAt || "").localeCompare(String(a.createdAt || "")));
+  const latest = sorted.find(e => e.status !== "archived") || sorted[0] || null;
+
+  const ticketDir = detectConsumerTicketDir(cwd, { createIfMissing: true });
+  const templatePath = join(ticketDir, TICKET_LIST_TEMPLATE_FILENAME);
+  const template = existsSync(templatePath) ? readFileSync(templatePath, "utf8") : DEFAULT_TICKET_LIST_TEMPLATE;
+
+  const sourceIndex = `${toRepoRelativePath(cwd, ticketDir)}/${TICKET_INDEX_FILENAME}`;
+  
+  let latestContext = null;
+  if (latest) {
+    const absPath = join(cwd, latest.path);
+    latestContext = {
+      safeTitle: String(latest.title || "").replace(/\[|\]/g, '').replace(/\n/g, ' '),
+      fileUri: `file://${toPosixPath(absPath)}`,
+      status: latest.status,
+      group: latest.group,
+      project: latest.project
+    };
+  }
+
+  const activeRows = sorted.filter(e => e.status !== "archived").map((e, i) => renderLine(e, i, ticketDir, cwd));
+  const archivedRows = sorted.filter(e => e.status === "archived").slice(0, 50).map((e, i) => renderLine(e, i, ticketDir, cwd));
+
+  return ejs.render(template, {
+    sourceIndex,
+    latest: latestContext,
+    activeRows,
+    archivedRows,
+    cmdList: "npx deuk-agent-rule ticket list",
+    cmdUseLatest: "npx deuk-agent-rule ticket use --latest"
+  });
+}
+
+function renderLine(e, i, ticketDir, cwd) {
+  const absPath = join(cwd, e.path);
+  const fileUri = `file://${toPosixPath(absPath)}`;
+  const statusIcon = e.status === "active" ? "🔥 " : (e.status === "archived" ? "📦 " : "[ ] ");
+  const safeTitle = String(e.title || "").replace(/\|/g, '&#124;').replace(/(\n|\\n)+/g, ' ');
+  const prio = e.priority || "P2";
+  const safeId = String(e.id || "").replace(/\|/g, '&#124;');
+  return `| ${i + 1} | ${statusIcon}${e.status} | ${prio} | ${safeId} | ${safeTitle} | ${e.group} | ${e.project} | ${e.createdAt.split('T')[0]} | [open](${fileUri}) |`;
+}
+
+export function writeTicketListFile(cwd, entries, opts = {}) {
+  if (!opts.render) return;
+  const ticketDir = detectConsumerTicketDir(cwd, { createIfMissing: true });
+  const p = join(ticketDir, TICKET_LIST_FILENAME);
+  if (opts.dryRun) return;
+  const body = renderTicketListMarkdown(cwd, entries);
+  mkdirSync(ticketDir, { recursive: true });
+  writeFileSync(p, body, "utf8");
+}
+
+export function appendTicketEntry(cwd, entry, opts = {}) {
+  const indexJson = readTicketIndexJson(cwd);
+  entry.status = entry.status || "open";
+  // We no longer store 'path' snapshots in INDEX.json
+  const { path, ...cleanEntry } = entry;
+  const next = { 
+    version: indexJson.version || 1, 
+    updatedAt: new Date().toISOString(), 
+    activeTicketId: indexJson.activeTicketId, 
+    entries: [cleanEntry, ...indexJson.entries] 
+  };
+  writeTicketIndexJson(cwd, next, opts);
+  if (opts.render) writeTicketListFile(cwd, next.entries, opts);
+}
+
+export function updateTicketEntryStatus(cwd, opts = {}) {
+  const indexJson = rebuildTicketIndexFromTopicFilesIfNeeded(cwd, opts);
+  let foundIndex = -1;
+  const targetTopic = opts.topic ? String(opts.topic).toLowerCase() : null;
+  
+  if (opts.latest) {
+    foundIndex = 0;
+  } else if (targetTopic) {
+    foundIndex = indexJson.entries.findIndex(e => String(e.topic).toLowerCase().includes(targetTopic));
+  }
+
+  if (foundIndex === -1) {
+    throw new Error("No matching ticket found to update status");
+  }
+
+  const entry = indexJson.entries[foundIndex];
+  entry.status = opts.status || "closed";
+  entry.updatedAt = new Date().toISOString();
+  
+  const next = { version: indexJson.version, updatedAt: new Date().toISOString(), entries: indexJson.entries };
+  writeTicketIndexJson(cwd, next, opts);
+  writeTicketListFile(cwd, next.entries, opts);
+  return entry;
+}

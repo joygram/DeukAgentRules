@@ -1,50 +1,184 @@
 {
   "version": 1,
-  "updatedAt": "2026-04-25T13:58:25.250Z",
-  "activeTicketId": "082-test-unified-v2-joy-nucb",
+  "updatedAt": "2026-04-25T23:23:34.474Z",
+  "activeTicketId": "093-comprehensive-audit-and-refactor-joy-nucb",
   "entries": [
     {
-      "id": "082-test-unified-v2-joy-nucb",
-      "title": "test-unified-v2",
-      "topic": "test-unified-v2",
+      "id": "093-comprehensive-audit-and-refactor-joy-nucb",
+      "title": "comprehensive-audit-and-refactoring",
+      "topic": "comprehensive-audit-and-refactoring",
       "group": "sub",
-      "project": "global",
-      "createdAt": "2026-04-25T13:58:25.250Z",
-      "path": ".deuk-agent/tickets/sub/082-test-unified-v2-joy-nucb.md",
+      "project": "DeukAgentRules",
+      "createdAt": "2026-04-25T23:23:34.474Z",
       "source": "ticket-create",
       "status": "open"
     },
     {
-      "id": "081-test-unified-template-joy-nucb",
-      "title": "test-unified-template",
-      "topic": "test-unified-template",
+      "id": "082-refactor-cli-technical-debt-joy-nucb",
+      "title": "refactor-cli-technical-debt",
+      "topic": "082-refactor-cli-technical-debt-joy-nucb",
+      "group": "main",
+      "project": "DeukAgentRules",
+      "submodule": "",
+      "createdAt": "2026-04-26 07:11:00",
+      "updatedAt": "2026-04-25T22:14:35.531Z",
+      "source": "ticket-sync",
+      "status": "closed"
+    },
+    {
+      "id": "092-state-driven-ticket-path-resolut-joy-nucb",
+      "title": "state-driven-ticket-path-resolution",
+      "topic": "092-state-driven-ticket-path-resolut-joy-nucb",
       "group": "sub",
       "project": "global",
-      "createdAt": "2026-04-25T13:57:51.725Z",
-      "path": ".deuk-agent/tickets/sub/081-test-unified-template-joy-nucb.md",
-      "source": "ticket-create",
+      "submodule": "",
+      "createdAt": "2026-04-25T23:04:56.117Z",
+      "updatedAt": "2026-04-25T23:04:56.117Z",
+      "source": "ticket-sync",
+      "status": "open"
+    },
+    {
+      "id": "091-comprehensive-codebase-cleanup-a-joy-nucb",
+      "title": "comprehensive-codebase-cleanup-and-testing",
+      "topic": "091-comprehensive-codebase-cleanup-a-joy-nucb",
+      "group": "sub",
+      "project": "global",
+      "submodule": "",
+      "createdAt": "2026-04-25T22:49:37.661Z",
+      "updatedAt": "2026-04-25T22:49:37.661Z",
+      "source": "ticket-sync",
+      "status": "open"
+    },
+    {
+      "id": "090-strict-error-handling-and-loggin-joy-nucb",
+      "title": "strict-error-handling-and-logging",
+      "topic": "090-strict-error-handling-and-loggin-joy-nucb",
+      "group": "sub",
+      "project": "global",
+      "submodule": "",
+      "createdAt": "2026-04-25T22:40:54.043Z",
+      "updatedAt": "2026-04-25T22:40:54.043Z",
+      "source": "ticket-sync",
+      "status": "open"
+    },
+    {
+      "id": "089-implement-index-auto-repair-joy-nucb",
+      "title": "implement-index-auto-repair",
+      "topic": "089-implement-index-auto-repair-joy-nucb",
+      "group": "sub",
+      "project": "global",
+      "submodule": "",
+      "createdAt": "2026-04-25T22:40:52.365Z",
+      "updatedAt": "2026-04-25T22:40:52.365Z",
+      "source": "ticket-sync",
+      "status": "open"
+    },
+    {
+      "id": "088-refactor-split-ticket-logic-joy-nucb",
+      "title": "refactor-split-ticket-logic",
+      "topic": "088-refactor-split-ticket-logic-joy-nucb",
+      "group": "sub",
+      "project": "global",
+      "submodule": "",
+      "createdAt": "2026-04-25T22:40:50.490Z",
+      "updatedAt": "2026-04-25T22:40:50.490Z",
+      "source": "ticket-sync",
+      "status": "open"
+    },
+    {
+      "id": "085-fix-upgrade-migration-ref-error-joy-nucb",
+      "title": "fix-upgrade-migration-ref-error",
+      "topic": "085-fix-upgrade-migration-ref-error-joy-nucb",
+      "group": "sub",
+      "project": "global",
+      "submodule": "",
+      "createdAt": "2026-04-25T22:37:07.782Z",
+      "updatedAt": "2026-04-25T22:37:07.782Z",
+      "source": "ticket-sync",
+      "status": "open"
+    },
+    {
+      "id": "086-decouple-ticket-list-from-full-s-joy-nucb",
+      "title": "decouple-ticket-list-from-full-scan",
+      "topic": "086-decouple-ticket-list-from-full-s-joy-nucb",
+      "group": "sub",
+      "project": "global",
+      "submodule": "",
+      "createdAt": "2026-04-25T22:37:07.782Z",
+      "updatedAt": "2026-04-25T22:37:07.782Z",
+      "source": "ticket-sync",
+      "status": "open"
+    },
+    {
+      "id": "087-consolidate-cli-patterns-and-pru-joy-nucb",
+      "title": "consolidate-cli-patterns-and-prune-dead-code",
+      "topic": "087-consolidate-cli-patterns-and-pru-joy-nucb",
+      "group": "sub",
+      "project": "global",
+      "submodule": "",
+      "createdAt": "2026-04-25T22:37:07.782Z",
+      "updatedAt": "2026-04-25T22:37:07.782Z",
+      "source": "ticket-sync",
+      "status": "open"
+    },
+    {
+      "id": "084-refactor-init-technical-debt-joy-nucb",
+      "title": "refactor-init-technical-debt",
+      "topic": "084-refactor-init-technical-debt-joy-nucb",
+      "group": "sub",
+      "project": "global",
+      "submodule": "",
+      "createdAt": "2026-04-25T22:26:44.271Z",
+      "updatedAt": "2026-04-25T22:26:44.271Z",
+      "source": "ticket-sync",
+      "status": "open"
+    },
+    {
+      "id": "083-test-refactoring-validation-joy-nucb",
+      "title": "test-refactoring-validation",
+      "topic": "083-test-refactoring-validation-joy-nucb",
+      "group": "sub",
+      "project": "global",
+      "submodule": "",
+      "createdAt": "2026-04-25T22:26:44.269Z",
+      "updatedAt": "2026-04-25T22:26:44.269Z",
+      "source": "ticket-sync",
+      "status": "open"
+    },
+    {
+      "id": "081-hdmi-priority-joy-nucb",
+      "title": "hdmi-priority",
+      "topic": "081-hdmi-priority-joy-nucb",
+      "group": "sub",
+      "project": "global",
+      "submodule": "",
+      "createdAt": "2026-04-25T21:54:40.531Z",
+      "updatedAt": "2026-04-25T21:54:40.531Z",
+      "source": "ticket-sync",
       "status": "open"
     },
     {
       "id": "080-agents-md-full-refactor-joy-nucb",
       "title": "agents-md-full-refactor",
-      "topic": "agents-md-full-refactor",
+      "topic": "080-agents-md-full-refactor-joy-nucb",
       "group": "sub",
       "project": "global",
-      "createdAt": "2026-04-25T13:28:35.506Z",
-      "path": ".deuk-agent/tickets/sub/080-agents-md-full-refactor-joy-nucb.md",
-      "source": "ticket-create",
+      "submodule": "",
+      "createdAt": "2026-04-25 13:28:35",
+      "updatedAt": "2026-04-25T13:28:35.504Z",
+      "source": "ticket-sync",
       "status": "open"
     },
     {
       "id": "079-mcp-sse-stability-postmortem-joy-nucb",
       "title": "MCP-SSE-Stability-PostMortem",
-      "topic": "mcp-sse-stability-postmortem",
+      "topic": "079-mcp-sse-stability-postmortem-joy-nucb",
       "group": "sub",
       "project": "global",
-      "createdAt": "2026-04-25T11:36:18.000Z",
-      "path": ".deuk-agent/tickets/sub/079-mcp-sse-stability-postmortem-joy-nucb.md",
-      "source": "ticket-create",
+      "submodule": "",
+      "createdAt": "2026-04-25 11:36:17",
+      "updatedAt": "2026-04-25T11:36:17.998Z",
+      "source": "ticket-sync",
       "status": "open"
     },
     {
@@ -56,7 +190,6 @@
       "submodule": "",
       "createdAt": "2026-04-25 09:31:37",
       "updatedAt": "2026-04-25T09:31:37.215Z",
-      "path": ".deuk-agent/tickets/sub/078-test-final-evidence-joy-nucb.md",
       "source": "ticket-sync",
       "status": "open"
     },
@@ -69,7 +202,6 @@
       "submodule": "",
       "createdAt": "2026-04-25 09:30:40",
       "updatedAt": "2026-04-25T09:30:40.856Z",
-      "path": ".deuk-agent/tickets/sub/077-test-evidence-gate-joy-nucb.md",
       "source": "ticket-sync",
       "status": "open"
     },
@@ -81,10 +213,9 @@
       "project": "DeukAgentRules",
       "submodule": "",
       "createdAt": "2026-04-25 09:24:43",
-      "updatedAt": "2026-04-25T09:32:02.879Z",
-      "path": ".deuk-agent/tickets/sub/076-enforce-phase0-rag-validation-joy-nucb.md",
+      "updatedAt": "2026-04-25T09:28:43.695Z",
       "source": "ticket-sync",
-      "status": "closed"
+      "status": "open"
     },
     {
       "id": "069-rebranding-deukrag-to-deuk-agent-joy-nucb",
@@ -95,7 +226,6 @@
       "submodule": "",
       "createdAt": "2026-04-25 02:50:34",
       "updatedAt": "2026-04-25T02:50:34.480Z",
-      "path": ".deuk-agent/tickets/sub/069-rebranding-deukrag-to-deuk-agent-joy-nucb.md",
       "source": "ticket-sync",
       "status": "open"
     },
@@ -108,7 +238,6 @@
       "submodule": "",
       "createdAt": "2026-04-25 01:58:59",
       "updatedAt": "2026-04-25T01:59:27.444Z",
-      "path": ".deuk-agent/tickets/main/068-doc-overhaul-v3-branding-joy-nucb.md",
       "source": "ticket-sync",
       "status": "open"
     },
@@ -121,7 +250,6 @@
       "submodule": "",
       "createdAt": "2026-04-24 21:26:33",
       "updatedAt": "2026-04-24T21:36:23.987Z",
-      "path": ".deuk-agent/tickets/sub/067-oss-path-migration-sync-joy-nucb.md",
       "source": "ticket-sync",
       "status": "open"
     },
@@ -134,7 +262,6 @@
       "submodule": "",
       "createdAt": "2026-04-24 09:51:39",
       "updatedAt": "2026-04-24T09:59:54.215Z",
-      "path": ".deuk-agent/tickets/archive/sub/066-canonical-rule-normalization-joy-nucb.md",
       "source": "ticket-sync",
       "status": "archived"
     },
@@ -147,7 +274,6 @@
       "submodule": "DeukAgentRules",
       "createdAt": "2026-04-24 01:36:33",
       "updatedAt": "2026-04-24T01:38:05.229Z",
-      "path": ".deuk-agent/tickets/sub/064-readme-concept-structure-princip-joy-nucb.md",
       "source": "ticket-sync",
       "status": "open"
     },
@@ -160,7 +286,6 @@
       "submodule": "DeukAgentRules",
       "createdAt": "2026-04-24 01:17:01",
       "updatedAt": "2026-04-24T01:34:14.248Z",
-      "path": ".deuk-agent/tickets/archive/sub/063-force-rule-approval-gate-joy-nucb.md",
       "source": "ticket-sync",
       "status": "archived"
     },
@@ -173,7 +298,6 @@
       "submodule": "",
       "createdAt": "2026-04-24 00:57:40",
       "updatedAt": "2026-04-24T00:57:40.261Z",
-      "path": ".deuk-agent/tickets/sub/062-user-language-doc-localization-joy-nucb.md",
       "source": "ticket-sync",
       "status": "open"
     },
@@ -186,7 +310,6 @@
       "submodule": "",
       "createdAt": "2026-04-23 22:55:29",
       "updatedAt": "2026-04-24T00:05:20.602Z",
-      "path": ".deuk-agent/tickets/sub/061-codex-copilot-first-class-suppor-joy-nucb.md",
       "source": "ticket-sync",
       "status": "open"
     },
@@ -199,7 +322,6 @@
       "submodule": "",
       "createdAt": "2026-04-23 13:05:42",
       "updatedAt": "2026-04-23T13:07:15.036Z",
-      "path": ".deuk-agent/tickets/archive/global/060-harden-anti-shoveling-joy-nucb.md",
       "source": "ticket-sync",
       "status": "archived"
     },
@@ -212,7 +334,6 @@
       "submodule": "",
       "createdAt": "2026-04-23 00:22:02",
       "updatedAt": "2026-04-23T00:56:24.682Z",
-      "path": ".deuk-agent/tickets/sub/059-add-codex-cli-support-joy-nucb.md",
       "source": "ticket-sync",
       "status": "open"
     },
@@ -225,7 +346,6 @@
       "submodule": "",
       "createdAt": "2026-04-23 00:08:57",
       "updatedAt": "2026-04-23T00:22:02.902Z",
-      "path": ".deuk-agent/tickets/sub/058-second-chain-link-joy-nucb.md",
       "source": "ticket-sync",
       "status": "open"
     },
@@ -238,7 +358,6 @@
       "submodule": "",
       "createdAt": "2026-04-23 00:08:51",
       "updatedAt": "2026-04-23T00:08:57.886Z",
-      "path": ".deuk-agent/tickets/sub/057-first-chain-link-joy-nucb.md",
       "source": "ticket-sync",
       "status": "open"
     },
@@ -251,7 +370,6 @@
       "submodule": "",
       "createdAt": "2026-04-23 00:07:38",
       "updatedAt": "2026-04-23T00:09:29.256Z",
-      "path": ".deuk-agent/tickets/sub/056-ticket-chaining-feature-joy-nucb.md",
       "source": "ticket-sync",
       "status": "open"
     },
@@ -264,12 +382,11 @@
       "submodule": "",
       "createdAt": "2026-04-22T06:10:39.200Z",
       "updatedAt": "2026-04-22T06:10:39.203Z",
-      "path": ".deuk-agent/tickets/sub/052-cli-ux-and-markdown-hygiene-joy-nucb.md",
       "source": "ticket-sync",
       "status": "open"
     },
     {
-      "id": "000-fallback-moe54joq",
+      "id": "REPORT-051-agent-fast-track-hardening-joy-nucb",
       "title": "REPORT-051-agent-fast-track-hardening-joy-nucb",
       "topic": "report-051-agent-fast-track-hardening-joy-nucb",
       "group": "reports",
@@ -277,7 +394,6 @@
       "submodule": "",
       "createdAt": "2026-04-22T06:09:25.284Z",
       "updatedAt": "2026-04-22T06:09:25.284Z",
-      "path": ".deuk-agent/tickets/reports/REPORT-051-agent-fast-track-hardening-joy-nucb.md",
       "source": "ticket-sync",
       "status": "open"
     },
@@ -290,7 +406,6 @@
       "submodule": "",
       "createdAt": "2026-04-22T06:03:10.097Z",
       "updatedAt": "2026-04-22T06:09:25.284Z",
-      "path": ".deuk-agent/tickets/archive/sub/051-agent-fast-track-hardening-joy-nucb.md",
       "source": "ticket-sync",
       "status": "archived"
     },
@@ -303,7 +418,6 @@
       "submodule": "DeukAgentRules",
       "createdAt": "2026-04-22T04:09:24.895Z",
       "updatedAt": "2026-04-22T04:13:13.675Z",
-      "path": ".deuk-agent/tickets/sub/050-fix-marker-nesting-agents-md-joy-nucb.md",
       "source": "ticket-sync",
       "status": "done"
     },
@@ -316,7 +430,6 @@
       "submodule": "",
       "createdAt": "2026-04-22T02:02:57.559Z",
       "updatedAt": "2026-04-22T02:02:57.563Z",
-      "path": ".deuk-agent/tickets/core/049-workspace-wide-agent-link-joy-nucb.md",
       "source": "ticket-sync",
       "status": "open"
     },
@@ -329,7 +442,6 @@
       "submodule": "",
       "createdAt": "2026-04-22T01:42:03.508Z",
       "updatedAt": "2026-04-22T01:42:03.512Z",
-      "path": ".deuk-agent/tickets/core/048-dual-mode-and-workflow-joy-nucb.md",
       "source": "ticket-sync",
       "status": "open"
     },
@@ -342,7 +454,6 @@
       "submodule": "",
       "createdAt": "2026-04-22T01:18:48.854Z",
       "updatedAt": "2026-04-22T01:19:07.906Z",
-      "path": ".deuk-agent/tickets/core/046-advanced-condition-eval-joy-nucb.md",
       "source": "ticket-sync",
       "status": "open"
     },
@@ -355,7 +466,6 @@
       "submodule": "",
       "createdAt": "2026-04-22T00:29:03.289Z",
       "updatedAt": "2026-04-22T00:29:09.514Z",
-      "path": ".deuk-agent/tickets/core/045-frontmatter-rule-assembly-joy-nucb.md",
       "source": "ticket-sync",
       "status": "open"
     },
@@ -368,7 +478,6 @@
       "submodule": "",
       "createdAt": "2026-04-22 08:44:03",
       "updatedAt": "2026-04-22T08:46:19.265Z",
-      "path": ".deuk-agent/tickets/sub/055-cli-recursive-deduplication-joy-nucb.md",
       "source": "ticket-sync",
       "status": "open"
     },
@@ -381,7 +490,6 @@
       "submodule": "",
       "createdAt": "2026-04-22 08:43:49",
       "updatedAt": "2026-04-22T08:43:49.263Z",
-      "path": ".deuk-agent/tickets/sub/054-cli-recursive-deduplication-joy-nucb.md",
       "source": "ticket-sync",
       "status": "open"
     },
@@ -394,7 +502,6 @@
       "submodule": "",
       "createdAt": "2026-04-22 08:43:10",
       "updatedAt": "2026-04-22T08:47:00.093Z",
-      "path": ".deuk-agent/tickets/archive/sub/053-cli-recursive-deduplication-joy-nucb.md",
       "source": "ticket-sync",
       "status": "archived"
     },
@@ -407,7 +514,6 @@
       "submodule": "",
       "createdAt": "2026-04-21T23:55:21.805Z",
       "updatedAt": "2026-04-21T23:55:45.987Z",
-      "path": ".deuk-agent/tickets/044-deukagentrules-hardening-joy-nucb.md",
       "source": "ticket-sync",
       "status": "open"
     }

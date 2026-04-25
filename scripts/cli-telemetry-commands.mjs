@@ -1,8 +1,8 @@
 import { existsSync, mkdirSync, readFileSync, writeFileSync, appendFileSync } from "fs";
 import { join } from "path";
-import { loadInitConfig } from "./cli-utils.mjs";
+import { loadInitConfig, AGENT_ROOT_DIR } from "./cli-utils.mjs";
 
-const TELEMETRY_FILE = ".deuk-agent/telemetry.jsonl";
+const TELEMETRY_FILE = `${AGENT_ROOT_DIR}/telemetry.jsonl`;
 
 export async function runTelemetry(opts) {
   const argv = process.argv.slice(3); // skip 'telemetry' and 'log/sync/summary'
@@ -22,7 +22,7 @@ export async function runTelemetry(opts) {
 
 async function logAction(opts) {
   const absPath = join(opts.cwd, TELEMETRY_FILE);
-  const dir = join(opts.cwd, ".deuk-agent");
+  const dir = join(opts.cwd, AGENT_ROOT_DIR);
   if (!existsSync(dir)) mkdirSync(dir, { recursive: true });
 
   const entry = {

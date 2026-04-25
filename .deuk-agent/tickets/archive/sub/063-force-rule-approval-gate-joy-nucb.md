@@ -17,7 +17,7 @@ createdAt: 2026-04-24 01:17:01
 
 ## 🎯 Scope Bounds
 - **Target Submodule:** `DeukAgentRules`
-- **Context Files:** 
+- **Context Files:**
   - `DeukAgentRules/gemini.md`
   - `DeukAgentRules/AGENTS.md`
   - `DeukAgentRules/scripts/cli.mjs`
@@ -49,7 +49,7 @@ createdAt: 2026-04-24 01:17:01
 - Preserve existing ticket creation and retrieval flows.
 
 ## 🔄 Phased Execution Steps
-> Agent: Do NOT attempt to do Phase 3 before Phase 1 is fully tested. 
+> Agent: Do NOT attempt to do Phase 3 before Phase 1 is fully tested.
 
 0. [Phase 0> RAG Research (MCP)]
    - [x] `mcp_deukrag_search_rules` 기반 규약 검토 완료

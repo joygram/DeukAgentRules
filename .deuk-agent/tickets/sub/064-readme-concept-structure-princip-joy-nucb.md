@@ -17,7 +17,7 @@ createdAt: 2026-04-24 01:36:33
 
 ## 🎯 Scope Bounds
 - **Target Submodule:** `DeukAgentRules`
-- **Context Files:** 
+- **Context Files:**
   - `README.md`
   - `README.ko.md`
   - `AGENTS.md`
@@ -45,7 +45,7 @@ createdAt: 2026-04-24 01:36:33
 - Do not modify OSS mirror files for this documentation task.
 
 ## 🔄 Phased Execution Steps
-> Agent: Do NOT attempt to do Phase 3 before Phase 1 is fully tested. 
+> Agent: Do NOT attempt to do Phase 3 before Phase 1 is fully tested.
 
 0. [Phase 0> RAG Research (MCP)]
    - [x] `mcp_deukrag_search_rules` 기반 규약 검토 완료

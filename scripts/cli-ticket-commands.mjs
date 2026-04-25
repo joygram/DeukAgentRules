@@ -3,31 +3,20 @@ import { hostname } from "os";
 import { basename, join, dirname, relative, resolve } from "path";
 import { 
   toSlug, toRepoRelativePath, toFileUri, inferRefTitleAndTopic, resolveReferencedTicketPath, toPosixPath, stringifyFrontMatter,
-  selectLocalizedTemplatePath, resolveDocsLanguage,
-  AGENT_ROOT_DIR, TICKET_SUBDIR, TEMPLATE_SUBDIR, TICKET_DIR_NAME
+  selectLocalizedTemplatePath, resolveDocsLanguage, isMcpActive, withReadline,
+  AGENT_ROOT_DIR, TICKET_SUBDIR, TEMPLATE_SUBDIR, TICKET_DIR_NAME, detectConsumerTicketDir
 } from "./cli-utils.mjs";
-import { 
-  appendTicketEntry, rebuildTicketIndexFromTopicFilesIfNeeded, detectConsumerTicketDir, 
-  readTicketIndexJson, writeTicketIndexJson, writeTicketListFile, syncActiveTicketId, 
-  generateTicketId, syncToPipeline, updateTicketEntryStatus 
-} from "./cli-ticket-logic.mjs";
+import { readTicketIndexJson, writeTicketIndexJson, syncActiveTicketId, generateTicketId, syncToPipeline } from "./cli-ticket-index.mjs";
+import { appendTicketEntry, rebuildTicketIndexFromTopicFilesIfNeeded, writeTicketListFile, updateTicketEntryStatus } from "./cli-ticket-parser.mjs";
 import { loadInitConfig } from "./cli-utils.mjs";
 import ejs from "ejs";
 
 import { createInterface } from "readline";
 import { selectOne } from "./cli-prompts.mjs";
 
-export async function runTicketCreate(opts) {
-  if (!opts.topic && !opts.ref) throw new Error("ticket create requires --topic or --ref");
-  
-  const inferred = opts.ref ? inferRefTitleAndTopic(opts) : null;
-  const topic = toSlug(opts.topic || inferred?.topic || "ticket");
-  const title = opts.topic || inferred?.title || "ticket";
-  const group = toSlug(opts.group || "sub");
-
+async function ensurePhase0Validation(opts) {
   if (!opts.evidence && !opts.skipPhase0) {
-    if (process.stdout.isTTY) {
-      const rl = createInterface({ input: process.stdin, output: process.stdout });
+    await withReadline(async (rl) => {
       try {
         const response = await selectOne(rl, "Did you perform Phase 0 RAG search? Please provide a brief summary of the evidence found (or press Enter to skip):", []);
         if (response) {
@@ -37,50 +26,69 @@ export async function runTicketCreate(opts) {
         }
       } catch (e) {
         opts.skipPhase0 = true;
-      } finally {
-        rl.close();
       }
-    } else {
-      throw new Error("ticket create: Phase 0 RAG validation failed. Agents MUST perform Phase 0 RAG search first and provide the summary using the `--evidence` flag, or explicitly bypass using `--skip-phase0`.");
-    }
+    });
   }
 
   if (opts.skipPhase0) {
-    let isMcpRunning = false;
-    try {
-      const { execSync } = await import("child_process");
-      const stdout = execSync(process.platform === "win32" ? "tasklist" : "ps aux").toString();
-      isMcpRunning = stdout.includes("src.mcp.server");
-    } catch (e) {
-      // ignore
-    }
-    if (isMcpRunning) {
-      throw new Error("ticket create: --skip-phase0 is restricted and ONLY allowed when the MCP server is disconnected. The MCP server is currently running. Please perform Phase 0 RAG search and provide --evidence.");
+    if (await isMcpActive(opts.cwd)) {
+      throw new Error("ticket create: --skip-phase0 is restricted and ONLY allowed when the MCP server is disconnected. The MCP server is currently detected as active. Please perform Phase 0 RAG search and provide --evidence.");
     }
   }
+}
+
+function resolveTicketTemplate(cwd, docsLanguageInput) {
+  const config = loadInitConfig(cwd) || {};
+  const docsLanguage = resolveDocsLanguage(docsLanguageInput || config.docsLanguage || "auto");
+
+  const templateDir = join(cwd, AGENT_ROOT_DIR, TEMPLATE_SUBDIR);
+  const legacyTplDir = join(cwd, ".deuk-agent-templates");
+  const bundleTplDir = join(new URL(".", import.meta.url).pathname, "..", "bundle", "templates");
+
+  const ticketTemplateCandidates = [
+    selectLocalizedTemplatePath(templateDir, "TICKET_TEMPLATE.md", docsLanguage),
+    selectLocalizedTemplatePath(legacyTplDir, "TICKET_TEMPLATE.md", docsLanguage),
+    selectLocalizedTemplatePath(bundleTplDir, "TICKET_TEMPLATE.md", docsLanguage),
+  ];
+  const ticketTemplatePath = ticketTemplateCandidates.find(p => existsSync(p));
+  if (!ticketTemplatePath) {
+    throw new Error("ticket create: Template not found. Please run 'npx deuk-agent-rule init' to deploy templates.");
+  }
+  return { tplText: readFileSync(ticketTemplatePath, "utf8"), docsLanguage };
+}
+
+function updatePreviousTicketRef(cwd, prevTicketEntry, ticketId) {
+  if (!prevTicketEntry) return;
+  const prevAbsPath = join(cwd, prevTicketEntry.path);
+  if (!existsSync(prevAbsPath)) return;
+  
+  let prevContent = readFileSync(prevAbsPath, "utf8");
+  prevContent = prevContent.replace(/^---\n([\s\S]*?)\n---/, (match, fm) => {
+    if (!fm.includes('nextTicket:')) {
+      return `---\n${fm.trim()}\nnextTicket: ${ticketId}\n---`;
+    }
+    return match;
+  });
+  writeFileSync(prevAbsPath, prevContent, "utf8");
+  console.log(`Linked to previous ticket: ${prevTicketEntry.id}`);
+}
+
+export async function runTicketCreate(opts) {
+  if (!opts.topic && !opts.ref) throw new Error("ticket create requires --topic or --ref");
+  
+  const inferred = opts.ref ? inferRefTitleAndTopic(opts) : null;
+  const topic = toSlug(opts.topic || inferred?.topic || "ticket");
+  const title = opts.topic || inferred?.title || "ticket";
+  const group = toSlug(opts.group || "sub");
+
+  await ensurePhase0Validation(opts);
 
   let path, source;
   if (opts.ref) {
     path = resolveReferencedTicketPath(opts);
     source = "ticket-reference";
   } else {
-    const config = loadInitConfig(opts.cwd) || {};
-    const docsLanguage = resolveDocsLanguage(opts.docsLanguage || config.docsLanguage || "auto");
-
-    const templateDir = join(opts.cwd, AGENT_ROOT_DIR, TEMPLATE_SUBDIR);
-    const legacyTplDir = join(opts.cwd, ".deuk-agent-templates");
-    const bundleTplDir = join(new URL(".", import.meta.url).pathname, "..", "bundle", "templates");
-
-    const ticketTemplateCandidates = [
-      selectLocalizedTemplatePath(templateDir, "TICKET_TEMPLATE.md", docsLanguage),
-      selectLocalizedTemplatePath(legacyTplDir, "TICKET_TEMPLATE.md", docsLanguage),
-      selectLocalizedTemplatePath(bundleTplDir, "TICKET_TEMPLATE.md", docsLanguage),
-    ];
-    const ticketTemplatePath = ticketTemplateCandidates.find(p => existsSync(p));
-    if (!ticketTemplatePath) {
-      throw new Error("ticket create: Template not found. Please run 'npx deuk-agent-rule init' to deploy templates.");
-    }
-    const tplText = readFileSync(ticketTemplatePath, "utf8");
+    const { tplText, docsLanguage } = resolveTicketTemplate(opts.cwd, opts.docsLanguage);
 
     // Find nearest or create in CWD if missing
     const ticketDir = detectConsumerTicketDir(opts.cwd, { createIfMissing: true });
@@ -114,20 +122,7 @@ export async function runTicketCreate(opts) {
     writeFileSync(abs, finalContent, "utf8");
     source = "ticket-create";
 
-    if (prevTicketEntry) {
-      const prevAbsPath = join(opts.cwd, prevTicketEntry.path);
-      if (existsSync(prevAbsPath)) {
-        let prevContent = readFileSync(prevAbsPath, "utf8");
-        prevContent = prevContent.replace(/^---\n([\s\S]*?)\n---/, (match, fm) => {
-          if (!fm.includes('nextTicket:')) {
-            return `---\n${fm.trim()}\nnextTicket: ${ticketId}\n---`;
-          }
-          return match;
-        });
-        writeFileSync(prevAbsPath, prevContent, "utf8");
-        console.log(`Linked to previous ticket: ${prevTicketEntry.id}`);
-      }
-    }
+    updatePreviousTicketRef(opts.cwd, prevTicketEntry, ticketId);
 
     console.log(`Ticket created: ${toFileUri(abs)}`);
     
@@ -152,7 +147,7 @@ export async function runTicketList(opts) {
   if (!ticketDir) {
     throw new Error("No ticket system found. Please run 'npx deuk-agent-rule init' first.");
   }
-  const index = rebuildTicketIndexFromTopicFilesIfNeeded(opts.cwd, opts);
+  const index = rebuildTicketIndexFromTopicFilesIfNeeded(opts.cwd, { ...opts, force: false });
   syncActiveTicketId(opts.cwd);
   let rows = index.entries;
 
@@ -182,10 +177,15 @@ export async function runTicketList(opts) {
     const safeTitle = String(e.title || e.topic || "").replace(/(\n|\\n)+/g, " ").slice(0, 50);
     console.log(`${String(idx+1).padEnd(2)} ${stat} ${sub} ${String(e.group||"").padEnd(10)} ${String(e.project||"").padEnd(11)} ${String(e.createdAt||"").padEnd(24)} ${safeTitle}`);
   });
+  
+  if (opts.render) {
+    writeTicketListFile(opts.cwd, index.entries, { render: true });
+    console.log(`\nRendered markdown list to ${detectConsumerTicketDir(opts.cwd)}/TICKET_LIST.md`);
+  }
 }
 
 export async function runTicketMeta(opts) {
-  const index = rebuildTicketIndexFromTopicFilesIfNeeded(opts.cwd, opts);
+  const index = rebuildTicketIndexFromTopicFilesIfNeeded(opts.cwd, { ...opts, force: false });
   const found = pickTicketEntry(opts, index);
   if (!found) throw new Error("ticket meta: no matching ticket found");
 
@@ -214,24 +214,17 @@ export async function runTicketConnect(opts) {
 
 export async function runTicketClose(opts) {
   if (!opts.topic && !opts.latest) {
-    if (process.stdout.isTTY) {
-      const index = rebuildTicketIndexFromTopicFilesIfNeeded(opts.cwd, opts);
+    await withReadline(async (rl) => {
+      const index = rebuildTicketIndexFromTopicFilesIfNeeded(opts.cwd, { ...opts, force: false });
       const choices = index.entries
         .filter(e => e.status !== "closed")
         .map(e => ({ label: `[${e.group}] ${e.title}`, value: e.topic }));
       if (choices.length > 0) {
-        const rl = createInterface({ input: process.stdin, output: process.stdout });
-        try {
-          opts.topic = await selectOne(rl, "Choose a ticket to close:", choices);
-        } finally {
-          rl.close();
-        }
+        opts.topic = await selectOne(rl, "Choose a ticket to close:", choices);
       } else {
         throw new Error("No open tickets found to close.");
       }
-    } else {
-      throw new Error("ticket close requires --topic or --latest");
-    }
+    });
   }
   opts.status = "closed";
   const entry = updateTicketEntryStatus(opts.cwd, opts);
@@ -240,23 +233,18 @@ export async function runTicketClose(opts) {
 }
 
 export async function runTicketUse(opts) {
-  const index = rebuildTicketIndexFromTopicFilesIfNeeded(opts.cwd, opts);
+  const index = rebuildTicketIndexFromTopicFilesIfNeeded(opts.cwd, { ...opts, force: false });
   syncActiveTicketId(opts.cwd);
   
   let targetTopic = opts.topic;
   if (!targetTopic && !opts.latest) {
-    if (process.stdout.isTTY) {
+    await withReadline(async (rl) => {
       const choices = index.entries
         .map(e => ({ label: `${e.status === 'closed' ? '✓ ' : ''}[${e.group}] ${e.title}`, value: e.topic }));
       if (choices.length > 0) {
-        const rl = createInterface({ input: process.stdin, output: process.stdout });
-        try {
-          targetTopic = await selectOne(rl, "Choose a ticket to use:", choices);
-        } finally {
-          rl.close();
-        }
+        targetTopic = await selectOne(rl, "Choose a ticket to use:", choices);
       }
-    }
+    });
   }
 
   const found = opts.latest ? index.entries[0] : index.entries.find(e => e.topic.includes(targetTopic));
@@ -278,33 +266,29 @@ export function pickTicketEntry(opts, indexJson) {
   if (rows.length === 0) return null;
   if (opts.topic) {
     const key = String(opts.topic).toLowerCase();
-    return rows.find(e => String(e.topic || "").toLowerCase().includes(key)) || null;
+    return rows.find(e => 
+      String(e.topic || "").toLowerCase().includes(key) || 
+      String(e.id || "").toLowerCase().includes(key)
+    ) || null;
   }
   return rows[0];
 }
 
 export async function runTicketArchive(opts) {
-  const indexJson = rebuildTicketIndexFromTopicFilesIfNeeded(opts.cwd, opts);
+  const indexJson = rebuildTicketIndexFromTopicFilesIfNeeded(opts.cwd, { ...opts, force: false });
   const ticketDir = detectConsumerTicketDir(opts.cwd);
 
   if (!opts.latest && !opts.topic) {
-    if (process.stdout.isTTY) {
+    await withReadline(async (rl) => {
       const choices = indexJson.entries
         .filter(e => e.status !== "archived")
         .map(e => ({ label: `[${e.group}] ${e.title}`, value: e.topic }));
       if (choices.length > 0) {
-        const rl = createInterface({ input: process.stdin, output: process.stdout });
-        try {
-          opts.topic = await selectOne(rl, "Choose a ticket to archive (this will move the file to archive/):", choices);
-        } finally {
-          rl.close();
-        }
+        opts.topic = await selectOne(rl, "Choose a ticket to archive (this will move the file to archive/):", choices);
       } else {
         throw new Error("No active tickets found to archive.");
       }
-    } else {
-      throw new Error("ticket archive requires --latest or --topic <prefix>");
-    }
+    });
   }
   
   const found = pickTicketEntry(opts, indexJson);
@@ -353,7 +337,6 @@ export async function runTicketArchive(opts) {
   const entryIdx = indexJson.entries.findIndex(e => e.id === found.id);
   if (entryIdx >= 0) {
     indexJson.entries[entryIdx].status = "archived";
-    indexJson.entries[entryIdx].path = toRepoRelativePath(opts.cwd, newAbsPath);
     indexJson.entries[entryIdx].updatedAt = new Date().toISOString();
   }
 
@@ -385,4 +368,9 @@ export async function runTicketReports(opts) {
     console.log(`  - [${f}](${toFileUri(join(reportDir, f))})`);
   });
   console.log("");
+}
+
+export async function runTicketRebuild(opts) {
+  console.log("Rebuilding INDEX.json from markdown files...");
+  rebuildTicketIndexFromTopicFilesIfNeeded(opts.cwd, { ...opts, force: true, rebuild: true });
 }

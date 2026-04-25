@@ -11,16 +11,6 @@ import { join } from "path";
 
 export const DEFAULT_TAG = "deuk-agent-rule";
 
-/** HTML-style markers in `.cursorrules` (separate from AGENTS.md markers). */
-export const CURSORRULES_TAG = "deuk-agent-rule-cursorrules";
-
-export function resolveCursorrulesMarkers(o = {}) {
-  return resolveMarkers({
-    tag: o.tag && String(o.tag).trim() ? String(o.tag).trim() : CURSORRULES_TAG,
-    markerBegin: o.markerBegin,
-    markerEnd: o.markerEnd,
-  });
-}
 
 export function resolveMarkers(o) {
   const hasBegin = o.markerBegin != null && o.markerBegin !== "";
@@ -278,17 +268,6 @@ export function readBundleAgents(bundleRoot) {
   return readFileSync(p, "utf8");
 }
 
-/**
- * Optional bundle file: Cursor root rules pointer to AGENTS.md.
- * @returns {string|null} file contents, or null if missing
- */
-export function readBundleCursorrules(bundleRoot) {
-  const p = join(bundleRoot, ".cursorrules");
-  if (!existsSync(p)) {
-    return null;
-  }
-  return readFileSync(p, "utf8");
-}
 
 /**
  * Remove one tagged block (markers inclusive). Returns ok:false if begin marker not found.
@@ -313,71 +292,3 @@ export function removeTaggedBlock(content, begin, end) {
 }
 
 
-/**
- * @param {{
- *   bundleRoot: string,
- *   cwd: string,
- *   markers: { begin: string, end: string },
- *   cursorrulesMode: "skip" | "inject" | "overwrite",
- *   dryRun?: boolean,
- *   backup?: boolean,
- * }} opts
- */
-export function applyCursorrules(opts) {
-  const { bundleRoot, cwd, markers, cursorrulesMode, dryRun, backup } = opts;
-  const raw = readBundleCursorrules(bundleRoot);
-  if (!raw) {
-    return { action: "skip", reason: "bundle .cursorrules missing" };
-  }
-  const inner = raw.trimEnd();
-  const targetPath = join(cwd, ".cursorrules");
-
-  if (cursorrulesMode === "skip") {
-    return { action: "skip", reason: "cursorrules mode skip" };
-  }
-
-  const writeTaggedOnly = (bodyInner) =>
-    markers.begin + "\n\n" + bodyInner + "\n\n" + markers.end + "\n";
-
-  if (cursorrulesMode === "overwrite") {
-    const next = writeTaggedOnly(inner);
-    if (dryRun) {
-      return { action: "would-write", path: targetPath, mode: "overwrite" };
-    }
-    if (backup && existsSync(targetPath)) {
-      copyFileSync(targetPath, targetPath + ".bak");
-    }
-    writeFileSync(targetPath, next, "utf8");
-    return { action: "write", path: targetPath, mode: "overwrite" };
-  }
-
-  // inject: update tagged region, or prepend tagged block above existing content
-  const existing = existsSync(targetPath) ? readFileSync(targetPath, "utf8") : "";
-  const region = findMarkerRegion(existing, markers.begin, markers.end);
-
-  if (region) {
-    const next =
-      existing.slice(0, region.innerStart) + "\n" + inner + "\n" + existing.slice(region.innerEnd);
-    if (dryRun) {
-      return { action: "would-write", path: targetPath, mode: "inject-region" };
-    }
-    if (backup && existsSync(targetPath)) {
-      copyFileSync(targetPath, targetPath + ".bak");
-    }
-    writeFileSync(targetPath, next, "utf8");
-    return { action: "write", path: targetPath, mode: "inject-region" };
-  }
-
-  const block = writeTaggedOnly(inner) + "\n";
-  const rest = existing.replace(/^\uFEFF/, "").trimStart();
-  const next = rest.length ? block + rest : block.trimEnd() + "\n";
-
-  if (dryRun) {
-    return { action: "would-write", path: targetPath, mode: "prepend-tagged" };
-  }
-  if (backup && existsSync(targetPath)) {
-    copyFileSync(targetPath, targetPath + ".bak");
-  }
-  writeFileSync(targetPath, next, "utf8");
-  return { action: "write", path: targetPath, mode: "prepend-tagged" };
-}

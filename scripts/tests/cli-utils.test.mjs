@@ -1,0 +1,114 @@
+import test from "node:test";
+import assert from "node:assert";
+import { 
+  normalizeWorkflowMode, resolveWorkflowMode, WORKFLOW_MODE_EXECUTE, WORKFLOW_MODE_PLAN,
+  parseFrontMatter, stringifyFrontMatter, deriveTopicFromBaseName, toSlug, computeTicketPath,
+  normalizeDocsLanguage, resolveDocsLanguage, AGENT_ROOT_DIR, TICKET_SUBDIR
+} from "../cli-utils.mjs";
+import { generateTicketId, computeNextTicketNumber } from "../cli-ticket-index.mjs";
+
+test("cli-utils.mjs - normalizeWorkflowMode", (t) => {
+  assert.strictEqual(normalizeWorkflowMode(undefined), WORKFLOW_MODE_PLAN, "default is plan");
+  assert.strictEqual(normalizeWorkflowMode(null), WORKFLOW_MODE_PLAN, "null is plan");
+  assert.strictEqual(normalizeWorkflowMode(""), WORKFLOW_MODE_PLAN, "empty is plan");
+  assert.strictEqual(normalizeWorkflowMode("execute"), WORKFLOW_MODE_EXECUTE, "execute maps to execute");
+  assert.strictEqual(normalizeWorkflowMode("approved"), WORKFLOW_MODE_EXECUTE, "approved maps to execute");
+  assert.strictEqual(normalizeWorkflowMode("approval"), WORKFLOW_MODE_EXECUTE, "approval maps to execute");
+  assert.strictEqual(normalizeWorkflowMode("apply"), WORKFLOW_MODE_EXECUTE, "apply maps to execute");
+  assert.strictEqual(normalizeWorkflowMode("plan"), WORKFLOW_MODE_PLAN, "plan maps to plan");
+  assert.strictEqual(normalizeWorkflowMode("pending"), WORKFLOW_MODE_PLAN, "pending maps to plan");
+  assert.strictEqual(normalizeWorkflowMode("review"), WORKFLOW_MODE_PLAN, "review maps to plan");
+  assert.strictEqual(normalizeWorkflowMode("unknown-val"), WORKFLOW_MODE_PLAN, "unknown fallback to plan");
+});
+
+test("cli-utils.mjs - resolveWorkflowMode fallback logic", (t) => {
+  assert.strictEqual(resolveWorkflowMode({}, null), WORKFLOW_MODE_PLAN);
+  assert.strictEqual(resolveWorkflowMode({ workflowMode: "execute" }, null), WORKFLOW_MODE_EXECUTE);
+  assert.strictEqual(resolveWorkflowMode({ approvalState: "approved" }, null), WORKFLOW_MODE_EXECUTE);
+  // opts has priority over saved config
+  assert.strictEqual(resolveWorkflowMode({ workflowMode: "plan" }, { workflowMode: "execute" }), WORKFLOW_MODE_PLAN);
+  assert.strictEqual(resolveWorkflowMode({}, { workflowMode: "execute" }), WORKFLOW_MODE_EXECUTE);
+  assert.strictEqual(resolveWorkflowMode({}, { approvalState: "approved" }), WORKFLOW_MODE_EXECUTE);
+});
+
+test("cli-utils.mjs - parseFrontMatter", (t) => {
+  const content = `---\ntitle: Hello\ntopic: hello-world\n---\nbody text`;
+  const res = parseFrontMatter(content);
+  assert.deepStrictEqual(res.meta, { title: "Hello", topic: "hello-world" });
+  assert.strictEqual(res.content, "body text");
+
+  // Invalid YAML should throw, meaning it won't be swallowed silently now
+  assert.throws(() => parseFrontMatter(`---\ninvalid: yaml:\n  - boom\n---\nbody`), /Nested mappings|Map keys must be unique|end of the stream or a document separator is expected/i);
+
+  // Missing frontmatter
+  const noFm = parseFrontMatter("Just a text file");
+  assert.deepStrictEqual(noFm.meta, {});
+  assert.strictEqual(noFm.content, "Just a text file");
+});
+
+test("cli-utils.mjs - stringifyFrontMatter", (t) => {
+  const meta = { title: "Test", topic: "should-be-removed", project: "global", submodule: "" };
+  const content = "Test content";
+  const result = stringifyFrontMatter(meta, content);
+  assert.ok(!result.includes("topic:"), "topic should be removed");
+  assert.ok(!result.includes("project:"), "global project should be removed");
+  assert.ok(!result.includes("submodule:"), "empty submodule should be removed");
+  assert.ok(result.startsWith("---\ntitle: Test\n---"), "rendered properly");
+  assert.ok(result.includes("Test content"), "content preserved");
+});
+
+test("cli-utils.mjs - deriveTopicFromBaseName", (t) => {
+  assert.strictEqual(deriveTopicFromBaseName("001-hello-world-local.md"), "001-hello-world-local");
+  assert.strictEqual(deriveTopicFromBaseName("topic-name-20260426-071208.md"), "topic-name");
+  assert.strictEqual(deriveTopicFromBaseName("simple.md"), "simple");
+});
+
+test("cli-utils.mjs - toSlug", (t) => {
+  assert.strictEqual(toSlug("Hello World! 123"), "hello-world-123");
+  assert.strictEqual(toSlug("  spaced  "), "spaced");
+  assert.strictEqual(toSlug("!@#$"), "ticket"); // fallback
+});
+
+test("cli-ticket-index.mjs - computeNextTicketNumber", (t) => {
+  assert.strictEqual(computeNextTicketNumber([]).num, 1);
+  assert.strictEqual(computeNextTicketNumber([{id: "005-test-local"}]).num, 6);
+  assert.strictEqual(computeNextTicketNumber([{id: "invalid-id"}]).num, 1);
+  assert.strictEqual(computeNextTicketNumber([{id: "099-test-local"}, {id: "001-foo-local"}]).num, 100);
+});
+
+test("cli-ticket-index.mjs - generateTicketId", (t) => {
+  const id1 = generateTicketId("hello world", []);
+  assert.ok(id1.startsWith("001-hello-world-"));
+  
+  const id2 = generateTicketId("005-prefixed-topic", []);
+  assert.ok(id2.startsWith("005-prefixed-topic-")); // Keeps the prefix
+
+  const id3 = generateTicketId("new topic", [{id: "008-something-host"}]);
+  assert.ok(id3.startsWith("009-new-topic-"));
+});
+
+test("cli-utils.mjs - computeTicketPath", (t) => {
+  const activeEntry = { id: "092-test-host", group: "sub", status: "open" };
+  assert.strictEqual(computeTicketPath(activeEntry), ".deuk-agent/tickets/sub/092-test-host.md");
+
+  const archivedEntry = { id: "080-old-host", group: "main", status: "archived" };
+  assert.strictEqual(computeTicketPath(archivedEntry), ".deuk-agent/tickets/archive/main/080-old-host.md");
+
+  const defaultGroup = { id: "100-no-group-host", status: "open" };
+  assert.strictEqual(computeTicketPath(defaultGroup), ".deuk-agent/tickets/sub/100-no-group-host.md");
+});
+
+test("cli-utils.mjs - normalizeDocsLanguage", (t) => {
+  assert.strictEqual(normalizeDocsLanguage("Korean"), "ko");
+  assert.strictEqual(normalizeDocsLanguage("ko-KR"), "ko");
+  assert.strictEqual(normalizeDocsLanguage("English"), "en");
+  assert.strictEqual(normalizeDocsLanguage("en-US"), "en");
+  assert.strictEqual(normalizeDocsLanguage("unknown"), "auto");
+});
+
+test("cli-utils.mjs - resolveDocsLanguage", (t) => {
+  assert.strictEqual(resolveDocsLanguage("ko"), "ko");
+  assert.strictEqual(resolveDocsLanguage("auto", { LC_ALL: "ko_KR.UTF-8" }), "ko");
+  assert.strictEqual(resolveDocsLanguage("auto", { LANG: "en_US.UTF-8" }), "en");
+  assert.strictEqual(resolveDocsLanguage("auto", {}), "en"); // fallback
+});

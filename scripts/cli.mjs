@@ -4,10 +4,10 @@ import { dirname, join } from "path";
 import { fileURLToPath } from "url";
 import { parseArgs, parseTicketArgs, parseTelemetryArgs } from "./cli-args.mjs";
 import { runInit, runMerge } from "./cli-init-commands.mjs";
-import { runTicketCreate, runTicketList, runTicketUse, runTicketClose, runTicketArchive, runTicketReports, runTicketMeta, runTicketConnect } from "./cli-ticket-commands.mjs";
+import { runTicketCreate, runTicketList, runTicketUse, runTicketClose, runTicketArchive, runTicketReports, runTicketMeta, runTicketConnect, runTicketRebuild } from "./cli-ticket-commands.mjs";
 import { runTelemetry } from "./cli-telemetry-commands.mjs";
-import { performUpgradeMigration } from "./cli-ticket-logic.mjs";
-import { loadInitConfig, writeInitConfig, checkUpdateNotifier, normalizeWorkflowMode, WORKFLOW_MODE_EXECUTE } from "./cli-utils.mjs";
+import { performUpgradeMigration } from "./cli-ticket-migration.mjs";
+import { loadInitConfig, writeInitConfig, checkUpdateNotifier, normalizeWorkflowMode, WORKFLOW_MODE_EXECUTE, AGENT_ROOT_DIR, resolveWorkflowMode } from "./cli-utils.mjs";
 import { runInteractive } from "./cli-prompts.mjs";
 
 const updatePromise = checkUpdateNotifier();
@@ -36,6 +36,7 @@ async function main() {
     else if (action === "reports") await runTicketReports(opts);
     else if (action === "meta") await runTicketMeta(opts);
     else if (action === "connect") await runTicketConnect(opts);
+    else if (action === "rebuild") await runTicketRebuild(opts);
     else if (action === "upgrade" || action === "migrate") {
       const count = performUpgradeMigration(opts.cwd, opts);
       console.log(`Migration complete: ${count} tickets upgraded.`);
@@ -66,11 +67,11 @@ async function main() {
       for (const key in saved) {
         if (opts[key] === undefined) opts[key] = saved[key];
       }
-      console.log(`Using saved config from .deuk-agent-rule.config.json (CLI overrides applied)`);
+      console.log(`Using saved config from ${AGENT_ROOT_DIR}/config.json (CLI overrides applied)`);
     }
 
     if (sub === "init") {
-      await handleInit(opts);
+      await handleInit(opts, saved);
     } else {
       runMerge(opts, bundleRoot);
     }
@@ -83,7 +84,7 @@ async function main() {
 
 // Removed legacy migration runTicketMigrate
 
-async function handleInit(opts) {
+async function handleInit(opts, saved) {
   if (opts.clean && !opts.dryRun) {
     console.log(`[CLEAN] Removing legacy templates and config...`);
     const templatesDir = join(opts.cwd, ".deuk-agent-templates");
@@ -92,7 +93,7 @@ async function handleInit(opts) {
     if (existsSync(configFile)) rmSync(configFile, { force: true });
   }
 
-  if (!opts.interactive && !opts.nonInteractive && !loadInitConfig(opts.cwd)) {
+  if (!opts.interactive && !opts.nonInteractive && !saved) {
     // If no config and not interactive, prompt unless non-interactive
     await runInteractive(opts);
   } else if (opts.interactive) {
@@ -101,12 +102,9 @@ async function handleInit(opts) {
 
   if (!opts.dryRun) writeInitConfig(opts.cwd, opts);
 
-  const savedAfterWrite = loadInitConfig(opts.cwd) || {};
-  const workflowMode = normalizeWorkflowMode(
-    opts.workflowMode ?? opts.workflow ?? opts.approval ?? savedAfterWrite.workflowMode ?? savedAfterWrite.approvalState
-  );
+  const workflowMode = resolveWorkflowMode(opts, saved);
   if (!opts.dryRun && workflowMode !== WORKFLOW_MODE_EXECUTE) {
-    console.log(`[WORKFLOW] Plan mode saved. Re-run with --workflow execute or --approval approved to apply file mutations.`);
+    console.log(`[WORKFLOW] Plan mode active. Re-run with --workflow execute or --approval approved to apply file mutations.`);
     return;
   }
 
@@ -138,15 +136,16 @@ Options:
   --no-sync             Force disable remote sync
 
 Ticket Options:
-  --topic <name>        Ticket topic slug
+  --topic, --id <name>  Ticket topic slug or ID
   --group <name>        Ticket group (sub|main|discussion)
   --project <name>      Project filter (DeukUI|DeukAgentRules)
   --submodule <name>    Submodule filter (DeukPack|DeukUI)
   --docs-language <lang> auto | ko | en
   --evidence <text>     Provide Phase 0 RAG evidence summary
   --skip-phase0         Bypass Phase 0 RAG validation
-  --latest              Use most recent ticket (default if no topic)
+  --latest, -l          Use most recent ticket (default if no topic)
   --path-only           Print only the file path
+  --render              Generate markdown list (TICKET_LIST.md)
   --json                Output result in JSON format
 `);
 }

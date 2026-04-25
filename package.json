@@ -40,6 +40,7 @@
     "bump:major": "commit-and-tag-version -r major",
     "merge:dry": "node scripts/cli.mjs merge --dry-run --cwd .. --agents skip",
     "lint:md": "node scripts/lint-md.mjs",
+    "test": "node --test scripts/tests/",
     "sync:oss": "node scripts/sync-oss.mjs"
   },
   "engines": {

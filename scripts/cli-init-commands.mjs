@@ -1,58 +1,72 @@
 import { join, dirname, basename } from "path";
 import { homedir } from "os";
 import { existsSync, readFileSync, writeFileSync, mkdirSync, copyFileSync, readdirSync, unlinkSync, rmSync, renameSync } from "fs";
-import { resolveMarkers, resolveCursorrulesMarkers, applyAgents, applyRules, applyCursorrules, readBundleAgents } from "./merge-logic.mjs";
+import { resolveMarkers, applyAgents, applyRules, readBundleAgents } from "./merge-logic.mjs";
 import { ensureTicketDirAndGitignore } from "./cli-init-logic.mjs";
-import { normalizeTicketPaths } from "./cli-ticket-logic.mjs";
+import { normalizeTicketPaths } from "./cli-ticket-migration.mjs";
 import { compileDynamicRules } from "./cli-rule-compiler.mjs";
-import { loadInitConfig, writeInitConfig, isWorkflowExecute, normalizeWorkflowMode } from "./cli-utils.mjs";
+import { loadInitConfig, writeInitConfig, isWorkflowExecute, normalizeWorkflowMode, SPOKE_REGISTRY } from "./cli-utils.mjs";
 import { runInteractive } from "./cli-prompts.mjs";
 
-import { AGENT_ROOT_DIR, TICKET_SUBDIR, TEMPLATE_SUBDIR, RULES_SUBDIR, discoverAllSubmodules, cleanSubmoduleStubs } from "./cli-utils.mjs";
+import { AGENT_ROOT_DIR, TICKET_SUBDIR, TEMPLATE_SUBDIR, RULES_SUBDIR, discoverAllWorkspaces, isMcpActive, toRepoRelativePath, resolveWorkflowMode, pruneRuleModules } from "./cli-utils.mjs";
 
-function migrateLegacyStructure(cwd, dryRun) {
-  cleanSubmoduleStubs(cwd, dryRun);
-
-  const recursiveMerge = (src, dest) => {
-    if (!existsSync(src)) return;
-    if (!existsSync(dest)) {
-      if (!dryRun) {
-        mkdirSync(dirname(dest), { recursive: true });
-        renameSync(src, dest);
-      }
-      return;
+function recursiveMerge(src, dest, cwd, dryRun) {
+  if (!existsSync(src)) return;
+  if (!existsSync(dest)) {
+    if (!dryRun) {
+      mkdirSync(dirname(dest), { recursive: true });
+      renameSync(src, dest);
     }
-    // Both exist, merge contents
-    const entries = readdirSync(src, { withFileTypes: true });
-    for (const ent of entries) {
-      const sPath = join(src, ent.name);
-      const dPath = join(dest, ent.name);
-      if (ent.isDirectory()) {
-        recursiveMerge(sPath, dPath);
-      } else {
-        if (!existsSync(dPath)) {
-          if (!dryRun) renameSync(sPath, dPath);
+    return;
+  }
+  // Both exist, merge contents
+  const entries = readdirSync(src, { withFileTypes: true });
+  for (const ent of entries) {
+    const sPath = join(src, ent.name);
+    const dPath = join(dest, ent.name);
+    if (ent.isDirectory()) {
+      recursiveMerge(sPath, dPath, cwd, dryRun);
+    } else {
+      if (!existsSync(dPath)) {
+        if (!dryRun) {
+          renameSync(sPath, dPath);
+          console.log(`[MIGRATE] Moved: ${toRepoRelativePath(cwd, sPath)} -> ${toRepoRelativePath(cwd, dPath)}`);
         } else {
-          // If destination exists, we could overwrite or skip. 
-          // For tickets, we skip to avoid data loss, but log it.
-          if (basename(sPath) !== "INDEX.json" && basename(sPath) !== "TICKET_LIST.md") {
-             // console.warn(`[MIGRATE] Skipping existing file: ${dPath}`);
+          console.log(`[DRY-RUN] Would move: ${toRepoRelativePath(cwd, sPath)} -> ${toRepoRelativePath(cwd, dPath)}`);
+        }
+      } else {
+        // If destination exists, check if content is identical
+        const sContent = readFileSync(sPath, "utf8");
+        const dContent = readFileSync(dPath, "utf8");
+        if (sContent === dContent) {
+          if (!dryRun) {
+            unlinkSync(sPath);
+            console.log(`[MIGRATE] Removed identical file: ${toRepoRelativePath(cwd, sPath)}`);
           }
-          if (!dryRun) unlinkSync(sPath); // Remove migrated/redundant file
+        } else {
+          console.warn(`[WARNING] Migration conflict: ${toRepoRelativePath(cwd, dPath)} already exists with different content. Skipping.`);
         }
       }
     }
-    // Clean up src if empty
-    try {
-      if (!dryRun && readdirSync(src).length === 0) rmSync(src, { recursive: true });
-    } catch {}
-  };
+  }
+  // Clean up src if empty
+  try {
+    if (!dryRun && readdirSync(src).length === 0) {
+      rmSync(src, { recursive: true });
+      console.log(`[MIGRATE] Removed empty directory: ${toRepoRelativePath(cwd, src)}`);
+    }
+  } catch (err) {
+    if (process.env.DEBUG) console.warn(`[DEBUG] Failed to clean up ${src}:`, err);
+  }
+}
+
+function migrateLegacyStructure(cwd, dryRun) {
 
   const legacyTemplates = join(cwd, ".deuk-agent-templates");
   const newTemplates = join(cwd, AGENT_ROOT_DIR, TEMPLATE_SUBDIR);
   if (existsSync(legacyTemplates)) {
     console.log(`[MIGRATE] Merging legacy templates into ${AGENT_ROOT_DIR}/${TEMPLATE_SUBDIR}`);
-    recursiveMerge(legacyTemplates, newTemplates);
+    recursiveMerge(legacyTemplates, newTemplates, cwd, dryRun);
     if (!dryRun && existsSync(legacyTemplates)) rmSync(legacyTemplates, { recursive: true, force: true });
   }
 
@@ -62,12 +76,12 @@ function migrateLegacyStructure(cwd, dryRun) {
 
   if (existsSync(legacyTickets)) {
     console.log(`[MIGRATE] Merging legacy singular ticket directory into ${AGENT_ROOT_DIR}/${TICKET_SUBDIR}`);
-    recursiveMerge(legacyTickets, newTickets);
+    recursiveMerge(legacyTickets, newTickets, cwd, dryRun);
     if (!dryRun && existsSync(legacyTickets)) rmSync(legacyTickets, { recursive: true, force: true });
   }
   if (existsSync(legacyTicketsPlural)) {
     console.log(`[MIGRATE] Merging legacy plural tickets directory into ${AGENT_ROOT_DIR}/${TICKET_SUBDIR}`);
-    recursiveMerge(legacyTicketsPlural, newTickets);
+    recursiveMerge(legacyTicketsPlural, newTickets, cwd, dryRun);
     if (!dryRun && existsSync(legacyTicketsPlural)) rmSync(legacyTicketsPlural, { recursive: true, force: true });
   }
 
@@ -148,57 +162,7 @@ When working in a repository, always look for a local \`AGENTS.md\` or \`.deuk-a
   }
 }
 
-const SPOKE_REGISTRY = [
-  {
-    id: "cursor",
-    detect: (cwd) => existsSync(join(cwd, ".cursor")),
-    legacy: ".cursorrules",
-    target: ".cursor/rules/deuk-agent.mdc",
-    format: "mdc",
-  },
-  {
-    id: "claude",
-    detect: (cwd) => existsSync(join(cwd, "CLAUDE.md")) || existsSync(join(cwd, ".claude")),
-    legacy: null,
-    target: "CLAUDE.md",
-    format: "markdown",
-  },
-  {
-    id: "copilot",
-    detect: (cwd, selectedTools = []) => selectedTools.includes("copilot") || existsSync(join(cwd, ".github")),
-    legacy: null,
-    target: ".github/copilot-instructions.md",
-    format: "markdown",
-  },
-  {
-    id: "codex",
-    detect: (cwd, selectedTools = []) => selectedTools.includes("codex") || existsSync(join(cwd, ".codex")),
-    legacy: null,
-    target: ".codex/AGENTS.md",
-    format: "markdown",
-  },
-  {
-    id: "windsurf",
-    detect: (cwd) => existsSync(join(cwd, ".windsurf")),
-    legacy: ".windsurfrules",
-    target: ".windsurf/rules/deuk-agent.md",
-    format: "markdown",
-  },
-  {
-    id: "jetbrains",
-    detect: (cwd) => existsSync(join(cwd, ".aiassistant")) || existsSync(join(cwd, ".idea")),
-    legacy: null,
-    target: ".aiassistant/rules/deuk-agent.md",
-    format: "markdown",
-  },
-  {
-    id: "antigravity",
-    detect: (cwd) => existsSync(join(cwd, "GEMINI.md")) || existsSync(join(cwd, ".gemini")),
-    legacy: null,
-    target: "GEMINI.md",
-    format: "markdown",
-  },
-];
+
 
 function generateSpokeContent(spoke) {
   const depth = spoke.target.split('/').length - 1;
@@ -229,7 +193,10 @@ function hasCustomUserRules(filePath) {
     const content = readFileSync(filePath, "utf8");
     const stripped = content.replace(/<!-- deuk-agent-rule:begin -->[\s\S]*?<!-- deuk-agent-rule:end -->/g, '');
     return stripped.trim().length > 0;
-  } catch { return false; }
+  } catch (err) {
+    if (process.env.DEBUG) console.warn(`[DEBUG] Failed to read ${filePath}:`, err);
+    return false;
+  }
 }
 
 function deploySpokePointers(cwd, dryRun, selectedTools = []) {
@@ -264,9 +231,7 @@ function deploySpokePointers(cwd, dryRun, selectedTools = []) {
 
 export async function runInit(opts, bundleRoot) {
   const savedConfig = loadInitConfig(opts.cwd) || {};
-  const workflowMode = normalizeWorkflowMode(
-    opts.workflowMode ?? opts.workflow ?? opts.approval ?? savedConfig.workflowMode ?? savedConfig.approvalState
-  );
+  const workflowMode = resolveWorkflowMode(opts, savedConfig);
   const executionEnabled = isWorkflowExecute({ ...opts, workflowMode }, savedConfig);
   const ignoreDirs = savedConfig.ignoreDirs;
   const selectedTools = opts.agentTools || savedConfig.agentTools || [];
@@ -280,74 +245,27 @@ export async function runInit(opts, bundleRoot) {
   // 0. Sync Global Codex Instructions
   syncGlobalCodexInstructions(opts.dryRun);
 
-  const submodules = discoverAllSubmodules(opts.cwd, ignoreDirs);
+  // 0.1 MCP / Phase 0 Status Check
+  const mcpActive = await isMcpActive(opts.cwd);
+  console.log(`\n[POLICY] MCP Status: ${mcpActive ? "\x1b[32mACTIVE\x1b[0m" : "\x1b[33mINACTIVE\x1b[0m"}`);
+  if (mcpActive) {
+    console.log(`[POLICY] Phase 0 RAG validation is \x1b[32mENFORCED\x1b[0m for ticket creation.\n`);
+  } else {
+    console.log(`[POLICY] Running in offline/disconnected mode.\n`);
+  }
+
+  const submodules = discoverAllWorkspaces(opts.cwd, ignoreDirs);
   if (!submodules.includes(opts.cwd)) submodules.push(opts.cwd);
 
   const markers = resolveMarkers(opts);
   const bundleAgents = readBundleAgents(bundleRoot);
 
   for (const subCwd of submodules) {
-    console.log(`\nInitializing ${basename(subCwd)}...`);
-    
-    // 1. Migration & Directory Setup
-    migrateLegacyStructure(subCwd, opts.dryRun);
-    ensureTicketDirAndGitignore({ ...opts, cwd: subCwd });
-    
-    // 2. Normalize INDEX.json paths (fix stale paths)
-    normalizeTicketPaths(subCwd, { silent: false });
-
-    // 3. Spoke Pointers (e.g. .cursor/rules/deuk-agent.mdc)
-    deploySpokePointers(subCwd, opts.dryRun, selectedTools);
-
-    // 4. Agents Setup (AGENTS.md)
-    let cleanBundleAgents = bundleAgents;
-    const firstRuleIdxAgents = cleanBundleAgents.indexOf("<!-- RULE MODULE: ");
-    if (firstRuleIdxAgents !== -1) {
-      cleanBundleAgents = cleanBundleAgents.substring(0, firstRuleIdxAgents).trimEnd();
+    try {
+      await initSingleWorkspace(subCwd, opts, bundleRoot, markers, bundleAgents, selectedTools);
+    } catch (err) {
+      console.error(`[ERROR] Failed to initialize workspace ${basename(subCwd)}: ${err.message}`);
     }
-    
-    const compiledAgentsAdditions = compileDynamicRules(subCwd, bundleRoot, "AGENTS.md");
-    const fullBundleAgents = cleanBundleAgents + "\n\n" + compiledAgentsAdditions;
-
-    const agentsResult = applyAgents({
-      targetPath: join(subCwd, "AGENTS.md"),
-      bundleContent: fullBundleAgents,
-      markers, flavor: "init",
-      appendIfNoMarkers: opts.appendIfNoMarkers,
-      dryRun: opts.dryRun, backup: opts.backup,
-      agentsMode: opts.agents || "inject"
-    });
-    console.log(`AGENTS.md: ${agentsResult.action}`);
-
-    // 5. Hub Rules Sync (.deuk-agent/rules/)
-    const hubRulesDir = join(subCwd, AGENT_ROOT_DIR, RULES_SUBDIR);
-    if (!opts.dryRun) mkdirSync(hubRulesDir, { recursive: true });
-    applyRules({
-      bundleRulesDir: join(bundleRoot, "rules"),
-      targetRulesDir: hubRulesDir,
-      rulesMode: opts.rules || "overwrite",
-      dryRun: opts.dryRun, backup: opts.backup
-    });
-
-    // 6. Gemini Rule Sync (root rule)
-    const geminiBundle = join(bundleRoot, "GEMINI.md");
-    const geminiDest = join(subCwd, "GEMINI.md");
-    if (existsSync(geminiBundle)) {
-      let baseGemini = readFileSync(geminiBundle, "utf8");
-      // Prune any dynamically appended rule modules that might already be at the bottom
-      const firstRuleIdx = baseGemini.indexOf("<!-- RULE MODULE: ");
-      if (firstRuleIdx !== -1) {
-        baseGemini = baseGemini.substring(0, firstRuleIdx).trimEnd();
-      }
-      const compiledGeminiAdditions = compileDynamicRules(subCwd, bundleRoot, "GEMINI.md");
-      if (!opts.dryRun) {
-        writeFileSync(geminiDest, baseGemini + "\n\n" + compiledGeminiAdditions, "utf8");
-      }
-      console.log(`gemini.md: synced with dynamic rules`);
-    }
-
-    // 7. Templates Sync (.deuk-agent/templates/)
-    syncTemplates(subCwd, bundleRoot, opts.dryRun);
   }
 
   if (!loadInitConfig(opts.cwd)) {
@@ -355,11 +273,43 @@ export async function runInit(opts, bundleRoot) {
   }
 }
 
+async function initSingleWorkspace(subCwd, opts, bundleRoot, markers, bundleAgents, selectedTools) {
+  console.log(`\nInitializing ${basename(subCwd)}...`);
+  
+  // 1. Migration & Directory Setup
+  migrateLegacyStructure(subCwd, opts.dryRun);
+  ensureTicketDirAndGitignore({ ...opts, cwd: subCwd });
+  
+  // 2. Normalize INDEX.json paths (fix stale paths)
+  normalizeTicketPaths(subCwd, { silent: false });
+
+  // 3. Spoke Pointers (e.g. .cursor/rules/deuk-agent.mdc)
+  deploySpokePointers(subCwd, opts.dryRun, selectedTools);
+
+  // 4. Agents Setup (AGENTS.md)
+  const agentsResult = syncAgentRules(subCwd, bundleRoot, markers, bundleAgents, opts);
+  console.log(`AGENTS.md: ${agentsResult.action}`);
+
+  // 5. Hub Rules Sync (.deuk-agent/rules/)
+  const hubRulesDir = join(subCwd, AGENT_ROOT_DIR, RULES_SUBDIR);
+  if (!opts.dryRun) mkdirSync(hubRulesDir, { recursive: true });
+  applyRules({
+    bundleRulesDir: join(bundleRoot, "rules"),
+    targetRulesDir: hubRulesDir,
+    rulesMode: opts.rules || "overwrite",
+    dryRun: opts.dryRun, backup: opts.backup
+  });
+
+  // 6. Gemini Rule Sync (root rule)
+  syncGeminiRules(subCwd, bundleRoot, opts);
+
+  // 7. Templates Sync (.deuk-agent/templates/)
+  syncTemplates(subCwd, bundleRoot, opts.dryRun);
+}
+
 export function runMerge(opts, bundleRoot) {
   const savedConfig = loadInitConfig(opts.cwd) || {};
-  const workflowMode = normalizeWorkflowMode(
-    opts.workflowMode ?? opts.workflow ?? opts.approval ?? savedConfig.workflowMode ?? savedConfig.approvalState
-  );
+  const workflowMode = resolveWorkflowMode(opts, savedConfig);
   const executionEnabled = isWorkflowExecute({ ...opts, workflowMode }, savedConfig);
   if (!opts.dryRun && !executionEnabled) {
     throw new Error(
@@ -369,25 +319,8 @@ export function runMerge(opts, bundleRoot) {
   const markers = resolveMarkers(opts);
   const bundleAgents = readBundleAgents(bundleRoot);
 
-  // Modular rule compilation (similar to runInit)
-  let cleanBundleAgents = bundleAgents;
-  const firstRuleIdxAgents = cleanBundleAgents.indexOf("<!-- RULE MODULE: ");
-  if (firstRuleIdxAgents !== -1) {
-    cleanBundleAgents = cleanBundleAgents.substring(0, firstRuleIdxAgents).trimEnd();
-  }
-  
-  const compiledAgentsAdditions = compileDynamicRules(opts.cwd, bundleRoot, "AGENTS.md");
-  const fullBundleAgents = cleanBundleAgents + "\n\n" + compiledAgentsAdditions;
-
-  const agentsResult = applyAgents({
-    targetPath: join(opts.cwd, "AGENTS.md"),
-    bundleContent: fullBundleAgents,
-    markers, flavor: "merge",
-    appendIfNoMarkers: opts.appendIfNoMarkers,
-    dryRun: opts.dryRun, backup: opts.backup,
-    agentsMode: opts.agents || "inject"
-  });
-  console.log(`AGENTS.md: ${agentsResult.action} (${agentsResult.mode || ""})`);
+  const agentsResult = syncAgentRules(opts.cwd, bundleRoot, markers, bundleAgents, opts);
+  console.log(`AGENTS.md: merged via syncAgentRules (${agentsResult.action})`);
 
   const hubRulesDir = join(opts.cwd, AGENT_ROOT_DIR, RULES_SUBDIR);
   const ruleActions = applyRules({
@@ -399,4 +332,36 @@ export function runMerge(opts, bundleRoot) {
   ruleActions.forEach(r => console.log(`hub rule ${r.action}: ${r.dest || r.src}`));
 
   syncTemplates(opts.cwd, bundleRoot, opts.dryRun);
+}
+
+function syncAgentRules(cwd, bundleRoot, markers, bundleAgents, opts) {
+  const targetFile = "AGENTS.md";
+  const cleanBundleAgents = pruneRuleModules(bundleAgents);
+  const compiledAdditions = compileDynamicRules(cwd, bundleRoot, targetFile);
+  const fullBundleAgents = cleanBundleAgents + "\n\n" + compiledAdditions;
+
+  return applyAgents({
+    targetPath: join(cwd, targetFile),
+    bundleContent: fullBundleAgents,
+    markers, flavor: "init",
+    appendIfNoMarkers: opts.appendIfNoMarkers,
+    dryRun: opts.dryRun, backup: opts.backup,
+    agentsMode: opts.agents || "inject"
+  });
+}
+
+function syncGeminiRules(cwd, bundleRoot, opts) {
+  const targetFile = "GEMINI.md";
+  const geminiBundle = join(bundleRoot, targetFile);
+  const geminiDest = join(cwd, targetFile);
+  
+  if (!existsSync(geminiBundle)) return;
+
+  const baseGemini = pruneRuleModules(readFileSync(geminiBundle, "utf8"));
+  const compiledAdditions = compileDynamicRules(cwd, bundleRoot, targetFile);
+  
+  if (!opts.dryRun) {
+    writeFileSync(geminiDest, baseGemini + "\n\n" + compiledAdditions, "utf8");
+  }
+  console.log(`${targetFile}: synced with dynamic rules`);
 }

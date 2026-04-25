@@ -3,15 +3,15 @@ id: 001-044-deukagentrules-hardening-joy-nucb
 title: "044-deukagentrules-hardening"
 topic: 044-deukagentrules-hardening
 status: open
-submodule: 
+submodule:
 project: global
 createdAt: 2026-04-21T23:55:21.805Z
 ---
 
 # Task: [Task Title] | ID: [auto-generated]
 
-> **[CAUTION FOR AI AGENTS]** 
-> You are operating within a locked multi-module monorepo. 
+> **[CAUTION FOR AI AGENTS]**
+> You are operating within a locked multi-module monorepo.
 > 1. Restrict absolutely all analysis, file creation, and modifications to the declared **[Target Submodule]** below.
 > 2. Read the files listed in **[Context Files]** before doing ANY code generation.
 > 3. DO NOT leak configuration, logic, or dependencies from other submodules.
@@ -19,7 +19,7 @@ createdAt: 2026-04-21T23:55:21.805Z
 ## 🎯 Scope Bounds
 
 - **Target Submodule:** `[e.g., DeukUI | DeukPack | DeukNavigation]`
-- **Context Files:** 
+- **Context Files:**
   - `[e.g., DeukAgentRules/templates/MODULE_RULE_TEMPLATE.md]`
   - `[e.g., path/to/your/specific/rules.md]`
 
@@ -33,11 +33,11 @@ createdAt: 2026-04-21T23:55:21.805Z
 - [e.g., No hotpath LINQ, Async Safety, No Raw Pointers]
 
 ## 🔄 Phased Execution Steps
-> Agent: Do NOT attempt to do Phase 3 before Phase 1 is fully tested. 
+> Agent: Do NOT attempt to do Phase 3 before Phase 1 is fully tested.
 0. [Phase 0> RAG Research (MCP)]
    - [ ] `mcp_deukrag_search_rules` 기반 규약 검토 완료
    - [ ] `mcp_deukrag_search_tickets` 과거 유사 티켓 이력 열람 완료
-   - [ ] (필수 작성) 검색된 핵심 컨텍스트 요약: 
+   - [ ] (필수 작성) 검색된 핵심 컨텍스트 요약:
 0.5 [Phase 0.5> Deep Analysis (Optional)]
    - [ ] 복잡한 아키텍처 변경 시 별도 분석 아티팩트 작성 및 승인 완료
 1. [Phase 1> Setup / Parsing]

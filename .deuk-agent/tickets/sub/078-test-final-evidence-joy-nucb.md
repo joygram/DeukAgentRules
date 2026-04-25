@@ -38,13 +38,13 @@ createdAt: 2026-04-25 09:31:37
    > 아래 항목은 RAG 검색(`mcp_deukcontext_search_*`) 결과를 바탕으로 작성되어야 합니다. 로컬 검색으로 대체할 수 없습니다.
 
    ### RAG 검색 결과
-   - **유사 티켓**: 
-   - **관련 규약**: 
-   - **코드 패턴**: 
+   - **유사 티켓**:
+   - **관련 규약**:
+   - **코드 패턴**:
 
    ### 발견사항 (RAG 기반)
    - Final test evidence string
-   
+
    - [ ] (RAG Miss 시 필수) `mcp_deukcontext_add_knowledge` 주입 완료:
 
 0.5 [Phase 0.5> 심층 분석 (선택)]
