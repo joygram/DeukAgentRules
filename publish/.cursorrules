@@ -1,10 +1,10 @@
 <!-- deuk-agent-rule-cursorrules:begin -->
 # 💎 RAG-FIRST HARD LOCK IS AUTHORITATIVE
 
-For Antigravity (Gemini), the **RAG-FIRST ACTION [ACTION 0]** and **CONTINUOUS RAG POLICY** defined in **AGENTS.md** and **gemini.md** are the absolute Single Source of Truth.
+For Antigravity (Gemini), the **RAG-FIRST ACTION [ACTION 0]** and **CONTINUOUS RAG POLICY** defined in **AGENTS.md** and **GEMINI.md** are the absolute Single Source of Truth.
 
 1. **[ABSOLUTE PRIORITY]**: Every request MUST begin with `mcp_deukrag_search_*`.
-2. **[gemini.md]**: You MUST read and follow the specific hard locks in `gemini.md` at the root.
+2. **[GEMINI.md]**: You MUST read and follow the specific hard locks in `GEMINI.md` at the root.
 3. **[TICKET SYSTEM]**: Follow the TDD workflow in `AGENTS.md` strictly.
 
 Do not skip RAG research by relying on local file reads (`view_file`, `grep_search`). Local files are for details; RAG is for architectural truth and zero-regression.

@@ -1,4 +1,11 @@
-# [실행] 작업: <%= meta.title %> | ID: <%= meta.id %>
+---
+id: 080-agents-md-full-refactor-joy-nucb
+title: "agents-md-full-refactor"
+status: open
+createdAt: 2026-04-25 13:28:35
+---
+
+# [실행] 작업: agents-md-full-refactor | ID: 080-agents-md-full-refactor-joy-nucb
 
 > **[에이전트 주의]**
 > 이 작업은 잠긴 멀티 모듈 모노레포 안에서 진행돼요.
@@ -7,7 +14,7 @@
 > 3. 다른 서브모듈의 설정, 로직, 의존성을 섞어 쓰지 마세요.
 
 ## 🎯 범위
-- **Target Submodule:** `<%- meta.submodule || '[예: DeukUI | DeukPack | DeukNavigation]' %>`
+- **Target Submodule:** `[예: DeukUI | DeukPack | DeukNavigation]`
 - **Context Files:**
   - `[예: DeukAgentRules/templates/MODULE_RULE_TEMPLATE.md]`
   - `[예: path/to/your/specific/rules.md]`
@@ -16,7 +23,7 @@
 - `path/from/root/to/target1`: [무엇을 수정하는지 구체적으로 적으세요.]
 
 ## 🏗️ 설계 결정사항
-- **Plan Reference**: <%- meta.planLink %>
+- **Plan Reference**: [080-agents-md-full-refactor-joy-nucb-plan.md](file:///home/joy/workspace/DeukAgentRules/.deuk-agent/docs/plans/080-agents-md-full-refactor-joy-nucb-plan.md)
 - **Plan Path Rule**: `.deuk-agent/docs/plans/<ticket-id>-plan.md`
 - [필요한 핵심 결정을 간단히 적으세요]
 

@@ -1,8 +1,52 @@
 {
   "version": 1,
-  "updatedAt": "2026-04-25T09:32:02.879Z",
-  "activeTicketId": "078-test-final-evidence-joy-nucb",
+  "updatedAt": "2026-04-25T13:58:25.250Z",
+  "activeTicketId": "082-test-unified-v2-joy-nucb",
   "entries": [
+    {
+      "id": "082-test-unified-v2-joy-nucb",
+      "title": "test-unified-v2",
+      "topic": "test-unified-v2",
+      "group": "sub",
+      "project": "global",
+      "createdAt": "2026-04-25T13:58:25.250Z",
+      "path": ".deuk-agent/tickets/sub/082-test-unified-v2-joy-nucb.md",
+      "source": "ticket-create",
+      "status": "open"
+    },
+    {
+      "id": "081-test-unified-template-joy-nucb",
+      "title": "test-unified-template",
+      "topic": "test-unified-template",
+      "group": "sub",
+      "project": "global",
+      "createdAt": "2026-04-25T13:57:51.725Z",
+      "path": ".deuk-agent/tickets/sub/081-test-unified-template-joy-nucb.md",
+      "source": "ticket-create",
+      "status": "open"
+    },
+    {
+      "id": "080-agents-md-full-refactor-joy-nucb",
+      "title": "agents-md-full-refactor",
+      "topic": "agents-md-full-refactor",
+      "group": "sub",
+      "project": "global",
+      "createdAt": "2026-04-25T13:28:35.506Z",
+      "path": ".deuk-agent/tickets/sub/080-agents-md-full-refactor-joy-nucb.md",
+      "source": "ticket-create",
+      "status": "open"
+    },
+    {
+      "id": "079-mcp-sse-stability-postmortem-joy-nucb",
+      "title": "MCP-SSE-Stability-PostMortem",
+      "topic": "mcp-sse-stability-postmortem",
+      "group": "sub",
+      "project": "global",
+      "createdAt": "2026-04-25T11:36:18.000Z",
+      "path": ".deuk-agent/tickets/sub/079-mcp-sse-stability-postmortem-joy-nucb.md",
+      "source": "ticket-create",
+      "status": "open"
+    },
     {
       "id": "078-test-final-evidence-joy-nucb",
       "title": "test-final-evidence",

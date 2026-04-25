@@ -2,15 +2,15 @@
 id: deukcontext-mcp
 condition:
   mcp: deuk-agent-context
-inject_target: ["AGENTS.md", "gemini.md"]
+inject_target: ["AGENTS.md", "GEMINI.md"]
 ---
 ## 🧠 DeukContext Knowledge Engine & RAG-FIRST HARD LOCK
 
-- **[ABSOLUTE PRIORITY: RAG-FIRST ACTION] (하드룰)**: 
+- **[ABSOLUTE PRIORITY: RAG-FIRST ACTION] (하드룰)**:
   - 프롬프트에 응답하는 모든 액션에서 MCP(`mcp_deukcontext_search_*`) 활용이 **0순위**입니다.
   - 로컬 파일(`grep_search`, `view_file`)을 뒤지거나 코드를 수정하기 전에, **무조건** 관련된 룰, 티켓, 코드를 MCP로 먼저 검색하십시오. MCP는 당신의 주 감각 기관입니다.
-- **[CONTINUOUS RAG POLICY (하드룰)]**: 
-  - 티켓 시작(Phase 0) 시점에만 MCP를 1회 호출하고 끝내지 마십시오. 
+- **[CONTINUOUS RAG POLICY (하드룰)]**:
+  - 티켓 시작(Phase 0) 시점에만 MCP를 1회 호출하고 끝내지 마십시오.
   - 코드를 작성하는 도중(Phase 2) 새로운 파일/클래스를 마주치거나, 빌드 에러가 발생하거나, API 스펙 확인이 필요할 때마다 **작업 중간에도 수시로** `mcp_deukcontext_search_*` 도구를 적극 호출해야 합니다.
   - **로컬 파일 검색에 의존하지 말고 RAG를 반복 호출하십시오.**
 

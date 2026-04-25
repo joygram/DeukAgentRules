@@ -1,7 +1,6 @@
 {
   "mcpServers": {
     "deuk-agent-context": {
-      "type": "sse",
       "url": "http://localhost:8001/sse"
     }
   }

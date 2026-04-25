@@ -193,9 +193,9 @@ const SPOKE_REGISTRY = [
   },
   {
     id: "antigravity",
-    detect: (cwd) => existsSync(join(cwd, "gemini.md")) || existsSync(join(cwd, ".gemini")),
+    detect: (cwd) => existsSync(join(cwd, "GEMINI.md")) || existsSync(join(cwd, ".gemini")),
     legacy: null,
-    target: "gemini.md",
+    target: "GEMINI.md",
     format: "markdown",
   },
 ];
@@ -330,8 +330,8 @@ export async function runInit(opts, bundleRoot) {
     });
 
     // 6. Gemini Rule Sync (root rule)
-    const geminiBundle = join(bundleRoot, "gemini.md");
-    const geminiDest = join(subCwd, "gemini.md");
+    const geminiBundle = join(bundleRoot, "GEMINI.md");
+    const geminiDest = join(subCwd, "GEMINI.md");
     if (existsSync(geminiBundle)) {
       let baseGemini = readFileSync(geminiBundle, "utf8");
       // Prune any dynamically appended rule modules that might already be at the bottom
@@ -339,7 +339,7 @@ export async function runInit(opts, bundleRoot) {
       if (firstRuleIdx !== -1) {
         baseGemini = baseGemini.substring(0, firstRuleIdx).trimEnd();
       }
-      const compiledGeminiAdditions = compileDynamicRules(subCwd, bundleRoot, "gemini.md");
+      const compiledGeminiAdditions = compileDynamicRules(subCwd, bundleRoot, "GEMINI.md");
       if (!opts.dryRun) {
         writeFileSync(geminiDest, baseGemini + "\n\n" + compiledGeminiAdditions, "utf8");
       }

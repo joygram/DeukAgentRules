@@ -82,16 +82,9 @@ export async function runTicketCreate(opts) {
     }
     const tplText = readFileSync(ticketTemplatePath, "utf8");
 
-    const planTemplateCandidates = [
-      selectLocalizedTemplatePath(templateDir, "PLAN_TEMPLATE.md", docsLanguage),
-      selectLocalizedTemplatePath(bundleTplDir, "PLAN_TEMPLATE.md", docsLanguage),
-    ];
-    const planTemplatePath = planTemplateCandidates.find(p => existsSync(p));
-    const planTplText = planTemplatePath ? readFileSync(planTemplatePath, "utf8") : "";
-
     // Find nearest or create in CWD if missing
     const ticketDir = detectConsumerTicketDir(opts.cwd, { createIfMissing: true });
-    
+
     const indexJson = readTicketIndexJson(opts.cwd);
     const ticketId = generateTicketId(topic, indexJson.entries);
     const finalFileName = `${ticketId}.md`;
@@ -100,12 +93,6 @@ export async function runTicketCreate(opts) {
     mkdirSync(join(ticketDir, group), { recursive: true });
     path = toRepoRelativePath(opts.cwd, abs);
 
-    // Auto-Scaffold Plan Document
-    const plansDir = join(opts.cwd, AGENT_ROOT_DIR, "docs", "plans");
-    const planFileName = `${ticketId}-plan.md`;
-    const planAbs = join(plansDir, planFileName);
-    const planLink = `[${planFileName}](file://${toPosixPath(planAbs)})`;
-    
     let prevTicketEntry = null;
     if (opts.chain) {
       prevTicketEntry = pickTicketEntry({ latest: true }, indexJson);
@@ -118,27 +105,15 @@ export async function runTicketCreate(opts) {
       submodule: opts.submodule || "",
       project: opts.project || "global",
       docsLanguage,
-      planLink: planLink,
       evidence: opts.evidence || "",
       createdAt: new Date().toISOString().replace('T', ' ').split('.')[0],
       prevTicket: prevTicketEntry ? prevTicketEntry.id : "",
     };
 
-    const ejsFrontMatter = `---
-id: <%= meta.id %>
-title: "<%- meta.title.replace(/"/g, '\\"') %>"
-status: open
-<% if (meta.submodule) { %>submodule: <%= meta.submodule %>
-<% } %><% if (meta.project && meta.project !== 'global') { %>project: <%= meta.project %>
-<% } %><% if (meta.prevTicket) { %>prevTicket: <%= meta.prevTicket %>
-<% } %>createdAt: <%= meta.createdAt %>
----
-
-`;
-    const finalContent = ejs.render(ejsFrontMatter + tplText, { meta });
+    const finalContent = ejs.render(tplText, { meta });
     writeFileSync(abs, finalContent, "utf8");
     source = "ticket-create";
-    
+
     if (prevTicketEntry) {
       const prevAbsPath = join(opts.cwd, prevTicketEntry.path);
       if (existsSync(prevAbsPath)) {
@@ -154,14 +129,7 @@ status: open
       }
     }
 
-    // Write Plan Document
-    mkdirSync(plansDir, { recursive: true });
-    const planBody = planTplText
-      ? ejs.render(planTplText, { meta })
-      : `# Plan: ${title}\n\n## Summary\n- 목적:\n- 범위:\n- 비범위:\n`;
-    const planFrontMatter = `---\nid: ${ticketId}\ntitle: "${String(title).replace(/"/g, '\\"')}"\nlanguage: ${docsLanguage}\ncreatedAt: ${meta.createdAt}\n---\n\n`;
-    writeFileSync(planAbs, planFrontMatter + planBody, "utf8");
-    console.log(`Plan scaffolded: ${toFileUri(planAbs)}`);
+    console.log(`Ticket created: ${toFileUri(abs)}`);
     
     // Remote Sync Hook
     const configSync = loadInitConfig(opts.cwd);

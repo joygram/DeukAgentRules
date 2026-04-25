@@ -1,6 +1,6 @@
 ---
 id: core-workflow
-inject_target: ["AGENTS.md", "gemini.md"]
+inject_target: ["AGENTS.md", "GEMINI.md"]
 ---
 ## 🔗 Modernized Ticket-Driven Development (TDD)
 
@@ -51,5 +51,5 @@ All Tickets and docs are volatile and strictly local. Do not attempt to version 
 - **[탐색 금지 (하드룰)]**: "다음 티켓 진행" 요청을 받았을 때, 에이전트가 임의로 `.deuk-agent/tickets/*` 폴더를 탐색(Exploring)하거나 `INDEX.json` 등을 열어보는 '삽질'을 엄격히 금지합니다.
 - **[가장 빠른 진행 (Fast-Track)]**:
   1. 즉시 `npx deuk-agent-rule ticket use --latest --path-only` 명령을 실행하여 진행할 가장 최근 티켓의 **정확한 파일 경로만** 획득하십시오.
-  2. 얻어낸 파일 경로를 에디터 도구(`view_file`, `cat` 등)로 **직접 읽으십시오**. 
+  2. 얻어낸 파일 경로를 에디터 도구(`view_file`, `cat` 등)로 **직접 읽으십시오**.
   3. **[하드룰]** 경로를 획득한 후 다른 탐색 명령(`ticket list`, `ls`, `grep_search`, `mcp_search_*`)을 실행하는 것은 금지됩니다. 즉시 `view_file`로 진입하십시오. 이를 어길 시 작업 효율성 미달로 간주됩니다.

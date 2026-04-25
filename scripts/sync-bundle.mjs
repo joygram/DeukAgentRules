@@ -21,8 +21,8 @@ const agentsSrc = join(publishDir, "AGENTS.md");
 const agentsDest = join(pkgRoot, "bundle", "AGENTS.md");
 const cursorrulesSrc = join(publishDir, ".cursorrules");
 const cursorrulesDest = join(pkgRoot, "bundle", ".cursorrules");
-const geminiSrc = join(publishDir, "gemini.md");
-const geminiDest = join(pkgRoot, "bundle", "gemini.md");
+const geminiSrc = join(publishDir, "GEMINI.md");
+const geminiDest = join(pkgRoot, "bundle", "GEMINI.md");
 
 if (!existsSync(publishDir)) {
   throw new Error("Missing publish template dir: " + publishDir);
