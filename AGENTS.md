@@ -11,7 +11,9 @@
 - WebApp: No hardcoded JSON. Use DeukPack generated codecs.
 
 ## Workflow
-- For complex tasks, create a ticket: `npx deuk-agent-rule ticket create --topic <name>`
+- Create a ticket: `npx deuk-agent-rule ticket create --topic <name>`
+- Read `DOMAIN_RULES.md` and copy applicable rules into the ticket's Strict Rules Check.
+- **STOP AND WAIT**: Present the filled ticket and wait for explicit user approval before modifying code.
 - On 2+ repeated errors, stop and file a ticket with analysis.
 - Temp scripts go in `tmp/`.
 
