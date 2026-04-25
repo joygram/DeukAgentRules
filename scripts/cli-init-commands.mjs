@@ -8,9 +8,11 @@ import { compileDynamicRules } from "./cli-rule-compiler.mjs";
 import { loadInitConfig, writeInitConfig, isWorkflowExecute, normalizeWorkflowMode } from "./cli-utils.mjs";
 import { runInteractive } from "./cli-prompts.mjs";
 
-import { AGENT_ROOT_DIR, TICKET_SUBDIR, TEMPLATE_SUBDIR, RULES_SUBDIR, discoverAllSubmodules } from "./cli-utils.mjs";
+import { AGENT_ROOT_DIR, TICKET_SUBDIR, TEMPLATE_SUBDIR, RULES_SUBDIR, discoverAllSubmodules, cleanSubmoduleStubs } from "./cli-utils.mjs";
 
 function migrateLegacyStructure(cwd, dryRun) {
+  cleanSubmoduleStubs(cwd, dryRun);
+
   const recursiveMerge = (src, dest) => {
     if (!existsSync(src)) return;
     if (!existsSync(dest)) {
@@ -202,37 +204,14 @@ function generateSpokeContent(spoke) {
   const depth = spoke.target.split('/').length - 1;
   const prefix = depth > 0 ? '../'.repeat(depth) : './';
 
-  const baseIntro = `# Deuk Agent Rules
+  const content = `# Deuk Agent Rules
 
 This project follows the Deuk Agent Rules framework.
-- Read the full rules: [AGENTS.md](${prefix}AGENTS.md)
-- Module-specific rules: [.deuk-agent/rules/](${prefix}.deuk-agent/rules/)
+All operational rules, technical standards, and workflows are centralized in:
+- [AGENTS.md](${prefix}AGENTS.md)
+
+Refer to AGENTS.md before starting any task.
 `;
-
-  const commonRules = `## Critical Rules
-- Use \`.deuk-agent/templates/TICKET_TEMPLATE.md\` for multi-step tasks.
-- RAG-First: Use MCP tools before local file search when available.
-- Error Loop Prevention: Stop after 2 repeated errors, create a ticket.
-`;
-
-  const agentSpecificRules = {
-    copilot: `## Copilot Execution Rules
-- Treat this file as the fast-start entrypoint for Copilot chat sessions.
-- Read \`AGENTS.md\` before implementing broad or multi-file changes.
-- Use a ticket before multi-step work; do not improvise scope outside the ticket.
-- If MCP is available, search rules and tickets first; otherwise fall back to local files.
-- Keep changes inside the declared submodule and stop after two repeated errors.
-`,
-    codex: `## Codex Execution Rules
-- This repository-local Codex guide supplements the global \`~/.codex/AGENTS.md\` pointer.
-- Start from the local \`AGENTS.md\`, then open the latest or assigned ticket before editing code.
-- Use the ticket as the execution contract and the linked plan as detailed design reference.
-- Prefer MCP ticket/rule lookup first when available; fall back locally without looping on MCP errors.
-- Do not expand scope beyond the active ticket or silently refactor unrelated modules.
-`,
-  };
-
-  const content = `${baseIntro}${agentSpecificRules[spoke.id] || ""}\n${commonRules}`;
 
   if (spoke.format === "mdc") {
     return `---
@@ -245,8 +224,24 @@ ${content}`;
   return `<!-- deuk-agent-rule:begin -->\n${content}\n<!-- deuk-agent-rule:end -->\n`;
 }
 
+function isDeprecatedMarker(filePath) {
+  try {
+    const content = readFileSync(filePath, "utf8");
+    return content.includes("deuk-agent-rule:deprecated") || content.includes("DEPRECATED");
+  } catch { return false; }
+}
+
 function deploySpokePointers(cwd, dryRun, selectedTools = []) {
   for (const spoke of SPOKE_REGISTRY) {
+    // Always clean deprecated legacy files regardless of detection
+    if (spoke.legacy) {
+      const legacyPath = join(cwd, spoke.legacy);
+      if (existsSync(legacyPath) && isDeprecatedMarker(legacyPath)) {
+        if (!dryRun) unlinkSync(legacyPath);
+        console.log(`[CLEANUP] removed deprecated legacy: ${spoke.legacy}`);
+      }
+    }
+
     if (!spoke.detect(cwd, selectedTools)) continue;
     
     const targetPath = join(cwd, spoke.target);
@@ -257,15 +252,6 @@ function deploySpokePointers(cwd, dryRun, selectedTools = []) {
       writeFileSync(targetPath, generateSpokeContent(spoke), "utf8");
     }
     console.log(`spoke synced: ${spoke.target} (${spoke.id})`);
-    
-    // Remove legacy file if it exists
-    if (spoke.legacy) {
-      const legacyPath = join(cwd, spoke.legacy);
-      if (existsSync(legacyPath)) {
-        if (!dryRun) unlinkSync(legacyPath);
-        console.log(`[MIGRATE] removed legacy spoke: ${spoke.legacy} -> ${spoke.target}`);
-      }
-    }
   }
 }
 

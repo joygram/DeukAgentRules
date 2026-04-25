@@ -15,6 +15,50 @@ export const RULES_SUBDIR = "rules";
 export const WORKFLOW_MODE_PLAN = "plan";
 export const WORKFLOW_MODE_EXECUTE = "execute";
 
+export const PRUNE_SUBMODULE_LIST = ["DeukAgentRules", "DeukUI", "DeukPack", "DeukNavigation", "DeukSpace"];
+
+export function cleanSubmoduleStubs(cwd, dryRun) {
+  const gitmodulesPath = join(cwd, ".gitmodules");
+  let gitmodulesChanged = false;
+  let gitmodulesContent = existsSync(gitmodulesPath) ? readFileSync(gitmodulesPath, "utf8") : "";
+
+  for (const modName of PRUNE_SUBMODULE_LIST) {
+    const modPath = join(cwd, modName);
+    // Remove empty directory stub
+    if (existsSync(modPath)) {
+      try {
+        if (readdirSync(modPath).length === 0) {
+          if (!dryRun) {
+            import("fs").then(fs => fs.rmSync(modPath, { recursive: true, force: true }));
+          }
+          console.log(`[CLEANUP] Removed empty submodule stub: ${modName}`);
+        }
+      } catch (e) {
+        // ignore errors
+      }
+    }
+
+    // Remove section from .gitmodules
+    if (gitmodulesContent) {
+      const regex = new RegExp(`\\[submodule\\s+"${modName}"\\][\\s\\S]*?(?=\\[submodule|$)`, "g");
+      if (regex.test(gitmodulesContent)) {
+        gitmodulesContent = gitmodulesContent.replace(regex, "").trim();
+        gitmodulesChanged = true;
+        console.log(`[CLEANUP] Removed submodule reference from .gitmodules: ${modName}`);
+      }
+    }
+  }
+
+  if (gitmodulesChanged) {
+    if (gitmodulesContent === "") {
+      if (!dryRun) import("fs").then(fs => fs.unlinkSync(gitmodulesPath));
+      console.log(`[CLEANUP] Removed empty .gitmodules`);
+    } else {
+      if (!dryRun) import("fs").then(fs => fs.writeFileSync(gitmodulesPath, gitmodulesContent, "utf8"));
+    }
+  }
+}
+
 export const TICKET_DIR_NAME = `${AGENT_ROOT_DIR}/${TICKET_SUBDIR}`;
 export const TICKET_INDEX_FILENAME = "INDEX.json";
 export const TICKET_LIST_FILENAME = "TICKET_LIST.md";
