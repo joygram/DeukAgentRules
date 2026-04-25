@@ -36,7 +36,6 @@ export function computeTicketPath(entry) {
 }
 
 export const INIT_CONFIG_FILENAME = `${AGENT_ROOT_DIR}/config.json`;
-export const LEGACY_INIT_CONFIG_FILENAME = ".deuk-agent-rule.config.json";
 export const INIT_CONFIG_VERSION = 1;
 
 export const STACKS = [
@@ -102,10 +101,9 @@ export function selectLocalizedTemplatePath(baseDir, templateName, docsLanguage 
 
 export function loadInitConfig(cwd) {
   const p = join(cwd, INIT_CONFIG_FILENAME);
-  const legacyP = join(cwd, LEGACY_INIT_CONFIG_FILENAME);
-  
-  let target = existsSync(p) ? p : (existsSync(legacyP) ? legacyP : null);
-  if (!target) return null;
+  if (!existsSync(p)) return null;
+
+  let target = p;
 
   try {
     const j = JSON.parse(readFileSync(target, "utf8"));
@@ -409,10 +407,7 @@ export const DEFAULT_IGNORE_DIRS = ["node_modules", ".git", ".deuk-agent", "tmp"
 export function resolveTicketSystemPaths(cwd) {
   return {
     primary: join(cwd, AGENT_ROOT_DIR, TICKET_SUBDIR),
-    legacy: [
-      join(cwd, ".deuk-agent-ticket"),
-      join(cwd, ".deuk-agent-tickets")
-    ].filter(p => existsSync(p))
+    legacy: []
   };
 }
 

@@ -1,8 +1,30 @@
 {
   "version": 1,
-  "updatedAt": "2026-04-25T23:23:34.474Z",
+  "updatedAt": "2026-04-25T23:54:44.089Z",
   "activeTicketId": "093-comprehensive-audit-and-refactor-joy-nucb",
   "entries": [
+    {
+      "id": "094-test-distillation-joy-nucb",
+      "title": "test-distillation",
+      "topic": "test-distillation",
+      "group": "sub",
+      "project": "global",
+      "createdAt": "2026-04-25T23:54:44.088Z",
+      "source": "ticket-create",
+      "status": "archived",
+      "updatedAt": "2026-04-25T23:55:07.206Z"
+    },
+    {
+      "id": "078-ticket-archive-knowledge-distill-joy-nucb",
+      "title": "078-ticket-archive-knowledge-distillation",
+      "topic": "078-ticket-archive-knowledge-distillation",
+      "group": "sub",
+      "project": "global",
+      "createdAt": "2026-04-25T23:42:37.253Z",
+      "source": "ticket-create",
+      "status": "archived",
+      "updatedAt": "2026-04-25T23:55:27.473Z"
+    },
     {
       "id": "093-comprehensive-audit-and-refactor-joy-nucb",
       "title": "comprehensive-audit-and-refactoring",
@@ -21,9 +43,9 @@
       "project": "DeukAgentRules",
       "submodule": "",
       "createdAt": "2026-04-26 07:11:00",
-      "updatedAt": "2026-04-25T22:14:35.531Z",
+      "updatedAt": "2026-04-25T23:54:54.674Z",
       "source": "ticket-sync",
-      "status": "closed"
+      "status": "archived"
     },
     {
       "id": "092-state-driven-ticket-path-resolut-joy-nucb",

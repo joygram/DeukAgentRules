@@ -1,0 +1,12 @@
+{
+  "id": "082-refactor-cli-technical-debt-joy-nucb",
+  "title": "refactor-cli-technical-debt",
+  "project": "DeukAgentRules",
+  "createdAt": "2026-04-26 07:11:00",
+  "archivedAt": "2026-04-25T23:54:54.673Z",
+  "sections": {
+    "Analysis & Constraints": "(Deep Review)\n- **Root Cause**: The CLI implementation accumulated fragile heuristics (regex-based parsing, hardcoded project names, `ps aux` sniffing) that reduce reliability and portability.\n- **Constraints**:\n  - Must remain compatible with Node.js 18+.\n  - Must not break existing ticket structures.\n  - Must strictly enforce Phase 0 if MCP is active (local or remote).\n- **Risk**:\n  - Throwing errors on invalid YAML might break existing workflows if users have corrupted files.\n  - MCP connectivity checks (fetch) might hang if not properly timed out.",
+    "Tasks": "- [x] Remove hardcoded `PRUNE_SUBMODULE_LIST` and clean up `cli-utils.mjs`.\n- [x] Refactor `parseFrontMatter` to use string split/startsWith and throw on YAML error.\n- [x] Refactor title extraction to remove regex and rely on meta or basename.\n- [x] Implement robust MCP validation (check `.mcp.json` / `.cursor/mcp.json` + SSE ping).\n- [x] Standardize error handling and remove excessive `try/catch` guards across CLI.\n- [x] Verify via `npx deuk-agent-rule ticket list` and `lint:md`.",
+    "Done When": "- [x] All regex-based parsing is replaced with string logic.\n- [x] `PRUNE_SUBMODULE_LIST` is deleted.\n- [x] MCP skip validation correctly detects SSE and stdio servers.\n- [x] `npm run lint:md` passes."
+  }
+}

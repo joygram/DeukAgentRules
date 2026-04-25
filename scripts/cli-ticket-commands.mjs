@@ -3,7 +3,7 @@ import { hostname } from "os";
 import { basename, join, dirname, relative, resolve } from "path";
 import { 
   toSlug, toRepoRelativePath, toFileUri, inferRefTitleAndTopic, resolveReferencedTicketPath, toPosixPath, stringifyFrontMatter,
-  selectLocalizedTemplatePath, resolveDocsLanguage, isMcpActive, withReadline,
+  selectLocalizedTemplatePath, resolveDocsLanguage, isMcpActive, withReadline, parseFrontMatter,
   AGENT_ROOT_DIR, TICKET_SUBDIR, TEMPLATE_SUBDIR, TICKET_DIR_NAME, detectConsumerTicketDir
 } from "./cli-utils.mjs";
 import { readTicketIndexJson, writeTicketIndexJson, syncActiveTicketId, generateTicketId, syncToPipeline } from "./cli-ticket-index.mjs";
@@ -42,12 +42,10 @@ function resolveTicketTemplate(cwd, docsLanguageInput) {
   const docsLanguage = resolveDocsLanguage(docsLanguageInput || config.docsLanguage || "auto");
 
   const templateDir = join(cwd, AGENT_ROOT_DIR, TEMPLATE_SUBDIR);
-  const legacyTplDir = join(cwd, ".deuk-agent-templates");
   const bundleTplDir = join(new URL(".", import.meta.url).pathname, "..", "bundle", "templates");
 
   const ticketTemplateCandidates = [
     selectLocalizedTemplatePath(templateDir, "TICKET_TEMPLATE.md", docsLanguage),
-    selectLocalizedTemplatePath(legacyTplDir, "TICKET_TEMPLATE.md", docsLanguage),
     selectLocalizedTemplatePath(bundleTplDir, "TICKET_TEMPLATE.md", docsLanguage),
   ];
   const ticketTemplatePath = ticketTemplateCandidates.find(p => existsSync(p));
@@ -261,6 +259,42 @@ export async function runTicketUse(opts) {
 
 
 
+function distillKnowledge(absPath, ticketId, cwd) {
+  try {
+    const body = readFileSync(absPath, "utf8");
+    const { meta, content } = parseFrontMatter(body);
+    
+    const sections = {};
+    const sectionNames = ["Design Decisions", "Analysis & Constraints", "Tasks", "Done When"];
+    
+    for (const name of sectionNames) {
+      const regex = new RegExp(`## ${name}[\\s\\S]*?(?=## |$)`, "i");
+      const match = content.match(regex);
+      if (match) {
+        sections[name] = match[0].replace(new RegExp(`## ${name}`, "i"), "").trim();
+      }
+    }
+
+    const knowledgeDir = join(cwd, AGENT_ROOT_DIR, "knowledge");
+    if (!existsSync(knowledgeDir)) mkdirSync(knowledgeDir, { recursive: true });
+
+    const dest = join(knowledgeDir, `${ticketId}.json`);
+    const data = {
+      id: ticketId,
+      title: meta.title || ticketId,
+      project: meta.project || "global",
+      createdAt: meta.createdAt,
+      archivedAt: new Date().toISOString(),
+      sections
+    };
+
+    writeFileSync(dest, JSON.stringify(data, null, 2), "utf8");
+    console.log(`Knowledge distilled to ${toFileUri(dest)}`);
+  } catch (err) {
+    console.warn(`[WARNING] Knowledge distillation failed for ${ticketId}: ${err.message}`);
+  }
+}
+
 export function pickTicketEntry(opts, indexJson) {
   const rows = [...indexJson.entries].sort((a, b) => String(b.createdAt || "").localeCompare(String(a.createdAt || "")));
   if (rows.length === 0) return null;
@@ -329,6 +363,9 @@ export async function runTicketArchive(opts) {
     console.log("ticket archive: would move " + toRepoRelativePath(opts.cwd, absPath) + " to " + toRepoRelativePath(opts.cwd, newAbsPath));
     return;
   }
+
+  // Knowledge Distillation before moving/deleting
+  distillKnowledge(absPath, found.id, opts.cwd);
 
   writeFileSync(newAbsPath, bodyLines.join("\n") + "\n", "utf8");
   rmSync(absPath);
