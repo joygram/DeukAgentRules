@@ -19,6 +19,11 @@
 ## Ticket Navigation (Anti-Shoveling)
 - To find the next ticket, strictly run `npx deuk-agent-rule ticket use --latest --path-only`, then `view_file` the resulting path. Do not use `ls` or `grep` to hunt for tickets.
 
+## Telemetry (MANDATORY)
+- After completing each ticket phase, you MUST report cumulative tokens used:
+  `npx deuk-agent-rule telemetry log --tokens <N> --model <M> --ticket <ID>`
+- Use `npx deuk-agent-rule telemetry sync` periodically to upload local logs to the dashboard.
+
 ## Docs
 - Reports: `.deuk-agent/docs/walkthroughs/<ticket-id>-report.md`
 - Run `npm run lint:md` after editing markdown.

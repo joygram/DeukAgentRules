@@ -61,3 +61,18 @@ export function parseArgs(argv) {
   }
   return out;
 }
+export function parseTelemetryArgs(argv) {
+  const out = { cwd: process.cwd(), tokens: 0, model: "", client: "", ticket: "", action: "", file: "", json: false };
+  for (let i = 0; i < argv.length; i++) {
+    const a = argv[i];
+    if (a === "--cwd") out.cwd = argv[++i];
+    else if (a === "--tokens") out.tokens = Number(argv[++i]);
+    else if (a === "--model") out.model = argv[++i];
+    else if (a === "--client") out.client = argv[++i];
+    else if (a === "--ticket") out.ticket = argv[++i];
+    else if (a === "--action") out.action = argv[++i];
+    else if (a === "--file") out.file = argv[++i];
+    else if (a === "--json") out.json = true;
+  }
+  return out;
+}

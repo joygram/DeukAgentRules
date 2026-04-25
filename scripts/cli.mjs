@@ -2,9 +2,10 @@
 import { existsSync, rmSync } from "fs";
 import { dirname, join } from "path";
 import { fileURLToPath } from "url";
-import { parseArgs, parseTicketArgs } from "./cli-args.mjs";
+import { parseArgs, parseTicketArgs, parseTelemetryArgs } from "./cli-args.mjs";
 import { runInit, runMerge } from "./cli-init-commands.mjs";
 import { runTicketCreate, runTicketList, runTicketUse, runTicketClose, runTicketArchive, runTicketReports, runTicketMeta, runTicketConnect } from "./cli-ticket-commands.mjs";
+import { runTelemetry } from "./cli-telemetry-commands.mjs";
 import { performUpgradeMigration } from "./cli-ticket-logic.mjs";
 import { loadInitConfig, writeInitConfig, checkUpdateNotifier, normalizeWorkflowMode, WORKFLOW_MODE_EXECUTE } from "./cli-utils.mjs";
 import { runInteractive } from "./cli-prompts.mjs";
@@ -43,6 +44,12 @@ async function main() {
       console.error("Unknown ticket action: " + action);
       printHelp();
     }
+    return;
+  }
+
+  if (sub === "telemetry") {
+    const opts = parseTelemetryArgs(rest);
+    await runTelemetry(opts);
     return;
   }
 
