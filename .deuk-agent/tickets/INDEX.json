@@ -1,8 +1,40 @@
 {
   "version": 1,
-  "updatedAt": "2026-04-25T23:54:44.089Z",
-  "activeTicketId": "093-comprehensive-audit-and-refactor-joy-nucb",
+  "updatedAt": "2026-04-26T00:16:51.954Z",
+  "activeTicketId": "095-apply-init-to-workspace-joy-nucb",
   "entries": [
+    {
+      "id": "097-reinforce-cli-reporting-interfac-joy-nucb",
+      "title": "reinforce-cli-reporting-interface",
+      "topic": "reinforce-cli-reporting-interface",
+      "group": "sub",
+      "project": "global",
+      "createdAt": "2026-04-26T00:02:35.707Z",
+      "source": "ticket-create",
+      "status": "closed",
+      "updatedAt": "2026-04-26T00:16:51.954Z"
+    },
+    {
+      "id": "096-reinforce-deployment-usage-guide-joy-nucb",
+      "title": "reinforce-deployment-usage-guide",
+      "topic": "reinforce-deployment-usage-guide",
+      "group": "sub",
+      "project": "global",
+      "createdAt": "2026-04-26T00:02:15.680Z",
+      "source": "ticket-create",
+      "status": "closed",
+      "updatedAt": "2026-04-26T00:16:03.627Z"
+    },
+    {
+      "id": "095-apply-init-to-workspace-joy-nucb",
+      "title": "apply-init-to-workspace",
+      "topic": "apply-init-to-workspace",
+      "group": "sub",
+      "project": "global",
+      "createdAt": "2026-04-25T23:59:26.331Z",
+      "source": "ticket-create",
+      "status": "open"
+    },
     {
       "id": "094-test-distillation-joy-nucb",
       "title": "test-distillation",

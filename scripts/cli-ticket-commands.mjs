@@ -340,6 +340,17 @@ export async function runTicketArchive(opts) {
   const newAbsPath = join(archiveDir, fileName);
   const bodyLines = readFileSync(absPath, "utf8").trimEnd().split(/\r?\n/);
   
+  // Auto-search for report if not provided
+  if (!opts.report) {
+    const reportDir = join(opts.cwd, AGENT_ROOT_DIR, "docs", "walkthroughs");
+    const potentialReport = fileName.replace(/\.md$/i, "-report.md");
+    const potentialPath = join(reportDir, potentialReport);
+    if (existsSync(potentialPath)) {
+      opts.report = toRepoRelativePath(opts.cwd, potentialPath);
+      console.log(`ticket archive: auto-detected report at ${opts.report}`);
+    }
+  }
+
   if (opts.report) {
     const reportSrc = resolve(opts.cwd, opts.report);
     if (!existsSync(reportSrc)) {
@@ -397,14 +408,54 @@ export async function runTicketReports(opts) {
     return;
   }
   
+  const index = readTicketIndexJson(opts.cwd);
   const sorted = files.sort((a, b) => {
     return statSync(join(reportDir, b)).mtime.getTime() - statSync(join(reportDir, a)).mtime.getTime();
   });
   
   sorted.slice(0, opts.limit || 30).forEach(f => {
-    console.log(`  - [${f}](${toFileUri(join(reportDir, f))})`);
+    const ticketId = f.replace(/-report\.md$/i, "");
+    const entry = index.entries.find(e => e.id === ticketId || e.topic === ticketId);
+    const status = entry ? ` [${entry.status}]` : "";
+    console.log(`  - [${f}](${toFileUri(join(reportDir, f))})${status}`);
   });
   console.log("");
+}
+
+export async function runTicketReportAttach(opts) {
+  if (!opts.report) throw new Error("ticket report attach requires --report <file_path>");
+  
+  const index = rebuildTicketIndexFromTopicFilesIfNeeded(opts.cwd, { ...opts, force: false });
+  const found = pickTicketEntry(opts, index);
+  if (!found) throw new Error("ticket report attach: no matching ticket found");
+
+  const absTicketPath = join(opts.cwd, found.path);
+  if (!existsSync(absTicketPath)) throw new Error("Ticket file not found: " + found.path);
+
+  const reportSrc = resolve(opts.cwd, opts.report);
+  if (!existsSync(reportSrc)) throw new Error("Report file not found: " + opts.report);
+
+  const reportDir = join(opts.cwd, AGENT_ROOT_DIR, "docs", "walkthroughs");
+  if (!opts.dryRun) mkdirSync(reportDir, { recursive: true });
+
+  const ticketFileName = found.path.split(/[/\\]/).pop();
+  const reportBaseName = ticketFileName.replace(/\.md$/i, "-report.md");
+  const reportDest = join(reportDir, reportBaseName);
+
+  if (!opts.dryRun) {
+    copyFileSync(reportSrc, reportDest);
+    
+    // Update ticket content to link the report
+    let body = readFileSync(absTicketPath, "utf8").trimEnd();
+    if (!body.includes("## 📄 Attached Report")) {
+      const relativeLink = toPosixPath(relative(dirname(absTicketPath), reportDest));
+      body += `\n\n## 📄 Attached Report\n- [View Report](${relativeLink})\n`;
+      writeFileSync(absTicketPath, body, "utf8");
+    }
+    console.log(`ticket report: attached ${toRepoRelativePath(opts.cwd, reportSrc)} to ${found.id}`);
+  } else {
+    console.log(`ticket report: would attach ${toRepoRelativePath(opts.cwd, reportSrc)} to ${found.id}`);
+  }
 }
 
 export async function runTicketRebuild(opts) {

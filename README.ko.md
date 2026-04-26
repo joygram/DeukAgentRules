@@ -30,12 +30,30 @@
 ### 📚 상세 문서
 | 문서 | 용도 |
 |---|---|
+| [docs/usage-guide.ko.md](docs/usage-guide.ko.md) | **[추천]** 실전 배포 및 단계별 사용 가이드 |
 | [docs/architecture.ko.md](docs/architecture.ko.md) | 고수준 시스템 구조 및 시각적 인포그래픽 |
 | [docs/how-it-works.ko.md](docs/how-it-works.ko.md) | 상세 CLI 메커니즘, 초기화 생명주기 및 파일 역할 |
 | [docs/principles.ko.md](docs/principles.ko.md) | 설계 철학: Hub-Spoke, Zero-Legacy, 소스 주권 |
 | **English Docs** | [README.md](README.md) · [docs/architecture.md](docs/architecture.md) |
 
 ---
+
+## 🚀 빠른 시작 (Quick Start)
+
+가장 빠르게 DeukAgentRules를 프로젝트에 도입하는 방법입니다.
+
+```bash
+# 1. 글로벌 설치
+npm install -g deuk-agent-rule
+
+# 2. 프로젝트 초기화 (AGENTS.md 및 설정 생성)
+deuk-agent-rule init
+
+# 3. 첫 번째 작업 티켓 생성
+deuk-agent-rule ticket create --topic my-first-task
+```
+
+자세한 실전 활용법은 **[실전 사용 가이드](docs/usage-guide.ko.md)**를 참조하세요.
 
 ## 🛠️ 설치 및 설정
 
