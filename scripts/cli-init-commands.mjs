@@ -112,6 +112,42 @@ function migrateLegacyStructure(cwd, dryRun) {
   }
 }
 
+function migrateHtmlMarkersToHeadings(cwd, dryRun) {
+  const agentsPath = join(cwd, "AGENTS.md");
+  if (!existsSync(agentsPath)) return;
+  
+  const content = readFileSync(agentsPath, "utf8");
+  const oldBegin = "<!-- deuk-agent-rule:begin -->";
+  const oldEnd = "<!-- deuk-agent-rule:end -->";
+  
+  if (!content.includes(oldBegin)) return;
+  
+  const beginIdx = content.indexOf(oldBegin);
+  const endIdx = content.lastIndexOf(oldEnd);
+  if (endIdx <= beginIdx) return;
+  
+  const managedContent = content.slice(beginIdx + oldBegin.length, endIdx).trim();
+  const userContent = content.slice(0, beginIdx).trim();
+  const afterContent = content.slice(endIdx + oldEnd.length).trim();
+  
+  let newContent = "";
+  if (userContent) newContent += userContent + "\n\n";
+  if (afterContent) newContent += afterContent + "\n\n";
+  newContent += "---\n\n";
+  newContent += "## DeukAgentRules\n\n";
+  newContent += "> Managed by DeukAgentRules. Remove this section if not installed.\n\n";
+  newContent += managedContent + "\n";
+  
+  if (!dryRun) {
+    copyFileSync(agentsPath, agentsPath + ".pre-v2.bak");
+    writeFileSync(agentsPath, newContent, "utf8");
+    console.log("[MIGRATE] Converted HTML markers to heading-based format in AGENTS.md");
+    console.log("[MIGRATE] Backup saved as AGENTS.md.pre-v2.bak");
+  } else {
+    console.log("[DRY-RUN] Would convert HTML markers to heading-based format in AGENTS.md");
+  }
+}
+
 function syncTemplates(cwd, bundleRoot, dryRun) {
   const tplSrcDir = join(bundleRoot, "templates");
   const tplDestDir = join(cwd, AGENT_ROOT_DIR, TEMPLATE_SUBDIR);
@@ -142,18 +178,22 @@ function syncGlobalCodexInstructions(dryRun) {
   if (!existsSync(codexDir)) return;
 
   const target = join(codexDir, "AGENTS.md");
-  const content = `<!-- deuk-agent-rule:begin -->
+  const content = `---
+
+## DeukAgentRules
+
+> Managed by DeukAgentRules. Remove this section if not installed.
+
 # Global DeukAgentRules Pointer
 
 This environment is configured to use DeukAgentRules.
 When working in a repository, always look for a local \`AGENTS.md\` or \`.deuk-agent/\` directory for project-specific rules.
 
 ## Core Directives
-- Follow TDD (Ticket-Driven Development) workflow.
+- Follow TDW (Ticket-Driven Workflow).
 - Use \`npx deuk-agent-rule ticket create\` for new tasks.
 - Prioritize RAG search via \`mcp_deukcontext_search_*\` tools.
 - Never refactor without a ticket or explicit instruction.
-<!-- deuk-agent-rule:end -->
 `;
 
   if (!dryRun) {
@@ -185,13 +225,24 @@ alwaysApply: true
 ---
 ${content}`;
   }
-  return `<!-- deuk-agent-rule:begin -->\n${content}\n<!-- deuk-agent-rule:end -->\n`;
+  return `---\n\n## DeukAgentRules\n\n> Managed by DeukAgentRules. Remove this section if not installed.\n\n${content}\n`;
 }
 
 function hasCustomUserRules(filePath) {
   try {
     const content = readFileSync(filePath, "utf8");
-    const stripped = content.replace(/<!-- deuk-agent-rule:begin -->[\s\S]*?<!-- deuk-agent-rule:end -->/g, '');
+    const idx = content.indexOf("## DeukAgentRules");
+    let stripped = content;
+    if (idx !== -1) {
+      // Find the preceding horizontal rule
+      let blockStart = idx;
+      const prevText = content.slice(0, idx);
+      const hrIndex = prevText.lastIndexOf("---");
+      if (hrIndex !== -1 && prevText.slice(hrIndex).trim() === "") {
+        blockStart = hrIndex;
+      }
+      stripped = content.slice(0, blockStart);
+    }
     return stripped.trim().length > 0;
   } catch (err) {
     if (process.env.DEBUG) console.warn(`[DEBUG] Failed to read ${filePath}:`, err);
@@ -278,6 +329,7 @@ async function initSingleWorkspace(subCwd, opts, bundleRoot, markers, bundleAgen
   
   // 1. Migration & Directory Setup
   migrateLegacyStructure(subCwd, opts.dryRun);
+  migrateHtmlMarkersToHeadings(subCwd, opts.dryRun);
   ensureTicketDirAndGitignore({ ...opts, cwd: subCwd });
   
   // 2. Normalize INDEX.json paths (fix stale paths)

@@ -1,21 +1,12 @@
----
+# Antigravity (Gemini) Rules
 
-## DeukAgentRules
-
-> Managed by DeukAgentRules. Remove this section if not installed.
-
-# Agent Rules
-
-## Tone
-- Dry, concise, technical. No emojis or exclamation marks.
-- Reply in Korean 해요체 unless user writes in English.
-
-## Docs
-- Plans: `.deuk-agent/docs/plans/<ticket-id>-plan.md`
-- Reports: `.deuk-agent/docs/walkthroughs/<ticket-id>-report.md`
-- Scratch: `.deuk-agent/docs/scratch/` (ephemeral, auto-cleaned)
-- Agents producing artifacts outside `.deuk-agent/docs/` must copy them there for RAG indexing.
-- Run `npm run lint:md` after editing markdown.
+- **System Integrity**: Verify syntax carefully before saving `package.json`, `npm` configs, or CLI scripts.
+- **Markdown Hygiene**: 
+  - Do not put quotes inside bold tags (e.g., `**"Title"**` is bad, use `"Title"` or `**Title**`).
+  - Use absolute clickable paths for files: `[filename](file:///abs/path)`.
+  - Add language identifiers to all code blocks.
+  - Run `npm run lint:md -- <file>` after editing markdown.
+- **Constraints**: No LINQ in C# hotpaths, no raw pointers in C++, no hardcoded JSON in WebApps.
 
 <!-- RULE MODULE: core-workflow -->
 ## Ticket-Driven Workflow (TDW) (MANDATORY)

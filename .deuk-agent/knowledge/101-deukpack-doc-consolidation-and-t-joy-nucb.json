@@ -1,0 +1,11 @@
+{
+  "id": "101-deukpack-doc-consolidation-and-t-joy-nucb",
+  "title": "DeukPack_Doc_Consolidation_and_TDD_Rename",
+  "project": "global",
+  "archivedAt": "2026-04-26T23:07:42.666Z",
+  "sections": {
+    "Analysis & Constraints": "(Deep Review)\n> [WARNING: Do not skip deep analysis. Shallow logic leads to cascaded bugs.]\n> [1. Root Cause & Architecture constraint:]\n> - TDD (Test-Driven Development) is causing confusion with Ticket-Driven workflow.\n> - DeukPack docs are overly fragmented into 40+ granular markdown files across multiple directories (`ai`, `internal`, `operations`, `image`, etc.), hindering RAG performance and maintainability.\n> [2. Risk & Edge Cases (What could go wrong?):]\n> - Replacing TDD in templates might break existing user files if not migrated, but since these are templates, existing users won't be affected until they init again.\n> - Doc consolidation might break hardcoded links. We must ensure internal links are updated or rely on RAG vectorization to self-heal search results.",
+    "Tasks": "- [x] **Phase 1: Terminology Rename**\n  - [x] Replace 'TDD' with 'TDW' in `DeukAgentRules/scripts/cli-init-commands.mjs`.\n  - [x] Replace 'TDD' with 'TDW' in `DeukAgentRules/bundle/AGENTS.md`.\n  - [x] Replace 'TDD' with 'TDW' in `DeukAgentRules/bundle/rules.d/core-workflow.md`.\n- [x] **Phase 2: Directory Flattening**\n  - [x] Move all images to `DeukPack/docs/assets/`.\n  - [x] Create target directories: `architecture`, `operations`, `research`, `legacy`.\n  - [x] Remove `docs/internal`, `docs/image`, `docs/ai`, `docs/intro`.\n- [x] **Phase 3: Doc Consolidation**\n  - [x] Merge Protocol/Zero-copy docs into `NETWORK_PROTOCOL_ARCHITECTURE.md`.\n  - [x] Merge Meta/Excel docs into `META_TABLE_ARCHITECTURE.md`.\n  - [x] Merge Integration/EF docs into `ECOSYSTEM_INTEGRATION.md`.\n  - [x] Merge Build/Deploy docs into `RELEASE_AND_DEPLOYMENT.md`.\n  - [x] Merge OSS docs into `OSS_MAINTENANCE_GUIDE.md`.",
+    "Done When": "> - `deuk-agent-rule init` generates TDW terminology.\n> - `DeukPack/docs` contains less than 10 top-level epic docs and a flat, semantic directory structure."
+  }
+}

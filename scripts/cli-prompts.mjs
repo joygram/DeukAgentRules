@@ -64,7 +64,7 @@ export async function runInteractive(opts) {
       console.log("\n  No AGENTS.md found — will create with markers.");
     } else {
       const content = readFileSync(targetAgents, "utf8");
-      const hasMarkers = content.includes("deuk-agent-rule:begin");
+      const hasMarkers = content.includes("deuk-agent-rule:begin") || content.includes("## DeukAgentRules");
       if (!hasMarkers) {
         const choice = await selectOne(rl, "AGENTS.md exists but has no markers. How to apply?", [
           { label: "Append managed block at the end (safe)", value: "inject" },

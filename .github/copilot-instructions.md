@@ -1,4 +1,9 @@
-<!-- deuk-agent-rule:begin -->
+---
+
+## DeukAgentRules
+
+> Managed by DeukAgentRules. Remove this section if not installed.
+
 # Deuk Agent Rules
 
 This project follows the Deuk Agent Rules framework.
@@ -7,4 +12,3 @@ All operational rules, technical standards, and workflows are centralized in:
 
 Refer to AGENTS.md before starting any task.
 
-<!-- deuk-agent-rule:end -->
