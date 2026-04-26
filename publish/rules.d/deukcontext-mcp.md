@@ -6,12 +6,11 @@ inject_target: ["AGENTS.md", "GEMINI.md"]
 ---
 ## DeukContext RAG Protocol
 
-### RAG-First (HARD RULE)
-- Before any local file search or code modification, query `mcp_deukcontext_search_*` first.
-- Continue calling RAG throughout Phase 2 whenever encountering new files, build errors, or API questions. Do not limit RAG usage to Phase 0 only.
+### RAG Usage
+- Use `mcp_deukcontext_search_*` during Phase 0 (Research) and when encountering unfamiliar code during Phase 2 (Execute).
+- Prefer RAG results over local search when available.
+- **Do NOT use RAG for Ticket Navigation.** Ticket lookup is a direct CLI operation, not a search task.
 
-### RAG State Machine
-- **Normal**: MCP tools respond. Prefer RAG results over local search.
-- **Missing**: MCP tools not installed. Fall back to local search silently.
-- **Error**: MCP call fails 2+ times. Switch to local search immediately. Log the issue in the execution report.
-- **Miss**: MCP returns `[RAG-MISS]`. Execute in order: (1) collect local evidence via `grep_search`/`list_dir`, (2) inject via `mcp_deukcontext_add_knowledge`, (3) retry the query once. Record the miss in the ticket.
+### RAG Failure Handling
+- **Error** (2+ failures): Switch to local search (`grep_search`/`view_file`). Do not retry in a loop.
+- **Miss** (`[RAG-MISS]`): Fall back to local search. Optionally inject findings via `mcp_deukcontext_add_knowledge` if the discovery is reusable.
