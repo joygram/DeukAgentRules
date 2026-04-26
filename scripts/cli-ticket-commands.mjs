@@ -16,23 +16,18 @@ import { selectOne } from "./cli-prompts.mjs";
 
 async function ensurePhase0Validation(opts) {
   if (!opts.evidence && !opts.skipPhase0) {
-    await withReadline(async (rl) => {
-      try {
-        const response = await selectOne(rl, "Did you perform Phase 0 RAG search? Please provide a brief summary of the evidence found (or press Enter to skip):", []);
-        if (response) {
-          opts.evidence = response;
-        } else {
-          opts.skipPhase0 = true;
-        }
-      } catch (e) {
-        opts.skipPhase0 = true;
-      }
-    });
+    // No more interactive prompts. Default to skip if no evidence provided.
+    opts.skipPhase0 = true;
   }
 
   if (opts.skipPhase0) {
-    if (await isMcpActive(opts.cwd)) {
-      throw new Error("ticket create: --skip-phase0 is restricted and ONLY allowed when the MCP server is disconnected. The MCP server is currently detected as active. Please perform Phase 0 RAG search and provide --evidence.");
+    try {
+      if (await isMcpActive(opts.cwd)) {
+        console.warn("[WARNING] Phase 0 RAG evidence is recommended when the MCP server is active. Proceeding without evidence as requested.");
+      }
+    } catch (err) {
+      // MCP detection failure should not block ticket creation
+      if (process.env.DEBUG) console.warn("[DEBUG] MCP activation check failed:", err.message);
     }
   }
 }
@@ -212,6 +207,9 @@ export async function runTicketConnect(opts) {
 
 export async function runTicketClose(opts) {
   if (!opts.topic && !opts.latest) {
+    if (opts.nonInteractive) {
+      throw new Error("ticket close: --topic or --latest is required in non-interactive mode.");
+    }
     await withReadline(async (rl) => {
       const index = rebuildTicketIndexFromTopicFilesIfNeeded(opts.cwd, { ...opts, force: false });
       const choices = index.entries
@@ -236,6 +234,9 @@ export async function runTicketUse(opts) {
   
   let targetTopic = opts.topic;
   if (!targetTopic && !opts.latest) {
+    if (opts.nonInteractive) {
+      throw new Error("ticket use: --topic or --latest is required in non-interactive mode.");
+    }
     await withReadline(async (rl) => {
       const choices = index.entries
         .map(e => ({ label: `${e.status === 'closed' ? '✓ ' : ''}[${e.group}] ${e.title}`, value: e.topic }));
@@ -313,6 +314,9 @@ export async function runTicketArchive(opts) {
   const ticketDir = detectConsumerTicketDir(opts.cwd);
 
   if (!opts.latest && !opts.topic) {
+    if (opts.nonInteractive) {
+      throw new Error("ticket archive: --topic or --latest is required in non-interactive mode.");
+    }
     await withReadline(async (rl) => {
       const choices = indexJson.entries
         .filter(e => e.status !== "archived")

@@ -1,8 +1,40 @@
 {
   "version": 1,
-  "updatedAt": "2026-04-26T00:16:51.954Z",
-  "activeTicketId": "095-apply-init-to-workspace-joy-nucb",
+  "updatedAt": "2026-04-26T11:35:29.591Z",
+  "activeTicketId": "098-fix-ticket-workflow-integrity-joy-nucb",
   "entries": [
+    {
+      "id": "100-standardize-non-interactive-cli--joy-nucb",
+      "title": "Standardize-Non-Interactive-CLI-Behavior",
+      "topic": "standardize-non-interactive-cli-behavior",
+      "group": "sub",
+      "project": "DeukAgentRules",
+      "createdAt": "2026-04-26T11:35:29.590Z",
+      "source": "ticket-create",
+      "status": "archived",
+      "updatedAt": "2026-04-26T11:37:26.908Z"
+    },
+    {
+      "id": "099-fix-ticket-create-interaction-pr-joy-nucb",
+      "title": "Fix-Ticket-Create-Interaction-Prompt",
+      "topic": "fix-ticket-create-interaction-prompt",
+      "group": "sub",
+      "project": "DeukAgentRules",
+      "createdAt": "2026-04-26T11:18:42.073Z",
+      "source": "ticket-create",
+      "status": "archived",
+      "updatedAt": "2026-04-26T11:21:55.414Z"
+    },
+    {
+      "id": "098-fix-ticket-workflow-integrity-joy-nucb",
+      "title": "fix-ticket-workflow-integrity",
+      "topic": "fix-ticket-workflow-integrity",
+      "group": "main",
+      "project": "DeukAgentRules",
+      "createdAt": "2026-04-26T03:24:57.427Z",
+      "source": "ticket-create",
+      "status": "open"
+    },
     {
       "id": "097-reinforce-cli-reporting-interfac-joy-nucb",
       "title": "reinforce-cli-reporting-interface",
