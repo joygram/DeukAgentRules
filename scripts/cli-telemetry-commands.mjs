@@ -1,6 +1,6 @@
 import { existsSync, mkdirSync, readFileSync, writeFileSync, appendFileSync } from "fs";
 import { join } from "path";
-import { loadInitConfig, AGENT_ROOT_DIR } from "./cli-utils.mjs";
+import { loadInitConfig, AGENT_ROOT_DIR, SPOKE_REGISTRY } from "./cli-utils.mjs";
 
 const TELEMETRY_FILE = `${AGENT_ROOT_DIR}/telemetry.jsonl`;
 
@@ -25,11 +25,41 @@ async function logAction(opts) {
   const dir = join(opts.cwd, AGENT_ROOT_DIR);
   if (!existsSync(dir)) mkdirSync(dir, { recursive: true });
 
+  let resolvedClient = opts.client;
+  const lowerModel = (opts.model || "").toLowerCase();
+
+  if (!resolvedClient) {
+    if (lowerModel.includes("codex")) resolvedClient = "Codex";
+    else if (lowerModel.includes("copilot")) resolvedClient = "Copilot";
+    else if (lowerModel.includes("claude")) resolvedClient = "ClaudeCode";
+    else {
+      const config = loadInitConfig(opts.cwd);
+      const tools = config?.agentTools || [];
+      if (tools.includes("codex")) resolvedClient = "Codex";
+      else if (tools.includes("copilot")) resolvedClient = "Copilot";
+      else if (tools.includes("cursor")) resolvedClient = "Cursor";
+      else if (tools.includes("claude")) resolvedClient = "ClaudeCode";
+      else {
+        for (const spoke of SPOKE_REGISTRY) {
+          if (spoke.id !== "antigravity" && spoke.detect(opts.cwd, tools)) {
+            if (spoke.id === "copilot") { resolvedClient = "Copilot"; break; }
+            if (spoke.id === "codex") { resolvedClient = "Codex"; break; }
+            if (spoke.id === "cursor") { resolvedClient = "Cursor"; break; }
+            if (spoke.id === "claude") { resolvedClient = "ClaudeCode"; break; }
+            if (spoke.id === "windsurf") { resolvedClient = "Windsurf"; break; }
+            if (spoke.id === "jetbrains") { resolvedClient = "JetBrains"; break; }
+          }
+        }
+      }
+    }
+    if (!resolvedClient) resolvedClient = "Antigravity";
+  }
+
   const entry = {
     ts: Math.floor(Date.now() / 1000),
     tokens: opts.tokens || 0,
     model: opts.model || "UNKNOWN",
-    client: opts.client || "Antigravity",
+    client: resolvedClient,
     ticket: opts.ticket || "",
     action: opts.action || "work",
     file: opts.file || "",
