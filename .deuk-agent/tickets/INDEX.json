@@ -1,8 +1,18 @@
 {
   "version": 1,
-  "updatedAt": "2026-04-27T07:15:29.597Z",
-  "activeTicketId": "098-fix-ticket-workflow-integrity-joy-nucb",
+  "updatedAt": "2026-04-27T12:36:23.643Z",
+  "activeTicketId": "103-architectureguard-인라인-yaml파싱-slu-joy-nucb",
   "entries": [
+    {
+      "id": "103-architectureguard-인라인-yaml파싱-slu-joy-nucb",
+      "title": "ArchitectureGuard: 인라인 YAML파싱 slug생성 중복 제거",
+      "topic": "architectureguard-인라인-yaml파싱-slug생성-중복-제거",
+      "group": "sub",
+      "project": "global",
+      "createdAt": "2026-04-27T12:36:23.643Z",
+      "source": "ticket-create",
+      "status": "open"
+    },
     {
       "id": "102-global-joy-nucb",
       "title": "global",
