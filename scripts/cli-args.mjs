@@ -48,7 +48,6 @@ export function parseArgs(argv) {
     else if (a === "--marker-begin") out.markerBegin = argv[++i];
     else if (a === "--marker-end") out.markerEnd = argv[++i];
     else if (a === "--agents") out.agents = argv[++i];
-    else if (a === "--rules") out.rules = argv[++i];
     else if (a === "--cursorrules") out.cursorrules = argv[++i];
     else if (a === "--append-if-no-markers") out.appendIfNoMarkers = true;
     else if (a === "--workflow") out.workflowMode = argv[++i];

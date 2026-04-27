@@ -1,14 +1,14 @@
 import { join, dirname, basename } from "path";
 import { homedir } from "os";
 import { existsSync, readFileSync, writeFileSync, mkdirSync, copyFileSync, readdirSync, unlinkSync, rmSync, renameSync } from "fs";
-import { resolveMarkers, applyAgents, applyRules, readBundleAgents } from "./merge-logic.mjs";
+import { resolveMarkers, applyAgents, readBundleAgents } from "./merge-logic.mjs";
 import { ensureTicketDirAndGitignore } from "./cli-init-logic.mjs";
 import { normalizeTicketPaths } from "./cli-ticket-migration.mjs";
 import { compileDynamicRules } from "./cli-rule-compiler.mjs";
 import { loadInitConfig, writeInitConfig, isWorkflowExecute, normalizeWorkflowMode, SPOKE_REGISTRY } from "./cli-utils.mjs";
 import { runInteractive } from "./cli-prompts.mjs";
 
-import { AGENT_ROOT_DIR, TICKET_SUBDIR, TEMPLATE_SUBDIR, RULES_SUBDIR, discoverAllWorkspaces, isMcpActive, toRepoRelativePath, resolveWorkflowMode, pruneRuleModules } from "./cli-utils.mjs";
+import { AGENT_ROOT_DIR, TICKET_SUBDIR, TEMPLATE_SUBDIR, discoverAllWorkspaces, isMcpActive, toRepoRelativePath, resolveWorkflowMode, pruneRuleModules } from "./cli-utils.mjs";
 
 function recursiveMerge(src, dest, cwd, dryRun) {
   if (!existsSync(src)) return;
@@ -231,6 +231,11 @@ ${content}`;
 function hasCustomUserRules(filePath) {
   try {
     const content = readFileSync(filePath, "utf8");
+    const withoutLegacyHtmlMarkers = content
+      .replace(/<!-- deuk-agent-rule-cursorrules:begin -->[\s\S]*?<!-- deuk-agent-rule-cursorrules:end -->/g, "")
+      .replace(/<!-- deuk-agent-rule:begin -->[\s\S]*?<!-- deuk-agent-rule:end -->/g, "");
+    if (!withoutLegacyHtmlMarkers.trim()) return false;
+
     const idx = content.indexOf("## DeukAgentRules");
     let stripped = content;
     if (idx !== -1) {
@@ -277,6 +282,24 @@ function deploySpokePointers(cwd, dryRun, selectedTools = []) {
       writeFileSync(targetPath, generateSpokeContent(spoke), "utf8");
     }
     console.log(`spoke synced: ${spoke.target} (${spoke.id})`);
+  }
+}
+
+function removeDuplicateRuleCopies(cwd, dryRun) {
+  const duplicatePaths = [
+    join(cwd, AGENT_ROOT_DIR, "rules"),
+    join(cwd, ".cursor", "rules", "delivery-and-parallel-work.mdc"),
+    join(cwd, ".cursor", "rules", "git-commit.mdc"),
+    join(cwd, ".cursor", "rules", "multi-ai-workflow.mdc"),
+    join(cwd, ".cursor", "rules", "deuk-agent-rule-delivery-and-parallel-work.mdc"),
+    join(cwd, ".cursor", "rules", "deuk-agent-rule-git-commit.mdc"),
+    join(cwd, ".cursor", "rules", "deuk-agent-rule-multi-ai-workflow.mdc"),
+  ];
+
+  for (const p of duplicatePaths) {
+    if (!existsSync(p)) continue;
+    if (!dryRun) rmSync(p, { recursive: true, force: true });
+    console.log(`[CLEANUP] removed duplicate rule copy: ${toRepoRelativePath(cwd, p)}`);
   }
 }
 
@@ -336,26 +359,17 @@ async function initSingleWorkspace(subCwd, opts, bundleRoot, markers, bundleAgen
   normalizeTicketPaths(subCwd, { silent: false });
 
   // 3. Spoke Pointers (e.g. .cursor/rules/deuk-agent.mdc)
+  removeDuplicateRuleCopies(subCwd, opts.dryRun);
   deploySpokePointers(subCwd, opts.dryRun, selectedTools);
 
   // 4. Agents Setup (AGENTS.md)
   const agentsResult = syncAgentRules(subCwd, bundleRoot, markers, bundleAgents, opts);
   console.log(`AGENTS.md: ${agentsResult.action}`);
 
-  // 5. Hub Rules Sync (.deuk-agent/rules/)
-  const hubRulesDir = join(subCwd, AGENT_ROOT_DIR, RULES_SUBDIR);
-  if (!opts.dryRun) mkdirSync(hubRulesDir, { recursive: true });
-  applyRules({
-    bundleRulesDir: join(bundleRoot, "rules"),
-    targetRulesDir: hubRulesDir,
-    rulesMode: opts.rules || "overwrite",
-    dryRun: opts.dryRun, backup: opts.backup
-  });
-
-  // 6. Gemini Rule Sync (root rule)
+  // 5. Agent-specific entrypoints stay thin and point back to AGENTS.md.
   syncGeminiRules(subCwd, bundleRoot, opts);
 
-  // 7. Templates Sync (.deuk-agent/templates/)
+  // 6. Templates Sync (.deuk-agent/templates/)
   syncTemplates(subCwd, bundleRoot, opts.dryRun);
 }
 
@@ -373,15 +387,6 @@ export function runMerge(opts, bundleRoot) {
 
   const agentsResult = syncAgentRules(opts.cwd, bundleRoot, markers, bundleAgents, opts);
   console.log(`AGENTS.md: merged via syncAgentRules (${agentsResult.action})`);
-
-  const hubRulesDir = join(opts.cwd, AGENT_ROOT_DIR, RULES_SUBDIR);
-  const ruleActions = applyRules({
-    bundleRulesDir: join(bundleRoot, "rules"),
-    targetRulesDir: hubRulesDir,
-    rulesMode: opts.rules || "skip",
-    dryRun: opts.dryRun, backup: opts.backup
-  });
-  ruleActions.forEach(r => console.log(`hub rule ${r.action}: ${r.dest || r.src}`));
 
   syncTemplates(opts.cwd, bundleRoot, opts.dryRun);
 }
@@ -410,10 +415,9 @@ function syncGeminiRules(cwd, bundleRoot, opts) {
   if (!existsSync(geminiBundle)) return;
 
   const baseGemini = pruneRuleModules(readFileSync(geminiBundle, "utf8"));
-  const compiledAdditions = compileDynamicRules(cwd, bundleRoot, targetFile);
   
   if (!opts.dryRun) {
-    writeFileSync(geminiDest, baseGemini + "\n\n" + compiledAdditions, "utf8");
+    writeFileSync(geminiDest, baseGemini.trimEnd() + "\n", "utf8");
   }
-  console.log(`${targetFile}: synced with dynamic rules`);
+  console.log(`${targetFile}: synced as AGENTS.md pointer`);
 }

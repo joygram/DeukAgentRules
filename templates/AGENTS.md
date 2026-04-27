@@ -1,4 +1,3 @@
-<!-- deuk-agent-rule:begin -->
 # Agent Rules
 
 ## Tone
@@ -16,5 +15,4 @@
 - Scratch: `.deuk-agent/docs/scratch/` (ephemeral, auto-cleaned)
 - Knowledge Capture: Core design/security decisions from tickets must be formalized in `docs/internal/`.
 - Agents producing artifacts outside `.deuk-agent/docs/` must copy them there for RAG indexing.
-- Run `npm run lint:md` after editing markdown.
-<!-- deuk-agent-rule:end -->
+- Run `npx deuk-agent-rule lint:md` after editing markdown.

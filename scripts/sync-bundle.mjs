@@ -13,40 +13,21 @@ import { fileURLToPath } from "url";
 const __dirname = dirname(fileURLToPath(import.meta.url));
 const pkgRoot = join(__dirname, "..");
 
-/** Copy publish/ templates into bundle/ for npm packaging. */
-const publishDir = join(pkgRoot, "publish");
-const publishRulesDir = join(publishDir, "rules");
-const rulesDest = join(pkgRoot, "bundle", "rules");
-const agentsSrc = join(publishDir, "AGENTS.md");
+/** Copy templates/ into bundle/ for npm packaging. */
+const templateRoot = join(pkgRoot, "templates");
+const agentsSrc = join(templateRoot, "AGENTS.md");
 const agentsDest = join(pkgRoot, "bundle", "AGENTS.md");
-const cursorrulesSrc = join(publishDir, ".cursorrules");
-const cursorrulesDest = join(pkgRoot, "bundle", ".cursorrules");
-const geminiSrc = join(publishDir, "GEMINI.md");
+const geminiSrc = join(templateRoot, "GEMINI.md");
 const geminiDest = join(pkgRoot, "bundle", "GEMINI.md");
 
-if (!existsSync(publishDir)) {
-  throw new Error("Missing publish template dir: " + publishDir);
-}
-if (!existsSync(publishRulesDir)) {
-  throw new Error("Missing publish/rules: " + publishRulesDir);
+if (!existsSync(templateRoot)) {
+  throw new Error("Missing template dir: " + templateRoot);
 }
 if (!existsSync(agentsSrc)) {
-  throw new Error("Missing publish/AGENTS.md: " + agentsSrc);
-}
-if (!existsSync(cursorrulesSrc)) {
-  throw new Error("Missing publish/.cursorrules: " + cursorrulesSrc);
+  throw new Error("Missing templates/AGENTS.md: " + agentsSrc);
 }
 
-if (existsSync(rulesDest)) {
-  rmSync(rulesDest, { recursive: true });
-}
-mkdirSync(rulesDest, { recursive: true });
-for (const name of readdirSync(publishRulesDir)) {
-  if (!name.endsWith(".mdc")) continue;
-  copyFileSync(join(publishRulesDir, name), join(rulesDest, name));
-}
-
-const templatesSrc = join(publishDir, "templates");
+const templatesSrc = join(templateRoot, "blueprints");
 const templatesDest = join(pkgRoot, "bundle", "templates");
 if (existsSync(templatesSrc)) {
   if (existsSync(templatesDest)) {
@@ -58,7 +39,7 @@ if (existsSync(templatesSrc)) {
   }
 }
 
-const dynamicRulesSrc = join(publishDir, "rules.d");
+const dynamicRulesSrc = join(templateRoot, "rules.d");
 const dynamicRulesDest = join(pkgRoot, "bundle", "rules.d");
 if (existsSync(dynamicRulesSrc)) {
   if (existsSync(dynamicRulesDest)) {
@@ -72,6 +53,5 @@ if (existsSync(dynamicRulesSrc)) {
 
 const agentsBody = readFileSync(agentsSrc, "utf8");
 writeFileSync(agentsDest, agentsBody, "utf8");
-copyFileSync(cursorrulesSrc, cursorrulesDest);
 if (existsSync(geminiSrc)) copyFileSync(geminiSrc, geminiDest);
-console.log("deuk-agent-rule: synced bundle from publish/ template.");
+console.log("deuk-agent-rule: synced bundle from templates/.");

@@ -34,9 +34,9 @@ function stripOssVersionrcScripts(ossVersionrcPath) {
 }
 
 mkdirSync(join(ossRoot, "scripts"), { recursive: true });
-mkdirSync(join(ossRoot, "publish"), { recursive: true });
+mkdirSync(join(ossRoot, "templates"), { recursive: true });
 
-cpSync(join(pkgRoot, "publish"), join(ossRoot, "publish"), { recursive: true, force: true });
+cpSync(join(pkgRoot, "templates"), join(ossRoot, "templates"), { recursive: true, force: true });
 if (existsSync(join(pkgRoot, ".github"))) {
   cpSync(join(pkgRoot, ".github"), join(ossRoot, ".github"), { recursive: true, force: true });
 }
@@ -107,7 +107,7 @@ if (outPkg.scripts && outPkg.scripts["sync:oss"]) {
   const { "sync:oss": _drop, ...rest } = outPkg.scripts;
   outPkg.scripts = rest;
 }
-/** Mirror is not a publish/version source: no bump scripts or release devDependencies. */
+/** Mirror is not a template/version source: no bump scripts or release devDependencies. */
 for (const k of ["bump", "bump:patch", "bump:minor", "bump:major"]) {
   if (outPkg.scripts && outPkg.scripts[k]) {
     const { [k]: _drop, ...rest } = outPkg.scripts;

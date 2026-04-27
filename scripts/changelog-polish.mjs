@@ -16,7 +16,5 @@ s = s.replace(
   /- `sync-oss` copies (`package-lock\.json`) for reproducible installs\./g,
   "- Release packaging includes $1 for reproducible installs.",
 );
-s = s.replace(/\bCLI and publish AGENTS sync\b/gi, "CLI and publish AGENTS updates");
-s = s.replace(/\bpublish AGENTS sync\b/gi, "publish AGENTS alignment");
 
 writeFileSync(file, s, "utf8");

@@ -63,6 +63,12 @@ async function main() {
     return;
   }
 
+  if (sub === "lint:md" || sub === "lint-md") {
+    const { runMarkdownLint } = await import("./lint-md.mjs");
+    runMarkdownLint(rest);
+    return;
+  }
+
   if (sub === "init" || sub === "merge") {
     const opts = parseArgs(rest);
     if (opts.help) {
@@ -126,6 +132,7 @@ function printHelp() {
 Usage:
   npx deuk-agent-rule init   [options]
   npx deuk-agent-rule merge  [options]
+  npx deuk-agent-rule lint:md [--cwd <path>] [files...]
   npx deuk-agent-rule ticket <create|list|use|close|archive|reports|migrate|upgrade|meta|connect> [options]
 
 Options:
@@ -134,7 +141,6 @@ Options:
   --non-interactive     CI/scripts mode: no prompts
   --tag <id>            Custom marker ID (default: deuk-agent-rule)
   --agents <mode>       inject | skip | overwrite
-  --rules <mode>        prefix | skip | overwrite
   --cursorrules <mode>  inject | skip | overwrite
   --workflow <mode>     plan | execute
   --approval <state>    pending | approved (alias for workflow)

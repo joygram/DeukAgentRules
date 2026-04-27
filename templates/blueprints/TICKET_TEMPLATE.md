@@ -11,7 +11,7 @@ title: "<%= meta.title %>"
 
 ## Strict Rules Check
 > [Review DOMAIN_RULES.md. Explicitly list the hard rules applicable here (e.g., No LINQ, Dumb View, No Raw Pointers). Verify your plan against them.]
-> - 
+> -
 
 ## Scope (In / Out)
 > [Define what is included and excluded]

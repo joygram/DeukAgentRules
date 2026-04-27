@@ -1,10 +1,7 @@
 import {
   copyFileSync,
   existsSync,
-  mkdirSync,
   readFileSync,
-  readdirSync,
-  unlinkSync,
   writeFileSync,
 } from "fs";
 import { join } from "path";
@@ -173,52 +170,6 @@ function handleAgentAppend(opts, existing) {
     path: targetPath,
     mode: flavor === "init" ? "append-markers-init" : "append-markers",
   };
-}
-
-export function applyRules(opts) {
-  const {
-    bundleRulesDir,
-    targetRulesDir,
-    rulesMode,
-    filePrefix = "deuk-agent-rule-",
-    dryRun,
-    backup,
-  } = opts;
-
-  if (!existsSync(bundleRulesDir)) {
-    throw new Error("Bundle rules directory missing: " + bundleRulesDir);
-  }
-
-  const actions = [];
-  mkdirSync(targetRulesDir, { recursive: true });
-
-  for (const name of readdirSync(bundleRulesDir)) {
-    if (!name.endsWith(".mdc")) continue;
-    const src = join(bundleRulesDir, name);
-    let destPath = join(targetRulesDir, name);
-
-    if (rulesMode === "skip" && existsSync(destPath)) {
-      actions.push({ action: "skip", src, dest: destPath, reason: "exists" });
-      continue;
-    }
-
-    if (rulesMode === "prefix" && existsSync(destPath)) {
-      destPath = join(targetRulesDir, filePrefix + name);
-    }
-
-    if (dryRun) {
-      actions.push({ action: "would-copy", src, dest: destPath });
-      continue;
-    }
-
-    if (backup && existsSync(destPath)) {
-      copyFileSync(destPath, destPath + ".bak");
-    }
-    copyFileSync(src, destPath);
-    actions.push({ action: "copy", src, dest: destPath });
-  }
-
-  return actions;
 }
 
 export function readBundleAgents(bundleRoot) {
