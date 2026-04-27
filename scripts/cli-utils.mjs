@@ -57,12 +57,12 @@ export const AGENT_TOOLS = [
 
 export const SPOKE_REGISTRY = [
   { id: "cursor", detect: (cwd) => existsSync(join(cwd, ".cursor")), legacy: ".cursorrules", target: ".cursor/rules/deuk-agent.mdc", format: "mdc" },
-  { id: "claude", detect: (cwd) => existsSync(join(cwd, "CLAUDE.md")) || existsSync(join(cwd, ".claude")), legacy: null, target: "CLAUDE.md", format: "markdown" },
+  { id: "claude", detect: (cwd) => existsSync(join(cwd, "CLAUDE.md")) || existsSync(join(cwd, ".claude")), legacy: "CLAUDE.md", target: "CLAUDE.md", format: "markdown" },
   { id: "copilot", detect: (cwd, tools = []) => tools.includes("copilot") || existsSync(join(cwd, ".github")), legacy: null, target: ".github/copilot-instructions.md", format: "markdown" },
   { id: "codex", detect: (cwd, tools = []) => tools.includes("codex") || existsSync(join(cwd, ".codex")), legacy: null, target: ".codex/AGENTS.md", format: "markdown" },
   { id: "windsurf", detect: (cwd) => existsSync(join(cwd, ".windsurf")), legacy: ".windsurfrules", target: ".windsurf/rules/deuk-agent.md", format: "markdown" },
   { id: "jetbrains", detect: (cwd) => existsSync(join(cwd, ".aiassistant")) || existsSync(join(cwd, ".idea")), legacy: null, target: ".aiassistant/rules/deuk-agent.md", format: "markdown" },
-  { id: "antigravity", detect: (cwd) => existsSync(join(cwd, "GEMINI.md")) || existsSync(join(cwd, ".gemini")), legacy: null, target: "GEMINI.md", format: "markdown" }
+  { id: "antigravity", detect: (cwd) => existsSync(join(cwd, "GEMINI.md")) || existsSync(join(cwd, ".gemini")), legacy: "GEMINI.md", target: "GEMINI.md", format: "markdown" }
 ];
 
 export const DOC_LANGUAGE_CHOICES = [

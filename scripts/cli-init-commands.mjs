@@ -248,6 +248,11 @@ function hasCustomUserRules(filePath) {
       }
       stripped = content.slice(0, blockStart);
     }
+    const isPointer = content.includes("This project follows the Deuk Agent Rules framework") || 
+                      content.includes("centralized in:") ||
+                      content.includes("[AGENTS.md]");
+    if (isPointer) return false;
+
     return stripped.trim().length > 0;
   } catch (err) {
     if (process.env.DEBUG) console.warn(`[DEBUG] Failed to read ${filePath}:`, err);
@@ -288,12 +293,9 @@ function deploySpokePointers(cwd, dryRun, selectedTools = []) {
 function removeDuplicateRuleCopies(cwd, dryRun) {
   const duplicatePaths = [
     join(cwd, AGENT_ROOT_DIR, "rules"),
-    join(cwd, ".cursor", "rules", "delivery-and-parallel-work.mdc"),
-    join(cwd, ".cursor", "rules", "git-commit.mdc"),
-    join(cwd, ".cursor", "rules", "multi-ai-workflow.mdc"),
-    join(cwd, ".cursor", "rules", "deuk-agent-rule-delivery-and-parallel-work.mdc"),
-    join(cwd, ".cursor", "rules", "deuk-agent-rule-git-commit.mdc"),
     join(cwd, ".cursor", "rules", "deuk-agent-rule-multi-ai-workflow.mdc"),
+    join(cwd, ".claude"),
+    join(cwd, ".gemini"),
   ];
 
   for (const p of duplicatePaths) {
@@ -366,10 +368,7 @@ async function initSingleWorkspace(subCwd, opts, bundleRoot, markers, bundleAgen
   const agentsResult = syncAgentRules(subCwd, bundleRoot, markers, bundleAgents, opts);
   console.log(`AGENTS.md: ${agentsResult.action}`);
 
-  // 5. Agent-specific entrypoints stay thin and point back to AGENTS.md.
-  syncGeminiRules(subCwd, bundleRoot, opts);
-
-  // 6. Templates Sync (.deuk-agent/templates/)
+  // 5. Templates Sync (.deuk-agent/templates/)
   syncTemplates(subCwd, bundleRoot, opts.dryRun);
 }
 
@@ -407,17 +406,3 @@ function syncAgentRules(cwd, bundleRoot, markers, bundleAgents, opts) {
   });
 }
 
-function syncGeminiRules(cwd, bundleRoot, opts) {
-  const targetFile = "GEMINI.md";
-  const geminiBundle = join(bundleRoot, targetFile);
-  const geminiDest = join(cwd, targetFile);
-  
-  if (!existsSync(geminiBundle)) return;
-
-  const baseGemini = pruneRuleModules(readFileSync(geminiBundle, "utf8"));
-  
-  if (!opts.dryRun) {
-    writeFileSync(geminiDest, baseGemini.trimEnd() + "\n", "utf8");
-  }
-  console.log(`${targetFile}: synced as AGENTS.md pointer`);
-}
