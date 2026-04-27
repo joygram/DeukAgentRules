@@ -1,8 +1,19 @@
 {
   "version": 1,
-  "updatedAt": "2026-04-26T23:05:59.954Z",
+  "updatedAt": "2026-04-27T03:47:52.734Z",
   "activeTicketId": "098-fix-ticket-workflow-integrity-joy-nucb",
   "entries": [
+    {
+      "id": "102-global-joy-nucb",
+      "title": "global",
+      "topic": "global",
+      "group": "sub",
+      "project": "global",
+      "createdAt": "2026-04-27T03:47:52.734Z",
+      "source": "ticket-create",
+      "status": "archived",
+      "updatedAt": "2026-04-27T03:51:21.936Z"
+    },
     {
       "id": "101-deukpack-doc-consolidation-and-t-joy-nucb",
       "title": "DeukPack_Doc_Consolidation_and_TDD_Rename",

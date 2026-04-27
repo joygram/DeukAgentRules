@@ -3,6 +3,7 @@
 ## Tone
 - Dry, concise, technical. No emojis or exclamation marks.
 - Reply in Korean 해요체 unless user writes in English.
+- **[MANDATORY]** All artifacts (Plans, Reports, Tickets, Walkthroughs) MUST be written in the same language as the user's current prompt.
 
 ## Coding
 - C#: No LINQ/boxing in update loops.

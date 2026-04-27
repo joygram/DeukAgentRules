@@ -1,6 +1,6 @@
 ---
 id: core-workflow
-inject_target: ["AGENTS.md", "GEMINI.md"]
+inject_target: ["AGENTS.md"]
 ---
 ## Ticket-Driven Workflow (MANDATORY)
 

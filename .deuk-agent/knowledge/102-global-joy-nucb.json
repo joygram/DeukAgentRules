@@ -1,0 +1,11 @@
+{
+  "id": "102-global-joy-nucb",
+  "title": "enforce unidirectional AGENTS.md single source of truth",
+  "project": "global",
+  "archivedAt": "2026-04-27T03:51:21.932Z",
+  "sections": {
+    "Analysis & Constraints": "(Deep Review)\n\n#",
+    "Tasks": "- [ ] `templates/rules.d/core-workflow.md`: `inject_target`에서 `\"GEMINI.md\"` 제거\n- [ ] `templates/AGENTS.md`: `[MANDATORY]` 아티팩트 언어 규칙 추가\n- [ ] `templates/rules.d/core-workflow.md`에 Tone 규칙이 AGENTS.md에만 주입되도록 확인\n- [ ] DeukAgentContext 워크스페이스에 init 재실행하여 GEMINI.md 레거시 제거 확인\n- [ ] DeukPack 워크스페이스에 init 재실행하여 동일 확인\n- [ ] lint:md 통과 확인",
+    "Done When": "- `core-workflow.md`의 `inject_target`이 `[\"AGENTS.md\"]`만 포함.\n- `npx deuk-agent-rule init`을 실행하면 GEMINI.md가 AGENTS.md 포인터로만 생성됨.\n- 기존 워크스페이스의 GEMINI.md에서 TDW 워크플로우 등 중복 내용이 제거됨.\n- lint:md 통과."
+  }
+}
