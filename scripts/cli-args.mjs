@@ -10,6 +10,7 @@ export function parseTicketArgs(argv) {
     else if (a === "--project") out.project = argv[++i];
     else if (a === "--content") out.content = argv[++i];
     else if (a === "--from") out.from = argv[++i];
+    else if (a === "--from-plan") out.fromPlan = argv[++i];
     else if (a === "--ref") out.ref = argv[++i];
     else if (a === "--limit") out.limit = Number(argv[++i]);
     else if (a === "--submodule") out.submodule = argv[++i];

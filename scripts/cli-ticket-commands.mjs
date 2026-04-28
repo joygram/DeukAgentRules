@@ -9,6 +9,7 @@ import {
 import { readTicketIndexJson, writeTicketIndexJson, syncActiveTicketId, generateTicketId, syncToPipeline } from "./cli-ticket-index.mjs";
 import { appendTicketEntry, rebuildTicketIndexFromTopicFilesIfNeeded, writeTicketListFile, updateTicketEntryStatus } from "./cli-ticket-parser.mjs";
 import { loadInitConfig } from "./cli-utils.mjs";
+import { parsePlan } from "./plan-parser.mjs";
 import ejs from "ejs";
 import YAML from "yaml";
 
@@ -87,8 +88,24 @@ export async function runTicketCreate(opts) {
     // Find nearest or create in CWD if missing
     const ticketDir = detectConsumerTicketDir(opts.cwd, { createIfMissing: true });
 
+    let parsedPlan = null;
+    let finalTitle = title;
+    let finalTopic = topic;
+    
+    if (opts.fromPlan) {
+      const planAbsPath = resolve(opts.cwd, opts.fromPlan);
+      if (!existsSync(planAbsPath)) {
+        throw new Error(`ticket create: Plan file not found at ${planAbsPath}`);
+      }
+      const planContent = readFileSync(planAbsPath, "utf8");
+      parsedPlan = parsePlan(planAbsPath, planContent);
+      
+      finalTitle = opts.topic || parsedPlan.title || title;
+      finalTopic = toSlug(finalTitle);
+    }
+
     const indexJson = readTicketIndexJson(opts.cwd);
-    const ticketId = generateTicketId(topic, indexJson.entries);
+    const ticketId = generateTicketId(finalTopic, indexJson.entries);
     const finalFileName = `${ticketId}.md`;
 
     const abs = join(ticketDir, group, finalFileName);
@@ -102,13 +119,13 @@ export async function runTicketCreate(opts) {
 
     const rawMeta = {
       id: ticketId,
-      title,
+      title: finalTitle,
       status: "open",
       submodule: opts.submodule,
       project: opts.project === "global" ? undefined : opts.project,
       docsLanguage,
       evidence: opts.evidence,
-      summary: opts.summary,
+      summary: opts.summary || parsedPlan?.summary,
       priority: opts.priority,
       tags: opts.tags ? opts.tags.split(',').map(t => t.trim().replace(/^#/, '')).filter(Boolean) : undefined,
       createdAt: new Date().toISOString().replace('T', ' ').split('.')[0],
@@ -118,7 +135,13 @@ export async function runTicketCreate(opts) {
     const meta = Object.fromEntries(Object.entries(rawMeta).filter(([_, v]) => v !== undefined && v !== ""));
     const frontmatter = YAML.stringify(meta).trim();
 
-    const finalContent = ejs.render(tplText, { meta, frontmatter });
+    let finalContent = "";
+    if (parsedPlan) {
+      finalContent = `---\n${frontmatter}\n---\n${parsedPlan.body}`;
+    } else {
+      finalContent = ejs.render(tplText, { meta, frontmatter });
+    }
+    
     writeFileSync(abs, finalContent, "utf8");
     source = "ticket-create";
 
