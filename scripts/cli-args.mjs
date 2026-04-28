@@ -30,6 +30,8 @@ export function parseTicketArgs(argv) {
     else if (a === "--docs-language") out.docsLanguage = argv[++i];
     else if (a === "--evidence") out.evidence = argv[++i];
     else if (a === "--skip-phase0") out.skipPhase0 = true;
+    else if (a === "--summary") out.summary = argv[++i];
+    else if (a === "--tags") out.tags = argv[++i];
   }
   return out;
 }
@@ -62,11 +64,12 @@ export function parseArgs(argv) {
   return out;
 }
 export function parseTelemetryArgs(argv) {
-  const out = { cwd: process.cwd(), tokens: 0, model: "", client: "", ticket: "", action: "", file: "", json: false };
+  const out = { cwd: process.cwd(), tokens: 0, tdw: 0, model: "", client: "", ticket: "", action: "", file: "", json: false };
   for (let i = 0; i < argv.length; i++) {
     const a = argv[i];
     if (a === "--cwd") out.cwd = argv[++i];
     else if (a === "--tokens") out.tokens = Number(argv[++i]);
+    else if (a === "--tdw") out.tdw = Number(argv[++i]);
     else if (a === "--model") out.model = argv[++i];
     else if (a === "--client") out.client = argv[++i];
     else if (a === "--ticket") out.ticket = argv[++i];

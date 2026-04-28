@@ -24,7 +24,8 @@
   },
   "homepage": "https://github.com/joygram/DeukAgentRules#readme",
   "files": [
-    "bundle/**/*",
+    "core-rules/**/*",
+    "templates/**/*",
     "scripts/**/*.mjs",
     "README.md",
     "README.ko.md",
@@ -32,8 +33,6 @@
     "CHANGELOG.ko.md"
   ],
   "scripts": {
-    "sync": "node scripts/sync-bundle.mjs",
-    "prepack": "node scripts/sync-bundle.mjs",
     "bump": "commit-and-tag-version",
     "bump:patch": "commit-and-tag-version -r patch",
     "bump:minor": "commit-and-tag-version -r minor",

@@ -8,8 +8,8 @@ import YAML from "yaml";
  * and compiles a single rule string for injection.
  */
 export function compileDynamicRules(cwd, bundleRoot, targetFileName) {
-  const bundleRulesDir = join(bundleRoot, "rules.d");
-  const localRulesDir = join(cwd, AGENT_ROOT_DIR, "domain-rules");
+  const bundleRulesDir = join(bundleRoot, "templates", "rules.d");
+  const localRulesDir = join(cwd, AGENT_ROOT_DIR, "project-rules");
   
   const allRuleFiles = [];
   

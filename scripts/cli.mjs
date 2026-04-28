@@ -14,7 +14,6 @@ const updatePromise = checkUpdateNotifier();
 
 const __dirname = dirname(fileURLToPath(import.meta.url));
 const pkgRoot = join(__dirname, "..");
-const bundleRoot = join(pkgRoot, "bundle");
 async function main() {
   const argv = process.argv.slice(2);
   const sub = argv[0];
@@ -88,7 +87,7 @@ async function main() {
     if (sub === "init") {
       await handleInit(opts, saved);
     } else {
-      runMerge(opts, bundleRoot);
+      runMerge(opts, pkgRoot);
     }
     return;
   }
@@ -123,7 +122,7 @@ async function handleInit(opts, saved) {
     return;
   }
 
-  await runInit(opts, bundleRoot);
+  await runInit(opts, pkgRoot);
 }
 
 function printHelp() {

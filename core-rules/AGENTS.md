@@ -5,10 +5,11 @@
 - Reply in Korean 해요체 unless user writes in English.
 - **[MANDATORY]** All artifacts (Plans, Reports, Tickets, Walkthroughs) MUST be written in the same language as the user's current prompt.
 
-## Coding
-- C#: No LINQ/boxing in update loops.
-- C++: No raw pointers. Forward-declare in headers. Mutex all shared resources.
-- WebApp: No hardcoded JSON. Use DeukPack generated codecs.
+## Project-Specific Rules
+- Locate and read the project-specific architecture boundaries, domain logic, and anti-patterns before planning.
+- The path to these project rules is typically documented by the user at the top of this `AGENTS.md` file (e.g., `DOMAIN_RULES.md` or `docs/architecture/*_ARCHITECTURE.md`).
+- If the **Project Rules Path** is missing or contains a placeholder like `<Enter the path...>`, the Agent MUST ask the user to provide the correct path and update the header.
+- Agents MUST consult these rules. Do NOT rely on general assumptions if a project rule exists.
 
 ## Docs
 - Plans: `.deuk-agent/docs/plans/<ticket-id>-plan.md`

@@ -58,6 +58,7 @@ async function logAction(opts) {
   const entry = {
     ts: Math.floor(Date.now() / 1000),
     tokens: opts.tokens || 0,
+    tdw: opts.tdw || 0,
     model: opts.model || "UNKNOWN",
     client: resolvedClient,
     ticket: opts.ticket || "",

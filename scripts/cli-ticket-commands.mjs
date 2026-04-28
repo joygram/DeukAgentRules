@@ -10,6 +10,7 @@ import { readTicketIndexJson, writeTicketIndexJson, syncActiveTicketId, generate
 import { appendTicketEntry, rebuildTicketIndexFromTopicFilesIfNeeded, writeTicketListFile, updateTicketEntryStatus } from "./cli-ticket-parser.mjs";
 import { loadInitConfig } from "./cli-utils.mjs";
 import ejs from "ejs";
+import YAML from "yaml";
 
 import { createInterface } from "readline";
 import { selectOne } from "./cli-prompts.mjs";
@@ -37,7 +38,7 @@ function resolveTicketTemplate(cwd, docsLanguageInput) {
   const docsLanguage = resolveDocsLanguage(docsLanguageInput || config.docsLanguage || "auto");
 
   const templateDir = join(cwd, AGENT_ROOT_DIR, TEMPLATE_SUBDIR);
-  const bundleTplDir = join(new URL(".", import.meta.url).pathname, "..", "bundle", "templates");
+  const bundleTplDir = join(new URL(".", import.meta.url).pathname, "..", "templates");
 
   const ticketTemplateCandidates = [
     selectLocalizedTemplatePath(templateDir, "TICKET_TEMPLATE.md", docsLanguage),
@@ -99,19 +100,25 @@ export async function runTicketCreate(opts) {
       prevTicketEntry = pickTicketEntry({ latest: true }, indexJson);
     }
 
-    const meta = {
+    const rawMeta = {
       id: ticketId,
       title,
       status: "open",
-      submodule: opts.submodule || "",
-      project: opts.project || "global",
+      submodule: opts.submodule,
+      project: opts.project === "global" ? undefined : opts.project,
       docsLanguage,
-      evidence: opts.evidence || "",
+      evidence: opts.evidence,
+      summary: opts.summary,
+      priority: opts.priority,
+      tags: opts.tags ? opts.tags.split(',').map(t => t.trim().replace(/^#/, '')).filter(Boolean) : undefined,
       createdAt: new Date().toISOString().replace('T', ' ').split('.')[0],
-      prevTicket: prevTicketEntry ? prevTicketEntry.id : "",
+      prevTicket: prevTicketEntry ? prevTicketEntry.id : undefined,
     };
 
-    const finalContent = ejs.render(tplText, { meta });
+    const meta = Object.fromEntries(Object.entries(rawMeta).filter(([_, v]) => v !== undefined && v !== ""));
+    const frontmatter = YAML.stringify(meta).trim();
+
+    const finalContent = ejs.render(tplText, { meta, frontmatter });
     writeFileSync(abs, finalContent, "utf8");
     source = "ticket-create";
 

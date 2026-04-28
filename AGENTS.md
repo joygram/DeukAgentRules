@@ -5,10 +5,9 @@
 - Reply in Korean 해요체 unless user writes in English.
 - **[MANDATORY]** All artifacts (Plans, Reports, Tickets, Walkthroughs) MUST be written in the same language as the user's current prompt.
 
-## Coding
-- C#: No LINQ/boxing in update loops.
-- C++: No raw pointers. Forward-declare in headers. Mutex all shared resources.
-- WebApp: No hardcoded JSON. Use DeukPack generated codecs.
+## Project Custom Rules (User Custom)
+- **EPIC_RULES.md**: This file (if present in the project root or `.deuk-agent/docs/`) contains the project-specific architecture boundaries, domain logic, and anti-patterns.
+- Agents MUST consult `EPIC_RULES.md` to map user-defined constraints into the implementation plan. Do NOT rely on general assumptions if an Epic Rule exists.
 
 ## Docs
 - Plans: `.deuk-agent/docs/plans/<ticket-id>-plan.md`
@@ -24,7 +23,7 @@
 All work follows this lifecycle. Skipping any phase is a rule violation.
 
 1. **Phase 0: Research** — If the task requires unfamiliar context, search related rules and past tickets via `mcp_deukcontext_search_*` (or local search if unavailable). Skip if context is already sufficient from the user request.
-2. **Phase 1: Plan** — Run `npx deuk-agent-rule ticket create`. Review `DOMAIN_RULES.md` and copy applicable rules into the Strict Rules Check. Write the implementation plan in the ticket body. **STOP AND WAIT for explicit user approval before writing any code.**
+2. **Phase 1: Plan** — Run `npx deuk-agent-rule ticket create`. Review `EPIC_RULES.md` and copy applicable rules into the Strict Rules Check. Write the implementation plan in the ticket body. **STOP AND WAIT for explicit user approval before writing any code.**
 3. **Phase 2: Execute** — Implement per the approved plan. Update ticket checkboxes in real-time.
 4. **Phase 3: Verify** — Run build/tests. Record all discovered constraints, side-effects, and tech debt in a Potential Issue Table.
 5. **Phase 4: Close** — File follow-up tickets for unresolved issues from the Potential Issue Table. Archive the ticket (`ticket archive`) to preserve knowledge for RAG.
@@ -42,5 +41,6 @@ When asked to proceed to the next ticket, execute this fast path with zero detou
 **[HARD RULE]** Never manually edit `INDEX.json` or ticket files via `sed`/`awk`/`echo`. Create tickets only through `npx deuk-agent-rule ticket create`.
 
 ## Telemetry (MANDATORY)
-- After each ticket phase: `npx deuk-agent-rule telemetry log --tokens <N> --model <M> --ticket <ID>`
+- After each ticket phase: `npx deuk-agent-rule telemetry log --tokens <CUMULATIVE> --tdw <TDW> --model <M> --ticket <ID>`
+- Phase close 시 TDW = 해당 티켓 작업에 소비된 총 토큰 (대화 시작부터 누적)
 - Periodic sync: `npx deuk-agent-rule telemetry sync`

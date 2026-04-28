@@ -152,7 +152,9 @@ function handleAgentAppend(opts, existing) {
 
   const inner = bundleContent.trimEnd() + "\n";
   const block = "\n---\n\n" + markers.begin + "\n\n> Managed by DeukAgentRules. Remove this section if not installed.\n\n" + inner;
-  const next = existing ? existing.replace(/\s*$/, "") + block : block.trimStart();
+  
+  const defaultHeader = `# Project Agents & Rules\n\n> **Project Rules Path:** \`<Enter the path to your project rules here, e.g., docs/PROJECT_RULES.md>\`\n>\n> *This top section is preserved and will not be overwritten during DeukAgentRules sync.*\n`;
+  const next = existing ? existing.replace(/\s*$/, "") + block : defaultHeader + block;
 
   if (dryRun) {
     return {
@@ -173,7 +175,7 @@ function handleAgentAppend(opts, existing) {
 }
 
 export function readBundleAgents(bundleRoot) {
-  const p = join(bundleRoot, "AGENTS.md");
+  const p = join(bundleRoot, "core-rules", "AGENTS.md");
   if (!existsSync(p)) {
     throw new Error("Bundle AGENTS.md missing: " + p);
   }
