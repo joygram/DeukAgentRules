@@ -6,8 +6,9 @@ DeukAgentRules operates as an **AI Engineering Orchestration Protocol**. It coor
 
 In v3.0, rule files are no longer monolithic. We use a **Hub-Spoke** model to minimize context bloat.
 
-- **Hub (`AGENTS.md`)**: The central project rule document.
-- **Spokes (`.cursor/rules/*.mdc`, etc.)**: Minimal entry points that tell the agent to read the Hub.
+- **Global Hub (`AGENTS.md`)**: The central canonical project rule document.
+- **Local Hub (`PROJECT_RULE.md`)**: Project-specific rules that override or augment the global hub.
+- **Spokes (`.cursor/rules/*.mdc`, etc.)**: Minimal entry points that tell the agent to read the Hubs.
 - **Why**: This ensures the agent always sees the latest rules without duplication errors across different IDEs.
 
 ## 2. Global CLI Proxy
@@ -35,14 +36,16 @@ Running `deuk-agent-rule init` triggers the following lifecycle:
 | Path | Role |
 |---|---|
 | `AGENTS.md` | The Sovereign Rule Hub (Canonical truth) |
+| `PROJECT_RULE.md` | Local project-specific rule overrides |
 | `.deuk-agent/config.json` | Project-specific initialization state |
 | `.deuk-agent/tickets/` | Bounded execution contracts (Work orders) |
 | `.deuk-agent/templates/` | Standardized blueprint for tickets and plans |
 | `bin/deuk-agent-rule.js` | The Global Execution Proxy |
 
-## 5. Submodule Isolation Workflow
+## 5. Strict Phase-Driven Workflow (TDW)
 
-1. **Issue Ticket**: `ticket create --topic X` defines the target submodule.
-2. **Lock Context**: The agent reads the ticket and restricts its file system access to the specified submodule.
-3. **Execute & Verify**: Changes are made and verified within the isolated boundary.
-4. **Archive**: The ticket is archived into `reports/` for long-term engineering memory.
+1. **Issue Ticket (Phase 1)**: `ticket create` defines the target scope. Use `--from-plan` to convert an implementation plan.
+2. **APC Validation**: Before modifying code, the agent must fill out the APC (Agent Permission Contract) blocks `[BOUNDARY]`, `[CONTRACT]`, and `[PATCH PLAN]` in the ticket.
+3. **Phase Transition**: Run `ticket move` to transition to Phase 2 (Execute). If the APC is incomplete, the transition is blocked.
+4. **Execute & Verify (Phase 2)**: Changes are made and verified within the isolated boundary.
+5. **Knowledge Distillation Archive**: When archiving, core information is extracted (Zero-Token Distillation) to save context tokens for long-term memory.

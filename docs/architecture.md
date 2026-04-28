@@ -2,15 +2,15 @@
 
 DeukAgentRules v3.0 introduces a **Hub-Spoke Architecture** and a **Global Execution Proxy** to ensure absolute consistency and efficiency in AI-agent workflows.
 
-## 1. Hub-Spoke Architecture
+## 1. Zero-Copy Hub-Spoke Architecture
 
-In the v3 model, **`AGENTS.md`** at the repository root acts as the **Hub** (the single source of truth). IDE-specific rule files (e.g., `.cursor/rules/*.mdc`) act as **Spokes** (thin entry points).
+In the v3 model, **`AGENTS.md`** acts as the global **Hub** (the single source of truth), while **`PROJECT_RULE.md`** serves as the **Local Hub** for project-specific overrides. IDE-specific rule files (e.g., `.cursor/rules/*.mdc`) act as **Spokes** (thin entry points) that use absolute path pointers instead of duplicating rules (Zero-Copy).
 
 ![Hub-Spoke Architecture](assets/architecture-v3.png)
 
 ### Core Principles
-- **SSoT (Single Source of Truth)**: All operational rules are defined in `AGENTS.md`.
-- **Lightweight Spokes**: IDE rules do not duplicate content; they point the agent to the Hub.
+- **SSoT (Single Source of Truth)**: All operational rules are defined in `AGENTS.md`, and project-specific contexts go into `PROJECT_RULE.md`.
+- **Lightweight Spokes (Zero-Copy)**: IDE rules do not duplicate content; they use absolute paths to point the agent to the Hubs.
 - **Zero-Legacy**: The `init` command aggressively purges obsolete v1/v2 configurations.
 
 ## 2. Global CLI Proxy (Kind: Src)

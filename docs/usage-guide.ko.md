@@ -20,10 +20,9 @@ npm install -g deuk-agent-rule
 deuk-agent-rule init
 ```
 이 명령은 다음 파일들을 생성/업데이트합니다:
-- `AGENTS.md`: 프로젝트 규칙의 허브.
+- `PROJECT_RULE.md`: 현재 프로젝트의 고유 규칙 (전역 `AGENTS.md`를 오버라이드).
 - `.deuk-agent/`: 티켓, 템플릿, 설정이 저장되는 디렉토리.
-- `.cursor/rules/deuk-agent.mdc`: Cursor 에이전트를 위한 포인터.
-- `GEMINI.md`: Antigravity/Gemini 에이전트를 위한 포인터.
+- `.cursor/rules/deuk-agent.mdc`, `GEMINI.md` 등: 각 에이전트 환경에 맞는 얇은 포인터 파일.
 
 ---
 
@@ -31,7 +30,7 @@ deuk-agent-rule init
 
 에이전트에게 작업을 시킬 때는 항상 **티켓**을 기반으로 소통하세요.
 
-### 1단계: 티켓 생성
+### 1단계: 티켓 생성 (Phase 1: Plan)
 에이전트에게 다음과 같이 요청하여 작업을 시작합니다.
 > 💬 "새로운 기능을 위한 티켓을 만들어줘. 주제는 'user-auth-impl'이야."
 
@@ -39,13 +38,25 @@ deuk-agent-rule init
 ```bash
 deuk-agent-rule ticket create --topic user-auth-impl --evidence "기존 auth 로직 분석 완료..."
 ```
+이미 작성된 마크다운 형식의 구현 계획서가 있다면 `--from-plan` 옵션을 통해 바로 티켓으로 변환할 수도 있습니다.
 
-### 2단계: 티켓 기반 작업 실행
-에이전트는 생성된 티켓(`.deuk-agent/tickets/sub/XXX-user-auth-impl.md`)을 읽고, 정의된 태스크를 하나씩 수행합니다.
+### 2단계: APC(Agent Permission Contract) 작성 및 Phase 검증
+생성된 티켓은 기본적으로 **Phase 1 (Plan)** 상태입니다. 에이전트는 코드를 수정하기 전에 반드시 티켓 내의 APC 블록(`[BOUNDARY]`, `[CONTRACT]`, `[PATCH PLAN]`)을 상세히 작성해야 합니다.
 
-### 3단계: 작업 완료 및 아카이빙
+작성이 완료되면 에이전트가 다음 명령으로 Phase 승급을 시도합니다:
+```bash
+deuk-agent-rule ticket move --topic user-auth-impl
+```
+만약 APC가 비어있거나 불완전하다면, CLI의 검증(Validation) 로직이 승급을 차단하고 코딩을 금지합니다.
+
+### 3단계: 작업 실행 (Phase 2: Execute)
+티켓이 **Phase 2 (Execute)** 로 승급되면, 에이전트는 제한된 경계 내에서 코드를 수정하고 단위 테스트 등 검증 작업을 수행합니다.
+
+### 4단계: 작업 완료 및 아카이빙
 작업이 끝나면 에이전트에게 리포트 작성과 티켓 보관을 요청하세요.
 > 💬 "작업 완료했어. 리포트 작성하고 티켓 아카이브해줘."
+
+이때 아카이브 작업 중 **Zero-Token 지식 증류(Knowledge Distillation)**가 동작하여 불필요한 컨텍스트 토큰 소모를 줄이도록 핵심 정보만 압축되어 저장됩니다.
 
 ---
 
@@ -54,7 +65,7 @@ deuk-agent-rule ticket create --topic user-auth-impl --evidence "기존 auth 로
 에이전트가 DeukAgentRules 프로토콜을 엄격히 준수하도록 하려면 프로젝트 시작 시 다음과 같은 **페르소나 주입(Persona Injection)**이 도움이 됩니다.
 
 > **에이전트 지침 예시:**
-> "너는 DeukAgentRules 프로토콜을 준수하는 시니어 엔지니어다. 모든 코드 수정 전에는 반드시 `ticket create`를 통해 작업 계약을 맺어야 하며, 작업이 완료되면 `walkthrough` 리포트를 작성하고 티켓을 `archive`해야 한다. 규칙 허브인 `AGENTS.md`를 항상 최우선으로 참조하라."
+> "너는 DeukAgentRules 프로토콜을 준수하는 시니어 엔지니어다. 모든 코드 수정 전에는 반드시 `ticket create`를 통해 Phase 1 티켓을 생성하고 APC(Agent Permission Contract)를 채운 뒤, `ticket move` 명령으로 Phase 2로 승급해야 코드를 작성할 수 있다. 작업이 완료되면 `walkthrough` 리포트를 작성하고 티켓을 `archive`해라. 규칙 파일인 `PROJECT_RULE.md`와 포인터가 가리키는 `AGENTS.md`를 항상 최우선으로 참조하라."
 
 ---
 
