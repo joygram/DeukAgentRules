@@ -1,10 +1,10 @@
 import { join, dirname, basename } from "path";
 import { homedir } from "os";
 import { existsSync, readFileSync, writeFileSync, mkdirSync, copyFileSync, readdirSync, unlinkSync, rmSync, renameSync } from "fs";
-import { resolveMarkers, applyAgents, readBundleAgents } from "./merge-logic.mjs";
+
 import { ensureTicketDirAndGitignore } from "./cli-init-logic.mjs";
 import { normalizeTicketPaths } from "./cli-ticket-migration.mjs";
-import { compileDynamicRules } from "./cli-rule-compiler.mjs";
+
 import { loadInitConfig, writeInitConfig, isWorkflowExecute, normalizeWorkflowMode, SPOKE_REGISTRY } from "./cli-utils.mjs";
 import { runInteractive } from "./cli-prompts.mjs";
 
@@ -204,17 +204,14 @@ When working in a repository, always look for a local \`AGENTS.md\` or \`.deuk-a
 
 
 
-function generateSpokeContent(spoke) {
-  const depth = spoke.target.split('/').length - 1;
-  const prefix = depth > 0 ? '../'.repeat(depth) : './';
-
+function generateSpokeContent(spoke, bundleRoot) {
+  const globalRulesPath = join(bundleRoot, "core-rules", "AGENTS.md");
+  
   const content = `# Deuk Agent Rules
 
 This project follows the Deuk Agent Rules framework.
-All operational rules, technical standards, and workflows are centralized in:
-- [AGENTS.md](${prefix}AGENTS.md)
-
-Refer to AGENTS.md before starting any task.
+Read the global operational rules, technical standards, and workflows from:
+- [GLOBAL_AGENTS.md](file://${globalRulesPath})
 `;
 
   if (spoke.format === "mdc") {
@@ -260,7 +257,7 @@ function hasCustomUserRules(filePath) {
   }
 }
 
-function deploySpokePointers(cwd, dryRun, selectedTools = []) {
+function deploySpokePointers(cwd, bundleRoot, dryRun, selectedTools = []) {
   for (const spoke of SPOKE_REGISTRY) {
     // Always clean legacy files, but backup if they contain custom user rules
     if (spoke.legacy) {
@@ -284,7 +281,7 @@ function deploySpokePointers(cwd, dryRun, selectedTools = []) {
     
     if (!dryRun) {
       mkdirSync(targetDir, { recursive: true });
-      writeFileSync(targetPath, generateSpokeContent(spoke), "utf8");
+      writeFileSync(targetPath, generateSpokeContent(spoke, bundleRoot), "utf8");
     }
     console.log(`spoke synced: ${spoke.target} (${spoke.id})`);
   }
@@ -296,12 +293,15 @@ function removeDuplicateRuleCopies(cwd, dryRun) {
     join(cwd, ".cursor", "rules", "deuk-agent-rule-multi-ai-workflow.mdc"),
     join(cwd, ".claude"),
     join(cwd, ".gemini"),
+    join(cwd, "AGENTS.md"),
+    join(cwd, "GEMINI.md"),
+    join(cwd, "CLAUDE.md"),
   ];
 
   for (const p of duplicatePaths) {
     if (!existsSync(p)) continue;
     if (!dryRun) rmSync(p, { recursive: true, force: true });
-    console.log(`[CLEANUP] removed duplicate rule copy: ${toRepoRelativePath(cwd, p)}`);
+    console.log(`[CLEANUP] removed legacy/duplicate: ${toRepoRelativePath(cwd, p)}`);
   }
 }
 
@@ -333,12 +333,9 @@ export async function runInit(opts, bundleRoot) {
   const submodules = discoverAllWorkspaces(opts.cwd, ignoreDirs);
   if (!submodules.includes(opts.cwd)) submodules.push(opts.cwd);
 
-  const markers = resolveMarkers(opts);
-  const bundleAgents = readBundleAgents(bundleRoot);
-
   for (const subCwd of submodules) {
     try {
-      await initSingleWorkspace(subCwd, opts, bundleRoot, markers, bundleAgents, selectedTools);
+      await initSingleWorkspace(subCwd, opts, bundleRoot, selectedTools);
     } catch (err) {
       console.error(`[ERROR] Failed to initialize workspace ${basename(subCwd)}: ${err.message}`);
     }
@@ -349,7 +346,7 @@ export async function runInit(opts, bundleRoot) {
   }
 }
 
-async function initSingleWorkspace(subCwd, opts, bundleRoot, markers, bundleAgents, selectedTools) {
+async function initSingleWorkspace(subCwd, opts, bundleRoot, selectedTools) {
   console.log(`\nInitializing ${basename(subCwd)}...`);
   
   // 1. Migration & Directory Setup
@@ -362,11 +359,17 @@ async function initSingleWorkspace(subCwd, opts, bundleRoot, markers, bundleAgen
 
   // 3. Spoke Pointers (e.g. .cursor/rules/deuk-agent.mdc)
   removeDuplicateRuleCopies(subCwd, opts.dryRun);
-  deploySpokePointers(subCwd, opts.dryRun, selectedTools);
+  deploySpokePointers(subCwd, bundleRoot, opts.dryRun, selectedTools);
 
-  // 4. Agents Setup (AGENTS.md)
-  const agentsResult = syncAgentRules(subCwd, bundleRoot, markers, bundleAgents, opts);
-  console.log(`AGENTS.md: ${agentsResult.action}`);
+  // 4. Project Rule Setup (PROJECT_RULE.md)
+  const projectRulePath = join(subCwd, "PROJECT_RULE.md");
+  if (!existsSync(projectRulePath)) {
+    const templatePath = join(bundleRoot, "templates", "PROJECT_RULE.md");
+    if (existsSync(templatePath)) {
+      if (!opts.dryRun) copyFileSync(templatePath, projectRulePath);
+      console.log(`PROJECT_RULE.md: created from template`);
+    }
+  }
 
   // 5. Templates Sync (.deuk-agent/templates/)
   syncTemplates(subCwd, bundleRoot, opts.dryRun);
@@ -381,28 +384,9 @@ export function runMerge(opts, bundleRoot) {
       `[WORKFLOW BLOCKED] plan mode is active for ${opts.cwd}. Re-run with --workflow execute or --approval approved to apply file mutations. Use --dry-run for preparation only.`
     );
   }
-  const markers = resolveMarkers(opts);
-  const bundleAgents = readBundleAgents(bundleRoot);
-
-  const agentsResult = syncAgentRules(opts.cwd, bundleRoot, markers, bundleAgents, opts);
-  console.log(`AGENTS.md: merged via syncAgentRules (${agentsResult.action})`);
-
+  
   syncTemplates(opts.cwd, bundleRoot, opts.dryRun);
 }
 
-function syncAgentRules(cwd, bundleRoot, markers, bundleAgents, opts) {
-  const targetFile = "AGENTS.md";
-  const cleanBundleAgents = pruneRuleModules(bundleAgents);
-  const compiledAdditions = compileDynamicRules(cwd, bundleRoot, targetFile);
-  const fullBundleAgents = cleanBundleAgents + "\n\n" + compiledAdditions;
 
-  return applyAgents({
-    targetPath: join(cwd, targetFile),
-    bundleContent: fullBundleAgents,
-    markers, flavor: "init",
-    appendIfNoMarkers: opts.appendIfNoMarkers,
-    dryRun: opts.dryRun, backup: opts.backup,
-    agentsMode: opts.agents || "inject"
-  });
-}
 

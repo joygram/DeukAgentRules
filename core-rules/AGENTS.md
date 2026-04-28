@@ -6,9 +6,8 @@
 - **[MANDATORY]** All artifacts (Plans, Reports, Tickets, Walkthroughs) MUST be written in the same language as the user's current prompt.
 
 ## Project-Specific Rules
-- Locate and read the project-specific architecture boundaries, domain logic, and anti-patterns before planning.
-- The path to these project rules is typically documented by the user at the top of this `AGENTS.md` file (e.g., `DOMAIN_RULES.md` or `docs/architecture/*_ARCHITECTURE.md`).
-- If the **Project Rules Path** is missing or contains a placeholder like `<Enter the path...>`, the Agent MUST ask the user to provide the correct path and update the header.
+- Locate and read **`PROJECT_RULE.md`** in the root of the project workspace.
+- `PROJECT_RULE.md` contains either the project-specific architecture boundaries or a link to the relevant documentation (e.g., `docs/ARCHITECTURE.md`).
 - Agents MUST consult these rules. Do NOT rely on general assumptions if a project rule exists.
 
 ## Docs

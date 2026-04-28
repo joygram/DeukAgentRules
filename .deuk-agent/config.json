@@ -1,6 +1,6 @@
 {
   "version": 1,
-  "agentsMode": "overwrite",
+  "agentsMode": "inject",
   "workflowMode": "execute",
   "approvalState": "approved",
   "stack": "other",
@@ -19,5 +19,5 @@
     ".tmp",
     ".cache"
   ],
-  "updatedAt": "2026-04-27T06:30:24.472Z"
+  "updatedAt": "2026-04-28T20:13:45.151Z"
 }
