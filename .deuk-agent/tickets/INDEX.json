@@ -1,8 +1,28 @@
 {
   "version": 1,
-  "updatedAt": "2026-04-28T20:13:45.313Z",
-  "activeTicketId": "103-architectureguard-인라인-yaml파싱-slu-joy-nucb",
+  "updatedAt": "2026-04-28T20:30:54.484Z",
+  "activeTicketId": "105-template-test-joy-nucb",
   "entries": [
+    {
+      "id": "105-template-test-joy-nucb",
+      "title": "Template Test",
+      "topic": "template-test",
+      "group": "sub",
+      "project": "global",
+      "createdAt": "2026-04-28T20:30:54.484Z",
+      "source": "ticket-create",
+      "status": "open"
+    },
+    {
+      "id": "104-test-plan-joy-nucb",
+      "title": "Test Plan",
+      "topic": "test-plan",
+      "group": "sub",
+      "project": "global",
+      "createdAt": "2026-04-28T20:30:43.287Z",
+      "source": "ticket-create",
+      "status": "open"
+    },
     {
       "id": "103-architectureguard-인라인-yaml파싱-slu-joy-nucb",
       "title": "ArchitectureGuard: 인라인 YAML파싱 slug생성 중복 제거",
