@@ -1,3 +1,9 @@
+---
+architecture_docs: "docs/architecture.md"
+---
+
+# Project Rules
+
 ## DeukAgentRules Development Rules
 
 이 프로젝트는 DeukAgentRules 자체의 소스 코드 저장소입니다.
