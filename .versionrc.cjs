@@ -26,7 +26,6 @@ module.exports = {
   ],
   releaseCommitMessageFormat: "chore(release): {{currentTag}}",
   scripts: {
-    prebump: "npm run sync",
     postchangelog: "node scripts/changelog-polish.mjs",
   },
   writerOpts: {

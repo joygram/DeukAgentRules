@@ -2,6 +2,50 @@
 
 All notable changes to this project will be documented in this file.
 
+The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/), and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
+
+## [3.1.0] - 2026-04-28
+
+
+### Added
+
+-  add ArchitectureGuard.test.mjs and create technical debt ticket T-103
+-  add first-class copilot and codex support
+- **arch:** implement APC v3 and simplify repository structure
+- **cli:** restrict --skip-phase0 based on MCP server status and update rules
+-  consolidate rule cleanup logic and enforce thin pointers for entry points
+-  enforce unidirectional AGENTS.md single source of truth
+-  enhance CLI reporting and add practical usage guide
+-  implement strict phase-driven ticket workflow with APC validation
+-  implement Zero-Copy architecture with absolute path pointing and frontmatter-based PROJECT_RULE.md
+-  implement zero-token knowledge distillation on ticket archive and cleanup dead code
+- **rules:** add AI Agent fallback guide to PROJECT_RULE.md template
+- **rules:** normalize canonical rules and decouple DeukPack rules
+- **telemetry:** add local-first telemetry CLI and update AGENTS.md
+- **ticket:** implement --from-plan for plan-to-ticket conversion and update project rules
+
+
+### Fixed
+
+-  auto-detect client tool from model and config in telemetry
+-  resolve agent loop on ticket navigation + archive 37 dead tickets
+- **rules:** bilingual ko/en PROJECT_RULE.md template
+- **rules:** remove redundant core rules link from PROJECT_RULE.md
+- **rules:** restore frontmatter in PROJECT_RULE.md
+- **rules:** restore mandatory ticket workflow and anti-shoveling rules
+- **rules:** sync restored strict workflow AGENTS.md and unified templates
+
+
+### Changed
+
+-  add markdown lint policy and workflow docs
+- **agent:** rename TDD to TDW, archive ticket 101, and remove DOMAIN_RULES
+-  AGENTS.md full cleanup - eliminate redundancy, unify English, remove dead rules
+-  finalize ticket 066 rule normalization
+-  modernize CLI architecture, implement state-driven path resolution, and comprehensive audit cleanup
+- **rules:** decouple DeukPack rules and fix merge injection logic
+-  update principles and cli compiler to DeukAgentContext
+
 ## [3.0.0] - 2026-04-25
 
 ### 🚀 Major Breakthrough: Hub-Spoke Architecture
