@@ -1,8 +1,30 @@
 {
   "version": 1,
-  "updatedAt": "2026-04-28T20:30:54.484Z",
-  "activeTicketId": "105-template-test-joy-nucb",
+  "updatedAt": "2026-04-28T22:42:17.981Z",
+  "activeTicketId": "107-apc-test-joy-nucb",
   "entries": [
+    {
+      "id": "107-apc-test-joy-nucb",
+      "title": "apc-test",
+      "topic": "apc-test",
+      "group": "sub",
+      "project": "global",
+      "createdAt": "2026-04-28T21:43:27.330Z",
+      "source": "ticket-create",
+      "status": "active",
+      "updatedAt": "2026-04-28T21:43:49.304Z"
+    },
+    {
+      "id": "106-test-phase-validation-joy-nucb",
+      "title": "test-phase-validation",
+      "topic": "test-phase-validation",
+      "group": "sub",
+      "project": "global",
+      "createdAt": "2026-04-28T21:34:34.878Z",
+      "source": "ticket-create",
+      "status": "active",
+      "updatedAt": "2026-04-28T21:36:38.029Z"
+    },
     {
       "id": "105-template-test-joy-nucb",
       "title": "Template Test",

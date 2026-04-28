@@ -1,8 +1,14 @@
 ---
-<%- frontmatter %>
-phase: 1
+id: 107-apc-test-joy-nucb
+title: apc-test
+phase: 2
+status: active
+docsLanguage: ko
+createdAt: 2026-04-28 21:43:27
 ---
-# <%= meta.title %>
+
+
+# apc-test
 
 ## Analysis & Constraints (Deep Review)
 > [WARNING: Do not skip deep analysis. Shallow logic leads to cascaded bugs.]
@@ -14,22 +20,22 @@ phase: 1
 > ⚠️ [MANDATORY] Do NOT write or modify any code until this 4-block contract is completely filled out.
 
 ### [BOUNDARY]
-- **변경 가능한 모듈:** 
-- **변경 금지 모듈:** 
+- **변경 가능한 모듈:** cli.mjs
+- **변경 금지 모듈:** plan-parser.mjs
 
 ### [CONTRACT]
-- **input:** 
-- **output:** 
-- **side effects:** 
-- **Rule Citation (프로젝트 룰 인용):** [프로젝트 룰 문서(예: ARCHITECTURE.md)에서 이 변경을 규제하는 조항을 찾아 원문 그대로 복사할 것. 없으면 "N/A"]
+- **input:** test
+- **output:** test
+- **side effects:** none
+- **Rule Citation (프로젝트 룰 인용):** N/A
 
 ### [PATCH PLAN]
-- **file:** 
-- **function:** 
-- **change:** 
+- **file:** cli.mjs
+- **function:** main
+- **change:** none
 
 ### [TEST IMPACT]
-- **affected tests:** 
+- **affected tests:** none
 
 ## Tasks
 - [ ] [Task 1]
