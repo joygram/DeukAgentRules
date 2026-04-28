@@ -1,8 +1,18 @@
 {
   "version": 1,
-  "updatedAt": "2026-04-28T22:42:17.981Z",
+  "updatedAt": "2026-04-28T23:50:01.350Z",
   "activeTicketId": "107-apc-test-joy-nucb",
   "entries": [
+    {
+      "id": "108-agent-platform-coexistence-joy-nucb",
+      "title": "agent-platform-coexistence",
+      "topic": "agent-platform-coexistence",
+      "group": "sub",
+      "project": "global",
+      "createdAt": "2026-04-28T23:29:14.227Z",
+      "source": "ticket-create",
+      "status": "open"
+    },
     {
       "id": "107-apc-test-joy-nucb",
       "title": "apc-test",
