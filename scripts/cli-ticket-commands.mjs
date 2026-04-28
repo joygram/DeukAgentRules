@@ -120,6 +120,7 @@ export async function runTicketCreate(opts) {
     const rawMeta = {
       id: ticketId,
       title: finalTitle,
+      phase: 1,
       status: "open",
       submodule: opts.submodule,
       project: opts.project === "global" ? undefined : opts.project,
@@ -495,4 +496,73 @@ export async function runTicketReportAttach(opts) {
 export async function runTicketRebuild(opts) {
   console.log("Rebuilding INDEX.json from markdown files...");
   rebuildTicketIndexFromTopicFilesIfNeeded(opts.cwd, { ...opts, force: true, rebuild: true });
+}
+
+export async function runTicketMove(opts) {
+  if (!opts.topic && !opts.latest) {
+    if (opts.nonInteractive) {
+      throw new Error("ticket move: --topic or --latest is required in non-interactive mode.");
+    }
+    opts.latest = true; // Default to latest
+  }
+  
+  const index = rebuildTicketIndexFromTopicFilesIfNeeded(opts.cwd, { ...opts, force: false });
+  const entry = pickTicketEntry(opts, index);
+  
+  if (!entry) throw new Error("No matching ticket found to move.");
+
+  const abs = join(opts.cwd, entry.path);
+  if (!existsSync(abs)) throw new Error("Ticket file not found: " + entry.path);
+
+  const body = readFileSync(abs, "utf8");
+  const { meta, content } = parseFrontMatter(body);
+
+  const currentPhase = meta.phase || 1;
+  let nextPhase = opts.next ? currentPhase + 1 : (opts.phase || currentPhase + 1);
+
+  if (currentPhase === 1 && nextPhase >= 2) {
+    // Validate APC
+    const apcMatch = content.match(/## Agent Permission Contract[\s\S]*?(?=\n## |$)/i);
+    if (!apcMatch) {
+      throw new Error(`[VALIDATION FAILED] Ticket ${entry.topic} is missing the Agent Permission Contract (APC) block. You must fill it out before moving to Phase 2.`);
+    }
+    const apcText = apcMatch[0];
+    
+    // Check for placeholders or empty values
+    const boundaryMatch = apcText.match(/### \[BOUNDARY\]([\s\S]*?)(?=\n### |$)/i);
+    const contractMatch = apcText.match(/### \[CONTRACT\]([\s\S]*?)(?=\n### |$)/i);
+    const planMatch = apcText.match(/### \[PATCH PLAN\]([\s\S]*?)(?=\n### |$)/i);
+    
+    const isEmptyOrPlaceholder = (text) => {
+      if (!text) return true;
+      const clean = text.replace(/-\s*\*\*[^*:]+:?\*\*\s*/g, "").trim();
+      return clean === "" || clean.includes("[Add ") || clean.includes("프로젝트 룰 문서");
+    };
+
+    if (isEmptyOrPlaceholder(boundaryMatch?.[1]) || isEmptyOrPlaceholder(contractMatch?.[1]) || isEmptyOrPlaceholder(planMatch?.[1])) {
+      throw new Error(`[VALIDATION FAILED] The Agent Permission Contract (APC) in ${entry.topic} is incomplete or contains placeholders. Please fill out the [BOUNDARY], [CONTRACT], and [PATCH PLAN] sections before moving to Phase 2.`);
+    }
+  }
+
+  meta.phase = nextPhase;
+  if (nextPhase >= 4) {
+    meta.status = "closed";
+  } else if (nextPhase >= 2 && (!meta.status || meta.status === "open")) {
+    meta.status = "active";
+  }
+  
+  const newBody = stringifyFrontMatter(meta, content);
+  writeFileSync(abs, newBody, "utf8");
+
+  // Re-sync index to reflect the status change if any
+  opts.topic = entry.topic;
+  if (meta.status !== entry.status) {
+    opts.status = meta.status;
+    updateTicketEntryStatus(opts.cwd, opts);
+  } else {
+    rebuildTicketIndexFromTopicFilesIfNeeded(opts.cwd, { ...opts, force: true });
+  }
+  
+  syncActiveTicketId(opts.cwd);
+  console.log(`ticket: moved -> ${entry.topic} is now in Phase ${nextPhase} (${meta.status})`);
 }

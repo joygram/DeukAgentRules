@@ -33,6 +33,8 @@ export function parseTicketArgs(argv) {
     else if (a === "--skip-phase0") out.skipPhase0 = true;
     else if (a === "--summary") out.summary = argv[++i];
     else if (a === "--tags") out.tags = argv[++i];
+    else if (a === "--phase") out.phase = Number(argv[++i]);
+    else if (a === "--next") out.next = true;
   }
   return out;
 }

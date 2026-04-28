@@ -1,5 +1,6 @@
 ---
 <%- frontmatter %>
+phase: 1
 ---
 # <%= meta.title %>
 
