@@ -243,7 +243,11 @@ export function updateTicketEntryStatus(cwd, opts = {}) {
   if (opts.latest) {
     foundIndex = 0;
   } else if (targetTopic) {
-    foundIndex = indexJson.entries.findIndex(e => String(e.topic).toLowerCase().includes(targetTopic));
+    // Match against both topic AND id for consistency with pickTicketEntry
+    foundIndex = indexJson.entries.findIndex(e =>
+      String(e.topic || "").toLowerCase().includes(targetTopic) ||
+      String(e.id || "").toLowerCase().includes(targetTopic)
+    );
   }
 
   if (foundIndex === -1) {
@@ -251,9 +255,26 @@ export function updateTicketEntryStatus(cwd, opts = {}) {
   }
 
   const entry = indexJson.entries[foundIndex];
-  entry.status = opts.status || "closed";
+  const newStatus = opts.status || "closed";
+  entry.status = newStatus;
   entry.updatedAt = new Date().toISOString();
   
+  // Sync status back to .md frontmatter to prevent rebuild reversion
+  const absPath = join(cwd, entry.path);
+  if (existsSync(absPath)) {
+    try {
+      const body = readFileSync(absPath, "utf8");
+      const parsed = parseFrontMatter(body);
+      if (parsed.meta.status !== newStatus) {
+        parsed.meta.status = newStatus;
+        const newBody = stringifyFrontMatter(parsed.meta, parsed.content);
+        writeFileSync(absPath, newBody, "utf8");
+      }
+    } catch (err) {
+      console.warn(`[WARNING] Failed to sync status to ${entry.path}: ${err.message}`);
+    }
+  }
+
   const next = { version: indexJson.version, updatedAt: new Date().toISOString(), entries: indexJson.entries };
   writeTicketIndexJson(cwd, next, opts);
   writeTicketListFile(cwd, next.entries, opts);
