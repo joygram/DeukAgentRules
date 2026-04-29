@@ -1,11 +1,23 @@
 ---
 id: 069-rebranding-deukrag-to-deuk-agent-joy-nucb
-title: "rebranding-deukrag-to-deuk-agent-context"
+title: rebranding-deukrag-to-deuk-agent-context
 status: open
 createdAt: 2026-04-25 02:50:34
+summary: rebranding-deukrag-to-deuk-agent-context
+planLink: .deuk-agent/docs/plans/069-rebranding-deukrag-to-deuk-agent-joy-nucb-plan.md
 ---
 
+
 # [실행] 작업: rebranding-deukrag-to-deuk-agent-context | ID: 069-rebranding-deukrag-to-deuk-agent-joy-nucb
+
+> **[CAUTION FOR AI AGENTS]**
+> 1. Restrict all analysis, file creation, and modifications to the declared **Target Module** below.
+> 2. Read the files listed in **Context Files** before doing ANY code generation.
+> 3. DO NOT leak configuration, logic, or dependencies from other modules.
+
+## Target Module
+- **Target:** [Fill in the target module/submodule path]
+- **Context Files:** [List architecture docs or key files to read first]
 
 > **[에이전트 주의]**
 > 이 작업은 잠긴 멀티 모듈 모노레포 안에서 진행돼요.

@@ -1,8 +1,21 @@
 ---
 id: 089-implement-index-auto-repair-joy-nucb
-title: "implement-index-auto-repair"
+title: implement-index-auto-repair
+summary: "주요 작업: [Task 1"
+planLink: .deuk-agent/docs/plans/089-implement-index-auto-repair-joy-nucb-plan.md
 ---
+
+
 # implement-index-auto-repair
+
+> **[CAUTION FOR AI AGENTS]**
+> 1. Restrict all analysis, file creation, and modifications to the declared **Target Module** below.
+> 2. Read the files listed in **Context Files** before doing ANY code generation.
+> 3. DO NOT leak configuration, logic, or dependencies from other modules.
+
+## Target Module
+- **Target:** [Fill in the target module/submodule path]
+- **Context Files:** [List architecture docs or key files to read first]
 
 ## Analysis & Constraints (Deep Review)
 > [WARNING: Do not skip deep analysis. Shallow logic leads to cascaded bugs.]

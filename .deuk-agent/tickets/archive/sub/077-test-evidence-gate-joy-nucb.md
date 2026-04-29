@@ -1,11 +1,23 @@
 ---
 id: 077-test-evidence-gate-joy-nucb
-title: "test-evidence-gate"
+title: test-evidence-gate
 status: open
 createdAt: 2026-04-25 09:30:40
+summary: test-evidence-gate
+planLink: .deuk-agent/docs/plans/077-test-evidence-gate-joy-nucb-plan.md
 ---
 
+
 # [실행] 작업: test-evidence-gate | ID: 077-test-evidence-gate-joy-nucb
+
+> **[CAUTION FOR AI AGENTS]**
+> 1. Restrict all analysis, file creation, and modifications to the declared **Target Module** below.
+> 2. Read the files listed in **Context Files** before doing ANY code generation.
+> 3. DO NOT leak configuration, logic, or dependencies from other modules.
+
+## Target Module
+- **Target:** [Fill in the target module/submodule path]
+- **Context Files:** [List architecture docs or key files to read first]
 
 > **[에이전트 주의]**
 > 이 작업은 잠긴 멀티 모듈 모노레포 안에서 진행돼요.

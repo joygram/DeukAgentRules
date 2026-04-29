@@ -1,12 +1,15 @@
 ---
 id: 049-workspace-wide-agent-link-joy-nucb
-title: "049-workspace-wide-agent-link"
-topic: 049-workspace-wide-agent-link
+title: 049-workspace-wide-agent-link
 status: open
-submodule:
 project: DeukAgentRules
-createdAt: 2026-04-22T02:02:57.559Z
+createdAt: 2026-04-22 02:02:57
+summary: "[e.g., DeukUI | DeukPack | DeukNavigation]. 주요 작업: 0. RAG Research
+  (MCP), `mcp_deukrag_search_rules` 기반 규약 검토 완료, `mcp_deukrag_search_tickets` 과거
+  유사 티켓 이력 열람 완료"
+planLink: .deuk-agent/docs/plans/049-workspace-wide-agent-link-joy-nucb-plan.md
 ---
+
 
 # [Execution] Task: 049-workspace-wide-agent-link | ID: 049-workspace-wide-agent-link-joy-nucb
 

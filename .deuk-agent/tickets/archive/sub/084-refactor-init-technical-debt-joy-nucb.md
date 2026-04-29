@@ -1,8 +1,21 @@
 ---
 id: 084-refactor-init-technical-debt-joy-nucb
-title: "refactor-init-technical-debt"
+title: refactor-init-technical-debt
+summary: "주요 작업: [Task 1"
+planLink: .deuk-agent/docs/plans/084-refactor-init-technical-debt-joy-nucb-plan.md
 ---
+
+
 # refactor-init-technical-debt
+
+> **[CAUTION FOR AI AGENTS]**
+> 1. Restrict all analysis, file creation, and modifications to the declared **Target Module** below.
+> 2. Read the files listed in **Context Files** before doing ANY code generation.
+> 3. DO NOT leak configuration, logic, or dependencies from other modules.
+
+## Target Module
+- **Target:** [Fill in the target module/submodule path]
+- **Context Files:** [List architecture docs or key files to read first]
 
 ## Analysis & Constraints (Deep Review)
 > [WARNING: Do not skip deep analysis. Shallow logic leads to cascaded bugs.]

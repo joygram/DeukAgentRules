@@ -1,12 +1,15 @@
 ---
 id: 052-cli-ux-and-markdown-hygiene-joy-nucb
-title: "cli-ux-and-markdown-hygiene"
-topic: cli-ux-and-markdown-hygiene
+title: cli-ux-and-markdown-hygiene
 status: open
-submodule:
 project: DeukAgentRules
-createdAt: 2026-04-22T06:10:39.200Z
+createdAt: 2026-04-22 06:10:39
+summary: "[e.g., DeukUI | DeukPack | DeukNavigation]. 주요 작업: 0. RAG Research
+  (MCP), `mcp_deukrag_search_rules` 기반 규약 검토 완료, `mcp_deukrag_search_tickets` 과거
+  유사 티켓 이력 열람 완료"
+planLink: .deuk-agent/docs/plans/052-cli-ux-and-markdown-hygiene-joy-nucb-plan.md
 ---
+
 
 # [Execution] Task: cli-ux-and-markdown-hygiene | ID: 052-cli-ux-and-markdown-hygiene-joy-nucb
 

@@ -1,12 +1,15 @@
 ---
 id: 051-agent-fast-track-hardening-joy-nucb
-title: "agent-fast-track-hardening"
-topic: agent-fast-track-hardening
+title: agent-fast-track-hardening
 status: open
-submodule:
 project: DeukAgentRules
-createdAt: 2026-04-22T06:03:10.097Z
+createdAt: 2026-04-22 06:03:10
+summary: "[e.g., DeukUI | DeukPack | DeukNavigation]. 주요 작업: 0. RAG Research
+  (MCP), `mcp_deukrag_search_rules` 기반 규약 검토 완료, `mcp_deukrag_search_tickets` 과거
+  유사 티켓 이력 열람 완료"
+planLink: .deuk-agent/docs/plans/051-agent-fast-track-hardening-joy-nucb-plan.md
 ---
+
 
 # [Execution] Task: agent-fast-track-hardening | ID: 051-agent-fast-track-hardening-joy-nucb
 

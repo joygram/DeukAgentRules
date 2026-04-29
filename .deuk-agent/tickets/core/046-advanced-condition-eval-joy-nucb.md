@@ -1,12 +1,15 @@
 ---
 id: 046-advanced-condition-eval-joy-nucb
-title: "046-advanced-condition-eval"
-topic: 046-advanced-condition-eval
+title: 046-advanced-condition-eval
 status: open
-submodule:
 project: DeukAgentRules
-createdAt: 2026-04-22T01:18:48.854Z
+createdAt: 2026-04-22 01:18:48
+summary: "[e.g., DeukUI | DeukPack | DeukNavigation]. 주요 작업: 0. RAG Research
+  (MCP), `mcp_deukrag_search_rules` 기반 규약 검토 완료, `mcp_deukrag_search_tickets` 과거
+  유사 티켓 이력 열람 완료"
+planLink: .deuk-agent/docs/plans/046-advanced-condition-eval-joy-nucb-plan.md
 ---
+
 
 # [Execution] Task: 046-advanced-condition-eval | ID: 046-advanced-condition-eval-joy-nucb
 

@@ -1,10 +1,15 @@
 ---
 id: 061-codex-copilot-first-class-suppor-joy-nucb
-title: "codex-copilot-first-class-support"
+title: codex-copilot-first-class-support
 status: open
 project: DeukAgentRules
 createdAt: 2026-04-23 22:55:29
+summary: "DeukAgentRules. 주요 작업: 0. RAG Research (MCP),
+  `mcp_deukrag_search_rules` 기반 규약 검토 완료, `mcp_deukrag_search_tickets` 과거 유사 티켓
+  이력 열람 완료"
+planLink: .deuk-agent/docs/plans/061-codex-copilot-first-class-suppor-joy-nucb-plan.md
 ---
+
 
 # [Execution] Task: codex-copilot-first-class-support | ID: 061-codex-copilot-first-class-suppor-joy-nucb
 

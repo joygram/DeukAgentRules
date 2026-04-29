@@ -1,8 +1,23 @@
 ---
 id: 101-deukpack-doc-consolidation-and-t-joy-nucb
-title: "DeukPack_Doc_Consolidation_and_TDD_Rename"
+title: DeukPack_Doc_Consolidation_and_TDD_Rename
+summary: "주요 작업: **Phase 1: Terminology Rename**, Replace 'TDD' with 'TDW' in
+  `DeukAgentRules/scripts/cli-init-commands.mjs`., Replace 'TDD' with 'TDW' in
+  `DeukAgentRules/bundle/AGENTS.md`."
+planLink: .deuk-agent/docs/plans/101-deukpack-doc-consolidation-and-t-joy-nucb-plan.md
 ---
+
+
 # DeukPack_Doc_Consolidation_and_TDD_Rename
+
+> **[CAUTION FOR AI AGENTS]**
+> 1. Restrict all analysis, file creation, and modifications to the declared **Target Module** below.
+> 2. Read the files listed in **Context Files** before doing ANY code generation.
+> 3. DO NOT leak configuration, logic, or dependencies from other modules.
+
+## Target Module
+- **Target:** [Fill in the target module/submodule path]
+- **Context Files:** [List architecture docs or key files to read first]
 
 ## Analysis & Constraints (Deep Review)
 > [WARNING: Do not skip deep analysis. Shallow logic leads to cascaded bugs.]

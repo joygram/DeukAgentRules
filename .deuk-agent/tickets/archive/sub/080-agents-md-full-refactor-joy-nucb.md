@@ -1,11 +1,23 @@
 ---
 id: 080-agents-md-full-refactor-joy-nucb
-title: "agents-md-full-refactor"
+title: agents-md-full-refactor
 status: open
 createdAt: 2026-04-25 13:28:35
+summary: agents-md-full-refactor
+planLink: .deuk-agent/docs/plans/080-agents-md-full-refactor-joy-nucb-plan.md
 ---
 
+
 # [실행] 작업: agents-md-full-refactor | ID: 080-agents-md-full-refactor-joy-nucb
+
+> **[CAUTION FOR AI AGENTS]**
+> 1. Restrict all analysis, file creation, and modifications to the declared **Target Module** below.
+> 2. Read the files listed in **Context Files** before doing ANY code generation.
+> 3. DO NOT leak configuration, logic, or dependencies from other modules.
+
+## Target Module
+- **Target:** [Fill in the target module/submodule path]
+- **Context Files:** [List architecture docs or key files to read first]
 
 > **[에이전트 주의]**
 > 이 작업은 잠긴 멀티 모듈 모노레포 안에서 진행돼요.

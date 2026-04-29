@@ -1,4 +1,20 @@
+---
+id: REPORT-051-agent-fast-track-hardening-joy-nucb
+title: Agent Fast-Track Hardening Report
+status: archived
+---
+
+
 # Walkthrough: Agent Fast-Track Hardening & Path Fix
+
+> **[CAUTION FOR AI AGENTS]**
+> 1. Restrict all analysis, file creation, and modifications to the declared **Target Module** below.
+> 2. Read the files listed in **Context Files** before doing ANY code generation.
+> 3. DO NOT leak configuration, logic, or dependencies from other modules.
+
+## Target Module
+- **Target:** [Fill in the target module/submodule path]
+- **Context Files:** [List architecture docs or key files to read first]
 
 에이전트의 워크플로우 효율성을 저해하던 티켓 탐색 삽질(Shoveling)과 경로 깨짐(Path Breakage) 현상을 CLI 엔진 패치와 규칙 강화를 통해 해결했습니다.
 

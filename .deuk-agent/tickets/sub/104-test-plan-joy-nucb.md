@@ -5,8 +5,20 @@ status: open
 docsLanguage: ko
 summary: This is a test summary
 createdAt: 2026-04-28 20:30:43
+planLink: .deuk-agent/docs/plans/104-test-plan-joy-nucb-plan.md
 ---
+
+
 # Plan-to-Ticket 구현 계획 (v2 아키텍처 반영)
+
+> **[CAUTION FOR AI AGENTS]**
+> 1. Restrict all analysis, file creation, and modifications to the declared **Target Module** below.
+> 2. Read the files listed in **Context Files** before doing ANY code generation.
+> 3. DO NOT leak configuration, logic, or dependencies from other modules.
+
+## Target Module
+- **Target:** [Fill in the target module/submodule path]
+- **Context Files:** [List architecture docs or key files to read first]
 
 ## 현재 상태 분석 — DeukAgentRules v2 변경 요약
 

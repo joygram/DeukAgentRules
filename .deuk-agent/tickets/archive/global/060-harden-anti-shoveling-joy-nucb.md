@@ -1,10 +1,15 @@
 ---
 id: 060-harden-anti-shoveling-joy-nucb
-title: "harden-anti-shoveling"
+title: harden-anti-shoveling
 status: open
 project: DeukAgentRules
 createdAt: 2026-04-23 13:05:42
+summary: "[e.g., DeukUI | DeukPack | DeukNavigation]. 주요 작업: 0. RAG Research
+  (MCP), `mcp_deukrag_search_rules` 기반 규약 검토 완료, `mcp_deukrag_search_tickets` 과거
+  유사 티켓 이력 열람 완료"
+planLink: .deuk-agent/docs/plans/060-harden-anti-shoveling-joy-nucb-plan.md
 ---
+
 
 # [Execution] Task: harden-anti-shoveling | ID: 060-harden-anti-shoveling-joy-nucb
 

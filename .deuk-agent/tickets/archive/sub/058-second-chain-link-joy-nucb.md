@@ -1,11 +1,16 @@
 ---
 id: 058-second-chain-link-joy-nucb
-title: "second-chain-link"
+title: second-chain-link
 status: open
 prevTicket: 057-first-chain-link-joy-nucb
 createdAt: 2026-04-23 00:08:57
 nextTicket: 059-add-codex-cli-support-joy-nucb
+summary: "[e.g., DeukUI | DeukPack | DeukNavigation]. 주요 작업: 0. RAG Research
+  (MCP), `mcp_deukrag_search_rules` 기반 규약 검토 완료, `mcp_deukrag_search_tickets` 과거
+  유사 티켓 이력 열람 완료"
+planLink: .deuk-agent/docs/plans/058-second-chain-link-joy-nucb-plan.md
 ---
+
 
 # [Execution] Task: second-chain-link | ID: 058-second-chain-link-joy-nucb
 

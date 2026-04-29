@@ -1,11 +1,16 @@
 ---
 id: 063-force-rule-approval-gate-joy-nucb
-title: "force-rule-approval-gate"
+title: force-rule-approval-gate
 status: open
 submodule: DeukAgentRules
 project: DeukAgentRules
 createdAt: 2026-04-24 01:17:01
+summary: "DeukAgentRules. 주요 작업: 0. RAG Research (MCP),
+  `mcp_deukrag_search_rules` 기반 규약 검토 완료, `mcp_deukrag_search_tickets` 과거 유사 티켓
+  이력 열람 완료"
+planLink: .deuk-agent/docs/plans/063-force-rule-approval-gate-joy-nucb-plan.md
 ---
+
 
 # [Execution] Task: force-rule-approval-gate | ID: 063-force-rule-approval-gate-joy-nucb
 

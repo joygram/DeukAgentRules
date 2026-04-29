@@ -1,9 +1,25 @@
 ---
 id: 078-ticket-archive-knowledge-distill-joy-nucb
-title: "078-ticket-archive-knowledge-distillation"
-status: "open"
+title: 078-ticket-archive-knowledge-distillation
+status: open
+summary: "- **In**: ## Design Decisions, ## Analysis & Constraints, ## Tasks 섹션
+  추출.. 주요 작업: `scripts/cli-ticket-commands.mjs`에 `distillKnowledge` 함수 구현.,
+  `runTicketArchive` 함수 내에서 아카이브 이동 직전에 `distillKnowledge` 호출하도록 통합.,
+  `.deuk-agent/knowledge/` 디렉토리 자동 생성 로직 추가."
+planLink: .deuk-agent/docs/plans/078-ticket-archive-knowledge-distill-joy-nucb-plan.md
 ---
+
+
 # 078-ticket-archive-knowledge-distillation
+
+> **[CAUTION FOR AI AGENTS]**
+> 1. Restrict all analysis, file creation, and modifications to the declared **Target Module** below.
+> 2. Read the files listed in **Context Files** before doing ANY code generation.
+> 3. DO NOT leak configuration, logic, or dependencies from other modules.
+
+## Target Module
+- **Target:** [Fill in the target module/submodule path]
+- **Context Files:** [List architecture docs or key files to read first]
 
 ## Analysis & Constraints (Deep Review)
 - **Root Cause**: `ticket archive` 명령어가 단순히 파일을 `archive/` 디렉토리로 이동시키기만 하여, 티켓 본문에 포함된 핵심 의사결정(Design Decisions)이나 분석 결과가 구조화된 지식으로 남지 않음.

@@ -1,8 +1,22 @@
 ---
 id: 098-fix-ticket-workflow-integrity-joy-nucb
-title: "fix-ticket-workflow-integrity"
+title: fix-ticket-workflow-integrity
+summary: "- **IN**: TicketStatus Enum 도입, 상태 전이 가드, INDEX.json 중복 방지, create
+  --ref 인덱스 등록, distillKnowledge 섹션명 동기화, 종합 테스트 수트 작성."
+planLink: .deuk-agent/docs/plans/098-fix-ticket-workflow-integrity-joy-nucb-plan.md
 ---
+
+
 # fix-ticket-workflow-integrity
+
+> **[CAUTION FOR AI AGENTS]**
+> 1. Restrict all analysis, file creation, and modifications to the declared **Target Module** below.
+> 2. Read the files listed in **Context Files** before doing ANY code generation.
+> 3. DO NOT leak configuration, logic, or dependencies from other modules.
+
+## Target Module
+- **Target:** [Fill in the target module/submodule path]
+- **Context Files:** [List architecture docs or key files to read first]
 
 ## Analysis & Constraints (Deep Review)
 > [WARNING: Do not skip deep analysis. Shallow logic leads to cascaded bugs.]

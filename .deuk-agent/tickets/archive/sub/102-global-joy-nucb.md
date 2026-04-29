@@ -1,8 +1,23 @@
 ---
 id: 102-global-joy-nucb
-title: "enforce unidirectional AGENTS.md single source of truth"
+title: enforce unidirectional AGENTS.md single source of truth
+summary: '### In. 주요 작업: `templates/rules.d/core-workflow.md`: `inject_target`에서
+  `"GEMINI.md"` 제거, `templates/AGENTS.md`: `[MANDATORY` 아티팩트 언어 규칙 추가,
+  `templates/rules.d/core-workflow.md`에 Tone 규칙이 AGENTS.md에만 주입되도록 확인'
+planLink: .deuk-agent/docs/plans/102-global-joy-nucb-plan.md
 ---
+
+
 # enforce unidirectional AGENTS.md single source of truth
+
+> **[CAUTION FOR AI AGENTS]**
+> 1. Restrict all analysis, file creation, and modifications to the declared **Target Module** below.
+> 2. Read the files listed in **Context Files** before doing ANY code generation.
+> 3. DO NOT leak configuration, logic, or dependencies from other modules.
+
+## Target Module
+- **Target:** [Fill in the target module/submodule path]
+- **Context Files:** [List architecture docs or key files to read first]
 
 ## Analysis & Constraints (Deep Review)
 

@@ -1,9 +1,14 @@
 ---
 id: 062-user-language-doc-localization-joy-nucb
-title: "user-language-doc-localization"
+title: user-language-doc-localization
 status: open
 createdAt: 2026-04-24 00:57:40
+summary: "[e.g., DeukUI | DeukPack | DeukNavigation]. 주요 작업: 0. RAG Research
+  (MCP), `mcp_deukrag_search_rules` 기반 규약 검토 완료, `mcp_deukrag_search_tickets` 과거
+  유사 티켓 이력 열람 완료"
+planLink: .deuk-agent/docs/plans/062-user-language-doc-localization-joy-nucb-plan.md
 ---
+
 
 # [Execution] Task: user-language-doc-localization | ID: 062-user-language-doc-localization-joy-nucb
 
