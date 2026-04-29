@@ -209,10 +209,7 @@ function generateSpokeContent(spoke, bundleRoot) {
   
   const content = `# Deuk Agent Rules
 
-This project follows the Deuk Agent Rules framework.
-Read the global operational rules, technical standards, and workflows from:
-- [AGENTS.md](file://${globalRulesPath})
-- [PROJECT_RULE.md](PROJECT_RULE.md) (project-specific architecture boundaries)
+**[MANDATORY]** Read and follow all rules from: [AGENTS.md](file://${globalRulesPath})
 `;
 
   if (spoke.format === "mdc") {
