@@ -106,14 +106,14 @@ export async function runTicketCreate(opts) {
 
     const indexJson = readTicketIndexJson(opts.cwd);
 
-    // Auto-close stale open/active tickets before creating a new one
-    const staleTickets = indexJson.entries.filter(e => e.status === "open" || e.status === "active");
-    if (staleTickets.length > 0) {
-      for (const stale of staleTickets) {
-        stale.status = "closed";
-        stale.updatedAt = new Date().toISOString();
-        // Sync to .md frontmatter
-        const staleAbsPath = join(opts.cwd, stale.path);
+    // Auto-close only the current active ticket (not all open tickets — parallel work safety)
+    const activeId = indexJson.activeTicketId;
+    if (activeId) {
+      const activeEntry = indexJson.entries.find(e => e.id === activeId && (e.status === "open" || e.status === "active"));
+      if (activeEntry) {
+        activeEntry.status = "closed";
+        activeEntry.updatedAt = new Date().toISOString();
+        const staleAbsPath = join(opts.cwd, activeEntry.path);
         if (existsSync(staleAbsPath)) {
           try {
             const body = readFileSync(staleAbsPath, "utf8");
@@ -125,10 +125,17 @@ export async function runTicketCreate(opts) {
             }
           } catch (err) { /* skip sync errors */ }
         }
+        writeTicketIndexJson(opts.cwd, indexJson);
+        console.log(`[AUTO-CLOSE] Previous active ticket closed: ${activeId}`);
       }
-      writeTicketIndexJson(opts.cwd, indexJson);
-      console.log(`[AUTO-CLOSE] ${staleTickets.length} stale ticket(s) closed: ${staleTickets.map(t => t.id).join(", ")}`);
     }
+
+    // Warn about other open tickets (may be parallel work — do NOT close them)
+    const otherOpen = indexJson.entries.filter(e => (e.status === "open" || e.status === "active") && e.id !== activeId);
+    if (otherOpen.length > 0) {
+      console.warn(`[WARNING] ${otherOpen.length} other open ticket(s) found: ${otherOpen.map(t => t.id).join(", ")}. Not closing — may be parallel work.`);
+    }
+
 
     const ticketId = generateTicketId(finalTopic, indexJson.entries);
     const finalFileName = `${ticketId}.md`;

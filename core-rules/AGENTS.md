@@ -82,9 +82,9 @@ CHECK 4: Is this file outside my ticket's Target Module?
 ### Ticket Cleanup (HARD RULE)
 ```
 BEFORE creating a new ticket:
-  → CLI auto-closes all stale open/active tickets (enforced in code).
+  → CLI auto-closes the current activeTicketId only (parallel-safe).
+  → Other open tickets from parallel sessions are NOT touched (warning only).
   → Agent MUST close current ticket (Phase 4) before starting new work.
-  → Do NOT leave tickets in "open" or "active" state when moving on.
 
 IF session is ending without completing the ticket:
   → Close with status "cancelled" or add a note explaining pause reason.
