@@ -1,15 +1,15 @@
 ---
-id: 045-frontmatter-rule-assembly-joy-nucb
-title: 045-frontmatter-rule-assembly
-status: closed
-project: DeukAgentRules
 createdAt: 2026-04-22 00:29:03
-summary: "[e.g., DeukUI | DeukPack | DeukNavigation]. 주요 작업: 0. RAG Research
-  (MCP), `mcp_deukrag_search_rules` 기반 규약 검토 완료, `mcp_deukrag_search_tickets` 과거
-  유사 티켓 이력 열람 완료"
+id: 045-frontmatter-rule-assembly-joy-nucb
 planLink: .deuk-agent/docs/plans/045-frontmatter-rule-assembly-joy-nucb-plan.md
+priority: P3
+project: DeukAgentRules
+status: closed
+summary: 'Target Submodule: [e.g., DeukUI | DeukPack | DeukNavigation] - [e.g., DeukAgentRules/templates/MODULERULETEMPLATE.md]
+  - [e.g., path/to/your/specific/rules.md]'
+tags: rag, frontmatter, mcp, tickets, architecture
+title: 045-frontmatter-rule-assembly
 ---
-
 
 # [Execution] Task: 045-frontmatter-rule-assembly | ID: 045-frontmatter-rule-assembly-joy-nucb
 

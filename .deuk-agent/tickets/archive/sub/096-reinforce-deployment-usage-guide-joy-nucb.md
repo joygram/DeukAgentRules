@@ -1,13 +1,14 @@
 ---
 id: 096-reinforce-deployment-usage-guide-joy-nucb
-title: reinforce-deployment-usage-guide
-summary: '- **In**: README.ko.md 보강, 새로운 실전 가이드(docs/usage-guide.ko.md) 작성.. 주요
-  작업: `docs/usage-guide.ko.md` 신규 작성 (구체적 배포 및 사용 사례 포함)., `README.ko.md`에
-  "Quick Start" 섹션 보강 및 신규 가이드 링크 추가., 에이전트에게 내리는 프롬프트 예시(Agent Persona
-  Injection) 가이드 추가.'
 planLink: .deuk-agent/docs/plans/096-reinforce-deployment-usage-guide-joy-nucb-plan.md
+priority: P2
+status: open
+summary: 'Target: [Fill in the target module/submodule path] - Context Files: [List
+  architecture docs or key files to read first] - Root Cause & Architecture constraint:
+  현재 문서는 아키텍처와 개념 설명에 집중되어 있어, 실제 프로젝트에 도입하려는 사용자가 바로 따라 할 수 있는 구체적인 실행 가이드가 부족함.'
+tags: architecture
+title: reinforce-deployment-usage-guide
 ---
-
 
 # reinforce-deployment-usage-guide
 

@@ -1,3 +1,12 @@
+---
+priority: P3
+status: open
+summary: '[refactor-cli-technical-debt](file:///home/joy/workspace/DeukAgentRules/.deuk-agent/tickets/main/082-refactor-cli-technical-debt-joy-nucb.md)
+  - status: closed / group: main / project: DeukAgentRules | # | Status | Pri | ID
+  | Title | Group | Projec...'
+tags: tickets, testing, migration
+---
+
 # Ticket List
 
 > Source index: `.deuk-agent/tickets/INDEX.json`

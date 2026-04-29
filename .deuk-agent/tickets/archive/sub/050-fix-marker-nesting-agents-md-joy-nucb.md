@@ -1,14 +1,15 @@
 ---
-id: 050-fix-marker-nesting-agents-md-joy-nucb
-title: Fix AGENTS.md marker nesting/stacking bug
-status: done
-submodule: DeukAgentRules
 createdAt: 2026-04-22 04:09:24
-summary: "DeukAgentRules. 주요 작업: 0. RAG Research, RAG 검색 및 로컬 분석 완료, 근본 원인: 번들
-  콘텐츠에 마커 포함 + indexOf 첫 매칭만 교체"
+id: 050-fix-marker-nesting-agents-md-joy-nucb
 planLink: .deuk-agent/docs/plans/050-fix-marker-nesting-agents-md-joy-nucb-plan.md
+priority: P2
+status: closed
+submodule: DeukAgentRules
+summary: 'Target Submodule: DeukAgentRules - scripts/merge-logic.mjs — findMarkerRegion,
+  handleAgentInject, applyAgents - bundle/AGENTS.md — 번들 소스'
+tags: rag, deukpack
+title: Fix AGENTS.md marker nesting/stacking bug
 ---
-
 
 # [Execution] Task: Fix AGENTS.md marker nesting | ID: 050
 

@@ -1,12 +1,12 @@
 ---
 id: 081-hdmi-priority-joy-nucb
-title: hdmi-priority
-summary: "- [In] ~/.config/monitors.xml을 /var/lib/gdm3/.config/로 복사 및 권한 설정.. 주요
-  작업: GDM 설정 디렉토리 존재 확인 (존재 확인됨)., `monitors.xml` 복사 (사용자 권한 필요)., 파일 소유권 변경
-  (사용자 권한 필요)."
 planLink: .deuk-agent/docs/plans/081-hdmi-priority-joy-nucb-plan.md
+priority: P2
+status: open
+summary: 미작성 티켓 — 실질적 내용 없음. 좀비/placeholder 티켓으로 분류.
+tags: tickets, architecture
+title: hdmi-priority
 ---
-
 
 # hdmi-priority
 

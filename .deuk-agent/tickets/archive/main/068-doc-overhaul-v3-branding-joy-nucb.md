@@ -1,13 +1,16 @@
 ---
-id: 068-doc-overhaul-v3-branding-joy-nucb
-title: doc-overhaul-v3-branding
-status: open
-project: DeukAgentRules
 createdAt: 2026-04-25 01:58:59
-summary: doc-overhaul-v3-branding
+id: 068-doc-overhaul-v3-branding-joy-nucb
 planLink: .deuk-agent/docs/plans/068-doc-overhaul-v3-branding-joy-nucb-plan.md
+priority: P2
+project: DeukAgentRules
+status: open
+summary: 'Target: [Fill in the target module/submodule path] - Context Files: [List
+  architecture docs or key files to read first] - Target Submodule: DeukAgentRules
+  (Root & Documentation)'
+tags: rag, mcp, protocol, tickets, architecture
+title: doc-overhaul-v3-branding
 ---
-
 
 # [실행] 작업: doc-overhaul-v3-branding | ID: 068-doc-overhaul-v3-branding-joy-nucb
 

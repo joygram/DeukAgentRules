@@ -1,15 +1,15 @@
 ---
-id: 048-dual-mode-and-workflow-joy-nucb
-title: 048-dual-mode-and-workflow
-status: closed
-project: DeukAgentRules
 createdAt: 2026-04-22 01:42:03
-summary: "[e.g., DeukUI | DeukPack | DeukNavigation]. 주요 작업: 0. RAG Research
-  (MCP), `mcp_deukrag_search_rules` 기반 규약 검토 완료, `mcp_deukrag_search_tickets` 과거
-  유사 티켓 이력 열람 완료"
+id: 048-dual-mode-and-workflow-joy-nucb
 planLink: .deuk-agent/docs/plans/048-dual-mode-and-workflow-joy-nucb-plan.md
+priority: P0
+project: DeukAgentRules
+status: closed
+summary: 'Target Submodule: [e.g., DeukUI | DeukPack | DeukNavigation] - [e.g., DeukAgentRules/templates/MODULERULETEMPLATE.md]
+  - [e.g., path/to/your/specific/rules.md]'
+tags: rag, mcp, tickets, performance, testing
+title: 048-dual-mode-and-workflow
 ---
-
 
 # [Execution] Task: 048-dual-mode-and-workflow | ID: 048-dual-mode-and-workflow-joy-nucb
 

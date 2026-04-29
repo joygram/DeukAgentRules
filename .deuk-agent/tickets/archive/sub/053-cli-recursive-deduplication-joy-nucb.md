@@ -1,14 +1,14 @@
 ---
-id: 053-cli-recursive-deduplication-joy-nucb
-title: cli-recursive-deduplication
-status: open
 createdAt: 2026-04-22 08:43:10
-summary: "[e.g., DeukUI | DeukPack | DeukNavigation]. 주요 작업: 0. RAG Research
-  (MCP), `mcp_deukrag_search_rules` 기반 규약 검토 완료, `mcp_deukrag_search_tickets` 과거
-  유사 티켓 이력 열람 완료"
+id: 053-cli-recursive-deduplication-joy-nucb
 planLink: .deuk-agent/docs/plans/053-cli-recursive-deduplication-joy-nucb-plan.md
+priority: P0
+status: open
+summary: 'Target Submodule: [e.g., DeukUI | DeukPack | DeukNavigation] - [e.g., DeukAgentRules/templates/MODULERULETEMPLATE.md]
+  - [e.g., path/to/your/specific/rules.md]'
+tags: rag, mcp, tickets, performance, testing
+title: cli-recursive-deduplication
 ---
-
 
 # [Execution] Task: cli-recursive-deduplication | ID: 053-cli-recursive-deduplication-joy-nucb
 

@@ -1,16 +1,17 @@
 ---
+createdAt: 2026-04-24 01:36:33
 id: 064-readme-concept-structure-princip-joy-nucb
-title: readme-concept-structure-principles-docs
+planLink: .deuk-agent/docs/plans/064-readme-concept-structure-princip-joy-nucb-plan.md
+priority: P2
+project: DeukAgentRules
 status: open
 submodule: DeukAgentRules
-project: DeukAgentRules
-createdAt: 2026-04-24 01:36:33
-summary: "DeukAgentRules. 주요 작업: 0. RAG Research (MCP),
-  `mcp_deukrag_search_rules` 기반 규약 검토 완료, `mcp_deukrag_search_tickets` 과거 유사 티켓
-  이력 열람 완료"
-planLink: .deuk-agent/docs/plans/064-readme-concept-structure-princip-joy-nucb-plan.md
+summary: 'Target Submodule: DeukAgentRules - publish/templates/TICKETTEMPLATE.md -
+  README.md: add concept expansion, document map, and direct links to the detailed
+  docs.'
+tags: rag, mcp, tickets, testing
+title: readme-concept-structure-principles-docs
 ---
-
 
 # [Execution] Task: readme-concept-structure-principles-docs | ID: 064-readme-concept-structure-princip-joy-nucb
 

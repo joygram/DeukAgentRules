@@ -1,10 +1,12 @@
 ---
 id: 089-implement-index-auto-repair-joy-nucb
-title: implement-index-auto-repair
-summary: "주요 작업: [Task 1"
 planLink: .deuk-agent/docs/plans/089-implement-index-auto-repair-joy-nucb-plan.md
+priority: P2
+status: open
+summary: 미작성 티켓 — 실질적 내용 없음. 좀비/placeholder 티켓으로 분류.
+tags: architecture
+title: implement-index-auto-repair
 ---
-
 
 # implement-index-auto-repair
 

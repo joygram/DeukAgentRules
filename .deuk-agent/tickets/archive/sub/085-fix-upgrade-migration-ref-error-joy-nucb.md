@@ -1,10 +1,12 @@
 ---
 id: 085-fix-upgrade-migration-ref-error-joy-nucb
-title: fix-upgrade-migration-ref-error
-summary: "주요 작업: [Task 1"
 planLink: .deuk-agent/docs/plans/085-fix-upgrade-migration-ref-error-joy-nucb-plan.md
+priority: P2
+status: open
+summary: 미작성 티켓 — 실질적 내용 없음. 좀비/placeholder 티켓으로 분류.
+tags: architecture, migration
+title: fix-upgrade-migration-ref-error
 ---
-
 
 # fix-upgrade-migration-ref-error
 

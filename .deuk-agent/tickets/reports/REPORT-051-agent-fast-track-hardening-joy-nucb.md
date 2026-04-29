@@ -1,9 +1,13 @@
 ---
 id: REPORT-051-agent-fast-track-hardening-joy-nucb
-title: Agent Fast-Track Hardening Report
+priority: P2
 status: archived
+summary: 'Target: [Fill in the target module/submodule path] - Context Files: [List
+  architecture docs or key files to read first] 에이전트의 워크플로우 효율성을 저해하던 티켓 탐색 삽질(Shoveling)과
+  경로 깨짐(Path Breakage) 현상을 CLI 엔진 패치와 규칙 강화를 통해 해결했습니다.'
+tags: rag, frontmatter, protocol, tickets, normalization
+title: Agent Fast-Track Hardening Report
 ---
-
 
 # Walkthrough: Agent Fast-Track Hardening & Path Fix
 

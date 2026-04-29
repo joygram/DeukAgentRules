@@ -1,14 +1,15 @@
 ---
-id: 111-fix-arch-guard-exceptions-joy-nucb
-title: fix-arch-guard-exceptions
-phase: 2
-status: closed
-docsLanguage: ko
-summary: DR-04/DR-05 정당 예외 등록 및 PROJECT_RULE.md 문구 보정
 createdAt: 2026-04-29 12:02:54
+docsLanguage: ko
+id: 111-fix-arch-guard-exceptions-joy-nucb
+phase: 2
 planLink: .deuk-agent/docs/plans/111-fix-arch-guard-exceptions-joy-nucb-plan.md
+priority: P2
+status: closed
+summary: 'Target: scripts/tests/, PROJECTRULE.md'
+tags: tickets, architecture, testing
+title: fix-arch-guard-exceptions
 ---
-
 
 # fix-arch-guard-exceptions
 

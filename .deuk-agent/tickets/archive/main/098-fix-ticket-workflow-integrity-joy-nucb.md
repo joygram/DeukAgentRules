@@ -1,11 +1,14 @@
 ---
 id: 098-fix-ticket-workflow-integrity-joy-nucb
-title: fix-ticket-workflow-integrity
-summary: "- **IN**: TicketStatus Enum 도입, 상태 전이 가드, INDEX.json 중복 방지, create
-  --ref 인덱스 등록, distillKnowledge 섹션명 동기화, 종합 테스트 수트 작성."
 planLink: .deuk-agent/docs/plans/098-fix-ticket-workflow-integrity-joy-nucb-plan.md
+priority: P2
+status: open
+summary: 'Target: [Fill in the target module/submodule path] - Context Files: [List
+  architecture docs or key files to read first] 심층분석 결과, 티켓 시스템의 핵심인 상태 관리와 인덱스 무결성
+  보장 로직이 결여되어 있음.'
+tags: rag, frontmatter, protocol, tickets, architecture
+title: fix-ticket-workflow-integrity
 ---
-
 
 # fix-ticket-workflow-integrity
 

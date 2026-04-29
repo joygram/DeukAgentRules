@@ -1,18 +1,18 @@
 ---
-id: 082-refactor-cli-technical-debt-joy-nucb
-title: refactor-cli-technical-debt
-status: closed
-project: DeukAgentRules
-group: main
 createdAt: 2026-04-26 07:11:00
-summary: "- **IN**: scripts/cli-utils.mjs, scripts/cli-ticket-commands.mjs,
-  scripts/cli-ticket-logic.mjs.. 주요 작업: Remove hardcoded `PRUNE_SUBMODULE_LIST`
-  and clean up `cli-utils.mjs`., Refactor `parseFrontMatter` to use string
-  split/startsWith and throw on YAML error., Refactor title extraction to remove
-  rege"
+group: main
+id: 082-refactor-cli-technical-debt-joy-nucb
 planLink: .deuk-agent/docs/plans/082-refactor-cli-technical-debt-joy-nucb-plan.md
+priority: P2
+project: DeukAgentRules
+status: closed
+summary: 'Target: [Fill in the target module/submodule path] - Context Files: [List
+  architecture docs or key files to read first] - Root Cause: The CLI implementation
+  accumulated fragile heuristics (regex-based parsing, hardcoded project names, ps
+  aux sniff...'
+tags: rag, frontmatter, mcp, tickets, architecture
+title: refactor-cli-technical-debt
 ---
-
 
 # refactor-cli-technical-debt
 

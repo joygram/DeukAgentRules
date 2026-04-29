@@ -1,13 +1,15 @@
 ---
 id: 095-apply-init-to-workspace-joy-nucb
-title: apply-init-to-workspace
-summary: "- **In**: Running deuk-agent-rule init on the DeukAgentRules
-  workspace.. 주요 작업: Run `npx deuk-agent-rule init --workflow plan` and review
-  changes., Run `npx deuk-agent-rule init --workflow execute` to apply changes.,
-  Verify `AGENTS.md` and other rule files are correctly updated."
 planLink: .deuk-agent/docs/plans/095-apply-init-to-workspace-joy-nucb-plan.md
+priority: P2
+status: closed
+summary: 'Target: [Fill in the target module/submodule path] - Context Files: [List
+  architecture docs or key files to read first] - Root Cause & Architecture constraint:
+  Workspace rules and structure need to be synchronized with the latest CLI logic
+  to ensu...'
+tags: telemetry, tickets, architecture, testing
+title: apply-init-to-workspace
 ---
-
 
 # apply-init-to-workspace
 

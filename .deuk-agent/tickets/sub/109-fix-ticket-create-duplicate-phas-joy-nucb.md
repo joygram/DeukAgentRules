@@ -1,14 +1,15 @@
 ---
-id: 109-fix-ticket-create-duplicate-phas-joy-nucb
-title: fix-ticket-create-duplicate-phase
-phase: 1
-status: closed
-docsLanguage: ko
 createdAt: 2026-04-29 08:31:53
-summary: "주요 작업: [Task 1"
+docsLanguage: ko
+id: 109-fix-ticket-create-duplicate-phas-joy-nucb
+phase: 1
 planLink: .deuk-agent/docs/plans/109-fix-ticket-create-duplicate-phas-joy-nucb-plan.md
+priority: P2
+status: closed
+summary: 미작성 티켓 — 실질적 내용 없음. 좀비/placeholder 티켓으로 분류.
+tags: tickets, architecture, testing
+title: fix-ticket-create-duplicate-phase
 ---
-
 
 # fix-ticket-create-duplicate-phase
 

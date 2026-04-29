@@ -1,13 +1,15 @@
 ---
 id: 097-reinforce-cli-reporting-interfac-joy-nucb
-title: reinforce-cli-reporting-interface
-summary: "- **In**: ticket report 서브커맨드 추가 또는 기존 archive/reports 기능 강화. 리포트 연결 및
-  조회 인터페이스 보강.. 주요 작업: `ticket report attach --id <ticket-id> --file <path>` 명령어
-  구현., `ticket reports` 명령어에서 특정 티켓과 연결된 리포트를 더 쉽게 찾을 수 있도록 개선., `ticket
-  archive` 시 리포트가 누락된 경우 경고 또는 자동 검색 로직 추가."
 planLink: .deuk-agent/docs/plans/097-reinforce-cli-reporting-interfac-joy-nucb-plan.md
+priority: P2
+status: closed
+summary: 'Target: [Fill in the target module/submodule path] - Context Files: [List
+  architecture docs or key files to read first] - Root Cause & Architecture constraint:
+  현재 리포트(walkthrough)는 ticket archive 시점에 수동으로 연결되거나 파일 시스템에서 직접 관리됨. 사용자는 리포트 생성,
+  수정, 조회...'
+tags: tickets, architecture
+title: reinforce-cli-reporting-interface
 ---
-
 
 # reinforce-cli-reporting-interface
 

@@ -1,10 +1,12 @@
 ---
 id: 100-test-success-joy-nucb
-title: test-success
-summary: "주요 작업: [Task 1"
 planLink: .deuk-agent/docs/plans/100-test-success-joy-nucb-plan.md
+priority: P2
+status: open
+summary: 미작성 티켓 — 실질적 내용 없음. 좀비/placeholder 티켓으로 분류.
+tags: architecture, testing
+title: test-success
 ---
-
 
 # test-success
 

@@ -1,13 +1,14 @@
 ---
 id: 099-fix-ticket-create-interaction-pr-joy-nucb
-title: Fix-Ticket-Create-Interaction-Prompt
-summary: "- **In**: scripts/cli-ticket-commands.mjs. 주요 작업: Create ticket for
-  the fix., Modify `ensurePhase0Validation` in `scripts/cli-ticket-commands.mjs`
-  to handle `nonInteractive` mode., Verify fix with dry-run and non-interactive
-  flags."
 planLink: .deuk-agent/docs/plans/099-fix-ticket-create-interaction-pr-joy-nucb-plan.md
+priority: P2
+status: in_progress
+summary: 'Target: [Fill in the target module/submodule path] - Context Files: [List
+  architecture docs or key files to read first] - Root Cause: ensurePhase0Validation
+  in scripts/cli-ticket-commands.mjs calls withReadline without checking for --non-interacti...'
+tags: rag, mcp, tickets, architecture
+title: Fix-Ticket-Create-Interaction-Prompt
 ---
-
 
 # Fix-Ticket-Create-Interaction-Prompt
 

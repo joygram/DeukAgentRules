@@ -1,10 +1,12 @@
 ---
 id: 087-consolidate-cli-patterns-and-pru-joy-nucb
-title: consolidate-cli-patterns-and-prune-dead-code
-summary: "주요 작업: [Task 1"
 planLink: .deuk-agent/docs/plans/087-consolidate-cli-patterns-and-pru-joy-nucb-plan.md
+priority: P2
+status: open
+summary: 미작성 티켓 — 실질적 내용 없음. 좀비/placeholder 티켓으로 분류.
+tags: architecture
+title: consolidate-cli-patterns-and-prune-dead-code
 ---
-
 
 # consolidate-cli-patterns-and-prune-dead-code
 
