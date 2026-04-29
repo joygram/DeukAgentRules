@@ -18,14 +18,32 @@
 
 **Hub-Spoke 아키텍처**와 **티켓 기반 실행 모델**을 통해 협업을 표준화함으로써, 컨텍스트 환각을 제거하고 토큰 소비를 획기적으로 줄이며, 거대 모노레포 환경에서도 엄격한 엔지니어링 표준을 강제합니다.
 
-> **🚀 3.0 주요 업데이트:**
-> 거대하고 무거운 레거시 \`.cursorrules\` 방식을 공식적으로 폐기했습니다. v3.0은 \`AGENTS.md\`를 단일 진실 공급원으로 사용하는 **Hub-Spoke 모델**을 도입하여, IDE별 규칙은 얇은 진입점 포인터 역할만 수행합니다.
+> **🚀 3.2 주요 업데이트:**
+> 다양한 AI 환경(Copilot, Cursor, Windsurf, MCP)에서 엄격한 에이전트 권한 계약(APC)을 강제하기 위한 **플랫폼 공존 프로토콜(Platform Co-existence Protocol)**과 **모드 인지형(Mode-Aware) Workflow Gate**를 도입했습니다.
 
-### 🗺️ 개념 및 아키텍처
-- **Hub-Spoke**: \`AGENTS.md\`가 허브(Hub)가 되고, IDE 규칙은 스포크(Spoke)가 됩니다. 더 이상 규칙 복제와 동기화 오류가 발생하지 않습니다.
-- **Global Proxy**: \`npx\` 명령이 로컬 워크스페이스 소스를 자동으로 감지하여 위임함으로써, 지연 없는(Zero-latency) 개발 환경을 제공합니다.
-- **서브모듈 격리**: AI 에이전트가 지정된 디렉터리 범위 내에만 머물도록 강제하여, 천문학적인 컨텍스트 비용 발생을 방지합니다.
-- **Zero-Legacy**: 사용되지 않는 v1/v2 설정과 빈 서브모듈 스텁을 자동으로 청소합니다.
+> **🚀 3.0 주요 업데이트:**
+> 거대하고 무거운 레거시 `.cursorrules` 방식을 공식적으로 폐기했습니다. v3.0은 `AGENTS.md`를 단일 진실 공급원으로 사용하는 **Hub-Spoke 모델**을 도입하여, IDE별 규칙은 얇은 진입점 포인터 역할만 수행합니다.
+
+### 🗺️ 핵심 기능 및 아키텍처 (Main Features)
+
+DeukAgentRules는 AI 에이전트가 코드를 분석하고 작성하는 모든 과정을 통제하는 **4대 핵심 기능**을 제공합니다.
+
+1. **Zero-Copy Hub-Spoke 아키텍처**
+   - **Hub**: 단일 진실 공급원인 `AGENTS.md` (글로벌 룰)
+   - **Spoke**: `PROJECT_RULE.md` 등 워크스페이스별 로컬 규칙
+   - **효과**: IDE별(Cursor, Copilot, Windsurf) 설정 파일 중복을 제거하고, 에이전트가 오직 하나의 규약만 바라보게 하여 지시 사항의 충돌과 환각을 원천 차단합니다.
+
+2. **티켓 주도 워크플로우 (TDW: Ticket-Driven Workflow)**
+   - 계획(Plan) → 실행(Execute) → 검증(Verify) → 보관(Archive)의 엄격한 라이프사이클을 강제합니다.
+   - 에이전트는 활성화된 티켓(`ACTIVE_TICKET.md`) 없이 코드를 수정하거나 범위를 벗어난 작업을 수행할 수 없습니다 (Anti-Shoveling).
+
+3. **플랫폼 공존 및 모드 인지형 게이트 (Mode-Aware Workflow Gate)**
+   - 에이전트의 현재 모드(Plan Mode vs. Execute Mode)를 인지하여, Plan Mode에서는 소스 코드 수정을 차단하고 구현 계획서(Artifacts) 작성만 허용하는 강력한 권한 계약(APC)을 시행합니다.
+   - MCP(Model Context Protocol) Soft Gate와 연동되어 티켓 컨텍스트가 없는 비인가 작업을 차단합니다.
+
+4. **지식 증류 및 Zero-Legacy (Knowledge Distillation)**
+   - 완료된 작업은 `reports/`로 아카이빙되며, 이 과정에서 **Zero-Token 지식 증류** 기술이 적용되어 핵심 히스토리만 벡터 DB(DeukAgentContext)로 전달됩니다.
+   - 불필요한 과거 로그나 사용되지 않는 `.cursorrules` 스텁을 자동으로 청소하여 컨텍스트 윈도우 낭비를 막습니다.
 
 ### 📚 상세 문서
 | 문서 | 용도 |
@@ -80,11 +98,11 @@ deuk-agent-rule init  # 자동으로 로컬 scripts/cli.mjs로 라우팅됨
 
 워크플로우는 **티켓 기반 실행 계약(Ticket-Driven Execution Contract)**에 의해 통제됩니다.
 
-1. **스캐폴딩**: \`init\`이 \`.deuk-agent/templates/\`와 \`AGENTS.md\`를 배치합니다.
-2. **티켓팅**: \`ticket create --topic feature-x\`가 \`.deuk-agent/tickets/\`에 제한된 작업 지시서를 생성합니다.
-3. **실행**: AI 에이전트가 티켓을 읽고, **타겟 서브모듈**에 고정되어 단계를 실행합니다.
-4. **검증**: 종료 전 사이드 이펙트 감사 및 컨벤션 체크를 수행합니다.
-5. **아카이빙**: 완료된 티켓은 \`reports/\`로 이동하여 **엔지니어링 메모리 엔진**을 구축합니다.
+1. **스캐폴딩 (Scaffolding)**: `init` 명령어가 프로젝트의 성격을 파악하고 `.deuk-agent/templates/`와 `AGENTS.md` (혹은 `PROJECT_RULE.md` 포인터)를 자동 배치합니다.
+2. **티켓팅 (Plan Phase)**: `ticket create --topic feature-x` 명령어로 새로운 작업 지시서를 생성합니다. 이때 에이전트는 Plan Mode로 동작하며 코드를 수정할 수 없고 계획 수립에만 집중합니다.
+3. **실행 (Execute Phase)**: 사용자의 승인을 받은 후, 에이전트는 **타겟 서브모듈**에 고정되어 실질적인 코드 작성을 수행합니다. MCP Soft Gate가 인가되지 않은 파일의 수정을 감시합니다.
+4. **검증 (Verify Phase)**: 개발 작업 종료 전 사이드 이펙트 감사(Audit) 및 컨벤션(DC-DUP 등 아키텍처 규칙) 체크를 수행합니다.
+5. **아카이빙 (Archive Phase)**: 완료된 티켓은 Zero-Token 지식 증류를 거쳐 `reports/`로 이동하며, 이 데이터는 DeukAgentContext 벡터 데이터베이스에 저장되어 영구적인 **엔지니어링 메모리 엔진**으로 작동합니다.
 
 ---
 

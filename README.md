@@ -18,14 +18,33 @@
 
 By standardizing collaboration via the **Hub-Spoke Architecture** and a **Ticket-Driven Execution Model**, it eliminates context hallucination, reduces token consumption, and enforces rigorous engineering standards across monolithic and multi-module repositories.
 
+> **🚀 3.2 Major Update:**
+> Introduced **Platform Co-existence Protocol** and **Mode-Aware Workflow Gate** to enforce strict Agent Permission Contracts (APC) across different AI environments (Copilot, Cursor, Windsurf, MCP).
+
 > **🚀 3.0 Major Update:**
 > We have officially deprecated monolithic `.cursorrules`. v3.0 introduces the **Hub-Spoke model** where `AGENTS.md` is the single source of truth, and IDE-specific rules act as thin entry-point pointers.
 
-### 🗺️ Concept & Architecture
-- **Hub-Spoke**: `AGENTS.md` is the Hub; IDE rules are Spokes. No more rule duplication.
-- **Global Proxy**: `npx` commands automatically route to your local workspace source for zero-latency development.
-- **Submodule Isolation**: Forces AI agents to stay within bounded directory scopes, preventing astronomical context costs.
-- **Zero-Legacy**: Automatic vacuuming of deprecated v1/v2 configurations and empty submodule stubs.
+### 🗺️ Main Features & Architecture
+
+DeukAgentRules enforces a strict operating environment for AI agents through four core mechanisms:
+
+1. **Zero-Copy Hub-Spoke Architecture**
+   - **Hub**: `AGENTS.md` acts as the global single source of truth.
+   - **Spoke**: IDE-specific rules (like `.cursorrules`) or `PROJECT_RULE.md` act as thin pointers.
+   - **Benefit**: Eliminates rule duplication, preventing conflicting instructions and context hallucination across different IDEs (Cursor, Copilot, Windsurf).
+
+2. **Ticket-Driven Workflow (TDW)**
+   - Enforces a strict lifecycle: Plan → Execute → Verify → Archive.
+   - Agents are explicitly forbidden from mutating code without an active ticket in `.deuk-agent/tickets/` (Anti-Shoveling rule).
+
+3. **Platform Co-existence & Mode-Aware Workflow Gate**
+   - Implements strong Agent Permission Contracts (APC) by making the workflow **Mode-Aware**.
+   - In **Plan Mode**, agents are restricted to read-only operations and artifact generation. Execution and code mutation are only unlocked upon user approval into the Execute Phase.
+   - Integrates with MCP Soft Gates to block unauthorized code changes.
+
+4. **Zero-Token Knowledge Distillation**
+   - When a ticket is archived, it is distilled into a zero-token summary and moved to `reports/`.
+   - These reports are vectorized into DeukAgentContext, building a permanent Engineering Memory Engine without cluttering the agent's active context window.
 
 ### 📚 Detailed Documentation
 | Doc | Purpose |
@@ -62,11 +81,11 @@ deuk-agent-rule init  # Routes to local scripts/cli.mjs automatically
 
 The workflow is governed by a **Ticket-Driven Execution Contract**.
 
-1. **Scaffolding**: `init` deploys `.deuk-agent/templates/` and `AGENTS.md`.
-2. **Ticketing**: `ticket create --topic feature-x` generates a bounded work order in `.deuk-agent/tickets/`.
-3. **Execution**: The AI agent reads the ticket, locks onto the **Target Submodule**, and executes phases.
-4. **Verification**: The agent performs a side-effect audit and convention check before closure.
-5. **Archiving**: Completed tickets move to `reports/` to build the **Engineering Memory Engine**.
+1. **Scaffolding**: `init` deploys `.deuk-agent/templates/` and `AGENTS.md` (or local pointers like `PROJECT_RULE.md`).
+2. **Ticketing (Plan Phase)**: `ticket create --topic feature-x` generates a bounded work order in `.deuk-agent/tickets/`. During this phase, agents operate in **Plan Mode** and are restricted from mutating files.
+3. **Execution (Execute Phase)**: Once authorized, the AI agent reads the ticket, locks onto the **Target Submodule**, and executes code changes. MCP Soft Gates ensure that unauthorized modifications are blocked.
+4. **Verification**: The agent performs a side-effect audit and convention (e.g., DC-DUP) check before closure.
+5. **Archiving (Archive Phase)**: Completed tickets undergo Zero-Token Knowledge Distillation and move to `reports/` to build the **Engineering Memory Engine** via DeukAgentContext.
 
 ---
 

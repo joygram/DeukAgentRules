@@ -6,6 +6,15 @@
 
 형식은 [Keep a Changelog](https://keepachangelog.com/ko/1.1.0/)를 기반으로 하며, 이 프로젝트는 [유의적 버전(Semantic Versioning)](https://semver.org/spec/v2.0.0.html)을 준수합니다.
 
+## [3.2.0] - 2026-04-29
+
+### 추가됨 (Added)
+- **agent:** 플랫폼 공존(Platform Coexistence) 및 모드 인지형(Mode-aware) 워크플로우 구현. (Plan Mode에서 TDW Phase 자동 매핑, `platform-coexistence.md` 규칙 추가, 수정 제어 및 `PROJECT_RULE.md` 포인터 연동 등)
+
+### 변경됨 (Changed)
+- **agents:** Co-existence Protocol 및 Workflow Gate 기능 도입 (T-120).
+- v3.1.0 아키텍처 원칙 및 사용법 문서 개선.
+
 ## [3.1.0] - 2026-04-28
 
 ### 추가됨 (Added)
