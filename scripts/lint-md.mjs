@@ -77,10 +77,28 @@ function lintFile(absPath, repoRoot) {
       }
     } else {
       try {
-        YAML.parse(match[1]);
+        const parsed = YAML.parse(match[1]);
+        const isDeukAgentDoc = rel.includes(".deuk-agent/docs/") || rel.includes(".deuk-agent/tickets/");
+        const isArchive = rel.includes("archive/");
+        const isTemplate = rel.includes("templates/");
+        if (isDeukAgentDoc && !isArchive && !isTemplate) {
+          const requiredKeys = ["summary", "status", "priority", "tags"];
+          for (const key of requiredKeys) {
+            if (!parsed || parsed[key] === undefined || parsed[key] === null || parsed[key] === "") {
+              errors.push(`${rel}: missing required frontmatter key: ${key}`);
+            }
+          }
+        }
       } catch (err) {
         errors.push(`${rel}: invalid frontmatter YAML (${err.message})`);
       }
+    }
+  } else {
+    const isDeukAgentDoc = rel.includes(".deuk-agent/docs/") || rel.includes(".deuk-agent/tickets/");
+    const isArchive = rel.includes("archive/");
+    const isTemplate = rel.includes("templates/");
+    if (isDeukAgentDoc && !isArchive && !isTemplate) {
+      errors.push(`${rel}: missing required frontmatter`);
     }
   }
 
