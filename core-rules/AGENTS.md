@@ -37,6 +37,13 @@ All work follows this lifecycle. Skipping any phase is a rule violation.
 | 4: Close | File follow-up tickets for unresolved issues. Archive ticket. |
 
 **Error Handling**: On 2+ repeated errors, stop, rollback, file an analysis ticket.
+**Scope Creep Handling**: 수정 범위가 기존 티켓 스코프를 초과하는 경우, 임의로 작업을 진행하지 말고 반드시 새 티켓을 생성하여 workflow context를 전환해야 합니다.
+판단 기준:
+  1. 티켓의 Target Module 외부 파일을 3개 이상 수정하려는 경우
+  2. 원래 티켓의 Tasks 체크리스트에 없는 작업이 전체 작업량의 50% 이상인 경우
+  3. 수정 대상 파일이 2개 이상의 서로 다른 모듈(src/, tests/ 제외)에 걸치는 경우
+위 조건 중 하나라도 해당되면 **즉시 중단**하고 새 티켓을 생성해야 합니다.
+**Halt-and-Replan (HARD RULE)**: 실행 중 예상치 못한 인프라 에러(DB 스키마 불일치, 서비스 실패, 의존성 누락 등)를 만나면 **우회 경로(설정 변경, 백엔드 교체, 기능 비활성화)를 절대 선택하지 말 것.** 즉시 실행을 중단하고, 근본 원인을 분석한 뒤 사용자에게 선택지를 보고하고 승인을 받은 후에만 재계획을 수립하여 재개합니다. 각 프로젝트의 `PROJECT_RULE.md`에 DC-HALT/DC-INFRA 규칙이 있으면 반드시 준수합니다.
 
 ### Ticket Navigation (fast path)
 1. `npx deuk-agent-rule ticket use --latest --path-only`
