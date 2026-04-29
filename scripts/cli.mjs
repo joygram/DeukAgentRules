@@ -4,7 +4,7 @@ import { dirname, join } from "path";
 import { fileURLToPath } from "url";
 import { parseArgs, parseTicketArgs, parseTelemetryArgs } from "./cli-args.mjs";
 import { runInit, runMerge } from "./cli-init-commands.mjs";
-import { runTicketCreate, runTicketList, runTicketUse, runTicketClose, runTicketArchive, runTicketReports, runTicketMeta, runTicketConnect, runTicketRebuild, runTicketReportAttach, runTicketMove, runTicketNext } from "./cli-ticket-commands.mjs";
+import { runTicketCreate, runTicketList, runTicketUse, runTicketClose, runTicketArchive, runTicketReports, runTicketMeta, runTicketConnect, runTicketRebuild, runTicketReportAttach, runTicketMove, runTicketNext, runTicketHotfix } from "./cli-ticket-commands.mjs";
 import { runTelemetry } from "./cli-telemetry-commands.mjs";
 import { performUpgradeMigration } from "./cli-ticket-migration.mjs";
 import { loadInitConfig, writeInitConfig, checkUpdateNotifier, normalizeWorkflowMode, WORKFLOW_MODE_EXECUTE, AGENT_ROOT_DIR, resolveWorkflowMode } from "./cli-utils.mjs";
@@ -38,6 +38,7 @@ async function main() {
     else if (action === "connect") await runTicketConnect(opts);
     else if (action === "rebuild") await runTicketRebuild(opts);
     else if (action === "move" || action === "step") await runTicketMove(opts);
+    else if (action === "hotfix") await runTicketHotfix(opts);
     else if (action === "report") {
       const subAction = rest[1];
       if (subAction === "attach") {

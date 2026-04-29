@@ -672,3 +672,84 @@ export async function runTicketNext(opts) {
     if (opts.printContent) console.log("\n" + readFileSync(join(opts.cwd, found.path), "utf8"));
   }
 }
+
+export async function runTicketHotfix(opts) {
+  if (!opts.topic && !opts.latest) {
+    if (opts.nonInteractive) {
+      throw new Error("ticket hotfix: --topic or --latest is required in non-interactive mode.");
+    }
+    opts.latest = true;
+  }
+  
+  if (!opts.reason) {
+    throw new Error("[HOTFIX DENIED] A mandatory --reason must be provided to justify bypassing standard rules (e.g., 'codegen is broken').");
+  }
+
+  // User explicit approval
+  if (!opts.nonInteractive) {
+    let proceed = false;
+    await withReadline(async (rl) => {
+      proceed = await new Promise(resolve => {
+        rl.question(`\n⚠️  [EMERGENCY HOTFIX] This will bypass standard APC rules.\nReason: ${opts.reason}\nProceed? (y/N): `, a => {
+          resolve(a.trim().toLowerCase() === 'y');
+        });
+      });
+    });
+    if (!proceed) {
+      console.log('Hotfix cancelled by user.');
+      return;
+    }
+  }
+
+  const index = rebuildTicketIndexFromTopicFilesIfNeeded(opts.cwd, { ...opts, force: false });
+  const entry = pickTicketEntry(opts, index);
+  
+  if (!entry) throw new Error("No matching ticket found for hotfix.");
+
+  const abs = join(opts.cwd, entry.path);
+  if (!existsSync(abs)) throw new Error("Ticket file not found: " + entry.path);
+
+  const body = readFileSync(abs, "utf8");
+  const { meta, content } = parseFrontMatter(body);
+
+  // Force phase 2 and active status, bypassing APC checks
+  meta.phase = 2;
+  meta.status = "active";
+  meta.hotfix = true;
+  meta.hotfixReason = opts.reason;
+  
+  // Append hotfix record to content
+  const timestamp = new Date().toISOString();
+  const hotfixRecord = `\n\n> [!WARNING]\n> **EMERGENCY HOTFIX ACTIVATED** (${timestamp})\n> **Reason:** ${opts.reason}\n> Standard APC and Phase 1 guards were bypassed.\n`;
+  
+  const newBody = stringifyFrontMatter(meta, content + hotfixRecord);
+  writeFileSync(abs, newBody, "utf8");
+
+  // Re-sync index
+  opts.topic = entry.topic;
+  opts.status = "active";
+  updateTicketEntryStatus(opts.cwd, opts);
+  
+  syncActiveTicketId(opts.cwd);
+  console.log(`[EMERGENCY HOTFIX] Ticket ${entry.topic} is now ACTIVE. Rule guardrails bypassed for this session.`);
+
+  // Auto-create derivation ticket
+  const deriveTopic = `codegen-fix-${entry.topic}`;
+  const deriveSummary = `[DERIVED] Fix CodeGen source for hotfix: ${opts.reason}`;
+  console.log(`[HOTFIX] Auto-creating derivation ticket: ${deriveTopic}`);
+  
+  try {
+    await runTicketCreate({
+      cwd: opts.cwd,
+      topic: deriveTopic,
+      summary: deriveSummary,
+      chain: true,
+      tags: 'hotfix-derived,codegen',
+      priority: 'P1',
+      skipPhase0: true,
+      nonInteractive: true
+    });
+  } catch (err) {
+    console.warn(`[WARNING] Failed to auto-create derivation ticket: ${err.message}`);
+  }
+}

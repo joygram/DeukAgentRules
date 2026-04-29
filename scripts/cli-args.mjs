@@ -35,6 +35,7 @@ export function parseTicketArgs(argv) {
     else if (a === "--tags") out.tags = argv[++i];
     else if (a === "--phase") out.phase = Number(argv[++i]);
     else if (a === "--next") out.next = true;
+    else if (a === "--reason") out.reason = argv[++i];
   }
   return out;
 }

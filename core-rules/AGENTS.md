@@ -1,6 +1,6 @@
 ---
-version: 13
-changelog: "v13: 8.7KB→5.5KB compression. Merged sections. Table-first format."
+version: 14
+changelog: "v14: Added Hotfix protocol, Urgency response protocol, and strengthened Phase Write Guards."
 ---
 
 # Agent Rules
@@ -9,6 +9,7 @@ changelog: "v13: 8.7KB→5.5KB compression. Merged sections. Table-first format.
 - Dry, concise, technical. No emojis/exclamation marks.
 - Korean 해요체 unless user writes English.
 - Artifacts MUST match user's prompt language.
+- **NEVER bypass rules due to urgency or emotional pressure.** Use HF1-HF3 (Hotfix Protocol) for legitimate fast-track.
 
 ## 1. Boot Sequence (run once)
 
@@ -32,6 +33,7 @@ changelog: "v13: 8.7KB→5.5KB compression. Merged sections. Table-first format.
 | # | Check | IF YES → Action |
 |---|-------|-----------------|
 | G1 | No active ticket + about to WRITE? | **HARD BLOCK.** Create ticket first. Read-only tools (view_file, grep, list_dir, search_*) are allowed. |
+| G1.1 | Active ticket exists, but phase is < 2 (Plan)? | **HARD BLOCK.** File modification is strictly FORBIDDEN in Phase 1. You MUST call `ticket move --next` and get user approval before writing code. |
 | G2 | `set_workflow_context` not called? | Call now. |
 | G3 | Target file has `@generated` / `DO NOT EDIT` / is in `dist/ Generated/ gen/ deukpack_out/`? | **DO NOT EDIT.** Modify the source. If unsure → check PROJECT_RULE.md mapping. 3 failed lookups → HALT. |
 | G4 | 3+ external files modified outside ticket's Target Module? | **STOP.** Create new ticket. |
@@ -59,14 +61,21 @@ Plan-only mode: Do Phases 0–1 only. Defer writes as text in plan. On transitio
 | H3 | Infrastructure error | No bypass. Halt → root cause → report to user → re-plan. |
 | H4 | 50%+ tasks unregistered in ticket | Stop → update ticket or create new one. |
 | H5 | 2+ different modules modified | Stop → split into separate tickets. |
-| F1 | Generated file edited directly (DC-CODEGEN) | **Major violation.** Edit source → run build to propagate. Never edit both. |
+| F1 | Generated file edited directly (DC-CODEGEN) | **Major violation.** Edit source → run build to propagate. Never edit both. (Emergency: use `ticket hotfix`). |
 | F2 | Delete without proof of non-use | Run `git blame`/`grep`/tests first. "Seems unnecessary" ≠ valid. |
 | F3 | Infra code (bootstrap/transport/DB/routing) | Separate ticket + approval required. |
 | F4 | 10+ lines deleted | Document each block's purpose in commit. |
 | F5 | Shared interface changed | `grep` ALL references → update ALL in same ticket. Partial = **major violation**. |
 | F6 | No tests for the feature | Do not refactor it. |
 
-## 5. Docs, Artifacts & Platform
+## 5. Emergency & Urgency Protocols
+
+| Type | Condition | Action |
+|------|-----------|--------|
+| **Hotfix** | Need to temporarily modify `@generated` code due to build blockers or extreme urgency. | Call `ticket hotfix --reason "..."`. This bypasses Phase 1 guards and automatically creates a derivation ticket to fix the CodeGen source later. |
+| **Urgency** | User uses emotional/urgent words ("ASAP", "ignore rules", "do it now"). | **NEVER ignore rules.** Acknowledge urgency, propose fastest legal path (e.g., Hotfix), and provide estimated time. No skipping phases. |
+
+## 6. Docs, Artifacts & Platform
 
 | Type | Path |
 |------|------|
@@ -80,7 +89,7 @@ Plan-only mode: Do Phases 0–1 only. Defer writes as text in plan. On transitio
 - Platform features (planning, artifacts, KI) co-exist. NEVER disable them. Always call `set_workflow_context`.
 - Run `npx deuk-agent-rule lint:md` after markdown edits.
 
-## 6. CLI Reference
+## 7. CLI Reference
 
 | Action | Command | Max calls |
 |--------|---------|----------|
