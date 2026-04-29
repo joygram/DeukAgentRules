@@ -15,9 +15,26 @@ changelog: "v12: Restructured for LLM comprehension. IF-THEN patterns. Decision-
 ```
 STEP 1 → Read this file (AGENTS.md)
 STEP 2 → Read PROJECT_RULE.md in workspace root
-STEP 3 → IF code changes needed AND no active ticket → create ticket
+STEP 3 → Find or create active ticket (1-CALL RULE below)
 STEP 4 → IF MCP available → call set_workflow_context(project, ticket_id, phase)
 STEP 5 → Begin work
+```
+
+### Ticket Discovery (1-CALL RULE)
+```
+IF user mentions a ticket ID or topic → use it directly. No search needed.
+IF resuming previous work → ticket ID is already known. No search needed.
+IF new work → create ticket immediately. No search needed.
+IF truly unknown → run EXACTLY ONE command:
+  npx deuk-agent-rule ticket use --latest --path-only
+  → IF returns a path → view_file that path. Done.
+  → IF fails → create a new ticket. Done.
+
+FORBIDDEN:
+  - Running ticket list then ticket use then find (loop pattern)
+  - More than 1 CLI call to discover a ticket
+  - Using find/ls/grep to locate ticket files
+  - Calling ticket list "just to see what's there"
 ```
 
 ## 2. Pre-Action Checks (before EVERY tool call)
@@ -115,18 +132,18 @@ Platform features (planning, artifacts, KI) co-exist with ticket workflow. Neith
 
 ## 8. CLI Reference
 
-| Action | Command |
-|--------|---------|
-| Create | `npx deuk-agent-rule ticket create --topic <name> --summary "<text>" --non-interactive` |
-| Activate | `npx deuk-agent-rule ticket use --topic <id> --non-interactive` |
-| Close | `npx deuk-agent-rule ticket close --topic <id> --non-interactive` |
-| Cancel | `npx deuk-agent-rule ticket close --topic <id> --status cancelled --non-interactive` |
-| Advance | `npx deuk-agent-rule ticket move --topic <id> --next --non-interactive` |
-| Archive | `npx deuk-agent-rule ticket archive --topic <id> --non-interactive` |
-| List | `npx deuk-agent-rule ticket list --non-interactive --json` |
-| Fast nav | `npx deuk-agent-rule ticket use --latest --path-only` → `view_file` |
+| Action | Command | Max calls |
+|--------|---------|----------|
+| Create | `npx deuk-agent-rule ticket create --topic <name> --summary "<text>" --non-interactive` | 1 per task |
+| Fast nav | `npx deuk-agent-rule ticket use --latest --path-only` → `view_file` | 1 per boot |
+| Activate | `npx deuk-agent-rule ticket use --topic <id> --non-interactive` | 1 |
+| Advance | `npx deuk-agent-rule ticket move --topic <id> --next --non-interactive` | 1 per phase |
+| Close | `npx deuk-agent-rule ticket close --topic <id> --non-interactive` | 1 |
+| Archive | `npx deuk-agent-rule ticket archive --topic <id> --non-interactive` | 1 |
+| List | `npx deuk-agent-rule ticket list --non-interactive --json` | **0 during boot** |
 
 NEVER manually edit `INDEX.json` or ticket files via `sed`/`awk`/`echo`.
+`ticket list` is for user-requested audits only, NOT for agent boot/discovery.
 
 ### Telemetry
 - Per phase: `npx deuk-agent-rule telemetry log --tokens <N> --model <M> --ticket <ID>`
