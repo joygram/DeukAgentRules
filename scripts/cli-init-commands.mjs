@@ -149,28 +149,15 @@ function migrateHtmlMarkersToHeadings(cwd, dryRun) {
 }
 
 function syncTemplates(cwd, bundleRoot, dryRun) {
-  const tplSrcDir = join(bundleRoot, "templates");
   const tplDestDir = join(cwd, AGENT_ROOT_DIR, TEMPLATE_SUBDIR);
-  if (!existsSync(tplSrcDir)) return;
-  if (!dryRun) mkdirSync(tplDestDir, { recursive: true });
+  if (!existsSync(tplDestDir)) return;
 
-  const srcFiles = readdirSync(tplSrcDir).filter(n => n.endsWith(".md"));
-  const destFiles = existsSync(tplDestDir) ? readdirSync(tplDestDir).filter(n => n.endsWith(".md")) : [];
-
-  for (const name of srcFiles) {
-    const src = join(tplSrcDir, name);
-    const dest = join(tplDestDir, name);
-    if (!dryRun) copyFileSync(src, dest);
-    console.log(`template synced: ${dest}`);
+  // SSOT: the bundle's templates/ is the single source of truth.
+  // Local .deuk-agent/templates/ copies are always redundant.
+  if (!dryRun) {
+    rmSync(tplDestDir, { recursive: true, force: true });
   }
-
-  for (const name of destFiles) {
-    if (!srcFiles.includes(name)) {
-      const obsolete = join(tplDestDir, name);
-      if (!dryRun) unlinkSync(obsolete);
-      console.log(`template removed (obsolete): ${obsolete}`);
-    }
-  }
+  console.log(`[CLEANUP] removed redundant templates directory: ${toRepoRelativePath(cwd, tplDestDir)}`);
 }
 
 function syncGlobalCodexInstructions(dryRun) {
