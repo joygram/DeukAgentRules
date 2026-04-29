@@ -289,13 +289,13 @@ function deploySpokePointers(cwd, bundleRoot, dryRun, selectedTools = []) {
 }
 
 function removeDuplicateRuleCopies(cwd, dryRun) {
+  // Note: AGENTS.md is now the Antigravity spoke target — do NOT delete it here.
+  // GEMINI.md legacy cleanup is handled by deploySpokePointers (spoke.legacy field).
+  // .gemini is the Antigravity platform directory — preserve it.
   const duplicatePaths = [
     join(cwd, AGENT_ROOT_DIR, "rules"),
     join(cwd, ".cursor", "rules", "deuk-agent-rule-multi-ai-workflow.mdc"),
     join(cwd, ".claude"),
-    join(cwd, ".gemini"),
-    join(cwd, "AGENTS.md"),
-    join(cwd, "GEMINI.md"),
     join(cwd, "CLAUDE.md"),
   ];
 

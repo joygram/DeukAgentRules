@@ -62,7 +62,7 @@ export const SPOKE_REGISTRY = [
   { id: "codex", detect: (cwd, tools = []) => tools.includes("codex") || existsSync(join(cwd, ".codex")), legacy: null, target: ".codex/AGENTS.md", format: "markdown" },
   { id: "windsurf", detect: (cwd) => existsSync(join(cwd, ".windsurf")), legacy: ".windsurfrules", target: ".windsurf/rules/deuk-agent.md", format: "markdown" },
   { id: "jetbrains", detect: (cwd) => existsSync(join(cwd, ".aiassistant")) || existsSync(join(cwd, ".idea")), legacy: null, target: ".aiassistant/rules/deuk-agent.md", format: "markdown" },
-  { id: "antigravity", detect: (cwd) => existsSync(join(cwd, "GEMINI.md")) || existsSync(join(cwd, ".gemini")), legacy: "GEMINI.md", target: ".agents/rules/deuk-agent.md", format: "markdown" }
+  { id: "antigravity", detect: (cwd, tools = []) => tools.includes("gemini") || existsSync(join(cwd, "GEMINI.md")) || existsSync(join(cwd, ".gemini")) || existsSync(join(cwd, ".mcp.json")), legacy: "GEMINI.md", target: "AGENTS.md", format: "markdown" }
 ];
 
 export const DOC_LANGUAGE_CHOICES = [
