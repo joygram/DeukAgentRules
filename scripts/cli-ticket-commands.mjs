@@ -106,14 +106,62 @@ export async function runTicketCreate(opts) {
 
     const indexJson = readTicketIndexJson(opts.cwd);
 
-    // Warn about previous active ticket (do NOT auto-close — user may return to it)
+    // Smart close: check previous active ticket's completion state before deciding
     const activeId = indexJson.activeTicketId;
     if (activeId) {
       const activeEntry = indexJson.entries.find(e => e.id === activeId && (e.status === "open" || e.status === "active"));
       if (activeEntry) {
-        console.warn(`[NOTICE] Switching from active ticket: ${activeId} (still open). Close it manually when done.`);
+        const absPath = join(opts.cwd, activeEntry.path);
+        let shouldClose = false;
+        let reason = "";
+
+        if (existsSync(absPath)) {
+          try {
+            const body = readFileSync(absPath, "utf8");
+            const { meta, content } = parseFrontMatter(body);
+
+            // Count checklist items
+            const checked = (content.match(/- \[x\]/gi) || []).length;
+            const unchecked = (content.match(/- \[ \]/g) || []).length;
+            const total = checked + unchecked;
+            const allDone = total > 0 && unchecked === 0;
+            const phase = meta.phase || 1;
+
+            if (phase >= 3 && allDone) {
+              shouldClose = true;
+              reason = `phase=${phase}, tasks=${checked}/${total} done`;
+            } else if (allDone && total > 0) {
+              shouldClose = true;
+              reason = `all tasks done (${checked}/${total}), phase=${phase}`;
+            } else {
+              reason = `phase=${phase}, tasks=${checked}/${total} done`;
+            }
+          } catch (err) {
+            reason = "could not read ticket file";
+          }
+        }
+
+        if (shouldClose) {
+          activeEntry.status = "closed";
+          activeEntry.updatedAt = new Date().toISOString();
+          // Sync to frontmatter
+          if (existsSync(absPath)) {
+            try {
+              const body = readFileSync(absPath, "utf8");
+              const parsed = parseFrontMatter(body);
+              parsed.meta.status = "closed";
+              parsed.meta.phase = 4;
+              writeFileSync(absPath, stringifyFrontMatter(parsed.meta, parsed.content), "utf8");
+            } catch (err) { /* skip */ }
+          }
+          writeTicketIndexJson(opts.cwd, indexJson);
+          console.log(`[AUTO-CLOSE] ${activeId} completed (${reason}).`);
+        } else {
+          console.warn(`[NOTICE] Switching from ${activeId} (${reason}). Ticket stays open.`);
+        }
       }
     }
+
 
 
 

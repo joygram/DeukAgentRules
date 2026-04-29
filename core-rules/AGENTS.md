@@ -81,14 +81,15 @@ CHECK 4: Is this file outside my ticket's Target Module?
 
 ### Ticket Cleanup (HARD RULE)
 ```
-BEFORE creating a new ticket:
-  → CLI switches activeTicketId to the new ticket.
-  → Previous ticket stays open (user may return to it).
-  → Agent SHOULD close current ticket (Phase 4) before new work, but is NOT forced.
+BEFORE creating a new ticket, CLI inspects the previous active ticket:
+  → IF all checklist items [x] AND phase >= 3 → auto-close (work is done).
+  → IF unchecked items remain OR phase < 3 → keep open + print [NOTICE].
+  → activeTicketId switches to the new ticket regardless.
 
-IF session is ending without completing the ticket:
-  → Close with status "cancelled" or note the pause reason.
-  → Prefer clean state, but do NOT force-close parallel work.
+Agent responsibility:
+  → Update checklist items [x] as you complete tasks (Phase 2).
+  → Advance phase via ticket move when transitioning stages.
+  → This ensures the CLI can accurately judge completion on next ticket create.
 ```
 
 ### Phase 0 Search Rules (HARD RULE)
