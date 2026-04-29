@@ -105,6 +105,31 @@ export async function runTicketCreate(opts) {
     }
 
     const indexJson = readTicketIndexJson(opts.cwd);
+
+    // Auto-close stale open/active tickets before creating a new one
+    const staleTickets = indexJson.entries.filter(e => e.status === "open" || e.status === "active");
+    if (staleTickets.length > 0) {
+      for (const stale of staleTickets) {
+        stale.status = "closed";
+        stale.updatedAt = new Date().toISOString();
+        // Sync to .md frontmatter
+        const staleAbsPath = join(opts.cwd, stale.path);
+        if (existsSync(staleAbsPath)) {
+          try {
+            const body = readFileSync(staleAbsPath, "utf8");
+            const parsed = parseFrontMatter(body);
+            if (parsed.meta.status !== "closed") {
+              parsed.meta.status = "closed";
+              const newBody = stringifyFrontMatter(parsed.meta, parsed.content);
+              writeFileSync(staleAbsPath, newBody, "utf8");
+            }
+          } catch (err) { /* skip sync errors */ }
+        }
+      }
+      writeTicketIndexJson(opts.cwd, indexJson);
+      console.log(`[AUTO-CLOSE] ${staleTickets.length} stale ticket(s) closed: ${staleTickets.map(t => t.id).join(", ")}`);
+    }
+
     const ticketId = generateTicketId(finalTopic, indexJson.entries);
     const finalFileName = `${ticketId}.md`;
 

@@ -75,9 +75,21 @@ CHECK 4: Is this file outside my ticket's Target Module?
 |-------|-----------|----------------|
 | 0: Research | Check if context is already sufficient. Search only if NOT. | Skip rules below. |
 | 1: Plan | Read arch rules → fill APC → `ticket create --summary "..."`. | **STOP. Wait for user approval.** |
-| 2: Execute | Implement per approved plan. Update ticket checkboxes. | — |
+| 2: Execute | Implement per approved plan. Update checkboxes. | — |
 | 3: Verify | Run build/tests. Record issues. | — |
-| 4: Close | File follow-up tickets for unresolved issues. Archive. | — |
+| 4: Close | Close + archive ticket. File follow-ups if needed. | **NEVER skip.** |
+
+### Ticket Cleanup (HARD RULE)
+```
+BEFORE creating a new ticket:
+  → CLI auto-closes all stale open/active tickets (enforced in code).
+  → Agent MUST close current ticket (Phase 4) before starting new work.
+  → Do NOT leave tickets in "open" or "active" state when moving on.
+
+IF session is ending without completing the ticket:
+  → Close with status "cancelled" or add a note explaining pause reason.
+  → NEVER leave a zombie open ticket for the next session to clean up.
+```
 
 ### Phase 0 Search Rules (HARD RULE)
 ```
