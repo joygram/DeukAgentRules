@@ -1,3 +1,8 @@
+---
+version: 7
+changelog: "v7: DC-REFACTOR, Dependency Integrity Guard, Scope Creep 정량 기준 추가 및 토큰 최적화"
+---
+
 # Agent Rules
 
 ## Tone
