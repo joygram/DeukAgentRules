@@ -42,13 +42,29 @@ CHECK 4: Is this file outside my ticket's Target Module?
 
 | Phase | What to do | STOP condition |
 |-------|-----------|----------------|
-| 0: Research | Search via MCP `search_*` or local search. | Skip if context sufficient. |
+| 0: Research | Check if context is already sufficient. Search only if NOT. | Skip rules below. |
 | 1: Plan | Read arch rules → fill APC → `ticket create --summary "..."`. | **STOP. Wait for user approval.** |
 | 2: Execute | Implement per approved plan. Update ticket checkboxes. | — |
 | 3: Verify | Run build/tests. Record issues. | — |
 | 4: Close | File follow-up tickets for unresolved issues. Archive. | — |
 
+### Phase 0 Search Rules (HARD RULE)
+```
+SKIP Phase 0 entirely IF:
+  - User gave explicit instructions (file path, error message, or specific task)
+  - Conversation already contains sufficient context from prior turns
+  - Task is a continuation of previous work in the same session
+
+IF search IS needed:
+  - MAX 2 MCP search calls total (across all search_* tools)
+  - Prefer local file reads (view_file, grep_search) over MCP search
+  - NEVER do exploratory broad searches ("find all files", "list everything")
+  - Search for SPECIFIC terms only (ticket ID, function name, error code)
+  - IF 2 searches yield no useful result → STOP searching, proceed with what you have
+```
+
 **Plan Mode** (no Execute/Write capability): Do Phases 0–1 only. Defer CLI/file writes as text in plan. On transition to Execute → run deferred commands → enter Phase 2 directly.
+
 
 ## 4. HALT Conditions (stop immediately if ANY is true)
 
