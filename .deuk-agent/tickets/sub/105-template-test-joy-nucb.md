@@ -1,7 +1,7 @@
 ---
 id: 105-template-test-joy-nucb
 title: Template Test
-status: open
+status: closed
 docsLanguage: ko
 summary: Testing regular ticket creation
 createdAt: 2026-04-28 20:30:54

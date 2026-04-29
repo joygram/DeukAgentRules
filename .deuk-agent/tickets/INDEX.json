@@ -1,7 +1,84 @@
 {
   "version": 1,
-  "updatedAt": "2026-04-29T17:36:14.305Z",
+  "updatedAt": "2026-04-29T19:53:00.513Z",
   "entries": [
+    {
+      "id": "118-agent-rule-frontmatter-enforceme-joy-nucb",
+      "title": "agent-rule-frontmatter-enforcement",
+      "topic": "agent-rule-frontmatter-enforcement",
+      "group": "sub",
+      "project": "global",
+      "createdAt": "2026-04-29T19:52:22.218Z",
+      "source": "ticket-create",
+      "status": "closed",
+      "updatedAt": "2026-04-29T19:53:00.505Z"
+    },
+    {
+      "id": "117-test-auto-close-joy-nucb",
+      "title": "test-auto-close",
+      "topic": "test-auto-close",
+      "group": "sub",
+      "project": "global",
+      "createdAt": "2026-04-29T19:18:29.802Z",
+      "source": "ticket-create",
+      "status": "closed",
+      "updatedAt": "2026-04-29T19:18:37.879Z"
+    },
+    {
+      "id": "116-auto-close-before-next-joy-nucb",
+      "title": "auto-close-before-next",
+      "topic": "auto-close-before-next",
+      "group": "sub",
+      "project": "global",
+      "createdAt": "2026-04-29T19:17:36.589Z",
+      "source": "ticket-create",
+      "status": "closed",
+      "updatedAt": "2026-04-29T19:18:29.760Z"
+    },
+    {
+      "id": "115-enforce-ticket-before-edit-joy-nucb",
+      "title": "enforce-ticket-before-edit",
+      "topic": "enforce-ticket-before-edit",
+      "group": "sub",
+      "project": "global",
+      "createdAt": "2026-04-29T19:14:27.051Z",
+      "source": "ticket-create",
+      "status": "closed",
+      "updatedAt": "2026-04-29T19:15:08.355Z"
+    },
+    {
+      "id": "114-fix-boot-ticket-loop-joy-nucb",
+      "title": "fix-boot-ticket-loop",
+      "topic": "fix-boot-ticket-loop",
+      "group": "sub",
+      "project": "global",
+      "createdAt": "2026-04-29T19:12:25.068Z",
+      "source": "ticket-create",
+      "status": "archived",
+      "updatedAt": "2026-04-29T19:13:37.517Z"
+    },
+    {
+      "id": "113-test-success-joy-nucb",
+      "title": "test-success",
+      "topic": "test-success",
+      "group": "sub",
+      "project": "global",
+      "createdAt": "2026-04-29T18:59:58.280Z",
+      "source": "ticket-create",
+      "status": "closed",
+      "updatedAt": "2026-04-29T19:18:29.775Z"
+    },
+    {
+      "id": "112-fix-missing-summary-in-frontmatt-joy-nucb",
+      "title": "fix-missing-summary-in-frontmatter",
+      "topic": "fix-missing-summary-in-frontmatter",
+      "group": "sub",
+      "project": "global",
+      "createdAt": "2026-04-29T18:58:11.211Z",
+      "source": "ticket-create",
+      "status": "archived",
+      "updatedAt": "2026-04-29T19:00:19.703Z"
+    },
     {
       "id": "REPORT-051-agent-fast-track-hardening-joy-nucb",
       "title": "Agent Fast-Track Hardening Report",
@@ -22,9 +99,9 @@
       "project": "global",
       "submodule": "",
       "createdAt": "2026-04-29T17:32:36.609Z",
-      "updatedAt": "2026-04-29T17:32:36.609Z",
+      "updatedAt": "2026-04-29T19:18:29.775Z",
       "source": "ticket-sync",
-      "status": "open"
+      "status": "closed"
     },
     {
       "id": "102-global-joy-nucb",
@@ -358,9 +435,9 @@
       "project": "global",
       "submodule": "",
       "createdAt": "2026-04-28 21:43:27",
-      "updatedAt": "2026-04-29T17:32:36.616Z",
+      "updatedAt": "2026-04-29T19:18:29.779Z",
       "source": "ticket-sync",
-      "status": "active"
+      "status": "closed"
     },
     {
       "id": "106-test-phase-validation-joy-nucb",
@@ -370,9 +447,9 @@
       "project": "global",
       "submodule": "",
       "createdAt": "2026-04-28 21:34:34",
-      "updatedAt": "2026-04-29T17:32:36.615Z",
+      "updatedAt": "2026-04-29T19:18:29.783Z",
       "source": "ticket-sync",
-      "status": "active"
+      "status": "closed"
     },
     {
       "id": "105-template-test-joy-nucb",
@@ -382,9 +459,9 @@
       "project": "global",
       "submodule": "",
       "createdAt": "2026-04-28 20:30:54",
-      "updatedAt": "2026-04-29T17:32:36.613Z",
+      "updatedAt": "2026-04-29T19:18:29.786Z",
       "source": "ticket-sync",
-      "status": "open"
+      "status": "closed"
     },
     {
       "id": "104-test-plan-joy-nucb",
@@ -394,9 +471,9 @@
       "project": "global",
       "submodule": "",
       "createdAt": "2026-04-28 20:30:43",
-      "updatedAt": "2026-04-29T17:32:36.611Z",
+      "updatedAt": "2026-04-29T19:18:29.789Z",
       "source": "ticket-sync",
-      "status": "open"
+      "status": "closed"
     },
     {
       "id": "082-refactor-cli-technical-debt-joy-nucb",
@@ -706,9 +783,9 @@
       "project": "DeukAgentRules",
       "submodule": "",
       "createdAt": "2026-04-22 02:02:57",
-      "updatedAt": "2026-04-29T17:32:36.608Z",
+      "updatedAt": "2026-04-29T19:18:29.790Z",
       "source": "ticket-sync",
-      "status": "open"
+      "status": "closed"
     },
     {
       "id": "048-dual-mode-and-workflow-joy-nucb",
@@ -718,9 +795,9 @@
       "project": "DeukAgentRules",
       "submodule": "",
       "createdAt": "2026-04-22 01:42:03",
-      "updatedAt": "2026-04-29T17:32:36.606Z",
+      "updatedAt": "2026-04-29T19:18:29.792Z",
       "source": "ticket-sync",
-      "status": "open"
+      "status": "closed"
     },
     {
       "id": "046-advanced-condition-eval-joy-nucb",
@@ -730,9 +807,9 @@
       "project": "DeukAgentRules",
       "submodule": "",
       "createdAt": "2026-04-22 01:18:48",
-      "updatedAt": "2026-04-29T17:32:36.605Z",
+      "updatedAt": "2026-04-29T19:18:29.793Z",
       "source": "ticket-sync",
-      "status": "open"
+      "status": "closed"
     },
     {
       "id": "045-frontmatter-rule-assembly-joy-nucb",
@@ -742,9 +819,9 @@
       "project": "DeukAgentRules",
       "submodule": "",
       "createdAt": "2026-04-22 00:29:03",
-      "updatedAt": "2026-04-29T17:32:36.604Z",
+      "updatedAt": "2026-04-29T19:18:29.795Z",
       "source": "ticket-sync",
-      "status": "open"
+      "status": "closed"
     },
     {
       "id": "001-044-deukagentrules-hardening-joy-nucb",
@@ -754,9 +831,9 @@
       "project": "global",
       "submodule": "",
       "createdAt": "2026-04-21 23:55:21",
-      "updatedAt": "2026-04-29T17:32:36.536Z",
+      "updatedAt": "2026-04-29T19:18:29.796Z",
       "source": "ticket-sync",
-      "status": "open"
+      "status": "closed"
     }
   ]
 }

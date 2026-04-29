@@ -1,7 +1,7 @@
 ---
 id: 046-advanced-condition-eval-joy-nucb
 title: 046-advanced-condition-eval
-status: open
+status: closed
 project: DeukAgentRules
 createdAt: 2026-04-22 01:18:48
 summary: "[e.g., DeukUI | DeukPack | DeukNavigation]. 주요 작업: 0. RAG Research

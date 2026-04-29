@@ -145,7 +145,7 @@ IF search IS needed:
 
 - ALL artifacts MUST be under `.deuk-agent/docs/` for RAG indexing.
 - Platform paths (`brain/`, `.cursor/plans/`) are NOT indexed → always copy to `.deuk-agent/docs/`.
-- **Frontmatter Requirement (HARD RULE)**: ALL plan and report markdown files MUST contain valid DeukAgent frontmatter (`fm_summary`, `fm_tags`, etc.) for RAG metadata indexing.
+- **Frontmatter Requirement (HARD RULE)**: ALL plan and report markdown files MUST contain valid DeukAgent frontmatter (`summary`, `status`, `priority`, `tags`) for RAG metadata indexing.
 - Immediately after creating or updating any file in `.deuk-agent/docs/`, you MUST execute the `enrich_frontmatter` MCP tool on the file path to automatically generate/supplement the frontmatter. Do not attempt to manually write these specific frontmatter tags unless necessary.
 - Run `npx deuk-agent-rule lint:md` after markdown edits.
 

@@ -7,9 +7,6 @@ alwaysApply: true
 
 **[MANDATORY]** Read and follow all rules from: [AGENTS.md](file:///home/joy/workspace/DeukAgentRules/core-rules/AGENTS.md)
 
-Before your first response, you MUST read the linked AGENTS.md file and fill in these rules:
-- Tone: ___
-- Language: ___
-- Docs plan path: ___
-- Docs report path: ___
-- Workflow gate: ___
+Before your first response, you MUST read the linked AGENTS.md file:
+1. State the version number from the frontmatter.
+2. List which DC-* rules from PROJECT_RULE.md apply to your current task, with a one-line justification for each.

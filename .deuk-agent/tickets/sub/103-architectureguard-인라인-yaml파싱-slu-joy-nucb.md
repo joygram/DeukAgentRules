@@ -3,6 +3,7 @@ id: 103-architectureguard-인라인-yaml파싱-slu-joy-nucb
 title: "ArchitectureGuard: 인라인 YAML파싱 slug생성 중복 제거"
 summary: "주요 작업: [Task 1"
 planLink: .deuk-agent/docs/plans/103-architectureguard-인라인-yaml파싱-slu-joy-nucb-plan.md
+status: closed
 ---
 
 

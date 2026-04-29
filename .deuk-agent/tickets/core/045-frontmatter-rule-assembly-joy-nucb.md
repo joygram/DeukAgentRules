@@ -1,7 +1,7 @@
 ---
 id: 045-frontmatter-rule-assembly-joy-nucb
 title: 045-frontmatter-rule-assembly
-status: open
+status: closed
 project: DeukAgentRules
 createdAt: 2026-04-22 00:29:03
 summary: "[e.g., DeukUI | DeukPack | DeukNavigation]. 주요 작업: 0. RAG Research

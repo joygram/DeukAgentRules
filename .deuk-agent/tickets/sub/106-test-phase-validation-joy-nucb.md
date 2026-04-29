@@ -1,7 +1,7 @@
 ---
 id: 106-test-phase-validation-joy-nucb
 title: test-phase-validation
-status: active
+status: closed
 docsLanguage: ko
 createdAt: 2026-04-28 21:34:34
 phase: 2

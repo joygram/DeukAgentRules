@@ -2,7 +2,7 @@
 id: 107-apc-test-joy-nucb
 title: apc-test
 phase: 2
-status: active
+status: closed
 docsLanguage: ko
 createdAt: 2026-04-28 21:43:27
 summary: "주요 작업: [Task 1"

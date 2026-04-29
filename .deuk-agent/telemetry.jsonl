@@ -6,3 +6,5 @@
 {"ts":1777161343,"tokens":15000,"model":"Gemini 3 Flash","client":"Antigravity","ticket":"078-ticket-archive-knowledge-distill-joy-nucb","action":"work","file":"","synced":false}
 {"ts":1777162613,"tokens":25000,"model":"Gemini 3 Flash","client":"Antigravity","ticket":"097-reinforce-cli-reporting-interfac-joy-nucb","action":"work","file":"","synced":false}
 {"ts":1777261876,"tokens":4500,"model":"Gemini 3.1 Pro","client":"Antigravity","ticket":"102-global-joy-nucb","action":"work","file":"","synced":false}
+{"ts":1777420256,"tokens":0,"tdw":0,"model":"Antigravity","client":"Cursor","ticket":"108-agent-platform-coexistence","action":"work","file":"","synced":false}
+{"ts":1777485036,"tokens":2000,"tdw":0,"model":"gemini","client":"Cursor","ticket":"127","action":"work","file":"","synced":false}

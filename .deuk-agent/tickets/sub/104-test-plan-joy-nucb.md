@@ -1,7 +1,7 @@
 ---
 id: 104-test-plan-joy-nucb
 title: Test Plan
-status: open
+status: closed
 docsLanguage: ko
 summary: This is a test summary
 createdAt: 2026-04-28 20:30:43

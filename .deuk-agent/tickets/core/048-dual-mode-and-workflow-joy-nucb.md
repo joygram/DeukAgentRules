@@ -1,7 +1,7 @@
 ---
 id: 048-dual-mode-and-workflow-joy-nucb
 title: 048-dual-mode-and-workflow
-status: open
+status: closed
 project: DeukAgentRules
 createdAt: 2026-04-22 01:42:03
 summary: "[e.g., DeukUI | DeukPack | DeukNavigation]. 주요 작업: 0. RAG Research

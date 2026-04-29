@@ -1,7 +1,7 @@
 ---
 id: 049-workspace-wide-agent-link-joy-nucb
 title: 049-workspace-wide-agent-link
-status: open
+status: closed
 project: DeukAgentRules
 createdAt: 2026-04-22 02:02:57
 summary: "[e.g., DeukUI | DeukPack | DeukNavigation]. 주요 작업: 0. RAG Research
