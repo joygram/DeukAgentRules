@@ -44,6 +44,12 @@ All work follows this lifecycle. Skipping any phase is a rule violation.
   3. 수정 대상 파일이 2개 이상의 서로 다른 모듈(src/, tests/ 제외)에 걸치는 경우
 위 조건 중 하나라도 해당되면 **즉시 중단**하고 새 티켓을 생성해야 합니다.
 **Halt-and-Replan (HARD RULE)**: 실행 중 예상치 못한 인프라 에러(DB 스키마 불일치, 서비스 실패, 의존성 누락 등)를 만나면 **우회 경로(설정 변경, 백엔드 교체, 기능 비활성화)를 절대 선택하지 말 것.** 즉시 실행을 중단하고, 근본 원인을 분석한 뒤 사용자에게 선택지를 보고하고 승인을 받은 후에만 재계획을 수립하여 재개합니다. 각 프로젝트의 `PROJECT_RULE.md`에 DC-HALT/DC-INFRA 규칙이 있으면 반드시 준수합니다.
+**Refactor Safety Guard (HARD RULE)**: 리팩터링·정리·모듈화·"clean tech debt" 작업 시 다음을 반드시 준수:
+  1. **삭제 전 용도 증명**: 코드를 제거하거나 "단순화"하기 전에, 해당 코드가 현재 사용되지 않음을 git blame·grep·테스트로 증명해야 한다. 증명 없이 "불필요해 보인다"는 이유로 삭제 금지.
+  2. **인프라 보호 구역**: 서버 부트스트랩(entrypoint), 트랜스포트 설정, DB 커넥션, 인증/라우팅 코드는 리팩터링 범위에서 제외한다. 변경이 필요하면 별도 티켓을 생성하고 사용자 승인을 받아야 한다.
+  3. **기능 동등성 검증**: 리팩터링 후 모든 기존 기능이 동일하게 작동함을 테스트로 검증해야 한다. 테스트가 없는 기능은 리팩터링 대상에서 제외한다.
+  4. **diff 자기 검증**: 커밋 전 `git diff`에서 순수 삭제(- only) 라인이 10줄 이상이면, 삭제된 각 블록의 용도를 명시적으로 기록해야 한다.
+
 
 ### Ticket Navigation (fast path)
 1. `npx deuk-agent-rule ticket use --latest --path-only`
