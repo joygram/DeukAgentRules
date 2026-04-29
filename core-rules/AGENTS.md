@@ -1,96 +1,118 @@
 ---
-version: 7
-changelog: "v7: DC-REFACTOR, Dependency Integrity Guard, Scope Creep 정량 기준 추가 및 토큰 최적화"
+version: 12
+changelog: "v12: Restructured for LLM comprehension. IF-THEN patterns. Decision-point grouping."
 ---
 
 # Agent Rules
 
 ## Tone
-- Dry, concise, technical. No emojis or exclamation marks.
-- Reply in Korean 해요체 unless user writes in English.
-- **[MANDATORY]** All artifacts MUST be written in the same language as the user's current prompt.
+- Dry, concise, technical. No emojis/exclamation marks.
+- Korean 해요체 unless user writes English.
+- Artifacts MUST match user's prompt language.
 
-## Boot Sequence (HARD RULE)
+## 1. Boot Sequence (run once, sequential)
 
-Execute sequentially — each step must complete before the next. Do NOT batch steps in parallel.
+```
+STEP 1 → Read this file (AGENTS.md)
+STEP 2 → Read PROJECT_RULE.md in workspace root
+STEP 3 → IF code changes needed AND no active ticket → create ticket
+STEP 4 → IF MCP available → call set_workflow_context(project, ticket_id, phase)
+STEP 5 → Begin work
+```
 
-1. Read this file (`AGENTS.md`).
-2. Read `PROJECT_RULE.md` in the workspace root. It contains project-specific architecture boundaries. Do NOT rely on general assumptions if it exists.
-3. Identify active ticket from user's request. If none and the request requires code changes, create one.
-4. Call `set_workflow_context(project, ticket_id, phase)` via MCP. If MCP unavailable, proceed.
-5. Begin research.
+## 2. Pre-Action Checks (before EVERY tool call)
 
-## Docs
-- Plans: `.deuk-agent/docs/plans/<ticket-id>-plan.md`
-- Reports: `.deuk-agent/docs/walkthroughs/<ticket-id>-report.md`
-- Scratch: `.deuk-agent/docs/scratch/` (ephemeral)
-- All artifacts MUST exist under `.deuk-agent/docs/` for RAG indexing. Platform-native paths (`brain/`, `.cursor/plans/`) are NOT indexed — always copy.
-- Run `npx deuk-agent-rule lint:md` after editing markdown.
+```
+CHECK 1: Do I have an active ticket?
+  → IF NO + code changes needed → STOP. Create ticket first.
+CHECK 2: Did I call set_workflow_context?
+  → IF NO + MCP available → call now.
+CHECK 3: Is the target file generated?
+  → IF file has @generated / DO NOT EDIT marker → DO NOT EDIT. Modify the source instead.
+  → IF file is in dist/ Generated/ gen/ deukpack_out/ → DO NOT EDIT.
+  → IF unsure → check PROJECT_RULE.md mapping table → IF not listed → ASK USER.
+  → NEVER explore repo with find/grep/ls to guess. 3 failed lookups → HALT.
+CHECK 4: Is this file outside my ticket's Target Module?
+  → IF 3+ external files already modified → STOP. Create new ticket.
+```
 
-## Ticket-Driven Workflow (MANDATORY)
+## 3. Ticket Lifecycle (MANDATORY — never skip phases)
 
-All work follows this lifecycle. Skipping any phase is a rule violation.
+**Required fields for creation**: `summary` MUST be non-empty. CLI blocks if missing.
 
-**Mode adaptation:** If you lack Execute/Write capability, you are in **Plan Mode** (Phases 0–1 only). Defer CLI commands and file writes as text in your plan output. When transitioning to Execute Mode, run deferred commands first and enter Phase 2 directly — do not re-plan.
+| Phase | What to do | STOP condition |
+|-------|-----------|----------------|
+| 0: Research | Search via MCP `search_*` or local search. | Skip if context sufficient. |
+| 1: Plan | Read arch rules → fill APC → `ticket create --summary "..."`. | **STOP. Wait for user approval.** |
+| 2: Execute | Implement per approved plan. Update ticket checkboxes. | — |
+| 3: Verify | Run build/tests. Record issues. | — |
+| 4: Close | File follow-up tickets for unresolved issues. Archive. | — |
 
-| Phase | Action |
-|-------|--------|
-| 0: Research | Search rules/past tickets via `mcp_deukcontext_search_*` or local search. Skip if context sufficient. |
-| 1: Plan | Read architecture rules. Fill APC. Run `ticket create` (or defer if Plan Mode). **STOP — wait for user approval.** |
-| 2: Execute | Implement per approved plan. Update ticket checkboxes in real-time. |
-| 3: Verify | Run build/tests. Record issues in Potential Issue Table. |
-| 4: Close | File follow-up tickets for unresolved issues. Archive ticket. |
+**Plan Mode** (no Execute/Write capability): Do Phases 0–1 only. Defer CLI/file writes as text in plan. On transition to Execute → run deferred commands → enter Phase 2 directly.
 
-**Error Handling**: On 2+ repeated errors, stop, rollback, file an analysis ticket.
-**Scope Creep Handling**: 수정 범위가 기존 티켓 스코프를 초과하면 **즉시 중단**, 새 티켓 생성 후 workflow context 전환. 판단 기준(하나라도 해당 시 중단): ① Target Module 외부 파일 3개+ 수정 ② 미등록 작업이 전체의 50%+ ③ 수정 대상이 2개+ 서로 다른 모듈에 걸침.
-**Halt-and-Replan (HARD RULE)**: 인프라 에러 시 **우회 경로(설정 변경, 백엔드 교체, 기능 비활성화) 절대 금지.** 즉시 중단 → 근본 원인 분석 → 사용자에게 선택지 보고 → 승인 후 재계획. `PROJECT_RULE.md`의 DC-HALT/DC-INFRA 준수.
-**Refactor Safety Guard (HARD RULE)**: 리팩터링·정리·모듈화 시 반드시 준수:
-  1. **삭제 전 용도 증명**: `git blame`·`grep`·테스트로 미사용 증명. "불필요해 보인다"로 삭제 금지.
-  2. **인프라 보호 구역**: 서버 부트스트랩, 트랜스포트, DB 커넥션, 라우팅 코드는 리팩터 범위 제외. 변경 필요 시 별도 티켓 + 사용자 승인.
-  3. **기능 동등성 검증**: 리팩터 후 기존 기능 동일 작동을 테스트로 검증. 테스트 없는 기능은 리팩터 대상 제외.
-  4. **diff 자기 검증**: 순수 삭제 10줄+ 시 각 블록 용도를 명시 기록.
-  5. **의존성 전수 조사**: 상수·공유 상태·인터페이스 수정/삭제 시, `grep`으로 참조처를 전수 조사하여 동일 티켓 내에서 모두 수정. "일부만 수정 후 방치"는 중대 프로토콜 위반.
+## 4. HALT Conditions (stop immediately if ANY is true)
 
+| # | Condition | Action |
+|---|-----------|--------|
+| H1 | 2+ repeated errors on same task | Stop → rollback → file analysis ticket. |
+| H2 | Scope exceeds ticket boundary | Stop → new ticket → context switch. |
+| H3 | Infrastructure error encountered | No bypass (no config swap, no feature disable). Halt → root cause → report options to user → re-plan after approval. |
+| H4 | 50%+ tasks are unregistered in ticket | Stop → update ticket or create new one. |
+| H5 | Modifications span 2+ different modules | Stop → split into separate tickets. |
 
-### Ticket Navigation (fast path)
-1. `npx deuk-agent-rule ticket use --latest --path-only`
-2. `view_file` the returned path. **Done.** No MCP search, no `ls`/`grep`.
+## 5. File Modification Guards
 
-### Telemetry
-- After each phase: `npx deuk-agent-rule telemetry log --tokens <N> --model <M> --ticket <ID>`
-- Periodic: `npx deuk-agent-rule telemetry sync`
-- Skip if Execute capability unavailable.
+### 5a. Generated File Protection (DC-CODEGEN)
+- Source files = only those marked "manually editable" in `PROJECT_RULE.md`.
+- After editing source → ALWAYS run build (`npm run build` etc.) to propagate.
+- NEVER edit source AND generated product in same change.
+- Violation = silent regression on next build = **major protocol violation**.
 
-## Workflow Gate (HARD RULE)
+### 5b. Refactor Safety
+- **Delete?** → Prove unused first via `git blame`/`grep`/tests. "Seems unnecessary" = not valid.
+- **Infra code?** (bootstrap, transport, DB, routing) → Excluded from refactor. Needs separate ticket + approval.
+- **10+ lines deleted?** → Document each block's purpose in commit.
+- **Shared state / interface changed?** → `grep` ALL references → update ALL in same ticket. Partial = **major violation**.
+- **No tests for the feature?** → Do not refactor it.
 
-Before calling ANY tool, self-check:
-1. "What is my active ticket?" → If unknown and code changes needed: **stop, create ticket.**
-2. "Did I call `set_workflow_context`?" → If not and MCP available: call now.
-3. "Is this artifact under `.deuk-agent/docs/`?" → If not: fix path.
+## 6. Docs & Artifacts
 
-## Platform Co-existence
+| Type | Path |
+|------|------|
+| Plans | `.deuk-agent/docs/plans/<ticket-id>-plan.md` |
+| Reports | `.deuk-agent/docs/walkthroughs/<ticket-id>-report.md` |
+| Scratch | `.deuk-agent/docs/scratch/` (ephemeral) |
 
-Platform-native features (planning, artifacts, KI) co-exist with TDW. Neither overrides the other.
+- ALL artifacts MUST be under `.deuk-agent/docs/` for RAG indexing.
+- Platform paths (`brain/`, `.cursor/plans/`) are NOT indexed → always copy to `.deuk-agent/docs/`.
+- Run `npx deuk-agent-rule lint:md` after markdown edits.
 
-| Rule | Action |
-|------|--------|
-| Planning | Use platform's native plan features. Also save to `.deuk-agent/docs/plans/`. |
-| Artifacts | Platform paths are NOT RAG-indexed. Copy to `.deuk-agent/docs/`. |
-| Workflow State | Always call `set_workflow_context` regardless of platform state management. |
-| Conversations | Use both platform references (@mention) and ticket chaining (`prevTicket`/`nextTicket`). |
+## 7. Platform Co-existence
 
-**Prohibited:** Disabling platform features to "comply" with DeukAgent rules. Skipping platform features by citing DeukAgent rules. Saving artifacts ONLY to platform paths.
+Platform features (planning, artifacts, KI) co-exist with ticket workflow. Neither overrides.
 
-## CLI Reference
+- Planning → use platform native + copy to `.deuk-agent/docs/plans/`.
+- Artifacts → copy to `.deuk-agent/docs/` (platform paths not RAG-indexed).
+- Always call `set_workflow_context` regardless of platform state.
+- Use both @mention and ticket chaining (`prevTicket`/`nextTicket`).
+- NEVER disable platform features to "comply" with these rules.
+
+## 8. CLI Reference
 
 | Action | Command |
 |--------|---------|
-| Create | `npx deuk-agent-rule ticket create --topic <name> --non-interactive` |
+| Create | `npx deuk-agent-rule ticket create --topic <name> --summary "<text>" --non-interactive` |
 | Activate | `npx deuk-agent-rule ticket use --topic <id> --non-interactive` |
 | Close | `npx deuk-agent-rule ticket close --topic <id> --non-interactive` |
 | Cancel | `npx deuk-agent-rule ticket close --topic <id> --status cancelled --non-interactive` |
-| Phase advance | `npx deuk-agent-rule ticket move --topic <id> --next --non-interactive` |
+| Advance | `npx deuk-agent-rule ticket move --topic <id> --next --non-interactive` |
 | Archive | `npx deuk-agent-rule ticket archive --topic <id> --non-interactive` |
 | List | `npx deuk-agent-rule ticket list --non-interactive --json` |
+| Fast nav | `npx deuk-agent-rule ticket use --latest --path-only` → `view_file` |
 
-**[HARD RULE]** Never manually edit `INDEX.json` or ticket files via `sed`/`awk`/`echo`.
+NEVER manually edit `INDEX.json` or ticket files via `sed`/`awk`/`echo`.
+
+### Telemetry
+- Per phase: `npx deuk-agent-rule telemetry log --tokens <N> --model <M> --ticket <ID>`
+- Periodic: `npx deuk-agent-rule telemetry sync`
+- Skip if no Execute capability.

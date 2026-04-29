@@ -117,6 +117,11 @@ export async function runTicketCreate(opts) {
       prevTicketEntry = pickTicketEntry({ latest: true }, indexJson);
     }
 
+    const summary = (opts.summary || parsedPlan?.summary || "").trim();
+    if (!summary) {
+      throw new Error("[VALIDATION FAILED] 'summary' is mandatory and cannot be empty. Please provide a meaningful summary via --summary or within your plan.");
+    }
+
     const rawMeta = {
       id: ticketId,
       title: finalTitle,
@@ -126,7 +131,7 @@ export async function runTicketCreate(opts) {
       project: opts.project === "global" ? undefined : opts.project,
       docsLanguage,
       evidence: opts.evidence,
-      summary: opts.summary || parsedPlan?.summary,
+      summary,
       priority: opts.priority,
       tags: opts.tags ? opts.tags.split(',').map(t => t.trim().replace(/^#/, '')).filter(Boolean) : undefined,
       createdAt: new Date().toISOString().replace('T', ' ').split('.')[0],
@@ -134,7 +139,10 @@ export async function runTicketCreate(opts) {
       planLink: `.deuk-agent/docs/plans/${ticketId}-plan.md`,
     };
 
-    const meta = Object.fromEntries(Object.entries(rawMeta).filter(([_, v]) => v !== undefined && v !== ""));
+    const meta = Object.fromEntries(Object.entries(rawMeta).filter(([k, v]) => {
+      if (k === 'summary') return v !== undefined; // summary는 필수이므로 undefined만 아니면 유지
+      return v !== undefined && v !== "";
+    }));
     const frontmatter = YAML.stringify(meta).trim();
 
     let finalContent = "";
