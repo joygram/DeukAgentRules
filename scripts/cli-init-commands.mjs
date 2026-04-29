@@ -194,16 +194,13 @@ When working in a repository, always look for a local \`AGENTS.md\` or \`.deuk-a
 function generateSpokeContent(spoke, bundleRoot) {
   const globalRulesPath = join(bundleRoot, "core-rules", "AGENTS.md");
   
-  const content = `# Deuk Agent Rules
+    const content = `# Deuk Agent Rules
 
 **[MANDATORY]** Read and follow all rules from: [AGENTS.md](file://${globalRulesPath})
 
-Before your first response, you MUST read the linked AGENTS.md file and fill in these rules:
-- Tone: ___
-- Language: ___
-- Docs plan path: ___
-- Docs report path: ___
-- Workflow gate: ___
+Before your first response, you MUST read the linked AGENTS.md file:
+1. State the version number from the frontmatter.
+2. List which DC-* rules from PROJECT_RULE.md apply to your current task, with a one-line justification for each.
 `;
 
   if (spoke.format === "mdc") {
