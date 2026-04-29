@@ -131,6 +131,7 @@ export async function runTicketCreate(opts) {
       tags: opts.tags ? opts.tags.split(',').map(t => t.trim().replace(/^#/, '')).filter(Boolean) : undefined,
       createdAt: new Date().toISOString().replace('T', ' ').split('.')[0],
       prevTicket: prevTicketEntry ? prevTicketEntry.id : undefined,
+      planLink: `.deuk-agent/docs/plans/${ticketId}-plan.md`,
     };
 
     const meta = Object.fromEntries(Object.entries(rawMeta).filter(([_, v]) => v !== undefined && v !== ""));
@@ -244,7 +245,7 @@ export async function runTicketClose(opts) {
     await withReadline(async (rl) => {
       const index = rebuildTicketIndexFromTopicFilesIfNeeded(opts.cwd, { ...opts, force: false });
       const choices = index.entries
-        .filter(e => e.status !== "closed")
+        .filter(e => e.status !== "closed" && e.status !== "cancelled")
         .map(e => ({ label: `[${e.group}] ${e.title}`, value: e.topic }));
       if (choices.length > 0) {
         opts.topic = await selectOne(rl, "Choose a ticket to close:", choices);
@@ -253,15 +254,15 @@ export async function runTicketClose(opts) {
       }
     });
   }
-  opts.status = "closed";
+  // Respect --status flag (e.g. 'cancelled', 'wontfix'); default to 'closed'
+  if (!opts.status) opts.status = "closed";
   const entry = updateTicketEntryStatus(opts.cwd, opts);
   syncActiveTicketId(opts.cwd);
-  console.log(`ticket: closed -> ${entry.topic} (${entry.path})`);
+  console.log(`ticket: ${opts.status} -> ${entry.topic} (${entry.path})`);
 }
 
 export async function runTicketUse(opts) {
   const index = rebuildTicketIndexFromTopicFilesIfNeeded(opts.cwd, { ...opts, force: false });
-  syncActiveTicketId(opts.cwd);
   
   let targetTopic = opts.topic;
   if (!targetTopic && !opts.latest) {
@@ -277,13 +278,22 @@ export async function runTicketUse(opts) {
     });
   }
 
-  const found = opts.latest ? index.entries[0] : index.entries.find(e => e.topic.includes(targetTopic));
+  const found = opts.latest ? index.entries[0] : index.entries.find(e =>
+    String(e.topic || "").includes(targetTopic) ||
+    String(e.id || "").includes(targetTopic)
+  );
   if (!found) throw new Error("No matching ticket found");
   
+  // Explicitly set activeTicketId to the selected ticket
+  if (index.activeTicketId !== found.id) {
+    writeTicketIndexJson(opts.cwd, { ...index, activeTicketId: found.id });
+  }
+
   const posixPath = toPosixPath(found.path);
   const absPath = toPosixPath(join(opts.cwd, found.path));
   if (opts.pathOnly) console.log(absPath);
   else {
+    console.log(`Active ticket: ${found.id}`);
     console.log(`Path: [${posixPath}](file://${absPath})`);
     if (opts.printContent) console.log("\n" + readFileSync(join(opts.cwd, found.path), "utf8"));
   }

@@ -3,107 +3,80 @@
 ## Tone
 - Dry, concise, technical. No emojis or exclamation marks.
 - Reply in Korean 해요체 unless user writes in English.
-- **[MANDATORY]** All artifacts (Plans, Reports, Tickets, Walkthroughs) MUST be written in the same language as the user's current prompt.
+- **[MANDATORY]** All artifacts MUST be written in the same language as the user's current prompt.
 
-## Project-Specific Rules
-- Locate and read **`PROJECT_RULE.md`** in the root of the project workspace.
-- `PROJECT_RULE.md` contains either the project-specific architecture boundaries or a link to the relevant documentation (e.g., `docs/ARCHITECTURE.md`).
-- Agents MUST consult these rules. Do NOT rely on general assumptions if a project rule exists.
+## Boot Sequence (HARD RULE)
+
+Execute sequentially — each step must complete before the next. Do NOT batch steps in parallel.
+
+1. Read this file (`AGENTS.md`).
+2. Read `PROJECT_RULE.md` in the workspace root. It contains project-specific architecture boundaries. Do NOT rely on general assumptions if it exists.
+3. Identify active ticket from user's request. If none and the request requires code changes, create one.
+4. Call `set_workflow_context(project, ticket_id, phase)` via MCP. If MCP unavailable, proceed.
+5. Begin research.
 
 ## Docs
 - Plans: `.deuk-agent/docs/plans/<ticket-id>-plan.md`
 - Reports: `.deuk-agent/docs/walkthroughs/<ticket-id>-report.md`
-- Scratch: `.deuk-agent/docs/scratch/` (ephemeral, auto-cleaned)
-- Knowledge Capture: Core design/security decisions from tickets must be formalized in `docs/internal/`.
-- Agents producing artifacts outside `.deuk-agent/docs/` must copy them there for RAG indexing.
+- Scratch: `.deuk-agent/docs/scratch/` (ephemeral)
+- All artifacts MUST exist under `.deuk-agent/docs/` for RAG indexing. Platform-native paths (`brain/`, `.cursor/plans/`) are NOT indexed — always copy.
 - Run `npx deuk-agent-rule lint:md` after editing markdown.
 
-## Agent Platform Co-existence Protocol
+## Ticket-Driven Workflow (MANDATORY)
 
-Agent platforms have their own planning, artifact, and knowledge systems. These systems MUST **co-exist** with the Ticket-Driven Workflow. Neither system should override the other.
+All work follows this lifecycle. Skipping any phase is a rule violation.
 
-### Co-existence Rules
-1. **Planning**: Use the platform's native planning features normally. Once a plan is approved, also save it to `.deuk-agent/docs/plans/<ticket-id>-plan.md`.
-2. **Artifacts**: Platform-specific artifact paths are NOT indexed by RAG. Always create a copy under `.deuk-agent/docs/`.
-3. **Workflow State**: Regardless of the platform's own state management, always call `set_workflow_context` to synchronize DeukAgent's state.
-4. **Conversations**: Platform conversation references (@mention, etc.) and ticket chaining (`prevTicket`/`nextTicket`) are complementary. Use both.
+**Mode adaptation:** If you lack Execute/Write capability, you are in **Plan Mode** (Phases 0–1 only). Defer CLI commands and file writes as text in your plan output. When transitioning to Execute Mode, run deferred commands first and enter Phase 2 directly — do not re-plan.
 
-### Plan Mode → TDW Phase Mapping
+| Phase | Action |
+|-------|--------|
+| 0: Research | Search rules/past tickets via `mcp_deukcontext_search_*` or local search. Skip if context sufficient. |
+| 1: Plan | Read architecture rules. Fill APC. Run `ticket create` (or defer if Plan Mode). **STOP — wait for user approval.** |
+| 2: Execute | Implement per approved plan. Update ticket checkboxes in real-time. |
+| 3: Verify | Run build/tests. Record issues in Potential Issue Table. |
+| 4: Close | File follow-up tickets for unresolved issues. Archive ticket. |
 
-Each platform's native Plan Mode maps to the Ticket-Driven Workflow as follows. Use the platform's planning feature for TDW Phase 1, then transition to execution for Phase 2.
+**Error Handling**: On 2+ repeated errors, stop, rollback, file an analysis ticket.
 
-| Platform | Plan Mode Activation | Phase 1 (Plan) | Phase 2 (Execute) | Artifact Sync Path |
-|----------|---------------------|----------------|--------------------|--------------------|
-| Antigravity | Planning Mode | Plan artifact → copy to `.deuk-agent/docs/plans/` | Normal execution | `brain/` → `.deuk-agent/docs/` |
-| Claude Code | `--permission-mode plan` or `Shift+Tab` | Read-only analysis → save to `.deuk-agent/docs/plans/` | Switch to Normal Mode | Direct file creation |
-| Copilot | Agent Mode (auto-plan) | Plan output → save to `.deuk-agent/docs/plans/` | Agent continues execution | Direct file creation |
-| Codex | N/A (no native plan mode) | `ticket create` enforces Phase 1 manually | `workspace-write` sandbox | Direct file creation |
-| Cursor | Plan Mode (`Shift+Tab`) | `.cursor/plans/` → copy to `.deuk-agent/docs/plans/` | "Build" execution | `.cursor/plans/` → `.deuk-agent/docs/` |
+### Ticket Navigation (fast path)
+1. `npx deuk-agent-rule ticket use --latest --path-only`
+2. `view_file` the returned path. **Done.** No MCP search, no `ls`/`grep`.
 
-### Platform-Specific Notes
+### Telemetry
+- After each phase: `npx deuk-agent-rule telemetry log --tokens <N> --model <M> --ticket <ID>`
+- Periodic: `npx deuk-agent-rule telemetry sync`
+- Skip if Execute capability unavailable.
 
-- **Antigravity**: KI (Knowledge Items) and `@conversation` mentions co-exist with ticket chaining. Artifacts in `brain/` are NOT RAG-indexed; always copy to `.deuk-agent/docs/`.
-- **Claude Code**: Sessions do not retain memory. `CLAUDE.md` / `.claude/rules/` serve as persistent context; the Spoke pointer there directs to this file. Ensure `.mcp.json` uses `sonnet`+ model with `high` effortLevel for MCP tool availability.
-- **Copilot**: Agent Mode auto-generates plans internally but does not persist them as files. Explicitly save the plan to `.deuk-agent/docs/plans/` before proceeding. Use `#file` references to `PROJECT_RULE.md` for architecture context.
-- **Codex**: Has no native Plan Mode. The TDW `ticket create` command serves as the mandatory planning gate. Codex merges `AGENTS.md` files from `~/.codex/` → project root → CWD; this naturally aligns with Hub-Spoke. Use `workspace-write` sandbox level for standard operations.
-- **Cursor**: Plan Mode saves to `.cursor/plans/` which is source-controllable but NOT RAG-indexed. Always copy to `.deuk-agent/docs/plans/`. MDC rules in `.cursor/rules/` are auto-loaded; the Spoke pointer there directs to this file.
+## Workflow Gate (HARD RULE)
 
-### Prohibited
-- Disabling or bypassing platform-native features to "comply" with DeukAgent rules.
-- Skipping platform's Planning/Artifact features by citing DeukAgent rules.
-- Saving artifacts ONLY to the platform path without copying to `.deuk-agent/docs/`.
+Before calling ANY tool, self-check:
+1. "What is my active ticket?" → If unknown and code changes needed: **stop, create ticket.**
+2. "Did I call `set_workflow_context`?" → If not and MCP available: call now.
+3. "Is this artifact under `.deuk-agent/docs/`?" → If not: fix path.
 
-## Mode-Aware Workflow Adaptation
+## Platform Co-existence
 
-Agents must adapt their behavior to the **current execution mode** of the platform. Do NOT attempt CLI commands or file mutations if the platform is in read-only/plan mode.
+Platform-native features (planning, artifacts, KI) co-exist with TDW. Neither overrides the other.
 
-### Detecting Your Mode
+| Rule | Action |
+|------|--------|
+| Planning | Use platform's native plan features. Also save to `.deuk-agent/docs/plans/`. |
+| Artifacts | Platform paths are NOT RAG-indexed. Copy to `.deuk-agent/docs/`. |
+| Workflow State | Always call `set_workflow_context` regardless of platform state management. |
+| Conversations | Use both platform references (@mention) and ticket chaining (`prevTicket`/`nextTicket`). |
 
-Determine your current mode by capability, not by label:
-- **Can I run shell commands?** → You have Execute capability.
-- **Can I create/edit files?** → You have Write capability.
-- **Can I only read files and respond with text?** → You are in Plan Mode.
+**Prohibited:** Disabling platform features to "comply" with DeukAgent rules. Skipping platform features by citing DeukAgent rules. Saving artifacts ONLY to platform paths.
 
-### Plan Mode Behavior (Read-Only)
+## CLI Reference
 
-If you lack Execute or Write capabilities, you are effectively in **TDW Phase 0–1**. This is correct — lean into it:
+| Action | Command |
+|--------|---------|
+| Create | `npx deuk-agent-rule ticket create --topic <name> --non-interactive` |
+| Activate | `npx deuk-agent-rule ticket use --topic <id> --non-interactive` |
+| Close | `npx deuk-agent-rule ticket close --topic <id> --non-interactive` |
+| Cancel | `npx deuk-agent-rule ticket close --topic <id> --status cancelled --non-interactive` |
+| Phase advance | `npx deuk-agent-rule ticket move --topic <id> --next --non-interactive` |
+| Archive | `npx deuk-agent-rule ticket archive --topic <id> --non-interactive` |
+| List | `npx deuk-agent-rule ticket list --non-interactive --json` |
 
-1. **DO**: Read `PROJECT_RULE.md`, `AGENTS.md`, and architecture docs. Analyze the codebase via file reads and search.
-2. **DO**: Produce the implementation plan as structured text output (the platform's native plan format).
-3. **DO**: Call MCP read tools (`search_rules`, `search_code`, `search_tickets`) if available.
-4. **DEFER**: CLI commands (`ticket create`, `telemetry log`). Instead, include them as "Commands to run after approval" in your plan output.
-5. **DEFER**: File writes. Instead, specify exact file paths and content in your plan.
-6. **DO NOT**: Attempt to run commands you cannot execute — this wastes tokens and context.
-
-**Plan Mode output template:**
-```
-## Plan Summary
-[analysis and proposed changes]
-
-## Deferred Commands (run after switching to Execute mode)
-1. `npx deuk-agent-rule ticket create --topic <topic> --non-interactive`
-2. `set_workflow_context(project, ticket_id, "Execute")`
-3. [file mutations]
-```
-
-### Execute Mode Behavior (Full Access)
-
-When you have Execute and Write capabilities, follow the full TDW lifecycle:
-1. Run deferred commands from the approved plan (if transitioning from Plan Mode).
-2. Create ticket, fill APC, proceed through phases normally.
-3. All standard Workflow Gate checks apply.
-
-### Seamless Transition
-
-When the user switches from Plan Mode to Execute Mode (or approves a plan):
-1. If a plan was produced in Plan Mode, treat it as pre-approved Phase 1 output.
-2. Run the deferred commands listed in the plan.
-3. Enter Phase 2 (Execute) directly — do not re-analyze or re-plan.
-
-## Workflow Gate Protocol (HARD RULE)
-
-### Self-Check (before calling any code-modification tool)
-- "What is my active ticket number?" — If you cannot answer AND you have Execute capability, **stop and create a ticket.** If you are in Plan Mode, note this in your plan output.
-- "Did I call `set_workflow_context`?" — If not and MCP is available, call it now. If MCP is unavailable, proceed without it.
-- "Is this artifact being saved to `.deuk-agent/docs/`?" — If not, fix the path.
-
+**[HARD RULE]** Never manually edit `INDEX.json` or ticket files via `sed`/`awk`/`echo`.
