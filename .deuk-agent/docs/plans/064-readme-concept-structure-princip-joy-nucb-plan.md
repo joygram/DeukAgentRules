@@ -1,9 +1,14 @@
 ---
 id: 064-readme-concept-structure-princip-joy-nucb
-title: "readme-concept-structure-principles-docs"
+title: readme-concept-structure-principles-docs
 language: en
 createdAt: 2026-04-24 01:36:33
+summary: readme-concept-structure-principles-docs
+status: active
+priority: P3
+tags: docs, migrated
 ---
+
 
 # Plan: readme-concept-structure-principles-docs
 

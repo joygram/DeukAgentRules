@@ -644,3 +644,31 @@ export async function runTicketMove(opts) {
   syncActiveTicketId(opts.cwd);
   console.log(`ticket: moved -> ${entry.topic} is now in Phase ${nextPhase} (${meta.status})`);
 }
+
+export async function runTicketNext(opts) {
+  const index = rebuildTicketIndexFromTopicFilesIfNeeded(opts.cwd, { ...opts, force: false });
+  // Find the first active ticket, or if none, the first open ticket (earliest created)
+  const rows = [...index.entries].sort((a, b) => String(a.createdAt || "").localeCompare(String(b.createdAt || "")));
+  let found = rows.find(e => e.status === "active");
+  if (!found) {
+    found = rows.find(e => e.status === "open");
+  }
+  
+  if (!found) {
+    throw new Error("No active or open tickets found to proceed with.");
+  }
+  
+  if (index.activeTicketId !== found.id) {
+    writeTicketIndexJson(opts.cwd, { ...index, activeTicketId: found.id });
+  }
+
+  const posixPath = toPosixPath(found.path);
+  const absPath = toPosixPath(join(opts.cwd, found.path));
+  if (opts.pathOnly) {
+    console.log(absPath);
+  } else {
+    console.log(`Next ticket: ${found.id}`);
+    console.log(`Path: [${posixPath}](file://${absPath})`);
+    if (opts.printContent) console.log("\n" + readFileSync(join(opts.cwd, found.path), "utf8"));
+  }
+}

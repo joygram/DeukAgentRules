@@ -1,9 +1,14 @@
 ---
 id: 069-rebranding-deukrag-to-deuk-agent-joy-nucb
-title: "rebranding-deukrag-to-deuk-agent-context"
+title: rebranding-deukrag-to-deuk-agent-context
 language: ko
 createdAt: 2026-04-25 02:50:34
+summary: rebranding-deukrag-to-deuk-agent-context
+status: active
+priority: P3
+tags: docs, migrated
 ---
+
 
 ---
 id: 069-rebranding-deukrag-to-deuk-agent-joy-nucb

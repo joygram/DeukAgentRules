@@ -1,3 +1,11 @@
+---
+summary: 048-dual-mode-and-workflow-joy-nucb-plan
+status: active
+priority: P3
+tags: docs, migrated
+---
+
+
 # [Design] Dual Mode 확장 및 TDD 리스크 추적 워크플로우 강화
 
 ## 🎯 Background & Motivation
@@ -8,10 +16,10 @@
 
 ### 1. `deploy_dual_mode.js` NPM 의존성 스위칭
 `DeukPack`의 `scripts/deploy_dual_mode.js`를 수정하여 `package.json`의 특정 `devDependencies`를 로컬 패스와 원격 레지스트리로 스위칭하는 기능을 추가합니다.
-- **`src` Mode (개발 모드)**: 
-  - `npm link ../DeukAgentRules` 명령을 실행하여 심볼릭 링크를 강제로 생성하거나, 
+- **`src` Mode (개발 모드)**:
+  - `npm link ../DeukAgentRules` 명령을 실행하여 심볼릭 링크를 강제로 생성하거나,
   - `package.json`의 버전을 `"file:../DeukAgentRules"`로 치환 후 `npm install` 실행. (Git Tracking 이슈를 피하려면 `npm link` 방식이 더 안전합니다.)
-- **`bin` Mode (배포/CI 모드)**: 
+- **`bin` Mode (배포/CI 모드)**:
   - `npm install deuk-agent-rule@latest` (또는 지정된 버전)을 재실행하여 원래의 Registry 바이너리로 복원.
 
 ### 2. 코어 워크플로우 룰 강화 (`core-workflow.md`)

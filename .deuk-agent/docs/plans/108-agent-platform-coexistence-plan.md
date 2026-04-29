@@ -1,7 +1,15 @@
+---
+summary: 108-agent-platform-coexistence-plan
+status: active
+priority: P3
+tags: docs, migrated
+---
+
+
 # 에이전트 플랫폼별 Agent/Plan 모드 심층 분석
 
-> 티켓: #108 agent-platform-coexistence  
-> 대상: Claude Code, GitHub Copilot, OpenAI Codex, Cursor  
+> 티켓: #108 agent-platform-coexistence
+> 대상: Claude Code, GitHub Copilot, OpenAI Codex, Cursor
 > 비교 기준: 안티그라비티(Gemini) 대응 패턴
 
 ---
@@ -278,7 +286,7 @@ inject_target: ["AGENTS.md"]
 ```javascript
 function generateSpokeContent(spoke, bundleRoot) {
   const globalRulesPath = join(bundleRoot, "core-rules", "AGENTS.md");
-  
+
   // 플랫폼별 핵심 인라인 지침
   const platformHints = {
     claude: `
@@ -313,7 +321,7 @@ function generateSpokeContent(spoke, bundleRoot) {
 - KI (Knowledge Items) and @conversation mentions work alongside ticket chaining.
 `
   };
-  
+
   const hint = platformHints[spoke.id] || "";
   // ... 기존 content 생성 + hint 추가
 }

@@ -1,9 +1,14 @@
 ---
 id: 065-doc-lint-after-document-write-ru-joy-nucb
-title: "doc-lint-after-document-write-rule"
+title: doc-lint-after-document-write-rule
 language: en
 createdAt: 2026-04-24 01:45:16
+summary: doc-lint-after-document-write-rule
+status: active
+priority: P3
+tags: docs, migrated
 ---
+
 
 # Plan: doc-lint-after-document-write-rule
 

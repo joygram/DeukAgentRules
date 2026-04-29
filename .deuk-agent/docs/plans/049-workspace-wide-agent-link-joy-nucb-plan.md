@@ -1,3 +1,11 @@
+---
+summary: 049-workspace-wide-agent-link-joy-nucb-plan
+status: active
+priority: P3
+tags: docs, migrated
+---
+
+
 # [Design] 049-workspace-wide-agent-link
 
 ## 🎯 Background & Motivation

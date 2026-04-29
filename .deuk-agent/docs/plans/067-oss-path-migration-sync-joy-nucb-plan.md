@@ -1,9 +1,14 @@
 ---
 id: 067-oss-path-migration-sync-joy-nucb
-title: "oss-path-migration-sync"
+title: oss-path-migration-sync
 language: ko
 createdAt: 2026-04-24 21:26:33
+summary: oss-path-migration-sync
+status: active
+priority: P3
+tags: docs, migrated
 ---
+
 
 # 계획: oss-path-migration-sync
 

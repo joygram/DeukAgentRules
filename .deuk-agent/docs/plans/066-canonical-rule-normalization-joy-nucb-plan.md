@@ -1,9 +1,14 @@
 ---
 id: 066-canonical-rule-normalization-joy-nucb
-title: "066-canonical-rule-normalization"
+title: 066-canonical-rule-normalization
 language: ko
 createdAt: 2026-04-24 09:51:39
+summary: 066-canonical-rule-normalization
+status: active
+priority: P3
+tags: docs, migrated
 ---
+
 
 # Plan: 066-canonical-rule-normalization
 

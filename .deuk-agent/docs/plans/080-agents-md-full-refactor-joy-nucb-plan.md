@@ -3,7 +3,12 @@ id: 080-agents-md-full-refactor-joy-nucb
 title: "AGENTS.md 전면 리팩토링: 토큰 다이어트 + 구조 정리"
 language: ko
 createdAt: 2026-04-25 13:28:35
+summary: "AGENTS.md 전면 리팩토링: 토큰 다이어트 + 구조 정리"
+status: active
+priority: P3
+tags: docs, migrated
 ---
+
 
 # 계획: AGENTS.md 전면 리팩토링
 

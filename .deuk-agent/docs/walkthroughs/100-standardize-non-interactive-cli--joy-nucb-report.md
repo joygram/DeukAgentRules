@@ -1,3 +1,11 @@
+---
+summary: 100-standardize-non-interactive-cli--joy-nucb-report
+status: active
+priority: P3
+tags: docs, migrated
+---
+
+
 # Walkthrough - Standardizing Non-Interactive CLI Behavior
 
 Improved the CLI to be automation-friendly by removing interactive prompts and making Phase 0 RAG evidence a non-blocking requirement.

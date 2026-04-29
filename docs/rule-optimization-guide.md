@@ -85,32 +85,26 @@ if (!summary) {
 }
 ```
 
-## AGENTS.md Structure Template
+## AGENTS.md Structure Template (v13)
 
 ```markdown
 ## 1. Boot Sequence
-  → What to read, what to initialize
+  → What to read, what to initialize, 1-CALL ticket discovery
 
-## 2. Pre-Action Checks
-  → IF-THEN checklist before every tool call
+## 2. Pre-Action Guards
+  → Table-format checklist (G1-G4) before every tool call
 
 ## 3. Ticket Lifecycle
-  → Phase table with STOP conditions
+  → Phase table with inline search rules and STOP conditions
 
-## 4. HALT Conditions
-  → Numbered table of "stop immediately" triggers
+## 4. HALT Conditions + File Guards
+  → Merged H1-H5 halt triggers + F1-F6 file modification guards
 
-## 5. File Modification Guards
-  → DC-CODEGEN, Refactor Safety
+## 5. Docs, Artifacts & Platform
+  → Path table, RAG indexing, platform co-existence (merged)
 
-## 6. Docs & Artifacts
-  → Path table, RAG indexing rules
-
-## 7. Platform Co-existence
-  → How to work with IDE/platform features
-
-## 8. CLI Reference
-  → Command table
+## 6. CLI Reference
+  → Command table with max call limits
 ```
 
 ## PROJECT_RULE.md Structure Template

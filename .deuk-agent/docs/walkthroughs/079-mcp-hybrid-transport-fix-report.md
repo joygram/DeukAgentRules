@@ -1,3 +1,11 @@
+---
+summary: 079-mcp-hybrid-transport-fix-report
+status: active
+priority: P3
+tags: docs, migrated
+---
+
+
 # Walkthrough: MCP Hybrid Transport & Stability Fix
 
 ## Problem Description

@@ -1,9 +1,14 @@
 ---
 id: 063-force-rule-approval-gate-joy-nucb
-title: "force-rule-approval-gate"
+title: force-rule-approval-gate
 language: en
 createdAt: 2026-04-24 01:17:01
+summary: force-rule-approval-gate
+status: active
+priority: P3
+tags: docs, migrated
 ---
+
 
 # Plan: force-rule-approval-gate
 

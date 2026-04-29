@@ -1,3 +1,11 @@
+---
+summary: 061-codex-copilot-first-class-suppor-joy-nucb-plan
+status: active
+priority: P3
+tags: docs, migrated
+---
+
+
 # Plan: Codex / Copilot first-class support
 
 ## Summary

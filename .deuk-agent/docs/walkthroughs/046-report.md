@@ -1,3 +1,11 @@
+---
+summary: 046-report
+status: active
+priority: P3
+tags: docs, migrated
+---
+
+
 # [Verification] Completion Report: CLI Automation & Advanced Conditions
 
 ## 📦 Changes Summary

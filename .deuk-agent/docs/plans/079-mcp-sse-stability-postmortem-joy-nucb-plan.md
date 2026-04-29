@@ -1,3 +1,11 @@
+---
+summary: 079-mcp-sse-stability-postmortem-joy-nucb-plan
+status: active
+priority: P3
+tags: docs, migrated
+---
+
+
 # 계획: MCP-SSE-Stability-PostMortem
 
 ## 요약

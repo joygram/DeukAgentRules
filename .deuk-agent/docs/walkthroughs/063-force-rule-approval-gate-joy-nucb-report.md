@@ -1,3 +1,11 @@
+---
+summary: 063-force-rule-approval-gate-joy-nucb-report
+status: active
+priority: P3
+tags: docs, migrated
+---
+
+
 # Completion Report: force-rule-approval-gate
 
 ## Summary

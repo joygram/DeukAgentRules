@@ -1,3 +1,11 @@
+---
+summary: 044-plan
+status: active
+priority: P3
+tags: docs, migrated
+---
+
+
 # [Goal] Hardening DeukAgentRules: Recursive Consistency and Index Normalization
 
 Stabilize the `DeukAgentRules` CLI and rule system by resolving data integrity issues in `INDEX.json` and ensuring full recursive initialization across all submodules.

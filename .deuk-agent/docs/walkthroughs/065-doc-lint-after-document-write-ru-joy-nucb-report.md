@@ -1,3 +1,11 @@
+---
+summary: 065-doc-lint-after-document-write-ru-joy-nucb-report
+status: active
+priority: P3
+tags: docs, migrated
+---
+
+
 # 065-doc-lint-after-document-write-rule Report
 
 ## Summary

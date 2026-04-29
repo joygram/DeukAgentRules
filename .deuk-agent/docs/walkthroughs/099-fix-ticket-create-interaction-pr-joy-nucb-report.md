@@ -1,3 +1,11 @@
+---
+summary: 099-fix-ticket-create-interaction-pr-joy-nucb-report
+status: active
+priority: P3
+tags: docs, migrated
+---
+
+
 # Walkthrough - Fixing Ticket Create Interaction Prompt
 
 Fixed an issue where `npx deuk-agent-rule ticket create` would hang in non-interactive mode when `--evidence` was missing.

@@ -1,3 +1,11 @@
+---
+summary: 082-refactor-cli-technical-debt-joy-nucb-report
+status: active
+priority: P3
+tags: docs, migrated
+---
+
+
 # Walkthrough - Refactor CLI Technical Debt (082)
 
 ## Changes Made

@@ -1,3 +1,11 @@
+---
+summary: 045-report
+status: active
+priority: P3
+tags: docs, migrated
+---
+
+
 # [Verification] Completion Report: Frontmatter-Driven Rule Assembly
 
 ## 📦 Changes Summary
@@ -6,7 +14,7 @@
 - **DeukRag 옵션화**: RAG-First Hard Lock 규약을 `rules.d/deukrag-mcp.md`로 분리하고 Frontmatter를 통해 모듈화했습니다.
 - **코어 번들 경량화**: `AGENTS.md`와 `gemini.md`를 순수 워크플로우(TDD, 에러 방지, 리포트 포맷) 규약만을 담당하도록 정리했습니다.
 
-**Artifacts Created**: 
+**Artifacts Created**:
 - `scripts/cli-rule-compiler.mjs`
 - `bundle/rules.d/core-workflow.md`
 - `bundle/rules.d/deukrag-mcp.md`

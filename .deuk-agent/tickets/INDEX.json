@@ -1,7 +1,18 @@
 {
   "version": 1,
-  "updatedAt": "2026-04-29T19:53:00.513Z",
+  "updatedAt": "2026-04-29T20:08:48.282Z",
+  "activeTicketId": "119-rules-v13-optimization-joy-nucb",
   "entries": [
+    {
+      "id": "119-rules-v13-optimization-joy-nucb",
+      "title": "rules-v13-optimization",
+      "topic": "rules-v13-optimization",
+      "group": "sub",
+      "project": "global",
+      "createdAt": "2026-04-29T20:02:55.407Z",
+      "source": "ticket-create",
+      "status": "open"
+    },
     {
       "id": "118-agent-rule-frontmatter-enforceme-joy-nucb",
       "title": "agent-rule-frontmatter-enforcement",

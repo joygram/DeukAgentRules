@@ -5,7 +5,7 @@ import { existsSync, readFileSync, writeFileSync, mkdirSync, copyFileSync, readd
 import { ensureTicketDirAndGitignore } from "./cli-init-logic.mjs";
 import { normalizeTicketPaths } from "./cli-ticket-migration.mjs";
 
-import { loadInitConfig, writeInitConfig, isWorkflowExecute, normalizeWorkflowMode, SPOKE_REGISTRY } from "./cli-utils.mjs";
+import { loadInitConfig, writeInitConfig, isWorkflowExecute, normalizeWorkflowMode, SPOKE_REGISTRY, parseFrontMatter, stringifyFrontMatter } from "./cli-utils.mjs";
 import { runInteractive } from "./cli-prompts.mjs";
 
 import { AGENT_ROOT_DIR, TICKET_SUBDIR, TEMPLATE_SUBDIR, discoverAllWorkspaces, isMcpActive, toRepoRelativePath, resolveWorkflowMode, pruneRuleModules } from "./cli-utils.mjs";
@@ -160,6 +160,92 @@ function syncTemplates(cwd, bundleRoot, dryRun) {
   console.log(`[CLEANUP] removed redundant templates directory: ${toRepoRelativePath(cwd, tplDestDir)}`);
 }
 
+/**
+ * Scans .deuk-agent/tickets/ and .deuk-agent/docs/ for markdown files
+ * missing YAML frontmatter or missing required frontmatter keys,
+ * and injects/supplements them. Also strips trailing whitespace.
+ * This ensures lint:md passes and RAG indexing works correctly.
+ */
+function migrateMissingFrontmatter(cwd, dryRun) {
+  const dirs = [
+    join(cwd, AGENT_ROOT_DIR, TICKET_SUBDIR),
+    join(cwd, AGENT_ROOT_DIR, "docs"),
+  ];
+  const requiredKeys = ["summary", "status", "priority", "tags"];
+
+  let count = 0;
+  for (const dir of dirs) {
+    if (!existsSync(dir)) continue;
+    walkMdFiles(dir, (absPath) => {
+      if (absPath.includes("archive/")) return;
+      const raw = readFileSync(absPath, "utf8");
+      const relPath = toRepoRelativePath(cwd, absPath);
+      const slug = basename(absPath, ".md");
+      const isTicket = relPath.includes(`/${TICKET_SUBDIR}/`);
+      const hasFrontmatter = raw.startsWith("---\n") || raw.startsWith("---\r\n");
+
+      if (hasFrontmatter) {
+        // Check if required keys are present
+        const parsed = parseFrontMatter(raw);
+        const missing = requiredKeys.filter(k => !parsed.meta[k]);
+        if (missing.length === 0) return; // all keys present, skip
+
+        // Supplement missing keys
+        const defaults = {
+          summary: parsed.meta.title || parsed.meta.id || slug,
+          status: isTicket ? "open" : "active",
+          priority: "P3",
+          tags: isTicket ? "migrated" : "docs, migrated",
+        };
+        for (const key of missing) {
+          parsed.meta[key] = defaults[key];
+        }
+
+        if (!dryRun) {
+          const cleanedContent = parsed.content.split("\n").map(l => l.trimEnd()).join("\n");
+          writeFileSync(absPath, stringifyFrontMatter(parsed.meta, cleanedContent), "utf8");
+        }
+        console.log(`[MIGRATE] ${dryRun ? "Would supplement" : "Supplemented"} frontmatter (${missing.join(", ")}): ${relPath}`);
+      } else {
+        // No frontmatter at all — inject
+        const meta = {
+          summary: slug,
+          status: isTicket ? "open" : "active",
+          priority: "P3",
+          tags: isTicket ? "migrated" : "docs, migrated",
+        };
+        if (isTicket) {
+          meta.id = slug;
+          meta.title = slug;
+          meta.createdAt = new Date().toISOString().replace("T", " ").split(".")[0];
+        }
+
+        if (!dryRun) {
+          const cleanedRaw = raw.split("\n").map(l => l.trimEnd()).join("\n");
+          const newContent = stringifyFrontMatter(meta, cleanedRaw);
+          writeFileSync(absPath, newContent, "utf8");
+        }
+        console.log(`[MIGRATE] ${dryRun ? "Would add" : "Added"} frontmatter: ${relPath}`);
+      }
+      count++;
+    });
+  }
+  if (count > 0) {
+    console.log(`[MIGRATE] Frontmatter migration: ${count} file(s) ${dryRun ? "would be " : ""}updated.`);
+  }
+}
+
+function walkMdFiles(dir, callback) {
+  for (const entry of readdirSync(dir, { withFileTypes: true })) {
+    const p = join(dir, entry.name);
+    if (entry.isDirectory()) {
+      walkMdFiles(p, callback);
+    } else if (entry.name.endsWith(".md")) {
+      callback(p);
+    }
+  }
+}
+
 function syncGlobalCodexInstructions(dryRun) {
   const codexDir = join(homedir(), ".codex");
   if (!existsSync(codexDir)) return;
@@ -179,7 +265,7 @@ When working in a repository, always look for a local \`AGENTS.md\` or \`.deuk-a
 ## Core Directives
 - Follow TDW (Ticket-Driven Workflow).
 - Use \`npx deuk-agent-rule ticket create\` for new tasks.
-- Prioritize RAG search via \`mcp_deukcontext_search_*\` tools.
+- Prioritize RAG search via \`mcp_deuk_agent_context_search_*\` tools.
 - Never refactor without a ticket or explicit instruction.
 `;
 
@@ -345,6 +431,9 @@ async function initSingleWorkspace(subCwd, opts, bundleRoot, selectedTools) {
   
   // 2. Normalize INDEX.json paths (fix stale paths)
   normalizeTicketPaths(subCwd, { silent: false });
+
+  // 2.5. Frontmatter migration (add missing frontmatter to deuk-agent docs/tickets)
+  migrateMissingFrontmatter(subCwd, opts.dryRun);
 
   // 3. Spoke Pointers (e.g. .cursor/rules/deuk-agent.mdc)
   removeDuplicateRuleCopies(subCwd, opts.dryRun);

@@ -3,44 +3,33 @@
 ---
 # <%= meta.title %>
 
-> **[CAUTION FOR AI AGENTS]**
-> 1. Restrict all analysis, file creation, and modifications to the declared **Target Module** below.
-> 2. Read the files listed in **Context Files** before doing ANY code generation.
-> 3. DO NOT leak configuration, logic, or dependencies from other modules.
+> Restrict all changes to the declared **Target Module**. Read **Context Files** before code generation.
 
-## Target Module
-- **Target:** [Fill in the target module/submodule path]
-- **Context Files:** [List architecture docs or key files to read first]
-
-## Analysis & Constraints (Deep Review)
-> [WARNING: Do not skip deep analysis. Shallow logic leads to cascaded bugs.]
-> [1. Root Cause & Architecture constraint:]
-> [2. Risk & Edge Cases (What could go wrong?):]
+## Scope & Constraints
+- **Target:** [module/submodule path]
+- **Context Files:** [architecture docs, key files]
+- **Design Rationale:** [Why this change is needed]
+- **Constraints:** [No hotpath LINQ, Async Safety, etc.]
 
 ## Agent Permission Contract (APC)
 
-> ⚠️ [MANDATORY] Do NOT write or modify any code until this 4-block contract is completely filled out.
+| Field | Value |
+|-------|-------|
+| Editable modules | |
+| Forbidden modules | |
+| Input | |
+| Output | |
+| Side effects | |
+| Rule citation | [Quote from ARCHITECTURE.md or "N/A"] |
 
-### [BOUNDARY]
-- **변경 가능한 모듈:** 
-- **변경 금지 모듈:** 
+## Patch Plan
 
-### [CONTRACT]
-- **input:** 
-- **output:** 
-- **side effects:** 
-- **Rule Citation (프로젝트 룰 인용):** [프로젝트 룰 문서(예: ARCHITECTURE.md)에서 이 변경을 규제하는 조항을 찾아 원문 그대로 복사할 것. 없으면 "N/A"]
-
-### [PATCH PLAN]
-- **file:** 
-- **function:** 
-- **change:** 
-
-### [TEST IMPACT]
-- **affected tests:** 
+| File | Function | Change |
+|------|----------|--------|
+| | | |
 
 ## Tasks
 - [ ] [Task 1]
 
 ## Done When
-> [Define verification steps and completion criteria]
+> [Verification steps and completion criteria]

@@ -1,7 +1,15 @@
+---
+summary: 045-plan
+status: active
+priority: P3
+tags: docs, migrated
+---
+
+
 # [Design] Decoupling Domain Rules via Frontmatter-Driven Assembly
 
 ## 🎯 Background & Motivation
-Currently, `DeukAgentRules` is heavily coupled with domain-specific rules (`DeukPack` codec rules, `DeukRag` RAG-first locks). 
+Currently, `DeukAgentRules` is heavily coupled with domain-specific rules (`DeukPack` codec rules, `DeukRag` RAG-first locks).
 - **Issue 1**: `DeukAgentRules` should be generic and universally applicable to any project, not just `DeukFamily`.
 - **Issue 2**: `DeukRag` is an optional MCP server. Its strict rules should only activate if the environment actually supports it.
 - **Issue 3**: The current mechanism uses hardcoded tag strings (`<!-- deuk-agent-rule:begin -->`) for a monolithic injection, making it rigid.
