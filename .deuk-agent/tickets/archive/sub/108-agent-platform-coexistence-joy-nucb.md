@@ -1,7 +1,13 @@
 ---
-<%- frontmatter %>
+id: 108-agent-platform-coexistence-joy-nucb
+title: agent-platform-coexistence
+phase: 1
+status: open
+docsLanguage: ko
+evidence: 에이전트 플랫폼별(Claude/Copilot/Codex/Cursor) 에이전트 모드 심층 분석 및 공존 프로토콜 구현
+createdAt: 2026-04-28 23:29:14
 ---
-# <%= meta.title %>
+# agent-platform-coexistence
 
 ## Analysis & Constraints (Deep Review)
 > [WARNING: Do not skip deep analysis. Shallow logic leads to cascaded bugs.]

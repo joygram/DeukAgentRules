@@ -1,7 +1,14 @@
 ---
-<%- frontmatter %>
+id: 109-fix-ticket-create-duplicate-phas-joy-nucb
+title: fix-ticket-create-duplicate-phase
+phase: 1
+status: closed
+docsLanguage: ko
+createdAt: 2026-04-29 08:31:53
 ---
-# <%= meta.title %>
+
+
+# fix-ticket-create-duplicate-phase
 
 ## Analysis & Constraints (Deep Review)
 > [WARNING: Do not skip deep analysis. Shallow logic leads to cascaded bugs.]

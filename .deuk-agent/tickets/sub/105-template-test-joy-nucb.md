@@ -1,14 +1,12 @@
 ---
-id: 108-agent-platform-coexistence-joy-nucb
-title: agent-platform-coexistence
-phase: 1
+id: 105-template-test-joy-nucb
+title: Template Test
 status: open
 docsLanguage: ko
-evidence: 에이전트 플랫폼별(Claude/Copilot/Codex/Cursor) 에이전트 모드 심층 분석 및 공존 프로토콜 구현
-createdAt: 2026-04-28 23:29:14
-phase: 1
+summary: Testing regular ticket creation
+createdAt: 2026-04-28 20:30:54
 ---
-# agent-platform-coexistence
+# Template Test
 
 ## Analysis & Constraints (Deep Review)
 > [WARNING: Do not skip deep analysis. Shallow logic leads to cascaded bugs.]
