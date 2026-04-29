@@ -41,17 +41,31 @@ FORBIDDEN:
 
 ```
 CHECK 1: Do I have an active ticket?
-  → IF NO + code changes needed → STOP. Create ticket first.
+  → IF NO → am I about to call a WRITE tool? (see list below)
+    → IF YES → HARD BLOCK. Do NOT proceed. Create ticket FIRST.
+    → Read-only tools (view_file, grep_search, list_dir, search_*) are allowed without ticket.
+  → WRITE tools that REQUIRE an active ticket:
+    - write_to_file / replace_file_content / multi_replace_file_content
+    - run_command (if command modifies files: git commit, sed, mv, rm, npm run build, etc.)
+    - Any tool that creates, modifies, or deletes files
+
 CHECK 2: Did I call set_workflow_context?
   → IF NO + MCP available → call now.
+
 CHECK 3: Is the target file generated?
   → IF file has @generated / DO NOT EDIT marker → DO NOT EDIT. Modify the source instead.
   → IF file is in dist/ Generated/ gen/ deukpack_out/ → DO NOT EDIT.
   → IF unsure → check PROJECT_RULE.md mapping table → IF not listed → ASK USER.
   → NEVER explore repo with find/grep/ls to guess. 3 failed lookups → HALT.
+
 CHECK 4: Is this file outside my ticket's Target Module?
   → IF 3+ external files already modified → STOP. Create new ticket.
 ```
+
+> **WHY THIS EXISTS**: Agents frequently skip ticket creation "to save time" and proceed
+> directly to code edits. This makes work untrackable and violates the Ticket-Driven Workflow.
+> There are ZERO exceptions to CHECK 1 for write operations.
+
 
 ## 3. Ticket Lifecycle (MANDATORY — never skip phases)
 
