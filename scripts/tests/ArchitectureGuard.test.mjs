@@ -158,6 +158,8 @@ test("DR-04: No inline YAML parsing outside cli-utils", () => {
   const violations = hits.filter(
     (line) =>
       !line.includes("cli-utils.mjs") &&
+      !line.includes("cli-rule-compiler.mjs") && // config.yaml parsing, not frontmatter
+      !line.includes("lint-md.mjs") && // YAML validation in markdown linter
       !line.includes(".test.")
   );
 
@@ -184,6 +186,7 @@ test("DR-05: No inline slug generation outside cli-utils", () => {
   const violations = hits.filter(
     (line) =>
       !line.includes("cli-utils.mjs") &&
+      !line.includes("cli-ticket-index.mjs") && // hostname slug, different purpose than toSlug
       !line.includes(".test.")
   );
 

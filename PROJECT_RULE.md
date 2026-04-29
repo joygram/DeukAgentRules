@@ -10,7 +10,7 @@ architecture_docs: "docs/architecture.md"
 다음의 아키텍처 규칙과 제약사항을 준수해야 합니다.
 
 ### 1. Hub-Spoke Architecture
-- 모든 에이전트 핵심 룰은 `core-rules/` 및 `templates/rules.d/` 하위 모듈 단위로 관리됩니다.
+- 모든 에이전트 핵심 룰은 `core-rules/AGENTS.md`에 인라인되며, 조건부 룰(MCP 연동, 플랫폼별 설정 등)은 `templates/rules.d/` 하위 모듈로 관리됩니다.
 - `.cursor/rules/`, `.github/copilot-instructions.md` 등의 에이전트 특화 파일은 하드코딩된 규칙을 포함해서는 안 되며, 오직 "Hub(`AGENTS.md`)를 읽으라"는 포인터(Spoke) 역할만 해야 합니다.
    
 ### 2. Global CLI Proxy (Stale Tarball 방지)
