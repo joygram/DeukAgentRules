@@ -13,20 +13,18 @@
 
 ## Agent Permission Contract (APC)
 
-| Field | Value |
-|-------|-------|
-| Editable modules | |
-| Forbidden modules | |
-| Input | |
-| Output | |
-| Side effects | |
-| Rule citation | [Quote from ARCHITECTURE.md or "N/A"] |
+### [BOUNDARY]
+- Editable modules: [Add editable module paths]
+- Forbidden modules: [Add forbidden module paths]
+- Rule citation: [Add PROJECT_RULE.md or architecture rule citation, or "N/A"]
 
-## Patch Plan
+### [CONTRACT]
+- Input: [Add input/context for this ticket]
+- Output: [Add expected output]
+- Side effects: [Add expected side effects]
 
-| File | Function | Change |
-|------|----------|--------|
-| | | |
+### [PATCH PLAN]
+- [Add file/function/change plan]
 
 ## Tasks
 - [ ] [Task 1]

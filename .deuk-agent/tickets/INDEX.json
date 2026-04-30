@@ -1,8 +1,20 @@
 {
   "version": 1,
-  "updatedAt": "2026-04-30T10:05:49.028Z",
+  "updatedAt": "2026-04-30T20:58:50.068Z",
   "activeTicketId": "119-rules-v13-optimization-joy-nucb",
   "entries": [
+    {
+      "id": "121-ticket-template-apc-section-form-joy-nucb",
+      "title": "ticket-template-apc-section-format",
+      "topic": "121-ticket-template-apc-section-form-joy-nucb",
+      "group": "sub",
+      "project": "global",
+      "submodule": "",
+      "createdAt": "2026-04-30 20:57:02",
+      "updatedAt": "2026-04-30T20:58:51.814Z",
+      "source": "ticket-sync",
+      "status": "archived"
+    },
     {
       "id": "120-prevent-ghost-ticket-plan-gate-joy-nucb",
       "title": "prevent-ghost-ticket-plan-gate",
@@ -11,7 +23,7 @@
       "project": "global",
       "submodule": "",
       "createdAt": "2026-04-30 10:03:44",
-      "updatedAt": "2026-04-30T10:05:49.019Z",
+      "updatedAt": "2026-04-30T10:06:06.628Z",
       "source": "ticket-sync",
       "status": "closed"
     },
