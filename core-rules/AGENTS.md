@@ -1,6 +1,6 @@
 ---
-version: 14
-changelog: "v14: Added Hotfix protocol, Urgency response protocol, and strengthened Phase Write Guards."
+version: 15
+changelog: "v15: Added G5 (dependency-check-before-fix guard), run_command File-Mutation Clause, explicit sed/cp/mv coverage in G3. Closes path-hack bypass gap."
 ---
 
 # Agent Rules
@@ -35,10 +35,13 @@ changelog: "v14: Added Hotfix protocol, Urgency response protocol, and strengthe
 | G1 | No active ticket + about to WRITE? | **HARD BLOCK.** Create ticket first. Read-only tools (view_file, grep, list_dir, search_*) are allowed. |
 | G1.1 | Active ticket exists, but phase is < 2 (Plan)? | **HARD BLOCK.** File modification is strictly FORBIDDEN in Phase 1. You MUST call `ticket move --next` and get user approval before writing code. |
 | G2 | `set_workflow_context` not called? | Call now. |
-| G3 | Target file has `@generated` / `DO NOT EDIT` / is in `dist/ Generated/ gen/ deukpack_out/`? | **DO NOT EDIT.** Modify the source. If unsure → check PROJECT_RULE.md mapping. 3 failed lookups → HALT. |
+| G3 | Target file has `@generated` / `DO NOT EDIT` / is in `dist/ Generated/ gen/ deukpack_out/`? | **DO NOT EDIT.** Modify the source (template/IDL/generator). If unsure → check PROJECT_RULE.md mapping. 3 failed lookups → HALT. This applies equally to `sed`/`awk`/`patch` via `run_command`. |
 | G4 | 3+ external files modified outside ticket's Target Module? | **STOP.** Create new ticket. |
+| G5 | `ImportError` / `ModuleNotFoundError` on generated or dependency code? | **DO NOT immediately fix.** First inspect package manager configs (`pyproject.toml`, `package.json`, `Cargo.toml`) and codegen pipeline (`deukpack.pipeline.json`, templates). Only after understanding the dependency architecture may you propose a fix. `cp`/`sed` path hacks are a **major violation**. |
 
-WRITE tools requiring active ticket: `write_to_file`, `replace_file_content`, `multi_replace_file_content`, `run_command` (if modifying files).
+WRITE tools requiring active ticket: `write_to_file`, `replace_file_content`, `multi_replace_file_content`, `run_command`.
+
+> **`run_command` File-Mutation Clause**: Shell commands that modify files (`sed`, `awk`, `cp`, `mv`, `rm`, `echo >>`, `patch`, `tee`, `install`) are subject to ALL Pre-Action Guards (G1–G5) and File Guards (F1–F6). The fact that they run via terminal does NOT exempt them from guard checks. Read-only commands (`cat`, `ls`, `grep`, `find`, `head`, `diff`) are exempt.
 
 ## 3. Ticket Lifecycle (never skip phases)
 
