@@ -34,6 +34,7 @@ changelog: "v15: Added G5 (dependency-check-before-fix guard), run_command File-
 |---|-------|-----------------|
 | G1 | No active ticket + about to WRITE? | **HARD BLOCK.** Create ticket first. Read-only tools (view_file, grep, list_dir, search_*) are allowed. |
 | G1.1 | Active ticket exists, but phase is < 2 (Plan)? | **HARD BLOCK.** File modification is strictly FORBIDDEN in Phase 1. You MUST call `ticket move --next` and get user approval before writing code. |
+| G1.2 | Ticket has `planLink`, but plan file missing OR still placeholder-only? | **HARD BLOCK.** Create/fill plan file first, then run `lint:md` for both ticket and plan before execute-phase writes. |
 | G2 | `set_workflow_context` not called? | Call now. |
 | G3 | Target file has `@generated` / `DO NOT EDIT` / is in `dist/ Generated/ gen/ deukpack_out/`? | **DO NOT EDIT.** Modify the source (template/IDL/generator). If unsure → check PROJECT_RULE.md mapping. 3 failed lookups → HALT. This applies equally to `sed`/`awk`/`patch` via `run_command`. |
 | G4 | 3+ external files modified outside ticket's Target Module? | **STOP.** Create new ticket. |
@@ -48,7 +49,7 @@ WRITE tools requiring active ticket: `write_to_file`, `replace_file_content`, `m
 | Phase | What to do | STOP condition |
 |-------|-----------|----------------|
 | 0: Research | Skip if context sufficient. IF search needed: MAX 2 MCP calls, prefer local reads, specific terms only. | 2 searches → no result → stop searching. |
-| 1: Plan | Read arch rules → fill APC → `ticket create --summary "..."` (summary MUST be non-empty). | **STOP. Wait for user approval.** |
+| 1: Plan | Read arch rules → fill APC → `ticket create --summary "..."` (summary MUST be non-empty) → create `planLink` file with executable steps (not placeholders) and frontmatter. | **STOP. Wait for user approval.** |
 | 2: Execute | Implement per approved plan. Update checkboxes `[x]`. | — |
 | 3: Verify | Run build/tests. Record issues. | — |
 | 4: Close | Close + archive ticket. File follow-ups if needed. | **NEVER skip.** |
@@ -88,9 +89,10 @@ Plan-only mode: Do Phases 0–1 only. Defer writes as text in plan. On transitio
 
 - ALL artifacts MUST be under `.deuk-agent/docs/` for RAG indexing.
 - ALL plan/report files MUST have frontmatter (`summary`, `status`, `priority`, `tags`). Run `enrich_frontmatter` after creation.
+- Ticket in Phase 1 is **not complete** unless its `planLink` file exists and contains executable, non-placeholder sections.
 - Platform native paths (`brain/`, `.cursor/plans/`) are NOT indexed → copy to `.deuk-agent/docs/`.
 - Platform features (planning, artifacts, KI) co-exist. NEVER disable them. Always call `set_workflow_context`.
-- Run `npx deuk-agent-rule lint:md` after markdown edits.
+- Run `npx deuk-agent-rule lint:md` after markdown edits. For Phase 1 completion, lint **both** ticket and `planLink` in one run.
 
 ## 7. CLI Reference
 
