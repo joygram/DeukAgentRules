@@ -1,9 +1,9 @@
 import test from "node:test";
 import assert from "node:assert";
-import { mkdtempSync, mkdirSync, rmSync, writeFileSync } from "node:fs";
+import { mkdtempSync, mkdirSync, readFileSync, readdirSync, rmSync, writeFileSync } from "node:fs";
 import { tmpdir } from "node:os";
 import { join } from "node:path";
-import { pickTicketEntry, runTicketNext } from "../cli-ticket-commands.mjs";
+import { pickTicketEntry, runTicketCreate, runTicketNext } from "../cli-ticket-commands.mjs";
 import { TICKET_INDEX_FILENAME } from "../cli-utils.mjs";
 
 function makeIndex(entries) {
@@ -142,4 +142,45 @@ test("runTicketNext preserves unfiltered active-first behavior", async () => {
   }
 
   assert.deepStrictEqual(lines, [join(ticketDir, "sub", "001-global-active-host.md")]);
+});
+
+test("runTicketCreate generates non-duplicative ticket and planLink drafts", async () => {
+  const cwd = mkdtempSync(join(tmpdir(), "deuk-ticket-plan-draft-"));
+  const summary = "unique duplicated summary phrase must stay ticket-owned";
+  const originalLog = console.log;
+  const originalWarn = console.warn;
+  console.log = () => {};
+  console.warn = () => {};
+
+  try {
+    await runTicketCreate({
+      cwd,
+      topic: "non-duplicate-draft",
+      summary,
+      nonInteractive: true,
+      docsLanguage: "en",
+      skipPhase0: true
+    });
+
+    const ticketDir = join(cwd, ".deuk-agent", "tickets", "sub");
+    const ticketFile = readdirSync(ticketDir).find(name => name.endsWith(".md"));
+    assert.ok(ticketFile, "ticket markdown should be created");
+
+    const ticketText = readFileSync(join(ticketDir, ticketFile), "utf8");
+    const planLink = ticketText.match(/planLink:\s*(.+)/)?.[1]?.trim();
+    assert.ok(planLink, "ticket should record planLink");
+    assert.match(ticketText, /PlanLink:/);
+    assert.doesNotMatch(ticketText, /Read relevant architecture and target module files/);
+
+    const planText = readFileSync(join(cwd, planLink), "utf8");
+    assert.doesNotMatch(planText, new RegExp(summary));
+    assert.doesNotMatch(planText, /## Goal/);
+    assert.match(planText, /## Ticket Contract Pointer/);
+    assert.match(planText, /## Evidence/);
+    assert.match(planText, /## Execution Steps/);
+  } finally {
+    console.log = originalLog;
+    console.warn = originalWarn;
+    rmSync(cwd, { recursive: true, force: true });
+  }
 });

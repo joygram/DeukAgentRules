@@ -45,7 +45,7 @@ Running `deuk-agent-rule init` triggers the following lifecycle:
 ## 5. Strict Phase-Driven Workflow (TDW)
 
 1. **Issue Ticket (Phase 1)**: `ticket create` or an existing ticket defines the target scope. Use `--from-plan` to convert an implementation plan.
-2. **APC and planLink Record**: Before modifying code, the agent fills the APC (Agent Permission Contract) blocks `[BOUNDARY]`, `[CONTRACT]`, and `[PATCH PLAN]`, plus the planLink as searchable planning evidence.
+2. **APC and planLink Record**: Before modifying code, the agent fills the APC (Agent Permission Contract) blocks `[BOUNDARY]`, `[CONTRACT]`, and `[PATCH PLAN]`, plus the planLink. The ticket owns scope/contract; planLink owns evidence/execution/verification, and they must not repeat the same content.
 3. **Phase Transition**: If the user clearly requested execution and Phase 1 records are complete, run `ticket move` to transition to Phase 2 (Execute).
 4. **Execute & Verify (Phase 2)**: Changes are made and verified within the isolated boundary.
 5. **Knowledge Distillation Archive**: When archiving, core information is extracted (Zero-Token Distillation) to save context tokens for long-term memory.

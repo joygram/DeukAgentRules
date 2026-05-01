@@ -72,9 +72,9 @@ function buildApcDraft(summary) {
     contractOutput: `- Output: minimal implementation and tests that satisfy \"${s}\"`,
     contractSideEffects: "- Side effects: ticket + plan docs updates, scoped code changes only",
     patchPlan: [
-      "- Parse current implementation and identify minimal change points.",
-      `- Implement the smallest patch needed for \"${s}\" while preserving APIs.`,
-      "- Add/adjust tests and verify before phase progression."
+      "- Detailed evidence, execution steps, and verification live in planLink.",
+      "- Ticket records only the allowed patch boundary and contract.",
+      "- Do not duplicate planLink content here; reference it when detail is needed."
     ].join("\n")
   };
 }
@@ -103,9 +103,10 @@ function ensurePlanDraftFile(cwd, planLink, summary, opts = {}) {
   if (opts.dryRun) return planAbs;
 
   const now = new Date().toISOString().replace("T", " ").split(".")[0];
+  const planSummary = `Execution evidence and verification plan for ${basename(planLink, ".md")}`;
   const planBody = [
     "---",
-    `summary: \"${String(summary || "").replace(/\"/g, "'")}\"`,
+    `summary: \"${planSummary.replace(/\"/g, "'")}\"`,
     "status: draft",
     "priority: P2",
     "tags:",
@@ -114,19 +115,22 @@ function ensurePlanDraftFile(cwd, planLink, summary, opts = {}) {
     `createdAt: \"${now}\"`,
     "---",
     "",
-    "# Execution Plan",
+    "# Planning Evidence",
     "",
-    "## Goal",
-    `- ${summarizeForSentence(summary)}`,
+    "## Ticket Contract Pointer",
+    "- Linked ticket owns summary, scope, constraints, and APC.",
+    "- This planLink owns evidence, concrete execution steps, and verification notes.",
+    "- Do not copy ticket APC or summary text into this document.",
     "",
-    "## Steps",
-    "- [ ] Read relevant architecture and target module files.",
-    "- [ ] Implement minimal scoped changes for this ticket.",
-    "- [ ] Run tests/lint and record verification evidence.",
+    "## Evidence",
+    "- [ ] Record architecture/source observations that justify the implementation.",
+    "",
+    "## Execution Steps",
+    "- [ ] List concrete implementation steps that are not repeated in the ticket.",
     "",
     "## Verification",
-    "- [ ] Commands to run",
-    "- [ ] Expected outcomes"
+    "- [ ] Commands to run and expected outcomes.",
+    "- [ ] Record pass/fail evidence after execution."
   ].join("\n");
 
   mkdirSync(dirname(planAbs), { recursive: true });

@@ -4,12 +4,13 @@
 # <%= meta.title %>
 
 > Restrict changes to **Target Module**. Read **Context Files** before code generation.
+> Keep execution evidence and detailed steps in `planLink`; do not duplicate them here.
 
 ## Scope & Constraints
 
 - **Target:** module/submodule paths directly required by `<%= meta.title %>`
 - **Context Files:** `PROJECT_RULE.md`, relevant architecture docs, and target source files
-- **Design Rationale:** Preserve existing architecture while implementing the ticket summary.
+- **PlanLink:** `<%= meta.planLink %>` owns evidence, decisions, detailed steps, and verification notes.
 - **Constraints:** No generated output edits, no unrelated refactors, no broad regeneration without approval.
 
 ## Agent Permission Contract (APC)
@@ -25,13 +26,13 @@
 <%- apcDraft?.contractSideEffects || "- Side effects: scoped changes and docs updates" %>
 
 ### [PATCH PLAN]
-<%- apcDraft?.patchPlan || "- Analyze current code and apply minimal, scoped patch" %>
+<%- apcDraft?.patchPlan || "- Execution steps live in planLink; ticket records only the permitted patch boundary." %>
 
 ## Tasks
 
-- [ ] Read context files and confirm scope.
-- [ ] Apply the minimal patch described in APC.
-- [ ] Run verification and record results.
+- [ ] Complete non-duplicative `planLink` evidence/steps/verification.
+- [ ] Execute changes inside APC boundary.
+- [ ] Record verification outcome in the linked report or planLink.
 
 ## Done When
 
