@@ -6,6 +6,24 @@
 
 형식은 [Keep a Changelog](https://keepachangelog.com/ko/1.1.0/)를 기반으로 하며, 이 프로젝트는 [유의적 버전(Semantic Versioning)](https://semver.org/spec/v2.0.0.html)을 준수합니다.
 
+## [3.3.0] - 2026-05-02
+
+### 추가됨 (Added)
+
+- **docs:** VS Code, Open VSX, GitHub, skill 기반 발견 루프를 포함한 AI 코딩 에이전트 가드레일 포지셔닝, 비전, 오가닉 유입 리서치 문서를 추가했습니다.
+- **docs:** Karpathy식 skill, DeukAgentRules, DeukAgentContext 심층 비교 문서를 추가했습니다. Skill은 행동 playbook, DeukAgentRules는 workflow/permission control, DeukAgentContext는 ticketed engineering memory로 포지셔닝했습니다.
+- **seo:** `andrej-karpathy-skills` 관련 아이디어 링크와 Claude Code, AGENTS.md, Cursor rules, agent skills, AI guardrails 검색 유입 키워드를 보강했습니다.
+
+### 변경됨 (Changed)
+
+- **ticket:** 열린 티켓이 설정된 한도를 넘을 때 자동 정리 대신 사용자가 목록을 보고 결정할 수 있는 cleanup flow를 강화했습니다.
+- **ticket:** 닫힌 티켓은 자동 아카이브할 수 있게 하고, 아카이브된 티켓은 년월/일 단위로 정리되도록 했습니다.
+- **docs:** README 문서 목록과 GitHub topic 가이드를 agent guardrail, instruction hub, skill registry, project memory 포지셔닝에 맞게 갱신했습니다.
+
+### 수정됨 (Fixed)
+
+- **ticket:** 새 작업 진입 전에 정리 결정을 노출하여 열린 티켓 수가 의도한 운영 한도를 조용히 넘는 문제를 방지했습니다.
+
 ## [3.2.0] - 2026-04-29
 
 ### 추가됨 (Added)

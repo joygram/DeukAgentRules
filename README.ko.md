@@ -53,6 +53,7 @@ DeukAgentRules는 AI 에이전트가 코드를 분석하고 작성하는 모든 
 | [docs/how-it-works.ko.md](docs/how-it-works.ko.md) | 상세 CLI 메커니즘, 초기화 생명주기 및 파일 역할 |
 | [docs/principles.ko.md](docs/principles.ko.md) | 설계 철학: Hub-Spoke, Zero-Legacy, 소스 주권 |
 | [docs/product-positioning-research.ko.md](docs/product-positioning-research.ko.md) | AI 코딩 에이전트 가드레일 제품 포지셔닝 리서치 |
+| [docs/karpathy-skills-vs-deukagent-positioning.ko.md](docs/karpathy-skills-vs-deukagent-positioning.ko.md) | Karpathy식 skill, DeukAgentRules, DeukAgentContext 심층 비교 |
 | [docs/vision-agent-guardrails.ko.md](docs/vision-agent-guardrails.ko.md) | 멀티 에이전트 가드레일 허브 비전 문서 |
 | [docs/organic-growth-plan.ko.md](docs/organic-growth-plan.ko.md) | VS Code, Open VSX, GitHub, 스킬 루프 기반 오가닉 유입 계획 |
 | **English Docs** | [README.md](README.md) · [docs/architecture.md](docs/architecture.md) |
