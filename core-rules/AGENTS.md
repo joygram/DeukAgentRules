@@ -1,6 +1,6 @@
 ---
-version: 16
-changelog: "v16: Require tickets and plans to use the user's current prompt language, overriding stored docsLanguage/default locale when they conflict."
+version: 17
+changelog: "v17: Add scope-expansion guards for exploration/candidate requests, generated report regeneration, and official baseline expansion."
 ---
 
 # Agent Rules
@@ -40,6 +40,9 @@ changelog: "v16: Require tickets and plans to use the user's current prompt lang
 | G3 | Target file has `@generated` / `DO NOT EDIT` / is in `dist/ Generated/ gen/ deukpack_out/`? | **DO NOT EDIT.** Modify the source (template/IDL/generator). If unsure → check PROJECT_RULE.md mapping. 3 failed lookups → HALT. This applies equally to `sed`/`awk`/`patch` via `run_command`. |
 | G4 | 3+ external files modified outside ticket's Target Module? | **STOP.** Create new ticket. |
 | G5 | `ImportError` / `ModuleNotFoundError` on generated or dependency code? | **DO NOT immediately fix.** First inspect package manager configs (`pyproject.toml`, `package.json`, `Cargo.toml`) and codegen pipeline (`deukpack.pipeline.json`, templates). Only after understanding the dependency architecture may you propose a fix. `cp`/`sed` path hacks are a **major violation**. |
+| G6 | User asks to "look into", "list", "map", "compare candidates", "review options", "뽑아보자", "매칭해보자", "검토", or "후보"? | Treat as **exploration-only**. Do not edit product code, official data models, benchmark matrices, generated reports, templates, or config unless the user explicitly asks to apply/implement after seeing the candidate result. Output findings in chat or scratch docs only. |
+| G7 | About to run a command that regenerates broad outputs (`bench`, `reporter`, `build`, `codegen`, `sync`, `init`, docs generator) or changes timestamps/snapshots? | **HARD BLOCK unless explicitly in ticket scope and user-approved.** Prefer dry-run/read-only inspection. If needed for verification, write to `/tmp/` and do not touch tracked generated outputs. |
+| G8 | About to expand an official baseline/catalog/expected list (competitors, protocols, support matrix, compatibility table, release contract, public API, test matrix)? | **HARD BLOCK.** First present the proposed list as a draft and get explicit approval for promotion from candidate/draft to official source. |
 
 WRITE tools requiring active ticket: `write_to_file`, `replace_file_content`, `multi_replace_file_content`, `run_command`.
 
@@ -57,6 +60,14 @@ WRITE tools requiring active ticket: `write_to_file`, `replace_file_content`, `m
 
 Plan-only mode: Do Phases 0–1 only. Defer writes as text in plan. On transition to Execute → run deferred commands → Phase 2.
 
+### Exploration-Only Mode
+
+If G6 matches, default to **Exploration-Only Mode**:
+- Allowed: read files, inspect history, search docs, summarize options, create `.deuk-agent/docs/scratch/` notes if a file is needed.
+- Forbidden without explicit follow-up approval: modifying source code, templates, generated outputs, benchmark/report artifacts, package metadata, CI, official catalogs, expected matrices, or compatibility contracts.
+- The final answer must clearly label results as `draft`, `candidate`, or `not yet official`.
+- Do not convert candidate findings into executable implementation tasks in the same turn unless the user explicitly says to apply them.
+
 ## 4. HALT Conditions + File Guards
 
 | # | Condition | Action |
@@ -67,6 +78,7 @@ Plan-only mode: Do Phases 0–1 only. Defer writes as text in plan. On transitio
 | H4 | 50%+ tasks unregistered in ticket | Stop → update ticket or create new one. |
 | H5 | 2+ different modules modified | Stop → split into separate tickets. |
 | F1 | Generated file edited directly (DC-CODEGEN) | **Major violation.** Edit source → run build to propagate. Never edit both. (Emergency: use `ticket hotfix`). |
+| F1.1 | Generated/report artifacts (`benchmarks/reports/`, `coverage/`, snapshots, generated docs, changelogs, timestamped outputs) would change only because a generator was run | **Do not commit or leave these changes** unless the user explicitly requested artifact regeneration. Use `/tmp/` output for verification. |
 | F2 | Delete without proof of non-use | Run `git blame`/`grep`/tests first. "Seems unnecessary" ≠ valid. |
 | F3 | Infra code (bootstrap/transport/DB/routing) | Separate ticket + approval required. |
 | F4 | 10+ lines deleted | Document each block's purpose in commit. |

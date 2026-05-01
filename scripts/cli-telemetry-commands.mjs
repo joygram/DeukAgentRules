@@ -57,8 +57,8 @@ async function logAction(opts) {
 
   const entry = {
     ts: Math.floor(Date.now() / 1000),
-    tokens: opts.tokens || 0,
-    tdw: opts.tdw || 0,
+    tokens: Number(opts.tokens || 0),
+    tdw: Number(opts.tdw || 0),
     model: opts.model || "UNKNOWN",
     client: resolvedClient,
     ticket: opts.ticket || "",
@@ -82,7 +82,8 @@ async function syncAction(opts) {
   const pipelineUrl = opts.remote || config?.pipelineUrl || "http://localhost:8001/api/telemetry/ingest";
 
   const lines = readFileSync(absPath, "utf8").split("\n").filter(l => l.trim());
-  const unsynced = lines.map(l => JSON.parse(l)).filter(e => !e.synced);
+  const entries = lines.map(l => JSON.parse(l));
+  const unsynced = entries.filter(e => !e.synced);
 
   if (unsynced.length === 0) {
     console.log("[TELEMETRY] All logs already synced.");
@@ -106,8 +107,7 @@ async function syncAction(opts) {
        console.warn("[TELEMETRY] fetch not available, simulating sync...");
     }
 
-    const updatedLines = lines.map(line => {
-      const e = JSON.parse(line);
+    const updatedLines = entries.map(e => {
       if (!e.synced) e.synced = true;
       return JSON.stringify(e);
     }).join("\n") + "\n";
@@ -116,6 +116,7 @@ async function syncAction(opts) {
     console.log(`[TELEMETRY] Successfully synced ${unsynced.length} entries.`);
   } catch (err) {
     console.error(`[TELEMETRY] Sync failed: ${err.message}`);
+    process.exitCode = 1;
   }
 }
 

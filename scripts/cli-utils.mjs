@@ -449,6 +449,26 @@ export function discoverAllWorkspaces(baseCwd, ignoreDirs = DEFAULT_IGNORE_DIRS,
   return Array.from(out);
 }
 
+async function probeMcpUrl(url) {
+  const methods = ["HEAD", "GET"];
+
+  for (const method of methods) {
+    const controller = new AbortController();
+    const timeoutId = setTimeout(() => controller.abort(), 1000);
+    try {
+      const res = await fetch(url, { method, signal: controller.signal });
+      if (res.body?.cancel) await res.body.cancel().catch(() => {});
+      if (res.ok || res.status === 405) return true;
+    } catch (err) {
+      if (process.env.DEBUG) console.warn(`[DEBUG] SSE ${method} ping failed for ${url}:`, err);
+    } finally {
+      clearTimeout(timeoutId);
+    }
+  }
+
+  return false;
+}
+
 /**
  * Checks if the deuk-agent-context MCP server is active for the given workspace.
  * Detects .mcp.json, .cursor/mcp.json, or .vscode/mcp.json and pings SSE servers if applicable.
@@ -468,17 +488,7 @@ export async function isMcpActive(cwd) {
         if (deuk) {
           if (deuk.command) return true; // Stdio is managed by IDE
           if (deuk.url) {
-            // SSE: Try to ping (HEAD or GET)
-            try {
-              const controller = new AbortController();
-              const timeoutId = setTimeout(() => controller.abort(), 1000);
-              const res = await fetch(deuk.url, { method: "HEAD", signal: controller.signal });
-              clearTimeout(timeoutId);
-              return res.ok;
-            } catch (err) {
-              if (process.env.DEBUG) console.warn(`[DEBUG] SSE Ping failed for ${deuk.url}:`, err);
-              return false;
-            }
+            return await probeMcpUrl(deuk.url);
           }
         }
       } catch (err) {

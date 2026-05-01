@@ -1,11 +1,16 @@
 import test from "node:test";
 import assert from "node:assert";
+import { mkdtempSync, mkdirSync, writeFileSync, rmSync } from "node:fs";
+import { tmpdir } from "node:os";
+import { join } from "node:path";
+import http from "node:http";
 import { 
   normalizeWorkflowMode, resolveWorkflowMode, WORKFLOW_MODE_EXECUTE, WORKFLOW_MODE_PLAN,
   parseFrontMatter, stringifyFrontMatter, deriveTopicFromBaseName, toSlug, computeTicketPath,
-  normalizeDocsLanguage, resolveDocsLanguage, AGENT_ROOT_DIR, TICKET_SUBDIR
+  normalizeDocsLanguage, resolveDocsLanguage, AGENT_ROOT_DIR, TICKET_SUBDIR, isMcpActive
 } from "../cli-utils.mjs";
 import { generateTicketId, computeNextTicketNumber } from "../cli-ticket-index.mjs";
+import { parseTelemetryArgs } from "../cli-args.mjs";
 
 test("cli-utils.mjs - normalizeWorkflowMode", (t) => {
   assert.strictEqual(normalizeWorkflowMode(undefined), WORKFLOW_MODE_PLAN, "default is plan");
@@ -111,4 +116,56 @@ test("cli-utils.mjs - resolveDocsLanguage", (t) => {
   assert.strictEqual(resolveDocsLanguage("auto", { LC_ALL: "ko_KR.UTF-8" }), "ko");
   assert.strictEqual(resolveDocsLanguage("auto", { LANG: "en_US.UTF-8" }), "en");
   assert.strictEqual(resolveDocsLanguage("auto", {}), "en"); // fallback
+});
+
+test("cli-utils.mjs - isMcpActive detects stdio command configs", async () => {
+  const dir = mkdtempSync(join(tmpdir(), "deuk-mcp-command-"));
+  try {
+    writeFileSync(join(dir, ".mcp.json"), JSON.stringify({
+      mcpServers: {
+        "deuk-agent-context": { command: "deukcontext-mcp" }
+      }
+    }), "utf8");
+
+    assert.strictEqual(await isMcpActive(dir), true);
+  } finally {
+    rmSync(dir, { recursive: true, force: true });
+  }
+});
+
+test("cli-utils.mjs - isMcpActive falls back to GET for SSE configs", async () => {
+  const server = http.createServer((req, res) => {
+    if (req.method === "HEAD") {
+      res.writeHead(405);
+      res.end();
+      return;
+    }
+    res.writeHead(200, { "Content-Type": "text/event-stream" });
+    res.end("event: ready\ndata: ok\n\n");
+  });
+
+  await new Promise(resolve => server.listen(0, "127.0.0.1", resolve));
+  const { port } = server.address();
+  const dir = mkdtempSync(join(tmpdir(), "deuk-mcp-sse-"));
+
+  try {
+    mkdirSync(join(dir, ".cursor"), { recursive: true });
+    writeFileSync(join(dir, ".cursor", "mcp.json"), JSON.stringify({
+      mcpServers: {
+        "deuk-agent-context": { url: `http://127.0.0.1:${port}/sse` }
+      }
+    }), "utf8");
+
+    assert.strictEqual(await isMcpActive(dir), true);
+  } finally {
+    await new Promise(resolve => server.close(resolve));
+    rmSync(dir, { recursive: true, force: true });
+  }
+});
+
+test("cli-args.mjs - parseTelemetryArgs supports remote sync target", () => {
+  const opts = parseTelemetryArgs(["--cwd", "/tmp/work", "--tokens", "42", "--remote", "http://127.0.0.1:8001/ingest"]);
+  assert.strictEqual(opts.cwd, "/tmp/work");
+  assert.strictEqual(opts.tokens, 42);
+  assert.strictEqual(opts.remote, "http://127.0.0.1:8001/ingest");
 });
