@@ -3,7 +3,8 @@ import { basename, dirname, join } from "path";
 import { 
   AGENT_ROOT_DIR, TICKET_SUBDIR, TICKET_INDEX_FILENAME, TICKET_LIST_FILENAME, TICKET_LIST_TEMPLATE_FILENAME,
   toPosixPath, toRepoRelativePath, makeEntryId, detectProjectFromBody, deriveTopicFromBaseName,
-  parseFrontMatter, stringifyFrontMatter, discoverAllWorkspaces, detectConsumerTicketDir
+  parseFrontMatter, stringifyFrontMatter, discoverAllWorkspaces, detectConsumerTicketDir,
+  ARCHIVE_YEAR_MONTH_RE, ARCHIVE_DAY_RE
 } from "./cli-utils.mjs";
 import { readTicketIndexJson, writeTicketIndexJson } from "./cli-ticket-index.mjs";
 import ejs from "ejs";
@@ -124,7 +125,8 @@ function processTicketFile(abs, cwd, indexJson, opts) {
   const filename = basename(abs);
   const idFromFilename = filename.replace(/\.md$/i, "");
   const isAlreadyInArchive = rel.includes("/archive/");
-  const group = basename(dirname(abs));
+  const storage = parseTicketStorage(rel, isAlreadyInArchive, abs);
+  const group = storage.group;
 
   // Optimization: If entry already exists in index and not forced, reuse metadata to save I/O & tokens
   const existing = indexJson.entries.find(e => e.id === idFromFilename);
@@ -132,6 +134,8 @@ function processTicketFile(abs, cwd, indexJson, opts) {
     return {
       ...existing,
       group,
+      archiveYearMonth: storage.archiveYearMonth || existing.archiveYearMonth,
+      archiveDay: storage.archiveDay || existing.archiveDay,
       status: isAlreadyInArchive ? "archived" : (existing.status === "archived" ? "open" : existing.status),
       updatedAt: statSync(abs).mtime.toISOString()
     };
@@ -163,7 +167,27 @@ function processTicketFile(abs, cwd, indexJson, opts) {
     updatedAt: statSync(abs).mtime.toISOString(),
     source: "ticket-sync",
     status: isAlreadyInArchive ? "archived" : (meta.status || "open"),
+    archiveYearMonth: storage.archiveYearMonth,
+    archiveDay: storage.archiveDay,
   };
+}
+
+function parseTicketStorage(rel, isArchived, abs) {
+  if (!isArchived) {
+    return { group: basename(dirname(abs)) };
+  }
+
+  const parts = rel.split("/");
+  const archiveIdx = parts.indexOf("archive");
+  const group = parts[archiveIdx + 1] || basename(dirname(abs));
+  const maybeYearMonth = parts[archiveIdx + 2];
+  const maybeDay = parts[archiveIdx + 3];
+
+  if (ARCHIVE_YEAR_MONTH_RE.test(String(maybeYearMonth || "")) && ARCHIVE_DAY_RE.test(String(maybeDay || ""))) {
+    return { group, archiveYearMonth: maybeYearMonth, archiveDay: maybeDay };
+  }
+
+  return { group };
 }
 
 export function renderTicketListMarkdown(cwd, entries) {

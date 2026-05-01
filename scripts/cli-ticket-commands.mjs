@@ -4,17 +4,20 @@ import { basename, join, dirname, relative, resolve } from "path";
 import { 
   toSlug, toRepoRelativePath, toFileUri, inferRefTitleAndTopic, resolveReferencedTicketPath, toPosixPath, stringifyFrontMatter,
   selectLocalizedTemplatePath, resolveDocsLanguage, isMcpActive, withReadline, parseFrontMatter,
-  AGENT_ROOT_DIR, TICKET_SUBDIR, TEMPLATE_SUBDIR, TICKET_DIR_NAME, detectConsumerTicketDir
+  AGENT_ROOT_DIR, TICKET_SUBDIR, TEMPLATE_SUBDIR, TICKET_DIR_NAME, detectConsumerTicketDir, PLAN_LINKS_DIR, loadInitConfig
 } from "./cli-utils.mjs";
 import { readTicketIndexJson, writeTicketIndexJson, syncActiveTicketId, generateTicketId, syncToPipeline } from "./cli-ticket-index.mjs";
 import { appendTicketEntry, rebuildTicketIndexFromTopicFilesIfNeeded, writeTicketListFile, updateTicketEntryStatus } from "./cli-ticket-parser.mjs";
-import { loadInitConfig } from "./cli-utils.mjs";
 import { parsePlan } from "./plan-parser.mjs";
 import ejs from "ejs";
 import YAML from "yaml";
 
 import { createInterface } from "readline";
 import { selectOne } from "./cli-prompts.mjs";
+
+const MAX_OPEN_TICKETS = 20;
+const OPEN_TICKET_STATUSES = new Set(["open", "active"]);
+const AUTO_ARCHIVE_DONE_STATUSES = new Set(["closed", "cancelled", "wontfix"]);
 
 async function ensurePhase0Validation(opts) {
   if (!opts.evidence && !opts.skipPhase0) {
@@ -181,6 +184,180 @@ function updatePreviousTicketRef(cwd, prevTicketEntry, ticketId) {
   console.log(`Linked to previous ticket: ${prevTicketEntry.id}`);
 }
 
+function archivePartitionForEntry(entry, now = new Date()) {
+  const source = String(entry?.createdAt || "");
+  const match = source.match(/^(\d{4})-(\d{2})-(\d{2})/);
+  if (match) return { yearMonth: `${match[1]}-${match[2]}`, day: match[3] };
+
+  const iso = now.toISOString();
+  return { yearMonth: iso.slice(0, 7), day: iso.slice(8, 10) };
+}
+
+function getArchiveDestination(ticketDir, entry, fileName) {
+  const partition = archivePartitionForEntry(entry);
+  const archiveDir = join(ticketDir, "archive", entry.group || "sub", partition.yearMonth, partition.day);
+  return {
+    archiveDir,
+    archiveYearMonth: partition.yearMonth,
+    archiveDay: partition.day,
+    newAbsPath: join(archiveDir, fileName)
+  };
+}
+
+function isOpenTicketEntry(entry) {
+  return OPEN_TICKET_STATUSES.has(String(entry?.status || "open"));
+}
+
+function isAutoArchivableDoneEntry(entry) {
+  return AUTO_ARCHIVE_DONE_STATUSES.has(String(entry?.status || "").toLowerCase());
+}
+
+function oldestFirst(a, b) {
+  return String(a.createdAt || "").localeCompare(String(b.createdAt || ""));
+}
+
+function selectOpenLimitCandidates(indexJson) {
+  const openRows = (indexJson.entries || []).filter(isOpenTicketEntry);
+  const overflow = openRows.length - MAX_OPEN_TICKETS;
+  if (overflow <= 0) return [];
+
+  const currentActiveId = indexJson.activeTicketId;
+  const openCandidates = openRows
+    .filter(e => e.status === "open" && e.id !== currentActiveId)
+    .sort(oldestFirst);
+  const activeCandidates = openRows
+    .filter(e => e.status === "active" && e.id !== currentActiveId)
+    .sort(oldestFirst);
+  const lastResort = openRows
+    .filter(e => e.id === currentActiveId)
+    .sort(oldestFirst);
+
+  return [...openCandidates, ...activeCandidates, ...lastResort].slice(0, overflow);
+}
+
+function buildOpenTicketLimitError(indexJson) {
+  const openRows = (indexJson.entries || []).filter(isOpenTicketEntry);
+  if (openRows.length <= MAX_OPEN_TICKETS) return null;
+
+  const candidates = selectOpenLimitCandidates(indexJson);
+  const lines = [
+    `[OPEN TICKET LIMIT] Open tickets: ${openRows.length}/${MAX_OPEN_TICKETS}.`,
+    "Ticket creation was cancelled so open tickets do not exceed the limit.",
+    "Review the active ticket list, decide what can be archived, then create the ticket again.",
+    "",
+    "Commands:",
+    "  npx deuk-agent-rule ticket list --active --non-interactive",
+    "  npx deuk-agent-rule ticket archive --topic <ticket-id> --non-interactive",
+    "",
+    "Oldest archive candidates:"
+  ];
+
+  for (const entry of candidates.slice(0, 10)) {
+    const title = String(entry.title || entry.topic || "").replace(/(\n|\\n)+/g, " ").slice(0, 80);
+    lines.push(`  - ${entry.id} | ${entry.status || "open"} | ${entry.createdAt || "-"} | ${title}`);
+  }
+
+  return lines.join("\n");
+}
+
+function resolveArchiveReport(cwd, fileName, report) {
+  if (report) return resolve(cwd, report);
+
+  const reportDir = join(cwd, AGENT_ROOT_DIR, "docs", "walkthroughs");
+  const potentialReport = fileName.replace(/\.md$/i, "-report.md");
+  const potentialPath = join(reportDir, potentialReport);
+  return existsSync(potentialPath) ? potentialPath : null;
+}
+
+function archiveTicketEntry({ cwd, ticketDir, indexJson, found, opts = {}, report }) {
+  const absPath = join(cwd, found.path);
+  if (!existsSync(absPath)) {
+    throw new Error("ticket archive: file not found " + found.path);
+  }
+
+  const fileName = found.path.split(/[/\\]/).pop();
+  const { archiveDir, archiveYearMonth, archiveDay, newAbsPath } = getArchiveDestination(ticketDir, found, fileName);
+  if (!opts.dryRun) mkdirSync(archiveDir, { recursive: true });
+
+  const bodyLines = readFileSync(absPath, "utf8").trimEnd().split(/\r?\n/);
+  const reportSrc = resolveArchiveReport(cwd, fileName, report);
+
+  if (reportSrc) {
+    if (!existsSync(reportSrc)) {
+      throw new Error("ticket archive: report file not found " + report);
+    }
+    const reportDir = join(cwd, AGENT_ROOT_DIR, "docs", "walkthroughs");
+    if (!opts.dryRun) mkdirSync(reportDir, { recursive: true });
+
+    const reportBaseName = fileName.replace(/\.md$/i, "-report.md");
+    const reportDest = join(reportDir, reportBaseName);
+    if (!opts.dryRun) copyFileSync(reportSrc, reportDest);
+    console.log("ticket archive: copied report to " + toFileUri(reportDest));
+
+    bodyLines.push("");
+    bodyLines.push("## 📄 Attached Report");
+    const relativeLink = toPosixPath(relative(dirname(newAbsPath), reportDest));
+    bodyLines.push(`- [View Report](${relativeLink})`);
+  }
+
+  if (opts.dryRun) {
+    console.log("ticket archive: would move " + toRepoRelativePath(cwd, absPath) + " to " + toRepoRelativePath(cwd, newAbsPath));
+    return { dryRun: true };
+  }
+
+  distillKnowledge(absPath, found.id, cwd);
+
+  writeFileSync(newAbsPath, bodyLines.join("\n") + "\n", "utf8");
+  rmSync(absPath);
+  console.log("ticket archive: moved ticket to " + toFileUri(newAbsPath));
+
+  const entryIdx = indexJson.entries.findIndex(e => e.id === found.id);
+  if (entryIdx >= 0) {
+    indexJson.entries[entryIdx].fileName = fileName;
+    indexJson.entries[entryIdx].status = "archived";
+    indexJson.entries[entryIdx].archiveYearMonth = archiveYearMonth;
+    indexJson.entries[entryIdx].archiveDay = archiveDay;
+    indexJson.entries[entryIdx].updatedAt = new Date().toISOString();
+  }
+
+  const archivedRelativePath = toRepoRelativePath(cwd, newAbsPath);
+  console.log("ticket archive: final ticket path " + archivedRelativePath);
+  return { id: found.id, path: archivedRelativePath };
+}
+
+function autoArchiveDoneTickets(cwd, indexJson, opts = {}) {
+  const ticketDir = detectConsumerTicketDir(cwd);
+  if (!ticketDir) return [];
+
+  const candidates = (indexJson.entries || [])
+    .filter(isAutoArchivableDoneEntry)
+    .sort(oldestFirst);
+  const archived = [];
+
+  for (const candidate of candidates) {
+    const result = archiveTicketEntry({ cwd, ticketDir, indexJson, found: candidate, opts, report: null });
+    if (result?.id) {
+      archived.push(result);
+      console.warn(`[AUTO-ARCHIVE] ${candidate.id} (${candidate.status}) archived before open-ticket limit check.`);
+    }
+  }
+
+  if (archived.length > 0) {
+    writeTicketIndexJson(cwd, indexJson, opts);
+    if (opts.render) writeTicketListFile(cwd, indexJson.entries, opts);
+  }
+
+  return archived;
+}
+
+function rollbackCreatedTicket(cwd, abs, planLink, previousIndexJson, opts = {}) {
+  if (!opts.dryRun) {
+    rmSync(abs, { force: true });
+    if (planLink) rmSync(resolve(cwd, planLink), { force: true });
+  }
+  writeTicketIndexJson(cwd, previousIndexJson, opts);
+}
+
 export async function runTicketCreate(opts) {
   if (!opts.topic && !opts.ref) throw new Error("ticket create requires --topic or --ref");
   
@@ -313,7 +490,7 @@ export async function runTicketCreate(opts) {
       tags: opts.tags ? opts.tags.split(',').map(t => t.trim().replace(/^#/, '')).filter(Boolean) : undefined,
       createdAt: new Date().toISOString().replace('T', ' ').split('.')[0],
       prevTicket: prevTicketEntry ? prevTicketEntry.id : undefined,
-      planLink: `.deuk-agent/docs/plans/${ticketId}-plan.md`,
+      planLink: `${PLAN_LINKS_DIR}/${ticketId}-plan.md`,
     };
 
     const meta = Object.fromEntries(Object.entries(rawMeta).filter(([k, v]) => {
@@ -342,6 +519,21 @@ export async function runTicketCreate(opts) {
       }
     }
 
+    appendTicketEntry(opts.cwd, {
+      id: ticketId,
+      title, topic, group, project: opts.project || "global",
+      createdAt: new Date().toISOString(), path, source
+    }, opts);
+
+    const limitIndexJson = readTicketIndexJson(opts.cwd);
+    autoArchiveDoneTickets(opts.cwd, limitIndexJson, opts);
+
+    const limitError = buildOpenTicketLimitError(readTicketIndexJson(opts.cwd));
+    if (limitError) {
+      rollbackCreatedTicket(opts.cwd, abs, meta.planLink, indexJson, opts);
+      throw new Error(limitError);
+    }
+
     updatePreviousTicketRef(opts.cwd, prevTicketEntry, ticketId);
 
     console.log(`Ticket created: ${toFileUri(abs)}`);
@@ -351,12 +543,6 @@ export async function runTicketCreate(opts) {
     if (configSync && configSync.remoteSync && configSync.pipelineUrl) {
       syncToPipeline(configSync.pipelineUrl, { action: "create", ticket: meta });
     }
-
-    appendTicketEntry(opts.cwd, {
-      id: ticketId,
-      title, topic, group, project: opts.project || "global",
-      createdAt: new Date().toISOString(), path, source
-    }, opts);
   }
 
   syncActiveTicketId(opts.cwd);
@@ -618,69 +804,27 @@ export async function runTicketArchive(opts) {
   const found = pickTicketEntry(opts, indexJson);
   if (!found) throw new Error("ticket archive: no matching entry");
 
-  const absPath = join(opts.cwd, found.path);
-  if (!existsSync(absPath)) {
-    throw new Error("ticket archive: file not found " + found.path);
-  }
-
-  const archiveDir = join(ticketDir, "archive", found.group || "sub");
-  if (!opts.dryRun) mkdirSync(archiveDir, { recursive: true });
-  
   const fileName = found.path.split(/[/\\]/).pop();
-  const newAbsPath = join(archiveDir, fileName);
-  const bodyLines = readFileSync(absPath, "utf8").trimEnd().split(/\r?\n/);
   
   // Auto-search for report if not provided
+  let report = opts.report;
   if (!opts.report) {
     const reportDir = join(opts.cwd, AGENT_ROOT_DIR, "docs", "walkthroughs");
     const potentialReport = fileName.replace(/\.md$/i, "-report.md");
     const potentialPath = join(reportDir, potentialReport);
     if (existsSync(potentialPath)) {
-      opts.report = toRepoRelativePath(opts.cwd, potentialPath);
-      console.log(`ticket archive: auto-detected report at ${opts.report}`);
+      report = toRepoRelativePath(opts.cwd, potentialPath);
+      console.log(`ticket archive: auto-detected report at ${report}`);
     }
   }
 
-  if (opts.report) {
-    const reportSrc = resolve(opts.cwd, opts.report);
-    if (!existsSync(reportSrc)) {
-      throw new Error("ticket archive: report file not found " + opts.report);
-    }
-    const reportDir = join(opts.cwd, AGENT_ROOT_DIR, "docs", "walkthroughs");
-    if (!opts.dryRun) mkdirSync(reportDir, { recursive: true });
-    
-    const reportBaseName = fileName.replace(/\.md$/i, "-report.md");
-    const reportDest = join(reportDir, reportBaseName);
-    if (!opts.dryRun) copyFileSync(reportSrc, reportDest);
-    console.log("ticket archive: copied report to " + toFileUri(reportDest));
-    
-    bodyLines.push("");
-    bodyLines.push("## 📄 Attached Report");
-    const relativeLink = toPosixPath(relative(dirname(newAbsPath), reportDest));
-    bodyLines.push(`- [View Report](${relativeLink})`);
-  }
-
-  if (opts.dryRun) {
-    console.log("ticket archive: would move " + toRepoRelativePath(opts.cwd, absPath) + " to " + toRepoRelativePath(opts.cwd, newAbsPath));
-    return;
-  }
-
-  // Knowledge Distillation before moving/deleting
-  distillKnowledge(absPath, found.id, opts.cwd);
-
-  writeFileSync(newAbsPath, bodyLines.join("\n") + "\n", "utf8");
-  rmSync(absPath);
-  console.log("ticket archive: moved ticket to " + toFileUri(newAbsPath));
-
-  const entryIdx = indexJson.entries.findIndex(e => e.id === found.id);
-  if (entryIdx >= 0) {
-    indexJson.entries[entryIdx].status = "archived";
-    indexJson.entries[entryIdx].updatedAt = new Date().toISOString();
-  }
+  const result = archiveTicketEntry({ cwd: opts.cwd, ticketDir, indexJson, found, opts, report });
+  if (opts.dryRun) return;
 
   writeTicketIndexJson(opts.cwd, indexJson, opts);
   if (opts.render) writeTicketListFile(opts.cwd, indexJson.entries, opts);
   syncActiveTicketId(opts.cwd);
+  return result;
 }
 
 export async function runTicketReports(opts) {
@@ -833,7 +977,7 @@ export async function runTicketNext(opts) {
   }
   
   if (!found) {
-    throw new Error("No active or open tickets found to proceed with.");
+    throw new Error("No active or open tickets found to proceed with. Inspect recent git history before creating a follow-up ticket.");
   }
   
   if (index.activeTicketId !== found.id) {

@@ -99,6 +99,15 @@ test("cli-utils.mjs - computeTicketPath", (t) => {
   const archivedEntry = { id: "080-old-host", group: "main", status: "archived" };
   assert.strictEqual(computeTicketPath(archivedEntry), ".deuk-agent/tickets/archive/main/080-old-host.md");
 
+  const groupedArchivedEntry = {
+    id: "081-old-host",
+    group: "main",
+    status: "archived",
+    archiveYearMonth: "2026-05",
+    archiveDay: "01"
+  };
+  assert.strictEqual(computeTicketPath(groupedArchivedEntry), ".deuk-agent/tickets/archive/main/2026-05/01/081-old-host.md");
+
   const defaultGroup = { id: "100-no-group-host", status: "open" };
   assert.strictEqual(computeTicketPath(defaultGroup), ".deuk-agent/tickets/sub/100-no-group-host.md");
 

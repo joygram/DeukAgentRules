@@ -1,9 +1,10 @@
 import test from "node:test";
 import assert from "node:assert";
-import { mkdtempSync, mkdirSync, readFileSync, readdirSync, rmSync, writeFileSync } from "node:fs";
+import { existsSync, mkdtempSync, mkdirSync, readFileSync, readdirSync, rmSync, writeFileSync } from "node:fs";
 import { tmpdir } from "node:os";
 import { join } from "node:path";
-import { pickTicketEntry, runTicketCreate, runTicketNext } from "../cli-ticket-commands.mjs";
+import { pickTicketEntry, runTicketArchive, runTicketCreate, runTicketNext } from "../cli-ticket-commands.mjs";
+import { readTicketIndexJson } from "../cli-ticket-index.mjs";
 import { TICKET_INDEX_FILENAME } from "../cli-utils.mjs";
 
 function makeIndex(entries) {
@@ -31,6 +32,47 @@ function makeTicketWorkspace(entries) {
   mkdirSync(ticketDir, { recursive: true });
   writeFileSync(join(ticketDir, TICKET_INDEX_FILENAME), JSON.stringify(makeIndex(entries), null, 2) + "\n", "utf8");
   return { cwd, ticketDir };
+}
+
+function makeTemplateWorkspace(options = {}) {
+  const { withKoTemplate = false, baseMarker = "locale: base" } = options;
+  const { cwd, ticketDir } = makeTicketWorkspace([]);
+  const templateDir = join(cwd, ".deuk-agent", "templates");
+  mkdirSync(templateDir, { recursive: true });
+
+  const baseTemplate = [
+    "---",
+    "<%- frontmatter %>",
+    "---",
+    "# <%= meta.title %>",
+    `TemplateLocale: ${baseMarker}`,
+    ""
+  ].join("\n");
+
+  writeFileSync(join(templateDir, "TICKET_TEMPLATE.md"), baseTemplate, "utf8");
+
+  if (withKoTemplate) {
+    const koTemplate = [
+      "---",
+      "<%- frontmatter %>",
+      "---",
+      "# <%= meta.title %>",
+      "TemplateLocale: ko",
+      ""
+    ].join("\n");
+    writeFileSync(join(templateDir, "TICKET_TEMPLATE.ko.md"), koTemplate, "utf8");
+  }
+
+  return { cwd, ticketDir };
+}
+
+function readNewestTicketMarkdown(ticketDir) {
+  const subDir = join(ticketDir, "sub");
+  if (!existsSync(subDir)) return null;
+
+  const candidates = readdirSync(subDir).filter(name => name.endsWith(".md"));
+  if (candidates.length === 0) return null;
+  return join(subDir, candidates.at(-1));
 }
 
 test("pickTicketEntry applies submodule and project filters before selecting latest", () => {
@@ -144,6 +186,404 @@ test("runTicketNext preserves unfiltered active-first behavior", async () => {
   assert.deepStrictEqual(lines, [join(ticketDir, "sub", "001-global-active-host.md")]);
 });
 
+test("runTicketNext tells agents to inspect git history when no ticket exists", async () => {
+  const { cwd } = makeTicketWorkspace([]);
+
+  await assert.rejects(
+    () => runTicketNext({ cwd, pathOnly: true }),
+    /Inspect recent git history before creating a follow-up ticket/
+  );
+
+  rmSync(cwd, { recursive: true, force: true });
+});
+
+test("runTicketArchive updates index path to archived ticket location", async () => {
+  const ticketPath = ".deuk-agent/tickets/sub/001-default-host.md";
+  const { cwd, ticketDir } = makeTicketWorkspace([
+    makeEntry({
+      path: ticketPath,
+      status: "closed"
+    })
+  ]);
+  const srcDir = join(ticketDir, "sub");
+  mkdirSync(srcDir, { recursive: true });
+  writeFileSync(join(cwd, ticketPath), [
+    "---",
+    "id: 001-default-host",
+    "title: default",
+    "phase: 4",
+    "status: closed",
+    "summary: default",
+    "priority: P2",
+    "tags: [test]",
+    "---",
+    "# default",
+    ""
+  ].join("\n"), "utf8");
+
+  const originalLog = console.log;
+  const lines = [];
+  let result;
+  console.log = value => lines.push(String(value));
+  try {
+    result = await runTicketArchive({ cwd, topic: "001", nonInteractive: true });
+  } finally {
+    console.log = originalLog;
+  }
+
+  const archivedPath = ".deuk-agent/tickets/archive/sub/2026-05/01/001-default-host.md";
+  const index = JSON.parse(readFileSync(join(ticketDir, TICKET_INDEX_FILENAME), "utf8"));
+  assert.ok(existsSync(join(cwd, archivedPath)), "archived ticket file should exist");
+  assert.strictEqual(index.entries[0].status, "archived");
+  assert.strictEqual(index.entries[0].archiveYearMonth, "2026-05");
+  assert.strictEqual(index.entries[0].archiveDay, "01");
+  assert.strictEqual(result.path, archivedPath);
+  assert.ok(lines.includes("ticket archive: final ticket path " + archivedPath));
+
+  rmSync(cwd, { recursive: true, force: true });
+});
+
+test("runTicketArchive updates activeTicketId when archiving active ticket", async () => {
+  const activePath = ".deuk-agent/tickets/sub/001-default-host.md";
+  const openPath = ".deuk-agent/tickets/sub/002-waiting-host.md";
+  const { cwd, ticketDir } = makeTicketWorkspace([
+    makeEntry({
+      id: "001-default-host",
+      title: "active-ticket",
+      topic: "001-default-host",
+      fileName: "001-default-host.md",
+      path: activePath,
+      status: "active",
+      phase: 4
+    }),
+    makeEntry({
+      id: "002-waiting-host",
+      title: "next-ticket",
+      topic: "002-waiting-host",
+      fileName: "002-waiting-host.md",
+      path: openPath,
+      status: "open"
+    })
+  ]);
+
+  const srcDir = join(ticketDir, "sub");
+  mkdirSync(srcDir, { recursive: true });
+  [activePath, openPath].forEach(ticketPath => {
+    writeFileSync(join(cwd, ticketPath), [
+      "---",
+      `id: ${ticketPath === activePath ? "001-default-host" : "002-waiting-host"}`,
+      `title: ${ticketPath === activePath ? "active-ticket" : "next-ticket"}`,
+      "phase: 4",
+      "status: open",
+      "summary: status transition test",
+      "priority: P2",
+      "tags: [test]",
+      "---",
+      "# default",
+      ""
+    ].join("\n"), "utf8");
+  });
+
+  await runTicketArchive({ cwd, topic: "001", nonInteractive: true });
+
+  const index = JSON.parse(readFileSync(join(ticketDir, TICKET_INDEX_FILENAME), "utf8"));
+  assert.strictEqual(index.activeTicketId, "002-waiting-host");
+  const archivedEntry = index.entries.find(e => e.id === "001-default-host");
+  const openEntry = index.entries.find(e => e.id === "002-waiting-host");
+  assert.strictEqual(archivedEntry.status, "archived");
+  assert.strictEqual(openEntry.status, "open");
+
+  rmSync(cwd, { recursive: true, force: true });
+});
+
+test("runTicketArchive auto-detects existing walkthrough report and attaches link", async () => {
+  const ticketPath = ".deuk-agent/tickets/sub/003-default-host.md";
+  const reportPath = ".deuk-agent/docs/walkthroughs/003-default-host-report.md";
+  const { cwd } = makeTicketWorkspace([
+    makeEntry({
+      id: "003-default-host",
+      title: "with-report",
+      topic: "003-default-host",
+      fileName: "003-default-host.md",
+      path: ticketPath,
+      status: "open"
+    })
+  ]);
+
+  const srcDir = join(cwd, ".deuk-agent", "tickets", "sub");
+  const reportDir = join(cwd, ".deuk-agent", "docs", "walkthroughs");
+  mkdirSync(srcDir, { recursive: true });
+  mkdirSync(reportDir, { recursive: true });
+
+  writeFileSync(join(cwd, ticketPath), [
+    "---",
+    "id: 003-default-host",
+    "title: with-report",
+    "phase: 4",
+    "status: open",
+    "summary: report attach test",
+    "priority: P2",
+    "tags: [test]",
+    "---",
+    "# default",
+    ""
+  ].join("\n"), "utf8");
+
+  writeFileSync(join(cwd, reportPath), [
+    "# walkthrough",
+    ""
+  ].join("\n"), "utf8");
+
+  const originalLog = console.log;
+  const lines = [];
+  console.log = value => lines.push(String(value));
+
+  let archived;
+  try {
+    archived = await runTicketArchive({ cwd, topic: "003", nonInteractive: true });
+  } finally {
+    console.log = originalLog;
+  }
+
+  const archivedContent = readFileSync(join(cwd, archived.path), "utf8");
+  assert.ok(lines.includes("ticket archive: auto-detected report at .deuk-agent/docs/walkthroughs/003-default-host-report.md"));
+  assert.ok(archivedContent.includes("## 📄 Attached Report"));
+  assert.ok(archivedContent.includes("View Report"));
+
+  rmSync(cwd, { recursive: true, force: true });
+});
+
+test("runTicketCreate/next/archive roundtrip preserves language template output", async () => {
+  const cases = [
+    { label: "en", docsLanguage: "en", expectedTemplate: "TemplateLocale: locale: base", withKoTemplate: false },
+    { label: "ko", docsLanguage: "ko", expectedTemplate: "TemplateLocale: ko", withKoTemplate: true },
+    { label: "fr-fallback", docsLanguage: "fr", expectedTemplate: "TemplateLocale: locale: base", withKoTemplate: false }
+  ];
+
+  for (const tc of cases) {
+    const { cwd, ticketDir } = makeTemplateWorkspace({ withKoTemplate: tc.withKoTemplate, baseMarker: "locale: base" });
+    const originalLog = console.log;
+    const originalWarn = console.warn;
+    const output = [];
+    const topic = `roundtrip-${tc.label}-ticket`;
+    console.log = value => output.push(String(value));
+    console.warn = value => output.push(`WARN:${String(value)}`);
+
+    try {
+      await runTicketCreate({
+        cwd,
+        topic,
+        summary: `roundtrip verify for ${tc.label}`,
+        nonInteractive: true,
+        docsLanguage: tc.docsLanguage,
+        skipPhase0: true
+      });
+
+      const createdFile = readNewestTicketMarkdown(ticketDir);
+      assert.ok(createdFile, "ticket markdown should be created");
+      const createdFileName = createdFile.split("/").pop();
+      const createdText = readFileSync(createdFile, "utf8");
+      assert.match(createdText, new RegExp(tc.expectedTemplate));
+
+      const index = readTicketIndexJson(cwd);
+      const entry = index.entries.find(item => item.path && item.path.endsWith(`sub/${createdFileName}`));
+      assert.ok(entry, `index should contain created entry with path, entries=${JSON.stringify(index.entries)}`);
+      assert.strictEqual(entry.path, `.deuk-agent/tickets/sub/${createdFileName}`);
+
+      output.length = 0;
+      await runTicketNext({ cwd, pathOnly: true });
+      assert.ok(output.some(line => line.endsWith(createdFileName)), "runTicketNext should resolve and print created ticket path");
+
+      const archived = await runTicketArchive({ cwd, topic, nonInteractive: true });
+      assert.match(archived?.path || "", /^\.deuk-agent\/tickets\/archive\/sub\/\d{4}-\d{2}\/\d{2}\//);
+      assert.ok(archived.path.endsWith(`/${createdFileName}`));
+
+      const archivedText = readFileSync(join(cwd, archived.path), "utf8");
+      assert.ok(archivedText.includes(`# ${topic}`));
+      assert.match(archivedText, new RegExp(tc.expectedTemplate));
+
+      const updatedIndex = readTicketIndexJson(cwd);
+      const archivedEntry = updatedIndex.entries.find(item => item.id === entry.id);
+      assert.ok(archivedEntry, "archived entry should remain in index");
+      assert.strictEqual(archivedEntry.status, "archived");
+    } finally {
+      console.log = originalLog;
+      console.warn = originalWarn;
+      rmSync(cwd, { recursive: true, force: true });
+    }
+  }
+});
+
+test("runTicketCreate blocks excess open tickets and asks user to choose archive target", async () => {
+  const { cwd, ticketDir } = makeTemplateWorkspace();
+  const srcDir = join(ticketDir, "sub");
+  mkdirSync(srcDir, { recursive: true });
+
+  const entries = [];
+  for (let i = 1; i <= 20; i++) {
+    const id = `${String(i).padStart(3, "0")}-old-open-host`;
+    const fileName = `${id}.md`;
+    const createdAt = `2026-04-${String(i).padStart(2, "0")} 00:00:00`;
+    entries.push(makeEntry({
+      id,
+      title: `old open ${i}`,
+      topic: id,
+      fileName,
+      createdAt,
+      status: "open"
+    }));
+    writeFileSync(join(srcDir, fileName), [
+      "---",
+      `id: ${id}`,
+      `title: old open ${i}`,
+      "phase: 1",
+      "status: open",
+      `createdAt: ${createdAt}`,
+      "summary: old open ticket",
+      "priority: P2",
+      "tags: [test]",
+      "---",
+      `# old open ${i}`,
+      ""
+    ].join("\n"), "utf8");
+  }
+  writeFileSync(join(ticketDir, TICKET_INDEX_FILENAME), JSON.stringify(makeIndex(entries), null, 2) + "\n", "utf8");
+
+  const originalLog = console.log;
+  const originalWarn = console.warn;
+  console.log = () => {};
+  console.warn = () => {};
+
+  try {
+    await assert.rejects(
+      () => runTicketCreate({
+        cwd,
+        topic: "new-overflow-ticket",
+        summary: "create one more ticket after twenty open entries",
+        nonInteractive: true,
+        docsLanguage: "en",
+        skipPhase0: true
+      }),
+      err => {
+        assert.match(err.message, /Open tickets: 21\/20/);
+        assert.match(err.message, /ticket list --active --non-interactive/);
+        assert.match(err.message, /ticket archive --topic <ticket-id> --non-interactive/);
+        assert.match(err.message, /001-old-open-host/);
+        return true;
+      }
+    );
+
+    const index = readTicketIndexJson(cwd);
+    const openCount = index.entries.filter(e => e.status === "open" || e.status === "active").length;
+    assert.strictEqual(openCount, 20);
+
+    const oldest = index.entries.find(e => e.id === "001-old-open-host");
+    assert.strictEqual(oldest.status, "open");
+    assert.ok(existsSync(join(cwd, ".deuk-agent/tickets/sub/001-old-open-host.md")));
+    assert.ok(!existsSync(join(cwd, ".deuk-agent/tickets/archive/sub/2026-04/01/001-old-open-host.md")));
+    const subFiles = readdirSync(srcDir);
+    assert.ok(!subFiles.some(name => name.includes("new-overflow-ticket")));
+  } finally {
+    console.log = originalLog;
+    console.warn = originalWarn;
+    rmSync(cwd, { recursive: true, force: true });
+  }
+});
+
+test("runTicketCreate auto-archives closed tickets before enforcing open ticket limit", async () => {
+  const { cwd, ticketDir } = makeTemplateWorkspace();
+  const srcDir = join(ticketDir, "sub");
+  mkdirSync(srcDir, { recursive: true });
+
+  const entries = [];
+  for (let i = 1; i <= 19; i++) {
+    const id = `${String(i).padStart(3, "0")}-old-open-host`;
+    const fileName = `${id}.md`;
+    const createdAt = `2026-04-${String(i).padStart(2, "0")} 00:00:00`;
+    entries.push(makeEntry({
+      id,
+      title: `old open ${i}`,
+      topic: id,
+      fileName,
+      createdAt,
+      status: "open"
+    }));
+    writeFileSync(join(srcDir, fileName), [
+      "---",
+      `id: ${id}`,
+      `title: old open ${i}`,
+      "phase: 1",
+      "status: open",
+      `createdAt: ${createdAt}`,
+      "summary: old open ticket",
+      "priority: P2",
+      "tags: [test]",
+      "---",
+      `# old open ${i}`,
+      ""
+    ].join("\n"), "utf8");
+  }
+
+  const closedId = "020-closed-host";
+  entries.push(makeEntry({
+    id: closedId,
+    title: "closed ticket",
+    topic: closedId,
+    fileName: `${closedId}.md`,
+    createdAt: "2026-04-20 00:00:00",
+    status: "closed"
+  }));
+  writeFileSync(join(srcDir, `${closedId}.md`), [
+    "---",
+    `id: ${closedId}`,
+    "title: closed ticket",
+    "phase: 4",
+    "status: closed",
+    "createdAt: 2026-04-20 00:00:00",
+    "summary: closed ticket",
+    "priority: P2",
+    "tags: [test]",
+    "---",
+    "# closed ticket",
+    ""
+  ].join("\n"), "utf8");
+  writeFileSync(join(ticketDir, TICKET_INDEX_FILENAME), JSON.stringify(makeIndex(entries), null, 2) + "\n", "utf8");
+
+  const originalLog = console.log;
+  const originalWarn = console.warn;
+  console.log = () => {};
+  console.warn = () => {};
+
+  try {
+    await runTicketCreate({
+      cwd,
+      topic: "new-after-closed-cleanup",
+      summary: "create after archiving closed ticket",
+      nonInteractive: true,
+      docsLanguage: "en",
+      skipPhase0: true
+    });
+
+    const index = readTicketIndexJson(cwd);
+    const openCount = index.entries.filter(e => e.status === "open" || e.status === "active").length;
+    assert.strictEqual(openCount, 20);
+
+    const closed = index.entries.find(e => e.id === closedId);
+    assert.strictEqual(closed.status, "archived");
+    assert.strictEqual(closed.archiveYearMonth, "2026-04");
+    assert.strictEqual(closed.archiveDay, "20");
+    assert.ok(existsSync(join(cwd, ".deuk-agent/tickets/archive/sub/2026-04/20/020-closed-host.md")));
+    assert.ok(!existsSync(join(cwd, ".deuk-agent/tickets/sub/020-closed-host.md")));
+
+    const subFiles = readdirSync(srcDir);
+    assert.ok(subFiles.some(name => name.includes("new-after-closed-cleanup")));
+  } finally {
+    console.log = originalLog;
+    console.warn = originalWarn;
+    rmSync(cwd, { recursive: true, force: true });
+  }
+});
+
 test("runTicketCreate generates non-duplicative ticket and planLink drafts", async () => {
   const cwd = mkdtempSync(join(tmpdir(), "deuk-ticket-plan-draft-"));
   const summary = "unique duplicated summary phrase must stay ticket-owned";
@@ -162,11 +602,11 @@ test("runTicketCreate generates non-duplicative ticket and planLink drafts", asy
       skipPhase0: true
     });
 
-    const ticketDir = join(cwd, ".deuk-agent", "tickets", "sub");
-    const ticketFile = readdirSync(ticketDir).find(name => name.endsWith(".md"));
+    const ticketDir = join(cwd, ".deuk-agent", "tickets");
+    const ticketFile = readNewestTicketMarkdown(ticketDir);
     assert.ok(ticketFile, "ticket markdown should be created");
 
-    const ticketText = readFileSync(join(ticketDir, ticketFile), "utf8");
+    const ticketText = readFileSync(ticketFile, "utf8");
     const planLink = ticketText.match(/planLink:\s*(.+)/)?.[1]?.trim();
     assert.ok(planLink, "ticket should record planLink");
     assert.match(ticketText, /PlanLink:/);
@@ -183,6 +623,69 @@ test("runTicketCreate generates non-duplicative ticket and planLink drafts", asy
     assert.match(planText, /## Decision Rationale/);
     assert.match(planText, /## Execution Strategy/);
     assert.match(planText, /## Verification Design/);
+  } finally {
+    console.log = originalLog;
+    console.warn = originalWarn;
+    rmSync(cwd, { recursive: true, force: true });
+  }
+});
+
+test("runTicketCreate works per docsLanguage and uses localized template when present", async () => {
+  const cases = [
+    { docsLanguage: "en", expectedTemplate: "TemplateLocale: locale: base", withKoTemplate: false },
+    { docsLanguage: "ko", expectedTemplate: "TemplateLocale: ko", withKoTemplate: true }
+  ];
+
+  for (const tc of cases) {
+    const { cwd, ticketDir } = makeTemplateWorkspace({ withKoTemplate: tc.withKoTemplate });
+    const originalLog = console.log;
+    const originalWarn = console.warn;
+    console.log = () => {};
+    console.warn = () => {};
+
+    try {
+      await runTicketCreate({
+        cwd,
+        topic: `language-${tc.docsLanguage}-ticket`,
+        summary: `validate template rendering for ${tc.docsLanguage}`,
+        nonInteractive: true,
+        docsLanguage: tc.docsLanguage,
+        skipPhase0: true
+      });
+
+      const ticketFile = readNewestTicketMarkdown(ticketDir);
+      assert.ok(ticketFile, "ticket markdown should be created");
+      const ticketText = readFileSync(ticketFile, "utf8");
+      assert.match(ticketText, new RegExp(tc.expectedTemplate));
+    } finally {
+      console.log = originalLog;
+      console.warn = originalWarn;
+      rmSync(cwd, { recursive: true, force: true });
+    }
+  }
+});
+
+test("runTicketCreate falls back to base template when localized template is missing", async () => {
+  const { cwd, ticketDir } = makeTemplateWorkspace({ withKoTemplate: false });
+  const originalLog = console.log;
+  const originalWarn = console.warn;
+  console.log = () => {};
+  console.warn = () => {};
+
+  try {
+    await runTicketCreate({
+      cwd,
+      topic: "fallback-ticket-template",
+      summary: "validate ko language fallback in template lookup",
+      nonInteractive: true,
+      docsLanguage: "ko",
+      skipPhase0: true
+    });
+
+    const ticketFile = readNewestTicketMarkdown(ticketDir);
+    assert.ok(ticketFile, "ticket markdown should be created");
+    const ticketText = readFileSync(ticketFile, "utf8");
+    assert.match(ticketText, /TemplateLocale: locale: base/);
   } finally {
     console.log = originalLog;
     console.warn = originalWarn;

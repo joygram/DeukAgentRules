@@ -20,6 +20,17 @@ export const TICKET_DIR_NAME = `${AGENT_ROOT_DIR}/${TICKET_SUBDIR}`;
 export const TICKET_INDEX_FILENAME = "INDEX.json";
 export const TICKET_LIST_FILENAME = "TICKET_LIST.md";
 export const TICKET_LIST_TEMPLATE_FILENAME = "TICKET_LIST.template.md";
+export const DOCS_SUBDIR = "docs";
+export const PLANS_SUBDIR = "plans";
+export const PLAN_LINKS_DIR = `${AGENT_ROOT_DIR}/${DOCS_SUBDIR}/${PLANS_SUBDIR}`;
+
+export const LEGACY_TEMPLATE_DIR = ".deuk-agent-templates";
+export const LEGACY_TICKET_DIR = ".deuk-agent-ticket";
+export const LEGACY_TICKET_DIR_PLURAL = ".deuk-agent-tickets";
+export const LEGACY_CONFIG_FILE = ".deuk-agent-rule.config.json";
+export const LEGACY_IGNORE_DIR = `${AGENT_ROOT_DIR}/tickets/`;
+export const ARCHIVE_YEAR_MONTH_RE = /^\d{4}-\d{2}$/;
+export const ARCHIVE_DAY_RE = /^\d{2}$/;
 
 /**
  * Computes the canonical repository-relative path for a ticket based on its state.
@@ -32,6 +43,17 @@ export function computeTicketPath(entry) {
 
   if (!isArchived && entry.group === TICKET_SUBDIR) {
     return [TICKET_DIR_NAME, `${fileStem}.md`].join("/");
+  }
+
+  if (isArchived && entry.archiveYearMonth && entry.archiveDay) {
+    return [
+      TICKET_DIR_NAME,
+      "archive",
+      entry.group || "sub",
+      entry.archiveYearMonth,
+      entry.archiveDay,
+      `${fileStem}.md`
+    ].join("/");
   }
 
   const parts = [
