@@ -208,6 +208,38 @@ function getArchiveDestination(ticketDir, entry, fileName) {
   };
 }
 
+function archiveStorageFromPath(ticketDir, absPath, entry) {
+  const parts = toPosixPath(relative(ticketDir, absPath)).split("/");
+  const archiveIdx = parts.indexOf("archive");
+  if (archiveIdx < 0) return archivePartitionForEntry(entry);
+  return {
+    archiveYearMonth: parts[archiveIdx + 2] || archivePartitionForEntry(entry).yearMonth,
+    archiveDay: parts[archiveIdx + 3] || archivePartitionForEntry(entry).day
+  };
+}
+
+function findExistingArchivedTicketPath(ticketDir, entry, fileName) {
+  const expected = getArchiveDestination(ticketDir, entry, fileName).newAbsPath;
+  if (existsSync(expected)) return expected;
+
+  const archiveRoot = join(ticketDir, "archive", entry.group || "sub");
+  if (!existsSync(archiveRoot)) return null;
+
+  const stack = [archiveRoot];
+  while (stack.length > 0) {
+    const dir = stack.pop();
+    for (const item of readdirSync(dir, { withFileTypes: true })) {
+      const abs = join(dir, item.name);
+      if (item.isDirectory()) {
+        stack.push(abs);
+      } else if (item.isFile() && item.name === fileName) {
+        return abs;
+      }
+    }
+  }
+  return null;
+}
+
 function isOpenTicketEntry(entry) {
   return OPEN_TICKET_STATUSES.has(String(entry?.status || "open"));
 }
@@ -326,11 +358,26 @@ function resolveArchiveReport(cwd, fileName, report) {
 
 function archiveTicketEntry({ cwd, ticketDir, indexJson, found, opts = {}, report }) {
   const absPath = join(cwd, found.path);
+  const fileName = found.path.split(/[/\\]/).pop();
   if (!existsSync(absPath)) {
+    const archivedAbsPath = findExistingArchivedTicketPath(ticketDir, found, fileName);
+    if (archivedAbsPath) {
+      const storage = archiveStorageFromPath(ticketDir, archivedAbsPath, found);
+      const entryIdx = indexJson.entries.findIndex(e => e.id === found.id);
+      if (entryIdx >= 0) {
+        indexJson.entries[entryIdx].fileName = fileName;
+        indexJson.entries[entryIdx].status = "archived";
+        indexJson.entries[entryIdx].archiveYearMonth = storage.archiveYearMonth;
+        indexJson.entries[entryIdx].archiveDay = storage.archiveDay;
+        indexJson.entries[entryIdx].updatedAt = new Date().toISOString();
+      }
+      const archivedRelativePath = toRepoRelativePath(cwd, archivedAbsPath);
+      console.warn("ticket archive: repaired already archived ticket " + archivedRelativePath);
+      return { id: found.id, path: archivedRelativePath, repaired: true };
+    }
     throw new Error("ticket archive: file not found " + found.path);
   }
 
-  const fileName = found.path.split(/[/\\]/).pop();
   const { archiveDir, archiveYearMonth, archiveDay, newAbsPath } = getArchiveDestination(ticketDir, found, fileName);
   if (!opts.dryRun) mkdirSync(archiveDir, { recursive: true });
 

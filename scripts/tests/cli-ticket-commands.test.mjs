@@ -645,6 +645,69 @@ test("runTicketCreate auto-archives closed tickets before enforcing open ticket 
   }
 });
 
+test("runTicketCreate repairs closed index entry when ticket file is already archived", async () => {
+  const { cwd, ticketDir } = makeTemplateWorkspace();
+  const srcDir = join(ticketDir, "sub");
+  const archiveDir = join(ticketDir, "archive", "sub", "2026-04", "19");
+  mkdirSync(srcDir, { recursive: true });
+  mkdirSync(archiveDir, { recursive: true });
+
+  const closedId = "001-already-archived-host";
+  const entries = [
+    makeEntry({
+      id: closedId,
+      title: "already archived",
+      topic: closedId,
+      fileName: `${closedId}.md`,
+      createdAt: "2026-04-19 00:00:00",
+      status: "closed"
+    })
+  ];
+  writeFileSync(join(archiveDir, `${closedId}.md`), [
+    "---",
+    `id: ${closedId}`,
+    "title: already archived",
+    "phase: 4",
+    "status: closed",
+    "createdAt: 2026-04-19 00:00:00",
+    "summary: already archived ticket",
+    "priority: P2",
+    "tags: [test]",
+    "---",
+    "# already archived",
+    ""
+  ].join("\n"), "utf8");
+  writeFileSync(join(ticketDir, TICKET_INDEX_FILENAME), JSON.stringify(makeIndex(entries), null, 2) + "\n", "utf8");
+
+  const originalLog = console.log;
+  const originalWarn = console.warn;
+  console.log = () => {};
+  console.warn = () => {};
+
+  try {
+    await runTicketCreate({
+      cwd,
+      topic: "new-after-repair",
+      summary: "create after repairing archived ticket index",
+      nonInteractive: true,
+      docsLanguage: "en",
+      skipPhase0: true
+    });
+
+    const index = readTicketIndexJson(cwd);
+    const closed = index.entries.find(e => e.id === closedId);
+    assert.strictEqual(closed.status, "archived");
+    assert.strictEqual(closed.archiveYearMonth, "2026-04");
+    assert.strictEqual(closed.archiveDay, "19");
+    assert.ok(existsSync(join(cwd, ".deuk-agent/tickets/archive/sub/2026-04/19/001-already-archived-host.md")));
+    assert.ok(index.entries.some(e => e.id.includes("new-after-repair")));
+  } finally {
+    console.log = originalLog;
+    console.warn = originalWarn;
+    rmSync(cwd, { recursive: true, force: true });
+  }
+});
+
 test("runTicketCreate generates non-duplicative ticket and planLink drafts", async () => {
   const cwd = mkdtempSync(join(tmpdir(), "deuk-ticket-plan-draft-"));
   const summary = "unique duplicated summary phrase must stay ticket-owned";
