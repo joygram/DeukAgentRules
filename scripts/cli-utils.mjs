@@ -26,11 +26,19 @@ export const TICKET_LIST_TEMPLATE_FILENAME = "TICKET_LIST.template.md";
  */
 export function computeTicketPath(entry) {
   const isArchived = entry.status === "archived";
+  const fileStem = entry.fileName
+    ? String(entry.fileName).replace(/\.md$/i, "")
+    : (entry.group === TICKET_SUBDIR && entry.topic ? entry.topic : entry.id);
+
+  if (!isArchived && entry.group === TICKET_SUBDIR) {
+    return [TICKET_DIR_NAME, `${fileStem}.md`].join("/");
+  }
+
   const parts = [
     TICKET_DIR_NAME,
     isArchived ? "archive" : null,
     entry.group || "sub",
-    `${entry.id}.md`
+    `${fileStem}.md`
   ].filter(Boolean);
   return parts.join("/");
 }
@@ -492,8 +500,8 @@ export async function isMcpActive(cwd) {
           }
         }
       } catch (err) {
-        if (process.env.DEBUG) console.warn(`[DEBUG] Failed to parse MCP config ${p}:`, err);
-        return false;
+        if (process.env.DEBUG) console.warn(`[DEBUG] Failed to parse MCP config ${p}: ${err.message}`);
+        continue;
       }
     }
   }

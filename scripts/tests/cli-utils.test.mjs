@@ -101,6 +101,22 @@ test("cli-utils.mjs - computeTicketPath", (t) => {
 
   const defaultGroup = { id: "100-no-group-host", status: "open" };
   assert.strictEqual(computeTicketPath(defaultGroup), ".deuk-agent/tickets/sub/100-no-group-host.md");
+
+  const legacyRootEntry = {
+    id: "001-044-deukagentrules-hardening-joy-nucb",
+    topic: "044-deukagentrules-hardening-joy-nucb",
+    group: "tickets",
+    status: "open"
+  };
+  assert.strictEqual(computeTicketPath(legacyRootEntry), ".deuk-agent/tickets/044-deukagentrules-hardening-joy-nucb.md");
+
+  const fileNameEntry = {
+    id: "001-044-deukagentrules-hardening-joy-nucb",
+    fileName: "044-deukagentrules-hardening-joy-nucb.md",
+    group: "tickets",
+    status: "open"
+  };
+  assert.strictEqual(computeTicketPath(fileNameEntry), ".deuk-agent/tickets/044-deukagentrules-hardening-joy-nucb.md");
 });
 
 test("cli-utils.mjs - normalizeDocsLanguage", (t) => {
@@ -159,6 +175,23 @@ test("cli-utils.mjs - isMcpActive falls back to GET for SSE configs", async () =
     assert.strictEqual(await isMcpActive(dir), true);
   } finally {
     await new Promise(resolve => server.close(resolve));
+    rmSync(dir, { recursive: true, force: true });
+  }
+});
+
+test("cli-utils.mjs - isMcpActive skips malformed config and checks next MCP path", async () => {
+  const dir = mkdtempSync(join(tmpdir(), "deuk-mcp-malformed-"));
+  try {
+    writeFileSync(join(dir, ".mcp.json"), "{ not-json", "utf8");
+    mkdirSync(join(dir, ".cursor"), { recursive: true });
+    writeFileSync(join(dir, ".cursor", "mcp.json"), JSON.stringify({
+      mcpServers: {
+        "deuk-agent-context": { command: "deukcontext-mcp" }
+      }
+    }), "utf8");
+
+    assert.strictEqual(await isMcpActive(dir), true);
+  } finally {
     rmSync(dir, { recursive: true, force: true });
   }
 });

@@ -156,6 +156,7 @@ function processTicketFile(abs, cwd, indexJson, opts) {
     title,
     topic: deriveTopicFromBaseName(filename),
     group,
+    fileName: filename,
     project,
     submodule: meta.submodule || (rel.startsWith(AGENT_ROOT_DIR) ? "" : rel.split("/")[0]),
     createdAt: meta.createdAt || statSync(abs).mtime.toISOString(),

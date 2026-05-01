@@ -3,13 +3,14 @@
 ---
 # <%= meta.title %>
 
-> Restrict all changes to the declared **Target Module**. Read **Context Files** before code generation.
+> Restrict changes to **Target Module**. Read **Context Files** before code generation.
 
 ## Scope & Constraints
-- **Target:** [module/submodule path]
-- **Context Files:** [architecture docs, key files]
-- **Design Rationale:** [Why this change is needed]
-- **Constraints:** [No hotpath LINQ, Async Safety, etc.]
+
+- **Target:** module/submodule paths directly required by `<%= meta.title %>`
+- **Context Files:** `PROJECT_RULE.md`, relevant architecture docs, and target source files
+- **Design Rationale:** Preserve existing architecture while implementing the ticket summary.
+- **Constraints:** No generated output edits, no unrelated refactors, no broad regeneration without approval.
 
 ## Agent Permission Contract (APC)
 
@@ -27,7 +28,13 @@
 <%- apcDraft?.patchPlan || "- Analyze current code and apply minimal, scoped patch" %>
 
 ## Tasks
-- [ ] [Task 1]
+
+- [ ] Read context files and confirm scope.
+- [ ] Apply the minimal patch described in APC.
+- [ ] Run verification and record results.
 
 ## Done When
-> [Verification steps and completion criteria]
+
+- APC is complete and non-placeholder.
+- Target changes are implemented inside the declared boundary.
+- Markdown lint/tests relevant to this ticket pass or failures are recorded.

@@ -1,6 +1,6 @@
 ---
-version: 17
-changelog: "v17: Add scope-expansion guards for exploration/candidate requests, generated report regeneration, and official baseline expansion."
+version: 18
+changelog: "v18: Compact guard wording and ticket template guidance while preserving v17 safety semantics."
 ---
 
 # Agent Rules
@@ -33,20 +33,20 @@ changelog: "v17: Add scope-expansion guards for exploration/candidate requests, 
 
 | # | Check | IF YES → Action |
 |---|-------|-----------------|
-| G1 | No active ticket + about to WRITE? | **HARD BLOCK.** Create ticket first. Read-only tools (view_file, grep, list_dir, search_*) are allowed. |
-| G1.1 | Active ticket exists, but phase is < 2 (Plan)? | **HARD BLOCK.** File modification is strictly FORBIDDEN in Phase 1. You MUST call `ticket move --next` and get user approval before writing code. |
-| G1.2 | Ticket has `planLink`, but plan file missing OR still placeholder-only? | **HARD BLOCK.** Create/fill plan file first, then run `lint:md` for both ticket and plan before execute-phase writes. |
+| G1 | No active ticket + about to WRITE? | **HARD BLOCK.** Create ticket first. Read-only tools are allowed. |
+| G1.1 | Active ticket exists, but phase is < 2? | **HARD BLOCK.** Move to Phase 2 and get user approval before code writes. |
+| G1.2 | `planLink` missing, absent, or placeholder-only? | **HARD BLOCK.** Fill ticket + plan, then lint both before execute writes. |
 | G2 | `set_workflow_context` not called? | Call now. |
-| G3 | Target file has `@generated` / `DO NOT EDIT` / is in `dist/ Generated/ gen/ deukpack_out/`? | **DO NOT EDIT.** Modify the source (template/IDL/generator). If unsure → check PROJECT_RULE.md mapping. 3 failed lookups → HALT. This applies equally to `sed`/`awk`/`patch` via `run_command`. |
+| G3 | Target file has `@generated` / `DO NOT EDIT` / is in `dist/ Generated/ gen/ deukpack_out/`? | **DO NOT EDIT.** Modify the source. If unsure, check PROJECT_RULE.md mapping. 3 failed lookups → HALT. Applies to shell mutation too. |
 | G4 | 3+ external files modified outside ticket's Target Module? | **STOP.** Create new ticket. |
-| G5 | `ImportError` / `ModuleNotFoundError` on generated or dependency code? | **DO NOT immediately fix.** First inspect package manager configs (`pyproject.toml`, `package.json`, `Cargo.toml`) and codegen pipeline (`deukpack.pipeline.json`, templates). Only after understanding the dependency architecture may you propose a fix. `cp`/`sed` path hacks are a **major violation**. |
-| G6 | User asks to "look into", "list", "map", "compare candidates", "review options", "뽑아보자", "매칭해보자", "검토", or "후보"? | Treat as **exploration-only**. Do not edit product code, official data models, benchmark matrices, generated reports, templates, or config unless the user explicitly asks to apply/implement after seeing the candidate result. Output findings in chat or scratch docs only. |
-| G7 | About to run a command that regenerates broad outputs (`bench`, `reporter`, `build`, `codegen`, `sync`, `init`, docs generator) or changes timestamps/snapshots? | **HARD BLOCK unless explicitly in ticket scope and user-approved.** Prefer dry-run/read-only inspection. If needed for verification, write to `/tmp/` and do not touch tracked generated outputs. |
-| G8 | About to expand an official baseline/catalog/expected list (competitors, protocols, support matrix, compatibility table, release contract, public API, test matrix)? | **HARD BLOCK.** First present the proposed list as a draft and get explicit approval for promotion from candidate/draft to official source. |
+| G5 | `ImportError` / `ModuleNotFoundError` on generated or dependency code? | Inspect package manager configs and codegen pipeline before fixing. No `cp`/`sed` path hacks. |
+| G6 | User asks to inspect/list/map/compare/review candidates? | Exploration-only. Do not edit product code, official data, reports, templates, or config until user approves applying findings. |
+| G7 | About to regenerate broad outputs or timestamps (`bench`, `reporter`, `build`, `codegen`, `sync`, `init`, docs generator)? | **HARD BLOCK unless in ticket scope and user-approved.** Prefer dry-run or `/tmp/` output. |
+| G8 | About to expand an official baseline/catalog/expected list? | **HARD BLOCK.** Present draft first; require explicit approval before promotion. |
 
 WRITE tools requiring active ticket: `write_to_file`, `replace_file_content`, `multi_replace_file_content`, `run_command`.
 
-> **`run_command` File-Mutation Clause**: Shell commands that modify files (`sed`, `awk`, `cp`, `mv`, `rm`, `echo >>`, `patch`, `tee`, `install`) are subject to ALL Pre-Action Guards (G1–G5) and File Guards (F1–F6). The fact that they run via terminal does NOT exempt them from guard checks. Read-only commands (`cat`, `ls`, `grep`, `find`, `head`, `diff`) are exempt.
+> **`run_command` File-Mutation Clause**: shell mutations (`sed`, `awk`, `cp`, `mv`, `rm`, `echo >>`, `patch`, `tee`, `install`) obey all guards. Read-only commands (`cat`, `ls`, `grep`, `find`, `head`, `diff`) are exempt.
 
 ## 3. Ticket Lifecycle (never skip phases)
 
@@ -62,11 +62,11 @@ Plan-only mode: Do Phases 0–1 only. Defer writes as text in plan. On transitio
 
 ### Exploration-Only Mode
 
-If G6 matches, default to **Exploration-Only Mode**:
-- Allowed: read files, inspect history, search docs, summarize options, create `.deuk-agent/docs/scratch/` notes if a file is needed.
-- Forbidden without explicit follow-up approval: modifying source code, templates, generated outputs, benchmark/report artifacts, package metadata, CI, official catalogs, expected matrices, or compatibility contracts.
-- The final answer must clearly label results as `draft`, `candidate`, or `not yet official`.
-- Do not convert candidate findings into executable implementation tasks in the same turn unless the user explicitly says to apply them.
+If G6 matches:
+- Allowed: read, inspect history, search docs, summarize, or write scratch notes under `.deuk-agent/docs/scratch/`.
+- Forbidden without follow-up approval: source/templates/generated outputs, benchmark/report artifacts, package metadata, CI, official catalogs, expected matrices, compatibility contracts.
+- Label results as `draft`, `candidate`, or `not yet official`.
+- Do not convert findings into implementation in the same turn unless the user says to apply them.
 
 ## 4. HALT Conditions + File Guards
 
@@ -77,8 +77,8 @@ If G6 matches, default to **Exploration-Only Mode**:
 | H3 | Infrastructure error | No bypass. Halt → root cause → report to user → re-plan. |
 | H4 | 50%+ tasks unregistered in ticket | Stop → update ticket or create new one. |
 | H5 | 2+ different modules modified | Stop → split into separate tickets. |
-| F1 | Generated file edited directly (DC-CODEGEN) | **Major violation.** Edit source → run build to propagate. Never edit both. (Emergency: use `ticket hotfix`). |
-| F1.1 | Generated/report artifacts (`benchmarks/reports/`, `coverage/`, snapshots, generated docs, changelogs, timestamped outputs) would change only because a generator was run | **Do not commit or leave these changes** unless the user explicitly requested artifact regeneration. Use `/tmp/` output for verification. |
+| F1 | Generated file edited directly (DC-CODEGEN) | **Major violation.** Edit source, then build to propagate. Never edit both. Emergency: `ticket hotfix`. |
+| F1.1 | Generated/report artifacts would change only because a generator ran | Do not commit or leave them unless user requested regeneration. Use `/tmp/` for verification. |
 | F2 | Delete without proof of non-use | Run `git blame`/`grep`/tests first. "Seems unnecessary" ≠ valid. |
 | F3 | Infra code (bootstrap/transport/DB/routing) | Separate ticket + approval required. |
 | F4 | 10+ lines deleted | Document each block's purpose in commit. |

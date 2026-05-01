@@ -1,0 +1,11 @@
+{
+  "id": "146-rag-json-schema-artifacts-joy-nucb",
+  "title": "rag-json-schema-artifacts",
+  "project": "global",
+  "createdAt": "2026-05-01 12:34:42",
+  "archivedAt": "2026-05-01T12:38:50.945Z",
+  "sections": {
+    "Tasks": "- [x] Read context files and confirm scope.\n- [x] Add DeukPack `.deuk` source schema artifacts.\n- [x] Run verification and record results.",
+    "Done When": "- APC is complete and non-placeholder.\n- DeukPack `.deuk` source schema artifacts exist under `.deuk-agent/docs/schemas/`.\n- Markdown lint and schema syntax inspection pass or failures are recorded."
+  }
+}
