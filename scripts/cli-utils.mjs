@@ -115,6 +115,17 @@ export function inferDocsLanguageFromEnv(env = process.env) {
   return "en";
 }
 
+export function inferDocsLanguageFromText(text) {
+  const src = String(text || "");
+  const hangulCount = (src.match(/[\u3131-\u318e\uac00-\ud7a3]/g) || []).length;
+  if (hangulCount >= 2) return "ko";
+
+  const latinWords = src.match(/[A-Za-z][A-Za-z'-]*/g) || [];
+  if (latinWords.length >= 2) return "en";
+
+  return null;
+}
+
 export function resolveDocsLanguage(value, env = process.env) {
   const normalized = normalizeDocsLanguage(value);
   if (normalized === "auto") return inferDocsLanguageFromEnv(env);

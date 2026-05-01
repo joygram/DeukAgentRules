@@ -7,7 +7,7 @@ import http from "node:http";
 import { 
   normalizeWorkflowMode, resolveWorkflowMode, WORKFLOW_MODE_EXECUTE, WORKFLOW_MODE_PLAN,
   parseFrontMatter, stringifyFrontMatter, deriveTopicFromBaseName, toSlug, computeTicketPath,
-  normalizeDocsLanguage, resolveDocsLanguage, AGENT_ROOT_DIR, TICKET_SUBDIR, isMcpActive
+  normalizeDocsLanguage, inferDocsLanguageFromText, resolveDocsLanguage, AGENT_ROOT_DIR, TICKET_SUBDIR, isMcpActive
 } from "../cli-utils.mjs";
 import { generateTicketId, computeNextTicketNumber } from "../cli-ticket-index.mjs";
 import { parseTelemetryArgs, parseTicketArgs } from "../cli-args.mjs";
@@ -141,6 +141,12 @@ test("cli-utils.mjs - resolveDocsLanguage", (t) => {
   assert.strictEqual(resolveDocsLanguage("auto", { LC_ALL: "ko_KR.UTF-8" }), "ko");
   assert.strictEqual(resolveDocsLanguage("auto", { LANG: "en_US.UTF-8" }), "en");
   assert.strictEqual(resolveDocsLanguage("auto", {}), "en"); // fallback
+});
+
+test("cli-utils.mjs - inferDocsLanguageFromText", (t) => {
+  assert.strictEqual(inferDocsLanguageFromText("티켓과 plan 문서를 한국어로 생성"), "ko");
+  assert.strictEqual(inferDocsLanguageFromText("create ticket and plan documents in English"), "en");
+  assert.strictEqual(inferDocsLanguageFromText("123"), null);
 });
 
 test("cli-utils.mjs - isMcpActive detects stdio command configs", async () => {

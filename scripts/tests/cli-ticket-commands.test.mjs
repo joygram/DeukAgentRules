@@ -3,7 +3,7 @@ import assert from "node:assert";
 import { existsSync, mkdtempSync, mkdirSync, readFileSync, readdirSync, rmSync, writeFileSync } from "node:fs";
 import { tmpdir } from "node:os";
 import { join } from "node:path";
-import { pickTicketEntry, runTicketArchive, runTicketCreate, runTicketNext } from "../cli-ticket-commands.mjs";
+import { pickTicketEntry, runTicketArchive, runTicketCreate, runTicketNext, runTicketUse } from "../cli-ticket-commands.mjs";
 import { readTicketIndexJson } from "../cli-ticket-index.mjs";
 import { TICKET_INDEX_FILENAME } from "../cli-utils.mjs";
 
@@ -195,6 +195,67 @@ test("runTicketNext tells agents to inspect git history when no ticket exists", 
   );
 
   rmSync(cwd, { recursive: true, force: true });
+});
+
+test("runTicketUse no-match error shows latest closed ticket and open tickets", async () => {
+  const { cwd } = makeTicketWorkspace([
+    makeEntry({
+      id: "001-old-closed-host",
+      title: "old closed ticket",
+      topic: "001-old-closed-host",
+      createdAt: "2026-04-01 00:00:00",
+      updatedAt: "2026-04-01T00:00:00.000Z",
+      status: "closed"
+    }),
+    makeEntry({
+      id: "002-latest-closed-host",
+      title: "latest closed ticket",
+      topic: "002-latest-closed-host",
+      createdAt: "2026-04-02 00:00:00",
+      updatedAt: "2026-04-03T00:00:00.000Z",
+      status: "closed"
+    }),
+    makeEntry({
+      id: "003-open-host",
+      title: "open ticket",
+      topic: "003-open-host",
+      createdAt: "2026-04-04 00:00:00",
+      status: "open"
+    }),
+    makeEntry({
+      id: "004-active-host",
+      title: "active ticket",
+      topic: "004-active-host",
+      createdAt: "2026-04-05 00:00:00",
+      status: "active"
+    }),
+    makeEntry({
+      id: "005-archived-host",
+      title: "archived ticket",
+      topic: "005-archived-host",
+      createdAt: "2026-04-06 00:00:00",
+      status: "archived"
+    })
+  ]);
+
+  try {
+    await assert.rejects(
+      () => runTicketUse({ cwd, topic: "missing-alias", nonInteractive: true }),
+      err => {
+        assert.match(err.message, /No matching ticket found for "missing-alias"/);
+        assert.match(err.message, /Last closed ticket and open tickets/);
+        assert.match(err.message, /002-latest-closed-host/);
+        assert.doesNotMatch(err.message, /001-old-closed-host/);
+        assert.match(err.message, /003-open-host/);
+        assert.match(err.message, /004-active-host/);
+        assert.doesNotMatch(err.message, /005-archived-host/);
+        assert.match(err.message, /ticket use --topic <ticket-id> --non-interactive/);
+        return true;
+      }
+    );
+  } finally {
+    rmSync(cwd, { recursive: true, force: true });
+  }
 });
 
 test("runTicketArchive updates index path to archived ticket location", async () => {
@@ -662,6 +723,72 @@ test("runTicketCreate works per docsLanguage and uses localized template when pr
       console.warn = originalWarn;
       rmSync(cwd, { recursive: true, force: true });
     }
+  }
+});
+
+test("runTicketCreate infers Korean prompt language before saved English config", async () => {
+  const { cwd, ticketDir } = makeTemplateWorkspace({ withKoTemplate: true });
+  writeFileSync(join(cwd, ".deuk-agent", "config.json"), JSON.stringify({
+    version: 1,
+    docsLanguage: "en"
+  }, null, 2) + "\n", "utf8");
+
+  const originalLog = console.log;
+  const originalWarn = console.warn;
+  console.log = () => {};
+  console.warn = () => {};
+
+  try {
+    await runTicketCreate({
+      cwd,
+      topic: "prompt-language-korean",
+      summary: "티켓과 계획 문서를 사용자 프롬프트 언어로 생성한다",
+      nonInteractive: true,
+      skipPhase0: true
+    });
+
+    const ticketFile = readNewestTicketMarkdown(ticketDir);
+    assert.ok(ticketFile, "ticket markdown should be created");
+    const ticketText = readFileSync(ticketFile, "utf8");
+    assert.match(ticketText, /docsLanguage: ko/);
+    assert.match(ticketText, /TemplateLocale: ko/);
+  } finally {
+    console.log = originalLog;
+    console.warn = originalWarn;
+    rmSync(cwd, { recursive: true, force: true });
+  }
+});
+
+test("runTicketCreate infers English prompt language before saved Korean config", async () => {
+  const { cwd, ticketDir } = makeTemplateWorkspace({ withKoTemplate: true });
+  writeFileSync(join(cwd, ".deuk-agent", "config.json"), JSON.stringify({
+    version: 1,
+    docsLanguage: "ko"
+  }, null, 2) + "\n", "utf8");
+
+  const originalLog = console.log;
+  const originalWarn = console.warn;
+  console.log = () => {};
+  console.warn = () => {};
+
+  try {
+    await runTicketCreate({
+      cwd,
+      topic: "prompt-language-english",
+      summary: "create ticket and plan documents in the user prompt language",
+      nonInteractive: true,
+      skipPhase0: true
+    });
+
+    const ticketFile = readNewestTicketMarkdown(ticketDir);
+    assert.ok(ticketFile, "ticket markdown should be created");
+    const ticketText = readFileSync(ticketFile, "utf8");
+    assert.match(ticketText, /docsLanguage: en/);
+    assert.match(ticketText, /TemplateLocale: locale: base/);
+  } finally {
+    console.log = originalLog;
+    console.warn = originalWarn;
+    rmSync(cwd, { recursive: true, force: true });
   }
 });
 

@@ -3,7 +3,7 @@ import { hostname } from "os";
 import { basename, join, dirname, relative, resolve } from "path";
 import { 
   toSlug, toRepoRelativePath, toFileUri, inferRefTitleAndTopic, resolveReferencedTicketPath, toPosixPath, stringifyFrontMatter,
-  selectLocalizedTemplatePath, resolveDocsLanguage, isMcpActive, withReadline, parseFrontMatter,
+  selectLocalizedTemplatePath, resolveDocsLanguage, inferDocsLanguageFromText, normalizeDocsLanguage, isMcpActive, withReadline, parseFrontMatter,
   AGENT_ROOT_DIR, TICKET_SUBDIR, TEMPLATE_SUBDIR, TICKET_DIR_NAME, detectConsumerTicketDir, PLAN_LINKS_DIR, loadInitConfig
 } from "./cli-utils.mjs";
 import { readTicketIndexJson, writeTicketIndexJson, syncActiveTicketId, generateTicketId, syncToPipeline } from "./cli-ticket-index.mjs";
@@ -37,9 +37,13 @@ async function ensurePhase0Validation(opts) {
   }
 }
 
-function resolveTicketTemplate(cwd, docsLanguageInput) {
+function resolveTicketTemplate(cwd, docsLanguageInput, promptText = "") {
   const config = loadInitConfig(cwd) || {};
-  const docsLanguage = resolveDocsLanguage(docsLanguageInput || config.docsLanguage || "auto");
+  const explicitDocsLanguage = normalizeDocsLanguage(docsLanguageInput);
+  const promptDocsLanguage = explicitDocsLanguage === "auto" ? inferDocsLanguageFromText(promptText) : null;
+  const docsLanguage = resolveDocsLanguage(
+    explicitDocsLanguage !== "auto" ? explicitDocsLanguage : promptDocsLanguage || config.docsLanguage || "auto"
+  );
 
   const templateDir = join(cwd, AGENT_ROOT_DIR, TEMPLATE_SUBDIR);
   const bundleTplDir = join(new URL(".", import.meta.url).pathname, "..", "templates");
@@ -212,6 +216,57 @@ function isAutoArchivableDoneEntry(entry) {
   return AUTO_ARCHIVE_DONE_STATUSES.has(String(entry?.status || "").toLowerCase());
 }
 
+function latestTicketByStatus(entries, statuses) {
+  const statusSet = new Set(statuses);
+  return [...(entries || [])]
+    .filter(e => statusSet.has(String(e.status || "").toLowerCase()))
+    .sort((a, b) => String(b.updatedAt || b.createdAt || "").localeCompare(String(a.updatedAt || a.createdAt || "")))[0] || null;
+}
+
+function formatTicketChoice(entry) {
+  const status = String(entry.status || "open");
+  const createdAt = String(entry.createdAt || "-");
+  const title = String(entry.title || entry.topic || entry.id || "").replace(/(\n|\\n)+/g, " ").slice(0, 80);
+  return `${entry.id} | ${status} | ${createdAt} | ${title}`;
+}
+
+function buildUseFallbackCandidates(indexJson) {
+  const entries = indexJson.entries || [];
+  const lastClosed = latestTicketByStatus(entries, ["closed"]);
+  const openRows = entries
+    .filter(e => OPEN_TICKET_STATUSES.has(String(e.status || "open")))
+    .sort((a, b) => String(b.updatedAt || b.createdAt || "").localeCompare(String(a.updatedAt || a.createdAt || "")));
+
+  const seen = new Set();
+  return [lastClosed, ...openRows]
+    .filter(Boolean)
+    .filter(entry => {
+      if (seen.has(entry.id)) return false;
+      seen.add(entry.id);
+      return true;
+    });
+}
+
+function buildUseNoMatchError(topic, candidates) {
+  const lines = [
+    `No matching ticket found for "${topic || ""}".`,
+    "Last closed ticket and open tickets:"
+  ];
+
+  if (candidates.length === 0) {
+    lines.push("  - none");
+  } else {
+    for (const entry of candidates.slice(0, 20)) {
+      lines.push(`  - ${formatTicketChoice(entry)}`);
+    }
+  }
+
+  lines.push("");
+  lines.push("Choose one explicitly:");
+  lines.push("  npx deuk-agent-rule ticket use --topic <ticket-id> --non-interactive");
+  return lines.join("\n");
+}
+
 function oldestFirst(a, b) {
   return String(a.createdAt || "").localeCompare(String(b.createdAt || ""));
 }
@@ -375,8 +430,6 @@ export async function runTicketCreate(opts) {
     path = resolveReferencedTicketPath(opts);
     source = "ticket-reference";
   } else {
-    const { tplText, docsLanguage } = resolveTicketTemplate(opts.cwd, opts.docsLanguage);
-
     // Find nearest or create in CWD if missing
     const ticketDir = detectConsumerTicketDir(opts.cwd, { createIfMissing: true });
 
@@ -473,6 +526,9 @@ export async function runTicketCreate(opts) {
     if (!summary) {
       throw new Error("[VALIDATION FAILED] 'summary' is mandatory and cannot be empty. Please provide a meaningful summary via --summary or within your plan.");
     }
+
+    const promptText = [summary, finalTitle, parsedPlan?.body].filter(Boolean).join("\n");
+    const { tplText, docsLanguage } = resolveTicketTemplate(opts.cwd, opts.docsLanguage, promptText);
 
     const apcDraft = buildApcDraft(summary);
 
@@ -704,7 +760,24 @@ export async function runTicketUse(opts) {
     String(e.topic || "").includes(targetTopic) ||
     String(e.id || "").includes(targetTopic)
   );
-  if (!found) throw new Error("No matching ticket found");
+  if (!found) {
+    const candidates = buildUseFallbackCandidates(index);
+    if (!opts.nonInteractive && candidates.length > 0) {
+      await withReadline(async (rl) => {
+        targetTopic = await selectOne(
+          rl,
+          `No matching ticket found for "${targetTopic}". Choose a ticket to use:`,
+          candidates.map(e => ({ label: formatTicketChoice(e), value: e.topic || e.id }))
+        );
+      });
+      const selected = index.entries.find(e => e.topic === targetTopic || e.id === targetTopic);
+      if (selected) {
+        opts.topic = targetTopic;
+        return runTicketUse({ ...opts, latest: false });
+      }
+    }
+    throw new Error(buildUseNoMatchError(targetTopic, candidates));
+  }
   
   // Explicitly set activeTicketId to the selected ticket
   if (index.activeTicketId !== found.id) {
