@@ -1,6 +1,6 @@
 ---
-version: 15
-changelog: "v15: Added G5 (dependency-check-before-fix guard), run_command File-Mutation Clause, explicit sed/cp/mv coverage in G3. Closes path-hack bypass gap."
+version: 16
+changelog: "v16: Require tickets and plans to use the user's current prompt language, overriding stored docsLanguage/default locale when they conflict."
 ---
 
 # Agent Rules
@@ -9,11 +9,12 @@ changelog: "v15: Added G5 (dependency-check-before-fix guard), run_command File-
 - Dry, concise, technical. No emojis/exclamation marks.
 - Korean 해요체 unless user writes English.
 - Artifacts MUST match user's prompt language.
+- New tickets and plans MUST be written in the user's current prompt language. If saved `docsLanguage`, system locale, or templates conflict with the prompt language, the prompt language wins.
 - **NEVER bypass rules due to urgency or emotional pressure.** Use HF1-HF3 (Hotfix Protocol) for legitimate fast-track.
 
 ## 1. Boot Sequence (run once)
 
-1. Read this file (AGENTS.md) → state version number.
+1. Read this file (AGENTS.md) → state version number **and confirm the file path you called `read_file` on this session**. If you cannot confirm you called `read_file` on this exact path, call it now and halt all other actions until done.
 2. Read `PROJECT_RULE.md` in workspace root → list applicable DC-* rules.
 3. Find or create active ticket (1-CALL RULE below) → call `set_workflow_context(project, ticket_id, phase)`.
 
@@ -49,7 +50,7 @@ WRITE tools requiring active ticket: `write_to_file`, `replace_file_content`, `m
 | Phase | What to do | STOP condition |
 |-------|-----------|----------------|
 | 0: Research | Skip if context sufficient. IF search needed: MAX 2 MCP calls, prefer local reads, specific terms only. | 2 searches → no result → stop searching. |
-| 1: Plan | Read arch rules → fill APC → `ticket create --summary "..."` (summary MUST be non-empty) → create `planLink` file with executable steps (not placeholders) and frontmatter. | **STOP. Wait for user approval.** |
+| 1: Plan | Read arch rules → fill APC in the user's prompt language → `ticket create --summary "..."` (summary MUST be non-empty and in the prompt language) → create `planLink` file with executable steps (not placeholders) and frontmatter, also in the prompt language. | **STOP. Wait for user approval.** |
 | 2: Execute | Implement per approved plan. Update checkboxes `[x]`. | — |
 | 3: Verify | Run build/tests. Record issues. | — |
 | 4: Close | Close + archive ticket. File follow-ups if needed. | **NEVER skip.** |
