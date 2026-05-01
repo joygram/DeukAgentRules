@@ -1,0 +1,11 @@
+{
+  "id": "142-deukpack-135-joy-nucb",
+  "title": "DeukPack 135",
+  "project": "global",
+  "createdAt": "2026-05-01 06:17:29",
+  "archivedAt": "2026-05-01T07:53:47.313Z",
+  "sections": {
+    "Tasks": "- [x] 범위 정렬 문서화 완료\n- [x] 공통 누락 항목 분류\n- [x] 하위 티켓별 보강 우선순위 정리\n- [x] 실행 단계 진입 조건 충족(계획 기반 승인)",
+    "Done When": "- 본 티켓이 실행 가능한 총괄 plan을 보유하고, 하위 티켓별 누락 보강 대상이 역할/범위를 초과하지 않음이 확인됨.\n- 다음 실행 대상은 `140-deukpack-bmt-language-go-joy-nucb`."
+  }
+}
