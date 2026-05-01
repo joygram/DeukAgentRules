@@ -52,6 +52,9 @@ DeukAgentRules enforces a strict operating environment for AI agents through fou
 | [docs/architecture.md](docs/architecture.md) | High-level system structure and visual infographics |
 | [docs/how-it-works.md](docs/how-it-works.md) | Detailed CLI mechanics, initialization lifecycle, and file roles |
 | [docs/principles.md](docs/principles.md) | Design philosophy: Hub-Spoke, Zero-Legacy, and Source Sovereignty |
+| [docs/product-positioning-research.ko.md](docs/product-positioning-research.ko.md) | Product positioning research for AI coding agent guardrails |
+| [docs/vision-agent-guardrails.ko.md](docs/vision-agent-guardrails.ko.md) | Vision document for the multi-agent guardrail hub |
+| [docs/organic-growth-plan.ko.md](docs/organic-growth-plan.ko.md) | Organic growth plan for VS Code, Open VSX, GitHub, and skill loops |
 | **Korean Docs** | [README.ko.md](README.ko.md) · [docs/architecture.ko.md](docs/architecture.ko.md) |
 
 ---
@@ -102,5 +105,21 @@ Delegate these to your AI agent via natural language prompts!
 
 ---
 
+## Related Ideas & Inspiration
+
+DeukAgentRules shares the same concern as guideline-first projects like
+[andrej-karpathy-skills](https://github.com/forrestchang/andrej-karpathy-skills):
+AI coding agents often over-assume, over-engineer, and edit outside the requested scope.
+
+Where prompt-level guideline files improve agent behavior inside one client,
+DeukAgentRules adds a repository-level workflow layer: tickets, phase gates,
+scoped permissions, verification, and archiveable engineering memory.
+
+```bash
+npx deuk-agent-rule init
+```
+
+---
+
 ### 🏷️ Keywords
-`#AI-Orchestration` `#Agentic-Workflow` `#DeukFamily` `#Engineering-Intelligence` `#Zero-Legacy` `#High-Signal-Coding` `#AI-Protocol` `#CursorRules` `#CopilotInstructions` `#LLM-Control-Plane`
+`#AI-Orchestration` `#Agentic-Workflow` `#DeukFamily` `#Engineering-Intelligence` `#Zero-Legacy` `#High-Signal-Coding` `#AI-Protocol` `#CursorRules` `#CopilotInstructions` `#ClaudeCode` `#ClaudeMD` `#AgentsMD` `#AgentSkills` `#CodingAgent` `#AI-Guardrails` `#LLM-Control-Plane`

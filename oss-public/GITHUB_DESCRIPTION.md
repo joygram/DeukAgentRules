@@ -29,3 +29,32 @@ Add under **About → Topics** (and mirror on npm via `package.json` `keywords`)
 
 - `deuk-family`
 - `deukpack-ecosystem`
+- `deuk-agent-rule`
+- `ai-guardrails`
+- `ai-coding-agent`
+- `coding-agent`
+- `agent-workflow`
+- `agent-skills`
+- `agentic-workflow`
+- `ticket-driven-workflow`
+- `claude-code`
+- `claude-md`
+- `agents-md`
+- `cursor-rules`
+- `copilot-instructions`
+- `codex`
+- `llm-coding`
+- `engineering-memory`
+- `workflow-automation`
+- `developer-tools`
+
+## Topic positioning notes
+
+Use related-project links to capture adjacent search intent from people already looking for
+Claude Code skills, AGENTS.md conventions, Cursor rules, and coding-agent instructions.
+Position DeukAgentRules as the workflow and guardrail layer that complements prompt-level
+guideline repositories.
+
+Avoid `karpathy` as a repository topic unless there is an explicit campaign reason. Prefer
+`agent-skills`, `claude-code`, and `ai-guardrails` so the project benefits from adjacent
+search traffic without implying affiliation.

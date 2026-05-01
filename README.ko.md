@@ -52,6 +52,9 @@ DeukAgentRules는 AI 에이전트가 코드를 분석하고 작성하는 모든 
 | [docs/architecture.ko.md](docs/architecture.ko.md) | 고수준 시스템 구조 및 시각적 인포그래픽 |
 | [docs/how-it-works.ko.md](docs/how-it-works.ko.md) | 상세 CLI 메커니즘, 초기화 생명주기 및 파일 역할 |
 | [docs/principles.ko.md](docs/principles.ko.md) | 설계 철학: Hub-Spoke, Zero-Legacy, 소스 주권 |
+| [docs/product-positioning-research.ko.md](docs/product-positioning-research.ko.md) | AI 코딩 에이전트 가드레일 제품 포지셔닝 리서치 |
+| [docs/vision-agent-guardrails.ko.md](docs/vision-agent-guardrails.ko.md) | 멀티 에이전트 가드레일 허브 비전 문서 |
+| [docs/organic-growth-plan.ko.md](docs/organic-growth-plan.ko.md) | VS Code, Open VSX, GitHub, 스킬 루프 기반 오가닉 유입 계획 |
 | **English Docs** | [README.md](README.md) · [docs/architecture.md](docs/architecture.md) |
 
 ---
@@ -119,5 +122,19 @@ deuk-agent-rule init  # 자동으로 로컬 scripts/cli.mjs로 라우팅됨
 
 ---
 
+## 관련 아이디어와 영감
+
+DeukAgentRules는 [andrej-karpathy-skills](https://github.com/forrestchang/andrej-karpathy-skills)처럼
+AI 코딩 에이전트가 잘못 가정하고, 과하게 구현하고, 요청 밖 코드를 수정하는 문제의식과 맞닿아 있습니다.
+
+다만 DeukAgentRules는 프롬프트 수준의 지침 파일을 넘어 티켓, Phase Gate,
+스코프 계약, 검증, 아카이브 가능한 엔지니어링 메모리까지 제공하는 레포 단위 워크플로우 계층입니다.
+
+\`\`\`bash
+npx deuk-agent-rule init
+\`\`\`
+
+---
+
 ### 🏷️ 검색 태그
-\`#AI-Orchestration\` \`#Agentic-Workflow\` \`#DeukFamily\` \`#Engineering-Intelligence\` \`#Zero-Legacy\` \`#High-Signal-Coding\` \`#AI-Protocol\` \`#CursorRules\` \`#CopilotInstructions\` \`#LLM-Control-Plane\`
+\`#AI-Orchestration\` \`#Agentic-Workflow\` \`#DeukFamily\` \`#Engineering-Intelligence\` \`#Zero-Legacy\` \`#High-Signal-Coding\` \`#AI-Protocol\` \`#CursorRules\` \`#CopilotInstructions\` \`#ClaudeCode\` \`#ClaudeMD\` \`#AgentsMD\` \`#AgentSkills\` \`#CodingAgent\` \`#AI-Guardrails\` \`#LLM-Control-Plane\`
