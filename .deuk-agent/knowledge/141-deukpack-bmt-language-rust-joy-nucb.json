@@ -1,0 +1,11 @@
+{
+  "id": "141-deukpack-bmt-language-rust-joy-nucb",
+  "title": "deukpack-bmt-language-rust",
+  "project": "global",
+  "createdAt": "2026-05-01 06:13:25",
+  "archivedAt": "2026-05-01T07:23:37.065Z",
+  "sections": {
+    "Tasks": "- [x] Rust Streaming 항목 분리\n- [x] Rust Error model 항목 분리\n- [x] Rust evidence 필드 정렬\n- [x] 완료 기준 고정",
+    "Done When": "- Rust 보강 대상이 `Streaming`, `Error model`, `evidence`로 명확히 분리됨\n- 검증 근거가 없는 항목이 `implemented` 또는 성공 표시로 오인되지 않음\n- 코드/생성물 변경 없이 문서 기준의 실행 범위가 확정됨"
+  }
+}
