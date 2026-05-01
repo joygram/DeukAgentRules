@@ -1,0 +1,11 @@
+{
+  "id": "133-dekpack-bmt-matrix-joy-nucb",
+  "title": "DEKPACK-BMT-MATRIX",
+  "project": "global",
+  "createdAt": "2026-05-01 05:04:09",
+  "archivedAt": "2026-05-01T07:04:03.513Z",
+  "sections": {
+    "Tasks": "- [x] APC와 계획 문서를 실행 가능한 수준으로 정합화\n- [x] BMT 매트릭스용 데이터 스키마 및 상태 체계 정의\n- [x] 표 배치/렌더/검증 규칙 문서화\n- [x] 후속 구현 티켓에서 사용할 변경 기준 정리\n- [x] Master/Protocol/Test 문서 역할 강제 분리(결론-근거-검증) 문서 계획 정리\n- [x] BMT_MASTER_REPORT.md에서 .NET 포함 raw 벤치 수치 및 중복 근거표 제거\n- [x] Protocol Matrix / Test Matrix를 근거·검증 기준 문서로 참조고정",
+    "Done When": "> 계획 문서와 티켓의 APC가 일치하고, 지원성/구현성/검증성 분리 기준 및 샘플 표, 검증 규칙, 후속 구현 기준이 모두 문서화되면 완료."
+  }
+}
