@@ -30,7 +30,7 @@ deuk-agent-rule init
 
 에이전트에게 작업을 시킬 때는 항상 **티켓**을 기반으로 소통하세요.
 
-### 1단계: 티켓 생성 (Phase 1: Plan)
+### 1단계: 티켓 생성 (Phase 1: Ticket + Plan)
 에이전트에게 다음과 같이 요청하여 작업을 시작합니다.
 > 💬 "새로운 기능을 위한 티켓을 만들어줘. 주제는 'user-auth-impl'이야."
 
@@ -40,14 +40,16 @@ deuk-agent-rule ticket create --topic user-auth-impl --evidence "기존 auth 로
 ```
 이미 작성된 마크다운 형식의 구현 계획서가 있다면 `--from-plan` 옵션을 통해 바로 티켓으로 변환할 수도 있습니다.
 
-### 2단계: APC(Agent Permission Contract) 작성 및 Phase 검증
-생성된 티켓은 기본적으로 **Phase 1 (Plan)** 상태입니다. 에이전트는 코드를 수정하기 전에 반드시 티켓 내의 APC 블록(`[BOUNDARY]`, `[CONTRACT]`, `[PATCH PLAN]`)을 상세히 작성해야 합니다.
+### 2단계: APC(Agent Permission Contract) 및 planLink 기록
+생성된 티켓은 기본적으로 **Phase 1 (Ticket + Plan)** 상태입니다. 에이전트는 코드를 수정하기 전에 티켓 내의 APC 블록(`[BOUNDARY]`, `[CONTRACT]`, `[PATCH PLAN]`)과 planLink 문서를 채워야 합니다.
 
-작성이 완료되면 에이전트가 다음 명령으로 Phase 승급을 시도합니다:
+planLink는 별도 승인을 강제하기 위한 중복 티켓이 아니라, 계획과 판단 근거를 검색 가능한 형식으로 남기기 위한 문서입니다.
+
+사용자가 실행을 명확히 요청했고 Phase 1 기록이 완성되어 있으면, 에이전트가 다음 명령으로 Phase 승급을 시도합니다:
 ```bash
 deuk-agent-rule ticket move --topic user-auth-impl
 ```
-만약 APC가 비어있거나 불완전하다면, CLI의 검증(Validation) 로직이 승급을 차단하고 코딩을 금지합니다.
+만약 APC나 planLink가 비어있거나 불완전하다면, 에이전트는 코딩 전에 이를 먼저 채웁니다.
 
 ### 3단계: 작업 실행 (Phase 2: Execute)
 티켓이 **Phase 2 (Execute)** 로 승급되면, 에이전트는 제한된 경계 내에서 코드를 수정하고 단위 테스트 등 검증 작업을 수행합니다.
@@ -65,7 +67,7 @@ deuk-agent-rule ticket move --topic user-auth-impl
 에이전트가 DeukAgentRules 프로토콜을 엄격히 준수하도록 하려면 프로젝트 시작 시 다음과 같은 **페르소나 주입(Persona Injection)**이 도움이 됩니다.
 
 > **에이전트 지침 예시:**
-> "너는 DeukAgentRules 프로토콜을 준수하는 시니어 엔지니어다. 모든 코드 수정 전에는 반드시 `ticket create`를 통해 Phase 1 티켓을 생성하고 APC(Agent Permission Contract)를 채운 뒤, `ticket move` 명령으로 Phase 2로 승급해야 코드를 작성할 수 있다. 작업이 완료되면 `walkthrough` 리포트를 작성하고 티켓을 `archive`해라. 규칙 파일인 `PROJECT_RULE.md`와 포인터가 가리키는 `AGENTS.md`를 항상 최우선으로 참조하라."
+> "너는 DeukAgentRules 프로토콜을 준수하는 시니어 엔지니어다. 모든 코드 수정 전에는 반드시 `ticket create` 또는 기존 티켓 선택을 통해 Phase 1 기록을 만들고, APC(Agent Permission Contract)와 planLink를 채운 뒤, 실행 의도가 명확하면 `ticket move` 명령으로 Phase 2로 승급하여 코드를 작성한다. 작업이 완료되면 `walkthrough` 리포트를 작성하고 티켓을 `archive`해라. 규칙 파일인 `PROJECT_RULE.md`와 포인터가 가리키는 `AGENTS.md`를 항상 최우선으로 참조하라."
 
 ---
 

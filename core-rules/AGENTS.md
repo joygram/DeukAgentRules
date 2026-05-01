@@ -1,6 +1,6 @@
 ---
-version: 18
-changelog: "v18: Compact guard wording and ticket template guidance while preserving v17 safety semantics."
+version: 19
+changelog: "v19: Clarify Phase 1 as ticket creation plus indexed planning evidence, and allow explicit execution intent to continue into Phase 2 after Phase 1 is complete."
 ---
 
 # Agent Rules
@@ -34,8 +34,8 @@ changelog: "v18: Compact guard wording and ticket template guidance while preser
 | # | Check | IF YES → Action |
 |---|-------|-----------------|
 | G1 | No active ticket + about to WRITE? | **HARD BLOCK.** Create ticket first. Read-only tools are allowed. |
-| G1.1 | Active ticket exists, but phase is < 2? | **HARD BLOCK.** Move to Phase 2 and get user approval before code writes. |
-| G1.2 | `planLink` missing, absent, or placeholder-only? | **HARD BLOCK.** Fill ticket + plan, then lint both before execute writes. |
+| G1.1 | About to edit product/source/config files while active ticket phase is < 2? | **HARD BLOCK.** Complete Phase 1, then move to Phase 2. Explicit user execution intent counts as approval unless G6-G8/F3/F5 applies. |
+| G1.2 | About to execute code writes but `planLink` is missing, absent, or placeholder-only? | **HARD BLOCK.** Fill ticket + plan, then lint both before execute writes. |
 | G2 | `set_workflow_context` not called? | Call now. |
 | G3 | Target file has `@generated` / `DO NOT EDIT` / is in `dist/ Generated/ gen/ deukpack_out/`? | **DO NOT EDIT.** Modify the source. If unsure, check PROJECT_RULE.md mapping. 3 failed lookups → HALT. Applies to shell mutation too. |
 | G4 | 3+ external files modified outside ticket's Target Module? | **STOP.** Create new ticket. |
@@ -53,12 +53,12 @@ WRITE tools requiring active ticket: `write_to_file`, `replace_file_content`, `m
 | Phase | What to do | STOP condition |
 |-------|-----------|----------------|
 | 0: Research | Skip if context sufficient. IF search needed: MAX 2 MCP calls, prefer local reads, specific terms only. | 2 searches → no result → stop searching. |
-| 1: Plan | Read arch rules → fill APC in the user's prompt language → `ticket create --summary "..."` (summary MUST be non-empty and in the prompt language) → create `planLink` file with executable steps (not placeholders) and frontmatter, also in the prompt language. | **STOP. Wait for user approval.** |
-| 2: Execute | Implement per approved plan. Update checkboxes `[x]`. | — |
+| 1: Ticket + Plan | Create or select the ticket → read arch rules → fill APC in the user's prompt language → create/update `planLink` with executable steps (not placeholders) and frontmatter, also in the prompt language. Ticket/plan docs are planning records, not code writes. | If the user asked only to plan, stop. If execution intent is explicit and Phase 1 is complete/linted, move to Phase 2. |
+| 2: Execute | Implement per approved or explicit user-requested plan. Update checkboxes `[x]`. | — |
 | 3: Verify | Run build/tests. Record issues. | — |
 | 4: Close | Close + archive ticket. File follow-ups if needed. | **NEVER skip.** |
 
-Plan-only mode: Do Phases 0–1 only. Defer writes as text in plan. On transition to Execute → run deferred commands → Phase 2.
+Plan-only mode: Do Phases 0–1 only. Defer code/config writes as text in plan. On transition to Execute → run deferred commands → Phase 2.
 
 ### Exploration-Only Mode
 
@@ -102,6 +102,7 @@ If G6 matches:
 
 - ALL artifacts MUST be under `.deuk-agent/docs/` for RAG indexing.
 - ALL plan/report files MUST have frontmatter (`summary`, `status`, `priority`, `tags`). Run `enrich_frontmatter` after creation.
+- Phase 1 is **ticket creation plus indexed planning evidence**. Do not create duplicate tickets just to restate the same plan; update the existing ticket/`planLink`.
 - Ticket in Phase 1 is **not complete** unless its `planLink` file exists and contains executable, non-placeholder sections.
 - Platform native paths (`brain/`, `.cursor/plans/`) are NOT indexed → copy to `.deuk-agent/docs/`.
 - Platform features (planning, artifacts, KI) co-exist. NEVER disable them. Always call `set_workflow_context`.

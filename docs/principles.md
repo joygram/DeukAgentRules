@@ -37,14 +37,14 @@ Respect human-authored content while cleaning system-generated noise.
 Execution must be strictly bounded by a Ticket and its Phase.
 
 - **Why**: AI agents wander without boundaries. Explicit scope locking reduces token usage and prevents scope-creep.
-- **Mechanism**: A ticket is issued (Phase 1) to lock the scope, and the Agent Permission Contract (APC) must be validated to transition to execution (Phase 2).
+- **Mechanism**: Phase 1 issues or selects a ticket, fills the Agent Permission Contract (APC), and records the planLink as searchable planning evidence. If the user clearly requested execution and Phase 1 records are complete, the agent may continue into Phase 2.
 
 ## 6. Plan Before Mutation
 
 Design must be explicit before state changes occur.
 
-- **Why**: Intent should be reviewed and approved before files are modified. Separation of concerns prevents "blind coding".
-- **Mechanism**: Before writing code, implementation plans are verified (e.g. via `--from-plan`), and the APC blocks (`[BOUNDARY]`, `[CONTRACT]`, `[PATCH PLAN]`) in the ticket must be filled.
+- **Why**: Intent and scope should be recorded before code or config files are modified. Ticket and plan documents are records, not a reason to create duplicate tickets.
+- **Mechanism**: Before writing code, the ticket APC blocks (`[BOUNDARY]`, `[CONTRACT]`, `[PATCH PLAN]`) and planLink must be filled. Existing plans can be converted with `--from-plan`.
 
 ## 7. Documentation Complements RAG
 
