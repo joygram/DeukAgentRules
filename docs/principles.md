@@ -37,7 +37,7 @@ Respect human-authored content while cleaning system-generated noise.
 Execution must be strictly bounded by a Ticket and its Phase.
 
 - **Why**: AI agents wander without boundaries. Explicit scope locking reduces token usage and prevents scope-creep.
-- **Mechanism**: Phase 1 issues or selects a ticket, fills the Agent Permission Contract (APC), and records the planLink. The ticket owns scope and contract; planLink owns the agent's problem analysis, cause hypotheses, decision rationale, execution strategy, and verification design. They must not repeat the same content. If the user clearly requested execution and Phase 1 records are complete, the agent may continue into Phase 2.
+- **Mechanism**: Phase 1 issues or selects a ticket, fills the Agent Permission Contract (APC), and records the planLink. The ticket owns scope, contract, and progress checkboxes; planLink owns the agent's prose problem analysis, cause hypotheses, decision rationale, execution strategy, and verification design. planLink must not contain progress checkboxes.
 
 ## 6. Plan Before Mutation
 

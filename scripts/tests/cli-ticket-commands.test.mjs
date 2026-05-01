@@ -175,6 +175,7 @@ test("runTicketCreate generates non-duplicative ticket and planLink drafts", asy
     const planText = readFileSync(join(cwd, planLink), "utf8");
     assert.doesNotMatch(planText, new RegExp(summary));
     assert.doesNotMatch(planText, /## Goal/);
+    assert.doesNotMatch(planText, /\[[ xX]\]/);
     assert.match(planText, /## Ticket Contract Pointer/);
     assert.match(planText, /## Problem Analysis/);
     assert.match(planText, /## Source Observations/);

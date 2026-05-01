@@ -123,22 +123,22 @@ function ensurePlanDraftFile(cwd, planLink, summary, opts = {}) {
     "- Do not copy ticket APC or summary text into this document.",
     "",
     "## Problem Analysis",
-    "- [ ] Describe what is actually broken, missing, ambiguous, or risky.",
+    "Describe what is actually broken, missing, ambiguous, or risky.",
     "",
     "## Source Observations",
-    "- [ ] Record concrete code/docs observations with file references.",
+    "Record concrete code/docs observations with file references.",
     "",
     "## Cause Hypotheses",
-    "- [ ] List plausible causes or design gaps before choosing an approach.",
+    "List plausible causes or design gaps before choosing an approach.",
     "",
     "## Decision Rationale",
-    "- [ ] Explain the selected approach and why alternatives were not chosen.",
+    "Explain the selected approach and why alternatives were not chosen.",
     "",
     "## Execution Strategy",
-    "- [ ] List concrete implementation steps that are not repeated in the ticket.",
+    "Describe the implementation strategy without using progress checkboxes.",
     "",
     "## Verification Design",
-    "- [ ] Commands to run, expected outcomes, and residual risks."
+    "List commands to run, expected outcomes, and residual risks."
   ].join("\n");
 
   mkdirSync(dirname(planAbs), { recursive: true });

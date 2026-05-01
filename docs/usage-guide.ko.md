@@ -43,7 +43,7 @@ deuk-agent-rule ticket create --topic user-auth-impl --evidence "기존 auth 로
 ### 2단계: APC(Agent Permission Contract) 및 planLink 기록
 생성된 티켓은 기본적으로 **Phase 1 (Ticket + Plan)** 상태입니다. 에이전트는 코드를 수정하기 전에 티켓 내의 APC 블록(`[BOUNDARY]`, `[CONTRACT]`, `[PATCH PLAN]`)과 planLink 문서를 채워야 합니다.
 
-티켓과 planLink는 같은 내용을 반복하지 않습니다. 티켓은 스코프, 제약, APC 계약을 맡고, planLink는 에이전트의 문제 분석, 원인 가설, 결정 근거, 실행 전략, 검증 설계를 맡습니다. 어느 한쪽에 이미 있는 내용을 다른 쪽에 복사하지 말고 링크나 포인터로 참조합니다.
+티켓과 planLink는 같은 내용을 반복하지 않습니다. 티켓은 스코프, 제약, APC 계약, 진행 체크를 맡고, planLink는 에이전트의 서술형 문제 분석, 원인 가설, 결정 근거, 실행 전략, 검증 설계를 맡습니다. planLink에는 진행 체크박스를 두지 않습니다.
 
 사용자가 실행을 명확히 요청했고 Phase 1 기록이 완성되어 있으면, 에이전트가 다음 명령으로 Phase 승급을 시도합니다:
 ```bash
