@@ -10,7 +10,14 @@ export function parseTicketArgs(argv) {
     else if (a === "--project") out.project = argv[++i];
     else if (a === "--content") out.content = argv[++i];
     else if (a === "--from") out.from = argv[++i];
-    else if (a === "--from-plan") out.fromPlan = argv[++i];
+    else if (a === "--from-plan") {
+      const next = argv[i + 1];
+      if (next && !next.startsWith("--")) {
+        out.fromPlan = argv[++i];
+      } else {
+        out.fromPlan = true;
+      }
+    }
     else if (a === "--ref") out.ref = argv[++i];
     else if (a === "--limit") out.limit = Number(argv[++i]);
     else if (a === "--submodule") out.submodule = argv[++i];
@@ -36,6 +43,9 @@ export function parseTicketArgs(argv) {
     else if (a === "--phase") out.phase = Number(argv[++i]);
     else if (a === "--next") out.next = true;
     else if (a === "--reason") out.reason = argv[++i];
+    else if (a === "--require-filled") out.requireFilled = true;
+    else if (a === "--allow-placeholder") out.allowPlaceholder = true;
+    else if (a === "--status-detail") out.statusDetail = true;
   }
   return out;
 }

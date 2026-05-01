@@ -42,5 +42,9 @@ architecture_docs: "docs/architecture.md"
 | Action | Command |
 |--------|---------|
 | Lint rules | `npx deuk-agent-rule lint:md` |
-| Run tests | `node --test scripts/tests/` |
+| Run tests | `node --test scripts/tests/*.test.mjs` |
 | Sync OSS | `node scripts/sync-oss.mjs` |
+
+## Ticket Guard Reminder
+
+- `ticket create` 직후 placeholder 상태(본문/APC/planLink 미충족)는 미완료다. 실행 작업 전에 반드시 채워야 한다.

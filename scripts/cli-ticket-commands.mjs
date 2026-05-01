@@ -52,6 +52,107 @@ function resolveTicketTemplate(cwd, docsLanguageInput) {
   return { tplText: readFileSync(ticketTemplatePath, "utf8"), docsLanguage };
 }
 
+function hasPlaceholderTokens(text) {
+  const src = String(text || "").toLowerCase();
+  return src.includes("[add ") || src.includes("[fill") || src.includes("placeholder") || src.includes("todo") || src.includes("tbd");
+}
+
+function summarizeForSentence(summary) {
+  const clean = String(summary || "").replace(/\s+/g, " ").trim();
+  return clean.length > 180 ? `${clean.slice(0, 177)}...` : clean;
+}
+
+function buildApcDraft(summary) {
+  const s = summarizeForSentence(summary);
+  return {
+    boundaryEditable: `- Editable modules: ticket target modules directly related to \"${s}\"`,
+    boundaryForbidden: "- Forbidden modules: generated artifacts, unrelated shared infrastructure, external module roots",
+    boundaryRule: "- Rule citation: PROJECT_RULE.md + core-rules/AGENTS.md",
+    contractInput: `- Input: existing code/context required to implement \"${s}\"`,
+    contractOutput: `- Output: minimal implementation and tests that satisfy \"${s}\"`,
+    contractSideEffects: "- Side effects: ticket + plan docs updates, scoped code changes only",
+    patchPlan: [
+      "- Parse current implementation and identify minimal change points.",
+      `- Implement the smallest patch needed for \"${s}\" while preserving APIs.`,
+      "- Add/adjust tests and verify before phase progression."
+    ].join("\n")
+  };
+}
+
+function evaluateApcCompleteness(content) {
+  const reasons = [];
+  const apcMatch = String(content || "").match(/## Agent Permission Contract[\s\S]*?(?=\n## |$)/i);
+  if (!apcMatch) {
+    reasons.push("missing_apc_block");
+    return reasons;
+  }
+  const apcText = apcMatch[0];
+  const boundaryMatch = apcText.match(/### \[BOUNDARY\]([\s\S]*?)(?=\n### |$)/i);
+  const contractMatch = apcText.match(/### \[CONTRACT\]([\s\S]*?)(?=\n### |$)/i);
+  const planMatch = apcText.match(/### \[PATCH PLAN\]([\s\S]*?)(?=\n### |$)/i);
+
+  if (!boundaryMatch?.[1] || hasPlaceholderTokens(boundaryMatch[1])) reasons.push("apc_boundary_incomplete");
+  if (!contractMatch?.[1] || hasPlaceholderTokens(contractMatch[1])) reasons.push("apc_contract_incomplete");
+  if (!planMatch?.[1] || hasPlaceholderTokens(planMatch[1])) reasons.push("apc_patch_plan_incomplete");
+  return reasons;
+}
+
+function ensurePlanDraftFile(cwd, planLink, summary, opts = {}) {
+  const planAbs = resolve(cwd, planLink);
+  if (existsSync(planAbs)) return planAbs;
+  if (opts.dryRun) return planAbs;
+
+  const now = new Date().toISOString().replace("T", " ").split(".")[0];
+  const planBody = [
+    "---",
+    `summary: \"${String(summary || "").replace(/\"/g, "'")}\"`,
+    "status: draft",
+    "priority: P2",
+    "tags:",
+    "  - plan",
+    "  - phase1",
+    `createdAt: \"${now}\"`,
+    "---",
+    "",
+    "# Execution Plan",
+    "",
+    "## Goal",
+    `- ${summarizeForSentence(summary)}`,
+    "",
+    "## Steps",
+    "- [ ] Read relevant architecture and target module files.",
+    "- [ ] Implement minimal scoped changes for this ticket.",
+    "- [ ] Run tests/lint and record verification evidence.",
+    "",
+    "## Verification",
+    "- [ ] Commands to run",
+    "- [ ] Expected outcomes"
+  ].join("\n");
+
+  mkdirSync(dirname(planAbs), { recursive: true });
+  writeFileSync(planAbs, planBody + "\n", "utf8");
+  return planAbs;
+}
+
+function getPhase1IncompleteReasons(cwd, absPath) {
+  if (!existsSync(absPath)) return ["ticket_file_missing"];
+  const body = readFileSync(absPath, "utf8");
+  const { meta, content } = parseFrontMatter(body);
+  const phase = Number(meta.phase || 1);
+  if (phase !== 1) return [];
+
+  const reasons = [];
+  if (!meta.summary || hasPlaceholderTokens(meta.summary)) reasons.push("summary_missing_or_placeholder");
+  if (!meta.planLink) reasons.push("planLink_missing");
+  else {
+    const planAbs = resolve(cwd, meta.planLink);
+    if (!existsSync(planAbs)) reasons.push("planLink_file_missing");
+  }
+
+  reasons.push(...evaluateApcCompleteness(content));
+  return [...new Set(reasons)];
+}
+
 function updatePreviousTicketRef(cwd, prevTicketEntry, ticketId) {
   if (!prevTicketEntry) return;
   const prevAbsPath = join(cwd, prevTicketEntry.path);
@@ -78,6 +179,8 @@ export async function runTicketCreate(opts) {
 
   await ensurePhase0Validation(opts);
 
+  const strictCreate = !opts.allowPlaceholder && (opts.requireFilled || opts.fromPlan === true);
+
   let path, source;
   if (opts.ref) {
     path = resolveReferencedTicketPath(opts);
@@ -92,7 +195,7 @@ export async function runTicketCreate(opts) {
     let finalTitle = title;
     let finalTopic = topic;
     
-    if (opts.fromPlan) {
+    if (typeof opts.fromPlan === "string" && opts.fromPlan.trim()) {
       const planAbsPath = resolve(opts.cwd, opts.fromPlan);
       if (!existsSync(planAbsPath)) {
         throw new Error(`ticket create: Plan file not found at ${planAbsPath}`);
@@ -182,6 +285,8 @@ export async function runTicketCreate(opts) {
       throw new Error("[VALIDATION FAILED] 'summary' is mandatory and cannot be empty. Please provide a meaningful summary via --summary or within your plan.");
     }
 
+    const apcDraft = buildApcDraft(summary);
+
     const rawMeta = {
       id: ticketId,
       title: finalTitle,
@@ -209,11 +314,21 @@ export async function runTicketCreate(opts) {
     if (parsedPlan) {
       finalContent = `---\n${frontmatter}\n---\n${parsedPlan.body}`;
     } else {
-      finalContent = ejs.render(tplText, { meta, frontmatter });
+      finalContent = ejs.render(tplText, { meta, frontmatter, apcDraft });
     }
+
+    ensurePlanDraftFile(opts.cwd, meta.planLink, summary, opts);
     
     writeFileSync(abs, finalContent, "utf8");
     source = "ticket-create";
+
+    if (strictCreate) {
+      const reasons = getPhase1IncompleteReasons(opts.cwd, abs);
+      if (reasons.length > 0) {
+        rmSync(abs, { force: true });
+        throw new Error(`[VALIDATION FAILED] ticket create strict mode rejected placeholder/incomplete phase1 state: ${reasons.join(", ")}`);
+      }
+    }
 
     updatePreviousTicketRef(opts.cwd, prevTicketEntry, ticketId);
 
@@ -274,6 +389,47 @@ export async function runTicketList(opts) {
   if (opts.render) {
     writeTicketListFile(opts.cwd, index.entries, { render: true });
     console.log(`\nRendered markdown list to ${detectConsumerTicketDir(opts.cwd)}/TICKET_LIST.md`);
+  }
+}
+
+export async function runTicketStatus(opts) {
+  const index = rebuildTicketIndexFromTopicFilesIfNeeded(opts.cwd, { ...opts, force: false });
+  const found = pickTicketEntry(opts, index);
+  if (!found) throw new Error("ticket status: no matching ticket found");
+
+  const absPath = join(opts.cwd, found.path);
+  const fileMissing = !existsSync(absPath);
+  const body = fileMissing ? "" : readFileSync(absPath, "utf8");
+  const parsed = fileMissing ? { meta: {}, content: "" } : parseFrontMatter(body);
+  const phase = Number(parsed.meta.phase || 1);
+  const incompleteReasons = getPhase1IncompleteReasons(opts.cwd, absPath);
+  const derivedStatus = incompleteReasons.length > 0 && phase === 1
+    ? "phase1_incomplete"
+    : (parsed.meta.status || found.status || "open");
+
+  const out = {
+    id: found.id,
+    title: found.title,
+    path: found.path,
+    phase,
+    status: derivedStatus,
+    summary: parsed.meta.summary || null,
+    planLink: parsed.meta.planLink || null,
+    reasons: incompleteReasons,
+  };
+
+  if (opts.json) {
+    console.log(JSON.stringify(out, null, 2));
+    return;
+  }
+
+  console.log(`Ticket: ${out.id}`);
+  console.log(`Status: ${out.status}`);
+  console.log(`Phase: ${out.phase}`);
+  console.log(`Path: ${out.path}`);
+  if (opts.statusDetail || out.reasons.length > 0) {
+    if (out.reasons.length === 0) console.log("Reasons: none");
+    else console.log(`Reasons: ${out.reasons.join(", ")}`);
   }
 }
 

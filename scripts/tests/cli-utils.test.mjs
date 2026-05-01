@@ -10,7 +10,7 @@ import {
   normalizeDocsLanguage, resolveDocsLanguage, AGENT_ROOT_DIR, TICKET_SUBDIR, isMcpActive
 } from "../cli-utils.mjs";
 import { generateTicketId, computeNextTicketNumber } from "../cli-ticket-index.mjs";
-import { parseTelemetryArgs } from "../cli-args.mjs";
+import { parseTelemetryArgs, parseTicketArgs } from "../cli-args.mjs";
 
 test("cli-utils.mjs - normalizeWorkflowMode", (t) => {
   assert.strictEqual(normalizeWorkflowMode(undefined), WORKFLOW_MODE_PLAN, "default is plan");
@@ -168,4 +168,24 @@ test("cli-args.mjs - parseTelemetryArgs supports remote sync target", () => {
   assert.strictEqual(opts.cwd, "/tmp/work");
   assert.strictEqual(opts.tokens, 42);
   assert.strictEqual(opts.remote, "http://127.0.0.1:8001/ingest");
+});
+
+test("cli-args.mjs - parseTicketArgs supports strict/guard flags", () => {
+  const opts = parseTicketArgs([
+    "--topic", "demo",
+    "--summary", "summary",
+    "--require-filled",
+    "--status-detail",
+    "--from-plan", "plans/a.md"
+  ]);
+  assert.strictEqual(opts.topic, "demo");
+  assert.strictEqual(opts.summary, "summary");
+  assert.strictEqual(opts.requireFilled, true);
+  assert.strictEqual(opts.statusDetail, true);
+  assert.strictEqual(opts.fromPlan, "plans/a.md");
+});
+
+test("cli-args.mjs - parseTicketArgs supports bare --from-plan flag", () => {
+  const opts = parseTicketArgs(["--topic", "demo", "--summary", "x", "--from-plan"]);
+  assert.strictEqual(opts.fromPlan, true);
 });

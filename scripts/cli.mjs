@@ -4,7 +4,7 @@ import { dirname, join } from "path";
 import { fileURLToPath } from "url";
 import { parseArgs, parseTicketArgs, parseTelemetryArgs } from "./cli-args.mjs";
 import { runInit, runMerge } from "./cli-init-commands.mjs";
-import { runTicketCreate, runTicketList, runTicketUse, runTicketClose, runTicketArchive, runTicketReports, runTicketMeta, runTicketConnect, runTicketRebuild, runTicketReportAttach, runTicketMove, runTicketNext, runTicketHotfix } from "./cli-ticket-commands.mjs";
+import { runTicketCreate, runTicketList, runTicketUse, runTicketClose, runTicketArchive, runTicketReports, runTicketMeta, runTicketConnect, runTicketRebuild, runTicketReportAttach, runTicketMove, runTicketNext, runTicketHotfix, runTicketStatus } from "./cli-ticket-commands.mjs";
 import { runTelemetry } from "./cli-telemetry-commands.mjs";
 import { performUpgradeMigration } from "./cli-ticket-migration.mjs";
 import { loadInitConfig, writeInitConfig, checkUpdateNotifier, normalizeWorkflowMode, WORKFLOW_MODE_EXECUTE, AGENT_ROOT_DIR, resolveWorkflowMode } from "./cli-utils.mjs";
@@ -39,6 +39,7 @@ async function main() {
     else if (action === "rebuild") await runTicketRebuild(opts);
     else if (action === "move" || action === "step") await runTicketMove(opts);
     else if (action === "hotfix") await runTicketHotfix(opts);
+    else if (action === "status") await runTicketStatus(opts);
     else if (action === "report") {
       const subAction = rest[1];
       if (subAction === "attach") {
@@ -135,7 +136,7 @@ Usage:
   npx deuk-agent-rule init   [options]
   npx deuk-agent-rule merge  [options]
   npx deuk-agent-rule lint:md [--cwd <path>] [files...]
-  npx deuk-agent-rule ticket <create|list|use|close|archive|reports|migrate|upgrade|meta|connect|move> [options]
+  npx deuk-agent-rule ticket <create|list|status|use|close|archive|reports|migrate|upgrade|meta|connect|move> [options]
 
 Options:
   --cwd <path>          Target repo root
@@ -161,6 +162,9 @@ Ticket Options:
   --evidence <text>     Provide Phase 0 RAG evidence summary
   --skip-phase0         Bypass Phase 0 RAG validation
   --from-plan <path>    Create ticket from an existing plan markdown file
+  --require-filled      Enforce non-placeholder APC and existing planLink before create succeeds
+  --allow-placeholder   Opt out of strict create guard (legacy behavior)
+  --status-detail       Include detailed reasons in ticket status output
   --phase <number>      Explicitly set the phase number (e.g., --phase 2)
   --next                Move to the next phase
   --latest, -l          Use most recent ticket (default if no topic)

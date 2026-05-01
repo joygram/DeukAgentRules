@@ -14,17 +14,17 @@
 ## Agent Permission Contract (APC)
 
 ### [BOUNDARY]
-- Editable modules: [Add editable module paths]
-- Forbidden modules: [Add forbidden module paths]
-- Rule citation: [Add PROJECT_RULE.md or architecture rule citation, or "N/A"]
+<%- apcDraft?.boundaryEditable || "- Editable modules: ticket target modules related to this summary" %>
+<%- apcDraft?.boundaryForbidden || "- Forbidden modules: generated artifacts and unrelated module roots" %>
+<%- apcDraft?.boundaryRule || "- Rule citation: PROJECT_RULE.md + core-rules/AGENTS.md" %>
 
 ### [CONTRACT]
-- Input: [Add input/context for this ticket]
-- Output: [Add expected output]
-- Side effects: [Add expected side effects]
+<%- apcDraft?.contractInput || "- Input: existing implementation context for this ticket" %>
+<%- apcDraft?.contractOutput || "- Output: minimal implementation + validation evidence" %>
+<%- apcDraft?.contractSideEffects || "- Side effects: scoped changes and docs updates" %>
 
 ### [PATCH PLAN]
-- [Add file/function/change plan]
+<%- apcDraft?.patchPlan || "- Analyze current code and apply minimal, scoped patch" %>
 
 ## Tasks
 - [ ] [Task 1]
