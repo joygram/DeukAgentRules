@@ -176,8 +176,12 @@ test("runTicketCreate generates non-duplicative ticket and planLink drafts", asy
     assert.doesNotMatch(planText, new RegExp(summary));
     assert.doesNotMatch(planText, /## Goal/);
     assert.match(planText, /## Ticket Contract Pointer/);
-    assert.match(planText, /## Evidence/);
-    assert.match(planText, /## Execution Steps/);
+    assert.match(planText, /## Problem Analysis/);
+    assert.match(planText, /## Source Observations/);
+    assert.match(planText, /## Cause Hypotheses/);
+    assert.match(planText, /## Decision Rationale/);
+    assert.match(planText, /## Execution Strategy/);
+    assert.match(planText, /## Verification Design/);
   } finally {
     console.log = originalLog;
     console.warn = originalWarn;

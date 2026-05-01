@@ -1,6 +1,6 @@
 ---
-version: 20
-changelog: "v20: Split ticket and planLink ownership to prevent duplicate content while preserving searchable planning evidence."
+version: 21
+changelog: "v21: Strengthen planLink as the agent's problem-analysis and decision-trace document, not a duplicate task list."
 ---
 
 # Agent Rules
@@ -53,7 +53,7 @@ WRITE tools requiring active ticket: `write_to_file`, `replace_file_content`, `m
 | Phase | What to do | STOP condition |
 |-------|-----------|----------------|
 | 0: Research | Skip if context sufficient. IF search needed: MAX 2 MCP calls, prefer local reads, specific terms only. | 2 searches → no result → stop searching. |
-| 1: Ticket + Plan | Create or select the ticket → read arch rules → fill ticket-owned scope/APC in the user's prompt language → create/update distinct `planLink` evidence/steps/verification with frontmatter, also in the prompt language. Ticket/plan docs are planning records, not code writes. | If the user asked only to plan, stop. If execution intent is explicit and Phase 1 is complete/linted, move to Phase 2. |
+| 1: Ticket + Plan | Create or select the ticket → read arch rules → fill ticket-owned scope/APC in the user's prompt language → create/update distinct `planLink` problem analysis, hypotheses, rationale, strategy, and verification design with frontmatter, also in the prompt language. Ticket/plan docs are planning records, not code writes. | If the user asked only to plan, stop. If execution intent is explicit and Phase 1 is complete/linted, move to Phase 2. |
 | 2: Execute | Implement per approved or explicit user-requested plan. Update checkboxes `[x]`. | — |
 | 3: Verify | Run build/tests. Record issues. | — |
 | 4: Close | Close + archive ticket. File follow-ups if needed. | **NEVER skip.** |
@@ -105,7 +105,7 @@ If G6 matches:
 - Phase 1 is **ticket creation plus indexed planning evidence**. Do not create duplicate tickets just to restate the same plan; update the existing ticket/`planLink`.
 - Ticket and `planLink` MUST NOT duplicate content:
   - Ticket owns identity, scope, constraints, APC boundary/contract, and lifecycle checklist.
-  - `planLink` owns discovery evidence, decision notes, concrete execution steps, and verification evidence.
+  - `planLink` owns the agent's problem analysis, source observations, cause hypotheses, decision rationale, execution strategy, and verification design.
   - If a section would repeat the other artifact, replace it with a pointer instead of copying text.
 - Ticket in Phase 1 is **not complete** unless its `planLink` file exists and contains executable, non-placeholder sections.
 - Platform native paths (`brain/`, `.cursor/plans/`) are NOT indexed → copy to `.deuk-agent/docs/`.

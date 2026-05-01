@@ -72,7 +72,7 @@ function buildApcDraft(summary) {
     contractOutput: `- Output: minimal implementation and tests that satisfy \"${s}\"`,
     contractSideEffects: "- Side effects: ticket + plan docs updates, scoped code changes only",
     patchPlan: [
-      "- Detailed evidence, execution steps, and verification live in planLink.",
+      "- Problem analysis, cause hypotheses, rationale, execution strategy, and verification design live in planLink.",
       "- Ticket records only the allowed patch boundary and contract.",
       "- Do not duplicate planLink content here; reference it when detail is needed."
     ].join("\n")
@@ -103,7 +103,7 @@ function ensurePlanDraftFile(cwd, planLink, summary, opts = {}) {
   if (opts.dryRun) return planAbs;
 
   const now = new Date().toISOString().replace("T", " ").split(".")[0];
-  const planSummary = `Execution evidence and verification plan for ${basename(planLink, ".md")}`;
+  const planSummary = `Agent problem analysis and decision trace for ${basename(planLink, ".md")}`;
   const planBody = [
     "---",
     `summary: \"${planSummary.replace(/\"/g, "'")}\"`,
@@ -115,22 +115,30 @@ function ensurePlanDraftFile(cwd, planLink, summary, opts = {}) {
     `createdAt: \"${now}\"`,
     "---",
     "",
-    "# Planning Evidence",
+    "# Agent Analysis Plan",
     "",
     "## Ticket Contract Pointer",
     "- Linked ticket owns summary, scope, constraints, and APC.",
-    "- This planLink owns evidence, concrete execution steps, and verification notes.",
+    "- This planLink owns the agent's problem analysis and decision trail.",
     "- Do not copy ticket APC or summary text into this document.",
     "",
-    "## Evidence",
-    "- [ ] Record architecture/source observations that justify the implementation.",
+    "## Problem Analysis",
+    "- [ ] Describe what is actually broken, missing, ambiguous, or risky.",
     "",
-    "## Execution Steps",
+    "## Source Observations",
+    "- [ ] Record concrete code/docs observations with file references.",
+    "",
+    "## Cause Hypotheses",
+    "- [ ] List plausible causes or design gaps before choosing an approach.",
+    "",
+    "## Decision Rationale",
+    "- [ ] Explain the selected approach and why alternatives were not chosen.",
+    "",
+    "## Execution Strategy",
     "- [ ] List concrete implementation steps that are not repeated in the ticket.",
     "",
-    "## Verification",
-    "- [ ] Commands to run and expected outcomes.",
-    "- [ ] Record pass/fail evidence after execution."
+    "## Verification Design",
+    "- [ ] Commands to run, expected outcomes, and residual risks."
   ].join("\n");
 
   mkdirSync(dirname(planAbs), { recursive: true });
