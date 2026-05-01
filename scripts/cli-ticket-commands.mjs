@@ -562,7 +562,8 @@ function distillKnowledge(absPath, ticketId, cwd) {
 }
 
 export function pickTicketEntry(opts, indexJson) {
-  const rows = [...indexJson.entries].sort((a, b) => String(b.createdAt || "").localeCompare(String(a.createdAt || "")));
+  const rows = filterTicketEntries(indexJson.entries, opts)
+    .sort((a, b) => String(b.createdAt || "").localeCompare(String(a.createdAt || "")));
   if (rows.length === 0) return null;
   if (opts.topic) {
     const key = String(opts.topic).toLowerCase();
@@ -572,6 +573,14 @@ export function pickTicketEntry(opts, indexJson) {
     ) || null;
   }
   return rows[0];
+}
+
+function filterTicketEntries(entries, opts = {}) {
+  return [...(entries || [])].filter(entry => {
+    if (opts.project && entry.project !== opts.project) return false;
+    if (opts.submodule && entry.submodule !== opts.submodule) return false;
+    return true;
+  });
 }
 
 export async function runTicketArchive(opts) {
@@ -804,7 +813,8 @@ export async function runTicketMove(opts) {
 export async function runTicketNext(opts) {
   const index = rebuildTicketIndexFromTopicFilesIfNeeded(opts.cwd, { ...opts, force: false });
   // Find the first active ticket, or if none, the first open ticket (earliest created)
-  const rows = [...index.entries].sort((a, b) => String(a.createdAt || "").localeCompare(String(b.createdAt || "")));
+  const rows = filterTicketEntries(index.entries, opts)
+    .sort((a, b) => String(a.createdAt || "").localeCompare(String(b.createdAt || "")));
   let found = rows.find(e => e.status === "active");
   if (!found) {
     found = rows.find(e => e.status === "open");
