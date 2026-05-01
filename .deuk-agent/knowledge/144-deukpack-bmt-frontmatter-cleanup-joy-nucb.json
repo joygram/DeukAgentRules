@@ -1,0 +1,11 @@
+{
+  "id": "144-deukpack-bmt-frontmatter-cleanup-joy-nucb",
+  "title": "deukpack-bmt-frontmatter-cleanup",
+  "project": "global",
+  "createdAt": "2026-05-01 08:03:14",
+  "archivedAt": "2026-05-01T08:05:54.944Z",
+  "sections": {
+    "Tasks": "- [x] 136 Kotlin 티켓 frontmatter 중복 제거\n- [x] 137 Python 티켓 frontmatter 중복 제거\n- [x] 138 JavaScript 티켓 frontmatter 중복 제거\n- [x] 140 Go 티켓 frontmatter 중복 제거",
+    "Done When": "- 대상 4개 티켓이 YAML frontmatter 중복 key 없이 parse 가능\n- `lint:md`가 cleanup 티켓/계획 및 대상 4개 티켓에 대해 통과"
+  }
+}
