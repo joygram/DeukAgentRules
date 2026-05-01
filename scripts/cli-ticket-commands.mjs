@@ -452,12 +452,20 @@ function autoArchiveDoneTickets(cwd, indexJson, opts = {}) {
   return archived;
 }
 
-function rollbackCreatedTicket(cwd, abs, planLink, previousIndexJson, opts = {}) {
+function rollbackCreatedTicket(cwd, abs, planLink, rollbackIndexJson, opts = {}) {
   if (!opts.dryRun) {
     rmSync(abs, { force: true });
     if (planLink) rmSync(resolve(cwd, planLink), { force: true });
   }
-  writeTicketIndexJson(cwd, previousIndexJson, opts);
+  writeTicketIndexJson(cwd, rollbackIndexJson, opts);
+}
+
+function buildCreateRollbackIndex(indexJson, ticketId, previousIndexJson) {
+  return {
+    ...indexJson,
+    activeTicketId: previousIndexJson.activeTicketId || "",
+    entries: (indexJson.entries || []).filter(entry => entry.id !== ticketId)
+  };
 }
 
 export async function runTicketCreate(opts) {
@@ -633,7 +641,8 @@ export async function runTicketCreate(opts) {
 
     const limitError = buildOpenTicketLimitError(readTicketIndexJson(opts.cwd));
     if (limitError) {
-      rollbackCreatedTicket(opts.cwd, abs, meta.planLink, indexJson, opts);
+      const rollbackIndexJson = buildCreateRollbackIndex(readTicketIndexJson(opts.cwd), ticketId, indexJson);
+      rollbackCreatedTicket(opts.cwd, abs, meta.planLink, rollbackIndexJson, opts);
       throw new Error(limitError);
     }
 

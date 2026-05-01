@@ -645,6 +645,107 @@ test("runTicketCreate auto-archives closed tickets before enforcing open ticket 
   }
 });
 
+test("runTicketCreate preserves closed auto-archive when new ticket exceeds open limit", async () => {
+  const { cwd, ticketDir } = makeTemplateWorkspace();
+  const srcDir = join(ticketDir, "sub");
+  mkdirSync(srcDir, { recursive: true });
+
+  const entries = [];
+  for (let i = 1; i <= 20; i++) {
+    const id = `${String(i).padStart(3, "0")}-old-open-host`;
+    const fileName = `${id}.md`;
+    const createdAt = `2026-04-${String(i).padStart(2, "0")} 00:00:00`;
+    entries.push(makeEntry({
+      id,
+      title: `old open ${i}`,
+      topic: id,
+      fileName,
+      createdAt,
+      status: "open"
+    }));
+    writeFileSync(join(srcDir, fileName), [
+      "---",
+      `id: ${id}`,
+      `title: old open ${i}`,
+      "phase: 1",
+      "status: open",
+      `createdAt: ${createdAt}`,
+      "summary: old open ticket",
+      "priority: P2",
+      "tags: [test]",
+      "---",
+      `# old open ${i}`,
+      ""
+    ].join("\n"), "utf8");
+  }
+
+  const closedId = "021-closed-host";
+  entries.push(makeEntry({
+    id: closedId,
+    title: "closed ticket",
+    topic: closedId,
+    fileName: `${closedId}.md`,
+    createdAt: "2026-04-21 00:00:00",
+    status: "closed"
+  }));
+  writeFileSync(join(srcDir, `${closedId}.md`), [
+    "---",
+    `id: ${closedId}`,
+    "title: closed ticket",
+    "phase: 4",
+    "status: closed",
+    "createdAt: 2026-04-21 00:00:00",
+    "summary: closed ticket",
+    "priority: P2",
+    "tags: [test]",
+    "---",
+    "# closed ticket",
+    ""
+  ].join("\n"), "utf8");
+  writeFileSync(join(ticketDir, TICKET_INDEX_FILENAME), JSON.stringify(makeIndex(entries), null, 2) + "\n", "utf8");
+
+  const originalLog = console.log;
+  const originalWarn = console.warn;
+  console.log = () => {};
+  console.warn = () => {};
+
+  try {
+    await assert.rejects(
+      () => runTicketCreate({
+        cwd,
+        topic: "new-overflow-after-closed-cleanup",
+        summary: "create should fail but keep closed archive consistent",
+        nonInteractive: true,
+        docsLanguage: "en",
+        skipPhase0: true
+      }),
+      err => {
+        assert.match(err.message, /Open tickets: 21\/20/);
+        return true;
+      }
+    );
+
+    const index = readTicketIndexJson(cwd);
+    const openCount = index.entries.filter(e => e.status === "open" || e.status === "active").length;
+    assert.strictEqual(openCount, 20);
+    assert.ok(!index.entries.some(e => e.topic === "new-overflow-after-closed-cleanup"));
+
+    const closed = index.entries.find(e => e.id === closedId);
+    assert.strictEqual(closed.status, "archived");
+    assert.strictEqual(closed.archiveYearMonth, "2026-04");
+    assert.strictEqual(closed.archiveDay, "21");
+    assert.ok(existsSync(join(cwd, ".deuk-agent/tickets/archive/sub/2026-04/21/021-closed-host.md")));
+    assert.ok(!existsSync(join(cwd, ".deuk-agent/tickets/sub/021-closed-host.md")));
+
+    const subFiles = readdirSync(srcDir);
+    assert.ok(!subFiles.some(name => name.includes("new-overflow-after-closed-cleanup")));
+  } finally {
+    console.log = originalLog;
+    console.warn = originalWarn;
+    rmSync(cwd, { recursive: true, force: true });
+  }
+});
+
 test("runTicketCreate repairs closed index entry when ticket file is already archived", async () => {
   const { cwd, ticketDir } = makeTemplateWorkspace();
   const srcDir = join(ticketDir, "sub");
