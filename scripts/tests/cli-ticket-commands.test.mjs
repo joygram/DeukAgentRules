@@ -391,6 +391,12 @@ test("runTicketArchive auto-detects existing walkthrough report and attaches lin
   ].join("\n"), "utf8");
 
   writeFileSync(join(cwd, reportPath), [
+    "---",
+    "summary: walkthrough report",
+    "status: draft",
+    "priority: P2",
+    "tags: [report]",
+    "---",
     "# walkthrough",
     ""
   ].join("\n"), "utf8");

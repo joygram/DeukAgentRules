@@ -522,6 +522,14 @@ function rollbackCreatedTicket(cwd, abs, planLink, rollbackIndexJson, opts = {})
   writeTicketListFile(cwd, rollbackIndexJson.entries || [], { ...opts, render: true });
 }
 
+function buildCreateRollbackIndex(currentIndexJson, ticketId, previousIndexJson) {
+  return {
+    ...currentIndexJson,
+    activeTicketId: previousIndexJson.activeTicketId || "",
+    entries: (currentIndexJson.entries || []).filter(entry => entry.id !== ticketId)
+  };
+}
+
 export async function runTicketCreate(opts) {
   if (!opts.topic && !opts.ref) throw new Error("ticket create requires --topic or --ref");
   
@@ -655,8 +663,10 @@ export async function runTicketCreate(opts) {
       docsLanguage,
       evidence: opts.evidence,
       summary,
-      priority: opts.priority,
-      tags: opts.tags ? opts.tags.split(',').map(t => t.trim().replace(/^#/, '')).filter(Boolean) : undefined,
+      priority: opts.priority || "P2",
+      tags: opts.tags
+        ? opts.tags.split(',').map(t => t.trim().replace(/^#/, '')).filter(Boolean)
+        : [],
       createdAt: new Date().toISOString().replace('T', ' ').split('.')[0],
       prevTicket: prevTicketEntry ? prevTicketEntry.id : undefined,
       planLink: `${PLAN_LINKS_DIR}/${ticketId}-plan.md`,
@@ -677,6 +687,7 @@ export async function runTicketCreate(opts) {
 
     const planAbs = ensurePlanDraftFile(opts.cwd, meta.planLink, summary, opts);
     const lifecycleTargets = [abs, planAbs];
+    let rollbackIndexJson = indexJson;
 
     if (!opts.dryRun) writeFileSync(abs, finalContent, "utf8");
     source = "ticket-create";
@@ -704,11 +715,12 @@ export async function runTicketCreate(opts) {
 
       const limitError = buildOpenTicketLimitError(readTicketIndexJson(opts.cwd));
       if (limitError) {
+        rollbackIndexJson = buildCreateRollbackIndex(readTicketIndexJson(opts.cwd), ticketId, indexJson);
         throw new Error(limitError);
       }
     } catch (err) {
       if (!opts.dryRun) {
-        rollbackCreatedTicket(opts.cwd, abs, meta.planLink, indexJson, opts);
+        rollbackCreatedTicket(opts.cwd, abs, meta.planLink, rollbackIndexJson, opts);
       }
       throw err;
     }

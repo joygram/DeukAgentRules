@@ -4,8 +4,12 @@ title: md-lint-automation-and-rule-hardening
 phase: 1
 status: open
 docsLanguage: ko
+priority: P2
 summary: 티켓 lifecycle에 md lint 자동화를 편입하고 에이전트룰의 검증 경계를 보강한다
 createdAt: 2026-05-02 09:52:13
+tags:
+  - automation
+  - lint
 planLink: .deuk-agent/docs/plans/179-md-lint-automation-and-rule-hard-joy-nucb-plan.md
 ---
 # md-lint-automation-and-rule-hardening
