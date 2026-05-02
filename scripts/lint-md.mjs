@@ -39,6 +39,29 @@ function isMarkdownFile(filePath) {
   return lower.endsWith(".md") || lower.endsWith(".mdx") || lower.endsWith(".markdown");
 }
 
+function isWalkthroughReport(relPath) {
+  return relPath.includes(`${AGENT_ROOT_DIR}/docs/walkthroughs/`) && relPath.endsWith("-report.md");
+}
+
+function lintWalkthroughReportStructure(relPath, content) {
+  const errors = [];
+  const hasSummary = /##\s+(Summary|요약)(?:\s|$)/i.test(content);
+  const hasVerification = /##\s+(Verification|검증)(?:\s|$)/i.test(content);
+  const hasOutcome = /##\s+(Verification Outcome|Verification Results|검증 결과)(?:\s|$)/i.test(content);
+
+  if (!hasSummary) {
+    errors.push(`${relPath}: walkthrough report missing Summary/요약 section`);
+  }
+  if (!hasVerification) {
+    errors.push(`${relPath}: walkthrough report missing Verification/검증 section`);
+  }
+  if (!hasOutcome) {
+    errors.push(`${relPath}: walkthrough report missing Verification Outcome/Verification Results/검증 결과 section`);
+  }
+
+  return errors;
+}
+
 function walkMarkdownFiles(rootDir, out = []) {
   for (const entry of readdirSync(rootDir, { withFileTypes: true })) {
     if (entry.isDirectory()) {
@@ -116,6 +139,10 @@ function lintFile(absPath, repoRoot) {
     if (!statExists(resolved)) {
       errors.push(`${rel}: broken relative link -> ${target}`);
     }
+  }
+
+  if (isWalkthroughReport(rel)) {
+    errors.push(...lintWalkthroughReportStructure(rel, content));
   }
 
   return errors;

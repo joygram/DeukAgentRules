@@ -558,6 +558,12 @@ test("runTicketArchive auto-detects existing walkthrough report and attaches lin
     "tags: [report]",
     "---",
     "# walkthrough",
+    "## Summary",
+    "- report attach test",
+    "## Verification",
+    "- archive detects the report",
+    "## Verification Outcome",
+    "- passed",
     ""
   ].join("\n"), "utf8");
 
@@ -1174,6 +1180,49 @@ test("runTicketCreate dry-run does not write ticket, plan, index, or active tick
     assert.ok(!readdirSync(srcDir).some(name => name.includes("dry-run-ticket")));
     assert.ok(!existsSync(join(cwd, ".deuk-agent/docs/plans")));
     assert.ok(logs.some(line => line.includes("Ticket would be created:")));
+  } finally {
+    console.log = originalLog;
+    console.warn = originalWarn;
+    rmSync(cwd, { recursive: true, force: true });
+  }
+});
+
+test("runTicketCreate rolls back when strict create rejects placeholder summary", async () => {
+  const { cwd, ticketDir } = makeTemplateWorkspace();
+  const srcDir = join(ticketDir, "sub");
+  mkdirSync(srcDir, { recursive: true });
+
+  const originalLog = console.log;
+  const originalWarn = console.warn;
+  console.log = () => {};
+  console.warn = () => {};
+
+  try {
+    await assert.rejects(
+      () => runTicketCreate({
+        cwd,
+        topic: "strict-placeholder-ticket",
+        summary: "placeholder summary for strict create",
+        nonInteractive: true,
+        docsLanguage: "en",
+        skipPhase0: true,
+        requireFilled: true
+      }),
+      err => {
+        assert.match(err.message, /strict mode rejected placeholder\/incomplete phase1 state/);
+        assert.match(err.message, /summary_missing_or_placeholder/);
+        return true;
+      }
+    );
+
+    const index = readTicketIndexJson(cwd);
+    assert.strictEqual(index.entries.length, 0);
+    assert.ok(!readdirSync(srcDir).some(name => name.includes("strict-placeholder-ticket")));
+    const planDir = join(cwd, ".deuk-agent", "docs", "plans");
+    const planFiles = existsSync(planDir)
+      ? readdirSync(planDir).filter(name => name.endsWith(".md"))
+      : [];
+    assert.strictEqual(planFiles.length, 0);
   } finally {
     console.log = originalLog;
     console.warn = originalWarn;
