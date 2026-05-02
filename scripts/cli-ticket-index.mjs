@@ -1,4 +1,4 @@
-import { existsSync, mkdirSync, readFileSync, writeFileSync, unlinkSync } from "fs";
+import { existsSync, mkdirSync, readFileSync, readdirSync, writeFileSync, unlinkSync } from "fs";
 import { basename, dirname, join, resolve } from "path";
 import { hostname as osHostname } from "os";
 import { 
@@ -7,6 +7,75 @@ import {
 } from "./cli-utils.mjs";
 
 const TICKET_ARCHIVE_INDEX_FILENAME = "INDEX.archive.json";
+const TICKET_ARCHIVE_INDEX_PREFIX = "INDEX.archive.";
+const ARCHIVE_INDEX_RETENTION_MONTHS = 12;
+const ARCHIVE_INDEX_MONTH_RE = /^INDEX\.archive\.(\d{4}-\d{2})\.json$/;
+const ARCHIVE_INDEX_LEGACY_RE = /^INDEX\.archive\.json$/;
+
+function parseArchiveMonth(value) {
+  const match = String(value || "").match(/^(\d{4})-(\d{2})$/);
+  if (!match) return null;
+  const year = Number(match[1]);
+  const month = Number(match[2]);
+  if (!Number.isInteger(year) || !Number.isInteger(month) || month < 1 || month > 12) return null;
+  return { year, month, yearMonth: `${match[1]}-${match[2]}` };
+}
+
+function monthDistance(fromYearMonth, toDate = new Date()) {
+  const parsed = parseArchiveMonth(fromYearMonth);
+  if (!parsed) return null;
+  return (toDate.getUTCFullYear() * 12 + toDate.getUTCMonth()) - ((parsed.year * 12) + (parsed.month - 1));
+}
+
+function resolveArchivePartition(entry, now = new Date()) {
+  const fromEntry = parseArchiveMonth(entry?.archiveYearMonth);
+  if (fromEntry) {
+    return {
+      yearMonth: fromEntry.yearMonth,
+      day: String(entry.archiveDay || "").match(/^\d{2}$/)?.[0] || String(now.getUTCDate()).padStart(2, "0")
+    };
+  }
+
+  const source = String(entry?.createdAt || entry?.updatedAt || "");
+  const match = source.match(/^(\d{4})-(\d{2})-(\d{2})/);
+  if (match) {
+    return { yearMonth: `${match[1]}-${match[2]}`, day: match[3] };
+  }
+
+  return {
+    yearMonth: `${now.getUTCFullYear()}-${String(now.getUTCMonth() + 1).padStart(2, "0")}`,
+    day: String(now.getUTCDate()).padStart(2, "0")
+  };
+}
+
+function shouldRetainArchiveEntry(entry, now = new Date()) {
+  const partition = resolveArchivePartition(entry, now);
+  const distance = monthDistance(partition.yearMonth, now);
+  if (distance === null) return true;
+  return distance <= ARCHIVE_INDEX_RETENTION_MONTHS;
+}
+
+function archiveIndexFilePath(dir, yearMonth = null) {
+  return join(dir, yearMonth ? `${TICKET_ARCHIVE_INDEX_PREFIX}${yearMonth}.json` : TICKET_ARCHIVE_INDEX_FILENAME);
+}
+
+function listArchiveIndexFiles(dir) {
+  if (!existsSync(dir)) return [];
+  return readdirSync(dir, { withFileTypes: true })
+    .filter(ent => ent.isFile())
+    .map(ent => join(dir, ent.name))
+    .filter(abs => ARCHIVE_INDEX_LEGACY_RE.test(basename(abs)) || ARCHIVE_INDEX_MONTH_RE.test(basename(abs)))
+    .sort((a, b) => {
+      const aBase = basename(a);
+      const bBase = basename(b);
+      const aMatch = aBase.match(ARCHIVE_INDEX_MONTH_RE);
+      const bMatch = bBase.match(ARCHIVE_INDEX_MONTH_RE);
+      if (aMatch && !bMatch) return 1;
+      if (!aMatch && bMatch) return -1;
+      if (!aMatch && !bMatch) return aBase.localeCompare(bBase);
+      return aMatch[1].localeCompare(bMatch[1]);
+    });
+}
 
 function parseIndexFile(absPath) {
   if (!existsSync(absPath)) {
@@ -45,6 +114,16 @@ function splitEntriesForStorage(entries = []) {
   return { activeEntries, archiveEntries };
 }
 
+function partitionArchiveEntries(entries = []) {
+  const retained = [];
+  const retired = [];
+  for (const entry of entries) {
+    if (shouldRetainArchiveEntry(entry)) retained.push(entry);
+    else retired.push(entry);
+  }
+  return { retained, retired };
+}
+
 function mergeIndexEntries(primaryEntries = [], archiveEntries = []) {
   const merged = new Map();
   for (const entry of primaryEntries || []) {
@@ -60,22 +139,22 @@ export function readTicketIndexJson(cwd) {
   const dir = detectConsumerTicketDir(cwd);
   if (!dir) return { version: 1, updatedAt: null, entries: [] };
   const mainPath = join(dir, TICKET_INDEX_FILENAME);
-  const archivePath = join(dir, TICKET_ARCHIVE_INDEX_FILENAME);
   const main = parseIndexFile(mainPath);
-  const archive = parseIndexFile(archivePath);
+  const archiveFiles = listArchiveIndexFiles(dir).map(parseIndexFile);
 
-  const entries = mergeIndexEntries(main.entries, archive.entries).map(entry => {
+  const archiveEntries = archiveFiles.flatMap(file => file.entries || []);
+  const entries = mergeIndexEntries(main.entries, archiveEntries).map(entry => {
     const next = { ...entry, status: entry.status || "open" };
     next.path = computeTicketPath(next);
     return next;
   });
 
   return {
-    version: main.version || archive.version || 1,
-    updatedAt: main.updatedAt ?? archive.updatedAt ?? null,
+    version: main.version || archiveFiles[0]?.version || 1,
+    updatedAt: main.updatedAt ?? archiveFiles[0]?.updatedAt ?? null,
     activeTicketId: main.activeTicketId ?? null,
     entries,
-    _corrupt: Boolean(main._corrupt || archive._corrupt)
+    _corrupt: Boolean(main._corrupt || archiveFiles.some(file => file._corrupt))
   };
 }
 
@@ -86,7 +165,6 @@ export function writeTicketIndexJson(cwd, indexJson, opts = {}) {
   }
   const dir = detectConsumerTicketDir(cwd, { createIfMissing: true });
   const p = join(dir, TICKET_INDEX_FILENAME);
-  const archivePath = join(dir, TICKET_ARCHIVE_INDEX_FILENAME);
   if (opts.dryRun) return;
   mkdirSync(dir, { recursive: true });
   
@@ -103,17 +181,41 @@ export function writeTicketIndexJson(cwd, indexJson, opts = {}) {
   out.activeTicketId = out.activeTicketId || activeEntries.find(e => e.status === "active")?.id || activeEntries.find(e => e.status === "open")?.id || null;
   writeFileSync(p, JSON.stringify(out, null, 2) + "\n", "utf8");
 
-  const archiveOut = {
-    version: out.version || 1,
-    updatedAt: out.updatedAt || new Date().toISOString(),
-    activeTicketId: null,
-    entries: archiveEntries.map(e => {
-      const { path, ...clean } = e;
-      return clean;
-    })
-  };
-  if (archiveOut.entries.length > 0 || existsSync(archivePath)) {
+  const archiveFiles = listArchiveIndexFiles(dir);
+  const retainedArchiveEntries = partitionArchiveEntries(archiveEntries);
+  const archiveBuckets = new Map();
+
+  for (const entry of retainedArchiveEntries.retained) {
+    const partition = resolveArchivePartition(entry);
+    const bucket = archiveBuckets.get(partition.yearMonth) || [];
+    bucket.push({ ...entry, archiveYearMonth: partition.yearMonth, archiveDay: partition.day });
+    archiveBuckets.set(partition.yearMonth, bucket);
+  }
+
+  const desiredArchiveFiles = new Set();
+  for (const [yearMonth, bucket] of archiveBuckets.entries()) {
+    const archiveOut = {
+      version: out.version || 1,
+      updatedAt: out.updatedAt || new Date().toISOString(),
+      activeTicketId: null,
+      entries: bucket.map(e => {
+        const { path, ...clean } = e;
+        return clean;
+      })
+    };
+    const archivePath = archiveIndexFilePath(dir, yearMonth);
+    desiredArchiveFiles.add(archivePath);
     writeFileSync(archivePath, JSON.stringify(archiveOut, null, 2) + "\n", "utf8");
+  }
+
+  for (const filePath of archiveFiles) {
+    if (!desiredArchiveFiles.has(filePath)) {
+      unlinkSync(filePath);
+    }
+  }
+
+  if (retainedArchiveEntries.retired.length > 0) {
+    console.log(`[GC] Dropped ${retainedArchiveEntries.retired.length} archived entries outside the ${ARCHIVE_INDEX_RETENTION_MONTHS}-month retention window.`);
   }
 }
 

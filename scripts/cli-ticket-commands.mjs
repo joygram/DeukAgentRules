@@ -239,6 +239,12 @@ function updatePreviousTicketRef(cwd, prevTicketEntry, ticketId) {
 }
 
 function archivePartitionForEntry(entry, now = new Date()) {
+  const storedYearMonth = String(entry?.archiveYearMonth || "");
+  const storedDay = String(entry?.archiveDay || "");
+  if (/^\d{4}-\d{2}$/.test(storedYearMonth) && /^\d{2}$/.test(storedDay)) {
+    return { yearMonth: storedYearMonth, day: storedDay };
+  }
+
   const source = String(entry?.createdAt || "");
   const match = source.match(/^(\d{4})-(\d{2})-(\d{2})/);
   if (match) return { yearMonth: `${match[1]}-${match[2]}`, day: match[3] };
