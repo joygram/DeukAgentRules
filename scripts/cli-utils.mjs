@@ -27,21 +27,30 @@ export const PLAN_LINKS_DIR = `${AGENT_ROOT_DIR}/${DOCS_SUBDIR}/${PLANS_SUBDIR}`
 export const LEGACY_TEMPLATE_DIR = ".deuk-agent-templates";
 export const LEGACY_TICKET_DIR = ".deuk-agent-ticket";
 export const LEGACY_TICKET_DIR_PLURAL = ".deuk-agent-tickets";
+export const LEGACY_TICKET_DIR_ROOT = "ticket";
 export const LEGACY_CONFIG_FILE = ".deuk-agent-rule.config.json";
 export const LEGACY_IGNORE_DIR = `${AGENT_ROOT_DIR}/tickets/`;
 export const ARCHIVE_YEAR_MONTH_RE = /^\d{4}-\d{2}$/;
 export const ARCHIVE_DAY_RE = /^\d{2}$/;
+
+const LEGACY_TICKET_GROUPS = new Set([
+  LEGACY_TICKET_DIR,
+  LEGACY_TICKET_DIR_PLURAL,
+  "ticket",
+  "tickets"
+]);
 
 /**
  * Computes the canonical repository-relative path for a ticket based on its state.
  */
 export function computeTicketPath(entry) {
   const isArchived = entry.status === "archived";
+  const group = normalizeTicketGroup(entry.group, "sub");
   const fileStem = entry.fileName
     ? String(entry.fileName).replace(/\.md$/i, "")
     : (entry.group === TICKET_SUBDIR && entry.topic ? entry.topic : entry.id);
 
-  if (!isArchived && entry.group === TICKET_SUBDIR) {
+  if (!isArchived && group === TICKET_SUBDIR) {
     return [TICKET_DIR_NAME, `${fileStem}.md`].join("/");
   }
 
@@ -49,7 +58,7 @@ export function computeTicketPath(entry) {
     return [
       TICKET_DIR_NAME,
       "archive",
-      entry.group || "sub",
+      group,
       entry.archiveYearMonth,
       entry.archiveDay,
       `${fileStem}.md`
@@ -59,10 +68,20 @@ export function computeTicketPath(entry) {
   const parts = [
     TICKET_DIR_NAME,
     isArchived ? "archive" : null,
-    entry.group || "sub",
+    group,
     `${fileStem}.md`
   ].filter(Boolean);
   return parts.join("/");
+}
+
+export function normalizeTicketGroup(rawGroup, fallback = "sub") {
+  const value = String(rawGroup || "").trim();
+  if (!value) return fallback;
+  if (value.includes("/") || value.startsWith("TICKET-") && value.includes(".md")) return fallback;
+  if (value.endsWith(".md")) return fallback;
+  if (value.endsWith(".markdown")) return fallback;
+  if (LEGACY_TICKET_GROUPS.has(value)) return fallback;
+  return value;
 }
 
 export const INIT_CONFIG_FILENAME = `${AGENT_ROOT_DIR}/config.json`;
@@ -279,7 +298,7 @@ export function makeEntryId() {
 
 export function findFileRecursively(dir, fileName) {
   if (!existsSync(dir)) return null;
-  const entries = readdirSync(dir, { withFileTypes: true });
+  const entries = readdirSync(dir, { withFileTypes: true }).sort((a, b) => a.name.localeCompare(b.name));
   for (const entry of entries) {
     const res = join(dir, entry.name);
     if (entry.isDirectory()) {
@@ -478,7 +497,7 @@ export function discoverAllWorkspaces(baseCwd, ignoreDirs = DEFAULT_IGNORE_DIRS,
   }
 
   try {
-    const entries = readdirSync(baseCwd, { withFileTypes: true });
+    const entries = readdirSync(baseCwd, { withFileTypes: true }).sort((a, b) => a.name.localeCompare(b.name));
     for (const ent of entries) {
       if (!ent.isDirectory()) continue;
       if (ignoreDirs.includes(ent.name) || ent.name.startsWith(".deuk-agent")) continue;

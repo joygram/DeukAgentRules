@@ -7,6 +7,7 @@ import http from "node:http";
 import { 
   normalizeWorkflowMode, resolveWorkflowMode, WORKFLOW_MODE_EXECUTE, WORKFLOW_MODE_PLAN,
   parseFrontMatter, stringifyFrontMatter, deriveTopicFromBaseName, toSlug, computeTicketPath,
+  normalizeTicketGroup,
   normalizeDocsLanguage, inferDocsLanguageFromText, resolveDocsLanguage, AGENT_ROOT_DIR, TICKET_SUBDIR, isMcpActive
 } from "../cli-utils.mjs";
 import { generateTicketId, computeNextTicketNumber } from "../cli-ticket-index.mjs";
@@ -68,6 +69,14 @@ test("cli-utils.mjs - deriveTopicFromBaseName", (t) => {
   assert.strictEqual(deriveTopicFromBaseName("simple.md"), "simple");
 });
 
+test("cli-utils.mjs - normalizeTicketGroup", (t) => {
+  assert.strictEqual(normalizeTicketGroup("tickets"), "sub");
+  assert.strictEqual(normalizeTicketGroup(".deuk-agent-ticket"), "sub");
+  assert.strictEqual(normalizeTicketGroup(".deuk-agent-tickets"), "sub");
+  assert.strictEqual(normalizeTicketGroup("main"), "main");
+  assert.strictEqual(normalizeTicketGroup(undefined), "sub");
+});
+
 test("cli-utils.mjs - toSlug", (t) => {
   assert.strictEqual(toSlug("Hello World! 123"), "hello-world-123");
   assert.strictEqual(toSlug("  spaced  "), "spaced");
@@ -117,7 +126,7 @@ test("cli-utils.mjs - computeTicketPath", (t) => {
     group: "tickets",
     status: "open"
   };
-  assert.strictEqual(computeTicketPath(legacyRootEntry), ".deuk-agent/tickets/044-deukagentrules-hardening-joy-nucb.md");
+  assert.strictEqual(computeTicketPath(legacyRootEntry), ".deuk-agent/tickets/sub/044-deukagentrules-hardening-joy-nucb.md");
 
   const fileNameEntry = {
     id: "001-044-deukagentrules-hardening-joy-nucb",
@@ -125,7 +134,15 @@ test("cli-utils.mjs - computeTicketPath", (t) => {
     group: "tickets",
     status: "open"
   };
-  assert.strictEqual(computeTicketPath(fileNameEntry), ".deuk-agent/tickets/044-deukagentrules-hardening-joy-nucb.md");
+  assert.strictEqual(computeTicketPath(fileNameEntry), ".deuk-agent/tickets/sub/044-deukagentrules-hardening-joy-nucb.md");
+
+  const legacyDotGroupEntry = {
+    id: "001-legacy-dot-group-host",
+    group: ".deuk-agent-ticket",
+    status: "archived",
+    fileName: "001-legacy-dot-group-host.md"
+  };
+  assert.strictEqual(computeTicketPath(legacyDotGroupEntry), ".deuk-agent/tickets/archive/sub/001-legacy-dot-group-host.md");
 });
 
 test("cli-utils.mjs - normalizeDocsLanguage", (t) => {

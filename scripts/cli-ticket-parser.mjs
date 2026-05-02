@@ -2,7 +2,7 @@ import { existsSync, readdirSync, readFileSync, statSync, mkdirSync, writeFileSy
 import { basename, dirname, join } from "path";
 import { 
   AGENT_ROOT_DIR, TICKET_SUBDIR, TICKET_INDEX_FILENAME, TICKET_LIST_FILENAME, TICKET_LIST_TEMPLATE_FILENAME,
-  toPosixPath, toRepoRelativePath, makeEntryId, detectProjectFromBody, deriveTopicFromBaseName,
+  toPosixPath, toRepoRelativePath, makeEntryId, detectProjectFromBody, deriveTopicFromBaseName, normalizeTicketGroup,
   parseFrontMatter, stringifyFrontMatter, discoverAllWorkspaces, detectConsumerTicketDir,
   ARCHIVE_YEAR_MONTH_RE, ARCHIVE_DAY_RE
 } from "./cli-utils.mjs";
@@ -184,10 +184,10 @@ function parseTicketStorage(rel, isArchived, abs) {
   const maybeDay = parts[archiveIdx + 3];
 
   if (ARCHIVE_YEAR_MONTH_RE.test(String(maybeYearMonth || "")) && ARCHIVE_DAY_RE.test(String(maybeDay || ""))) {
-    return { group, archiveYearMonth: maybeYearMonth, archiveDay: maybeDay };
+    return { group: normalizeTicketGroup(group), archiveYearMonth: maybeYearMonth, archiveDay: maybeDay };
   }
 
-  return { group };
+  return { group: normalizeTicketGroup(group) };
 }
 
 export function renderTicketListMarkdown(cwd, entries) {

@@ -1,14 +1,211 @@
-import { join, dirname, basename } from "path";
+import { join, dirname, basename, relative } from "path";
 import { homedir } from "os";
-import { existsSync, readFileSync, writeFileSync, mkdirSync, copyFileSync, readdirSync, unlinkSync, rmSync, renameSync } from "fs";
+import { existsSync, readFileSync, writeFileSync, mkdirSync, copyFileSync, readdirSync, unlinkSync, rmSync, renameSync, statSync } from "fs";
 
 import { ensureTicketDirAndGitignore } from "./cli-init-logic.mjs";
 import { normalizeTicketPaths } from "./cli-ticket-migration.mjs";
+import { readTicketIndexJson } from "./cli-ticket-index.mjs";
 
-import { loadInitConfig, writeInitConfig, isWorkflowExecute, normalizeWorkflowMode, SPOKE_REGISTRY, parseFrontMatter, stringifyFrontMatter } from "./cli-utils.mjs";
 import { runInteractive } from "./cli-prompts.mjs";
+import { AGENT_ROOT_DIR, TICKET_SUBDIR, TEMPLATE_SUBDIR, TICKET_INDEX_FILENAME, TICKET_LIST_FILENAME, discoverAllWorkspaces, isMcpActive, toRepoRelativePath, toPosixPath, resolveWorkflowMode, pruneRuleModules, loadInitConfig, writeInitConfig, isWorkflowExecute, normalizeWorkflowMode, SPOKE_REGISTRY, parseFrontMatter, stringifyFrontMatter, LEGACY_TEMPLATE_DIR, LEGACY_TICKET_DIR, LEGACY_TICKET_DIR_PLURAL, LEGACY_TICKET_DIR_ROOT, LEGACY_CONFIG_FILE, normalizeTicketGroup } from "./cli-utils.mjs";
 
-import { AGENT_ROOT_DIR, TICKET_SUBDIR, TEMPLATE_SUBDIR, discoverAllWorkspaces, isMcpActive, toRepoRelativePath, resolveWorkflowMode, pruneRuleModules } from "./cli-utils.mjs";
+function sortedDirEntries(dir, options = {}) {
+  const entries = readdirSync(dir, options);
+  return entries.sort((a, b) => {
+    const aName = typeof a === "string" ? a : a.name;
+    const bName = typeof b === "string" ? b : b.name;
+    return String(aName).localeCompare(String(bName));
+  });
+}
+
+function safeReadText(absPath, fallback = "") {
+  try {
+    return readFileSync(absPath, "utf8");
+  } catch {
+    return fallback;
+  }
+}
+
+function sameFileContent(leftPath, rightPath) {
+  return safeReadText(leftPath) === safeReadText(rightPath);
+}
+
+function moveOrMergeFile(srcAbs, dstAbs, cwd, dryRun, action) {
+  const relSrc = toRepoRelativePath(cwd, srcAbs);
+  const relDst = toRepoRelativePath(cwd, dstAbs);
+
+  if (srcAbs === dstAbs) return false;
+
+  if (existsSync(dstAbs)) {
+    if (sameFileContent(srcAbs, dstAbs)) {
+      if (!dryRun) unlinkSync(srcAbs);
+      console.log(`[MIGRATE] ${action} duplicate removed: ${relSrc} -> ${relDst}`);
+      return true;
+    }
+    console.warn(`[WARNING] ${action} conflict: destination exists with different content, skipped ${relSrc}`);
+    return false;
+  }
+
+  if (!dryRun) {
+    mkdirSync(dirname(dstAbs), { recursive: true });
+    renameSync(srcAbs, dstAbs);
+  }
+  console.log(`[MIGRATE] ${dryRun ? "Would move" : "Moved"} ${action}: ${relSrc} -> ${relDst}`);
+  return true;
+}
+
+function parseYearMonth(value) {
+  const match = String(value || "").match(/^(\d{4})-(\d{2})/);
+  if (!match) return null;
+  return `${match[1]}-${match[2]}`;
+}
+
+function parseDay(value) {
+  const match = String(value || "").match(/^\d{4}-(\d{2})-(\d{2})/);
+  if (match) return match[2] || "01";
+
+  const onlyDay = String(value || "").match(/^\d{2}$/);
+  if (onlyDay) return onlyDay[0];
+  return null;
+}
+
+function inferPartitionFromFile(statSource, entry, fallbackDate = new Date()) {
+  const yearMonth = parseYearMonth(entry?.archiveYearMonth) || parseYearMonth(entry?.createdAt) || parseYearMonth(entry?.updatedAt);
+  const day = parseDay(entry?.archiveDay) || parseDay(entry?.createdAt) || parseDay(entry?.updatedAt) || String(statSource.getDate ? statSource.getDate() : fallbackDate.getDate()).padStart(2, "0");
+  const referenceDate = statSource instanceof Date ? statSource : (statSource?.mtime || fallbackDate);
+
+  return {
+    yearMonth: yearMonth || `${String(fallbackDate.getFullYear())}-${String(fallbackDate.getMonth() + 1).padStart(2, "0")}`,
+    day: day || String(referenceDate.getDate()).padStart(2, "0"),
+  };
+}
+
+function mapTicketIndexByFileName(cwd) {
+  const indexJson = readTicketIndexJson(cwd);
+  const byFileName = new Map();
+  const byId = new Map();
+  for (const e of indexJson.entries || []) {
+    if (!e) continue;
+    if (e.fileName) byFileName.set(e.fileName, e);
+    if (e.id) byId.set(e.id, e);
+  }
+  return { indexJson, byFileName, byId };
+}
+
+function deriveDocTicketFileName(mdPath) {
+  const stem = basename(mdPath, ".md")
+    .replace(/-(plan|report)$/i, "");
+  if (!stem) return null;
+  return `${stem}.md`;
+}
+
+function isActiveTicketStatus(status) {
+  return status === "open" || status === "active";
+}
+
+function inferDocsBucketFromFileName(fileName) {
+  const lower = fileName.toLowerCase();
+  if (lower.endsWith(".deuk")) return "schemas";
+  if (lower.endsWith("-plan.md") || lower === "plan.md") return "plans";
+  if (lower.endsWith("-report.md") || lower.startsWith("report-")) return "walkthroughs";
+  return "scratch";
+}
+
+function resolveDocTicketEntry(fileName, sourceMeta, byFileName, byId) {
+  const candidates = new Set();
+  candidates.add(fileName);
+
+  const derived = deriveDocTicketFileName(fileName);
+  if (derived) candidates.add(derived);
+  if (sourceMeta?.id) candidates.add(`${sourceMeta.id}.md`);
+
+  for (const candidate of candidates) {
+    const entry = byFileName.get(candidate);
+    if (entry) return entry;
+  }
+
+  for (const candidate of candidates) {
+    const key = candidate.replace(/\.md$/i, "");
+    const entry = byId.get(key);
+    if (entry) return entry;
+  }
+
+  return sourceMeta?.id ? byId.get(sourceMeta.id) || null : null;
+}
+
+function removeEmptyDirsBottomUp(dir, cwd, dryRun) {
+  if (!existsSync(dir)) return;
+  for (const entry of sortedDirEntries(dir, { withFileTypes: true })) {
+    if (entry.isDirectory()) removeEmptyDirsBottomUp(join(dir, entry.name), cwd, dryRun);
+  }
+
+  try {
+    if (sortedDirEntries(dir).length > 0) return;
+    if (!dryRun) rmSync(dir, { recursive: true, force: true });
+    console.log(`[CLEANUP] removed empty directory: ${toRepoRelativePath(cwd, dir)}`);
+  } catch (err) {
+    if (process.env.DEBUG) console.warn(`[DEBUG] Failed to prune ${dir}:`, err);
+  }
+}
+
+function collectFilesRecursively(dir, out = []) {
+  if (!existsSync(dir)) return out;
+  for (const entry of sortedDirEntries(dir, { withFileTypes: true })) {
+    const p = join(dir, entry.name);
+    if (entry.isDirectory()) {
+      collectFilesRecursively(p, out);
+      continue;
+    }
+    if (entry.isFile()) out.push(p);
+  }
+  return out;
+}
+
+function classifyDocTarget(cwd, sourceAbs, fallbackDir = "scratch") {
+  const docsRoot = join(cwd, AGENT_ROOT_DIR, "docs");
+  const fileName = basename(sourceAbs);
+  const lower = fileName.toLowerCase();
+
+  if (lower.endsWith(".deuk")) return join(docsRoot, "schemas", fileName);
+  if (lower.endsWith("-plan.md") || lower === "plan.md") return join(docsRoot, "plans", fileName);
+  if (lower.endsWith("-report.md") || lower.startsWith("report-")) return join(docsRoot, "walkthroughs", fileName);
+  return join(docsRoot, fallbackDir, fileName);
+}
+
+function isDistilledKnowledgeJson(sourceAbs) {
+  try {
+    const data = JSON.parse(safeReadText(sourceAbs));
+    return Boolean(
+      data
+      && typeof data === "object"
+      && typeof data.id === "string"
+      && typeof data.summary === "string"
+      && typeof data.sourceTicketPath === "string"
+      && data.sections
+      && typeof data.sections === "object"
+      && data.analysis
+      && typeof data.analysis === "object"
+    );
+  } catch {
+    return false;
+  }
+}
+
+function classifyAgentFileTarget(cwd, sourceAbs, fallbackDir = "scratch") {
+  const fileName = basename(sourceAbs);
+  const lower = fileName.toLowerCase();
+
+  if (lower.endsWith(".json")) {
+    if (isDistilledKnowledgeJson(sourceAbs)) {
+      return join(cwd, AGENT_ROOT_DIR, "knowledge", fileName);
+    }
+    return join(cwd, AGENT_ROOT_DIR, "docs", fallbackDir, fileName);
+  }
+  if (lower.endsWith(".md") || lower.endsWith(".deuk")) {
+    return classifyDocTarget(cwd, sourceAbs, fallbackDir);
+  }
+  return join(cwd, AGENT_ROOT_DIR, "docs", fallbackDir, fileName);
+}
 
 function recursiveMerge(src, dest, cwd, dryRun) {
   if (!existsSync(src)) return;
@@ -20,7 +217,7 @@ function recursiveMerge(src, dest, cwd, dryRun) {
     return;
   }
   // Both exist, merge contents
-  const entries = readdirSync(src, { withFileTypes: true });
+  const entries = sortedDirEntries(src, { withFileTypes: true });
   for (const ent of entries) {
     const sPath = join(src, ent.name);
     const dPath = join(dest, ent.name);
@@ -51,7 +248,7 @@ function recursiveMerge(src, dest, cwd, dryRun) {
   }
   // Clean up src if empty
   try {
-    if (!dryRun && readdirSync(src).length === 0) {
+    if (!dryRun && sortedDirEntries(src).length === 0) {
       rmSync(src, { recursive: true });
       console.log(`[MIGRATE] Removed empty directory: ${toRepoRelativePath(cwd, src)}`);
     }
@@ -60,9 +257,9 @@ function recursiveMerge(src, dest, cwd, dryRun) {
   }
 }
 
-function migrateLegacyStructure(cwd, dryRun) {
+export function migrateLegacyStructure(cwd, dryRun) {
 
-  const legacyTemplates = join(cwd, ".deuk-agent-templates");
+  const legacyTemplates = join(cwd, LEGACY_TEMPLATE_DIR);
   const newTemplates = join(cwd, AGENT_ROOT_DIR, TEMPLATE_SUBDIR);
   if (existsSync(legacyTemplates)) {
     console.log(`[MIGRATE] Merging legacy templates into ${AGENT_ROOT_DIR}/${TEMPLATE_SUBDIR}`);
@@ -70,8 +267,8 @@ function migrateLegacyStructure(cwd, dryRun) {
     if (!dryRun && existsSync(legacyTemplates)) rmSync(legacyTemplates, { recursive: true, force: true });
   }
 
-  const legacyTickets = join(cwd, ".deuk-agent-ticket");
-  const legacyTicketsPlural = join(cwd, ".deuk-agent-tickets");
+  const legacyTickets = join(cwd, LEGACY_TICKET_DIR);
+  const legacyTicketsPlural = join(cwd, LEGACY_TICKET_DIR_PLURAL);
   const newTickets = join(cwd, AGENT_ROOT_DIR, TICKET_SUBDIR);
 
   if (existsSync(legacyTickets)) {
@@ -84,8 +281,11 @@ function migrateLegacyStructure(cwd, dryRun) {
     recursiveMerge(legacyTicketsPlural, newTickets, cwd, dryRun);
     if (!dryRun && existsSync(legacyTicketsPlural)) rmSync(legacyTicketsPlural, { recursive: true, force: true });
   }
+  migrateLegacyAgentWorkflows(cwd, dryRun);
+  migrateLegacyRootTicketDir(cwd, dryRun);
+  removeLegacyContainer(cwd, dryRun);
 
-  const legacyConfig = join(cwd, ".deuk-agent-rule.config.json");
+  const legacyConfig = join(cwd, LEGACY_CONFIG_FILE);
   const newConfig = join(cwd, AGENT_ROOT_DIR, "config.json");
   if (existsSync(legacyConfig)) {
     if (!existsSync(newConfig)) {
@@ -100,6 +300,11 @@ function migrateLegacyStructure(cwd, dryRun) {
     }
   }
 
+  migrateLegacyReports(cwd, dryRun);
+  migrateLegacyScratchReports(cwd, dryRun);
+  migrateLegacyArchiveTickets(cwd, dryRun);
+  pruneEmptyLegacyTicketDirs(cwd, dryRun);
+
   // 3. Clean up redundant legacy pointer files from the target directory
   if (existsSync(newTickets)) {
     for (const file of ["ACTIVE_TICKET.md", "ACTIVE_TICKET.json", "LATEST.md"]) {
@@ -110,6 +315,494 @@ function migrateLegacyStructure(cwd, dryRun) {
       }
     }
   }
+}
+
+function migrateLegacyRootTicketDir(cwd, dryRun) {
+  const legacyTicketDir = join(cwd, LEGACY_TICKET_DIR_ROOT);
+  if (!existsSync(legacyTicketDir)) return;
+
+  const now = new Date();
+  const yearMonth = `${now.getFullYear()}-${String(now.getMonth() + 1).padStart(2, "0")}`;
+  const day = String(now.getDate()).padStart(2, "0");
+  const importRoot = join(cwd, AGENT_ROOT_DIR, TICKET_SUBDIR, "archive", "sub", yearMonth, day);
+  let index = 0;
+  let targetDir = join(importRoot, "ticket-import");
+  while (existsSync(targetDir)) {
+    index += 1;
+    targetDir = join(importRoot, `ticket-import-${String(index).padStart(2, "0")}`);
+  }
+
+  const relSource = toRepoRelativePath(cwd, legacyTicketDir);
+  const relTarget = toRepoRelativePath(cwd, targetDir);
+
+  if (dryRun) {
+    console.log(`[DRY-RUN] Would move legacy root ticket directory: ${relSource} -> ${relTarget}`);
+    return;
+  }
+
+  mkdirSync(importRoot, { recursive: true });
+  renameSync(legacyTicketDir, targetDir);
+  console.log(`[MIGRATE] Moved legacy root ticket directory: ${relSource} -> ${relTarget}`);
+}
+
+function migrateLegacyAgentWorkflows(cwd, dryRun) {
+  const workflowsDir = join(cwd, ".agent", "workflows");
+  if (!existsSync(workflowsDir)) return;
+
+  for (const sourceAbs of listFlatMarkdownFiles(workflowsDir)) {
+    const partition = inferPartitionFromFile(statSync(sourceAbs));
+    const targetName = `agent-workflow-${basename(sourceAbs)}`;
+    const targetAbs = join(cwd, AGENT_ROOT_DIR, "docs", "archive", "walkthroughs", partition.yearMonth, targetName);
+    moveOrMergeFile(sourceAbs, targetAbs, cwd, dryRun, "legacy agent workflow cleanup");
+  }
+
+  removeEmptyDirsBottomUp(join(cwd, ".agent"), cwd, dryRun);
+}
+
+function removeLegacyContainer(cwd, dryRun) {
+  const legacyContainer = join(cwd, AGENT_ROOT_DIR, "legacy");
+  if (!existsSync(legacyContainer)) return;
+
+  if (!dryRun) {
+    rmSync(legacyContainer, { recursive: true, force: true });
+  }
+  console.log(`[CLEANUP] removed legacy container: ${toRepoRelativePath(cwd, legacyContainer)}`);
+}
+
+export function migrateLegacyReports(cwd, dryRun) {
+  const legacyReportsDir = join(cwd, AGENT_ROOT_DIR, TICKET_SUBDIR, "reports");
+  const reportTargetDir = join(cwd, AGENT_ROOT_DIR, "docs", "walkthroughs");
+  if (!existsSync(legacyReportsDir)) return;
+
+  const reportFiles = sortedDirEntries(legacyReportsDir, { withFileTypes: true })
+    .filter(ent => ent.isFile() && ent.name.endsWith(".md"))
+    .map(ent => join(legacyReportsDir, ent.name));
+
+  if (reportFiles.length === 0) return;
+
+  mkdirSync(reportTargetDir, { recursive: true });
+
+  for (const sourceAbs of reportFiles) {
+    const fileName = basename(sourceAbs);
+    const targetAbs = join(reportTargetDir, fileName);
+    const sourceBody = readFileSync(sourceAbs, "utf8");
+
+    if (existsSync(targetAbs)) {
+      const targetBody = readFileSync(targetAbs, "utf8");
+      if (targetBody !== sourceBody) {
+        console.warn(`[WARNING] Legacy report conflict: ${toRepoRelativePath(cwd, targetAbs)} already exists with different content. Skipping move.`);
+        continue;
+      }
+      if (!dryRun) unlinkSync(sourceAbs);
+      console.log(`[MIGRATE] Removed duplicate legacy report: ${toRepoRelativePath(cwd, sourceAbs)}`);
+      rewriteLegacyReportLinks(cwd, targetAbs, fileName, dryRun);
+      continue;
+    }
+
+    rewriteLegacyReportLinks(cwd, targetAbs, fileName, dryRun);
+    if (!dryRun) {
+      renameSync(sourceAbs, targetAbs);
+    }
+    console.log(`[MIGRATE] Moved legacy report: ${toRepoRelativePath(cwd, sourceAbs)} -> ${toRepoRelativePath(cwd, targetAbs)}`);
+  }
+}
+
+export function migrateLegacyScratchReports(cwd, dryRun) {
+  const scratchDir = join(cwd, AGENT_ROOT_DIR, "docs", "scratch");
+  const walkthroughDir = join(cwd, AGENT_ROOT_DIR, "docs", "walkthroughs");
+  if (!existsSync(scratchDir)) return;
+
+  const reportFiles = sortedDirEntries(scratchDir, { withFileTypes: true })
+    .filter(ent => ent.isFile() && ent.name.endsWith("-report.md"))
+    .map(ent => join(scratchDir, ent.name));
+
+  if (reportFiles.length === 0) return;
+
+  mkdirSync(walkthroughDir, { recursive: true });
+
+  for (const sourceAbs of reportFiles) {
+    const fileName = basename(sourceAbs);
+    const targetAbs = join(walkthroughDir, fileName);
+    const sourceBody = readFileSync(sourceAbs, "utf8");
+
+    if (existsSync(targetAbs)) {
+      const targetBody = readFileSync(targetAbs, "utf8");
+      if (targetBody !== sourceBody) {
+        console.warn(`[WARNING] Scratch report conflict: ${toRepoRelativePath(cwd, targetAbs)} already exists with different content. Skipping move.`);
+        continue;
+      }
+      if (!dryRun) unlinkSync(sourceAbs);
+      console.log(`[MIGRATE] Removed duplicate scratch report: ${toRepoRelativePath(cwd, sourceAbs)}`);
+      continue;
+    }
+
+    if (!dryRun) {
+      renameSync(sourceAbs, targetAbs);
+    }
+    console.log(`[MIGRATE] Moved scratch report: ${toRepoRelativePath(cwd, sourceAbs)} -> ${toRepoRelativePath(cwd, targetAbs)}`);
+  }
+}
+
+export function migrateLegacyArchiveTickets(cwd, dryRun) {
+  const legacyArchiveTicketsDir = join(cwd, AGENT_ROOT_DIR, TICKET_SUBDIR, "archive", "tickets");
+  const canonicalArchiveSubDir = join(cwd, AGENT_ROOT_DIR, TICKET_SUBDIR, "archive", "sub");
+  if (!existsSync(legacyArchiveTicketsDir)) return;
+
+  const archiveFiles = sortedDirEntries(legacyArchiveTicketsDir, { withFileTypes: true })
+    .filter(ent => ent.isFile() && ent.name.endsWith(".md"))
+    .map(ent => join(legacyArchiveTicketsDir, ent.name));
+
+  if (archiveFiles.length === 0) return;
+
+  mkdirSync(canonicalArchiveSubDir, { recursive: true });
+
+  for (const sourceAbs of archiveFiles) {
+    const fileName = basename(sourceAbs);
+    const targetAbs = join(canonicalArchiveSubDir, fileName);
+    const sourceBody = readFileSync(sourceAbs, "utf8");
+
+    if (existsSync(targetAbs)) {
+      const targetBody = readFileSync(targetAbs, "utf8");
+      if (targetBody !== sourceBody) {
+        console.warn(`[WARNING] Legacy archive conflict: ${toRepoRelativePath(cwd, targetAbs)} already exists with different content. Skipping move.`);
+        continue;
+      }
+      if (!dryRun) unlinkSync(sourceAbs);
+      console.log(`[MIGRATE] Removed duplicate legacy archive ticket: ${toRepoRelativePath(cwd, sourceAbs)}`);
+      continue;
+    }
+
+    if (!dryRun) {
+      renameSync(sourceAbs, targetAbs);
+    }
+    console.log(`[MIGRATE] Moved legacy archive ticket: ${toRepoRelativePath(cwd, sourceAbs)} -> ${toRepoRelativePath(cwd, targetAbs)}`);
+  }
+
+  try {
+    if (!dryRun && sortedDirEntries(legacyArchiveTicketsDir).length === 0) {
+      rmSync(legacyArchiveTicketsDir, { recursive: true, force: true });
+      console.log(`[CLEANUP] removed empty legacy archive shard: ${toRepoRelativePath(cwd, legacyArchiveTicketsDir)}`);
+    }
+  } catch (err) {
+    if (process.env.DEBUG) console.warn(`[DEBUG] Failed to prune ${legacyArchiveTicketsDir}:`, err);
+  }
+}
+
+function rewriteLegacyReportLinks(cwd, targetAbs, fileName, dryRun) {
+  const archiveRoot = join(cwd, AGENT_ROOT_DIR, TICKET_SUBDIR, "archive");
+  if (!existsSync(archiveRoot)) return;
+
+  walkMdFiles(archiveRoot, (absPath) => {
+    const body = readFileSync(absPath, "utf8");
+    if (!body.includes(`reports/${fileName}`)) return;
+    const relTarget = toRepoRelativePath(cwd, targetAbs);
+    const replacement = toPosixPath(relative(dirname(absPath), targetAbs));
+    const reportPattern = new RegExp(`(?:\\.\\./)+reports/${escapeRegExp(fileName)}`, "g");
+    const directPathPattern = new RegExp(`reports/${escapeRegExp(fileName)}`, "g");
+    const nextBody = body
+      .replace(reportPattern, replacement)
+      .replace(directPathPattern, replacement);
+    if (nextBody === body) return;
+    if (!dryRun) writeFileSync(absPath, nextBody, "utf8");
+    console.log(`[MIGRATE] Updated legacy report link in ${toRepoRelativePath(cwd, absPath)} -> ${relTarget}`);
+  });
+}
+
+function pruneEmptyLegacyTicketDirs(cwd, dryRun) {
+  const legacyDirs = [
+    join(cwd, AGENT_ROOT_DIR, TICKET_SUBDIR, "core"),
+    join(cwd, AGENT_ROOT_DIR, TICKET_SUBDIR, "global"),
+    join(cwd, AGENT_ROOT_DIR, TICKET_SUBDIR, "main"),
+    join(cwd, AGENT_ROOT_DIR, TICKET_SUBDIR, "reports"),
+  ];
+
+  for (const dir of legacyDirs) {
+    if (!existsSync(dir)) continue;
+    try {
+      if (sortedDirEntries(dir).length > 0) continue;
+      if (!dryRun) rmSync(dir, { recursive: true, force: true });
+      console.log(`[CLEANUP] removed empty legacy ticket dir: ${toRepoRelativePath(cwd, dir)}`);
+    } catch (err) {
+      if (process.env.DEBUG) console.warn(`[DEBUG] Failed to prune ${dir}:`, err);
+    }
+  }
+}
+
+function routeMisplacedTicketFile(cwd, sourceAbs, dryRun) {
+  const ticketDir = join(cwd, AGENT_ROOT_DIR, TICKET_SUBDIR);
+  const fileName = basename(sourceAbs);
+  const raw = safeReadText(sourceAbs);
+  const meta = parseFrontMatter(raw).meta || {};
+  const status = String(meta.status || "").toLowerCase();
+
+  if (fileName === TICKET_LIST_FILENAME || !fileName.endsWith(".md")) {
+    const targetAbs = classifyAgentFileTarget(cwd, sourceAbs);
+    moveOrMergeFile(sourceAbs, targetAbs, cwd, dryRun, "misplaced ticket artifact cleanup");
+    return;
+  }
+
+  const partition = inferPartitionFromFile(statSync(sourceAbs), meta);
+  const targetAbs = isActiveTicketStatus(status)
+    ? join(ticketDir, "sub", fileName)
+    : join(ticketDir, "archive", "sub", partition.yearMonth, partition.day, fileName);
+  moveOrMergeFile(sourceAbs, targetAbs, cwd, dryRun, "misplaced ticket cleanup");
+}
+
+function canonicalizeAgentDocsLayout(cwd, dryRun) {
+  const docsRoot = join(cwd, AGENT_ROOT_DIR, "docs");
+  if (!existsSync(docsRoot)) return;
+  const allowedDirs = new Set(["archive", "plans", "schemas", "scratch", "walkthroughs"]);
+
+  for (const entry of sortedDirEntries(docsRoot, { withFileTypes: true })) {
+    const sourceAbs = join(docsRoot, entry.name);
+    if (entry.isDirectory() && allowedDirs.has(entry.name)) continue;
+
+    if (entry.isFile()) {
+      const targetAbs = classifyDocTarget(cwd, sourceAbs);
+      moveOrMergeFile(sourceAbs, targetAbs, cwd, dryRun, "misplaced docs cleanup");
+      continue;
+    }
+
+    if (!entry.isDirectory()) continue;
+    for (const fileAbs of collectFilesRecursively(sourceAbs)) {
+      const targetAbs = classifyDocTarget(cwd, fileAbs);
+      moveOrMergeFile(fileAbs, targetAbs, cwd, dryRun, `misplaced docs directory cleanup: ${entry.name}`);
+    }
+    removeEmptyDirsBottomUp(sourceAbs, cwd, dryRun);
+  }
+}
+
+function canonicalizeAgentTicketsLayout(cwd, dryRun) {
+  const ticketDir = join(cwd, AGENT_ROOT_DIR, TICKET_SUBDIR);
+  if (!existsSync(ticketDir)) return;
+  const allowedDirs = new Set(["archive", "sub"]);
+  const allowedFiles = new Set([TICKET_INDEX_FILENAME, TICKET_LIST_FILENAME]);
+
+  for (const entry of sortedDirEntries(ticketDir, { withFileTypes: true })) {
+    const sourceAbs = join(ticketDir, entry.name);
+    if (entry.isDirectory() && allowedDirs.has(entry.name)) continue;
+    if (entry.isFile() && (allowedFiles.has(entry.name) || /^INDEX\.archive\.\d{4}-\d{2}\.json$/.test(entry.name))) continue;
+
+    if (entry.isFile()) {
+      routeMisplacedTicketFile(cwd, sourceAbs, dryRun);
+      continue;
+    }
+
+    if (!entry.isDirectory()) continue;
+    for (const fileAbs of collectFilesRecursively(sourceAbs)) {
+      routeMisplacedTicketFile(cwd, fileAbs, dryRun);
+    }
+    removeEmptyDirsBottomUp(sourceAbs, cwd, dryRun);
+  }
+
+  const archiveRoot = join(ticketDir, "archive");
+  if (existsSync(archiveRoot)) {
+    for (const entry of sortedDirEntries(archiveRoot, { withFileTypes: true })) {
+      if (entry.name === "sub") continue;
+
+      const sourceAbs = join(archiveRoot, entry.name);
+      if (entry.isDirectory()) {
+        for (const fileAbs of collectFilesRecursively(sourceAbs)) {
+          routeMisplacedTicketFile(cwd, fileAbs, dryRun);
+        }
+        removeEmptyDirsBottomUp(sourceAbs, cwd, dryRun);
+        continue;
+      }
+
+      if (entry.isFile()) {
+        routeMisplacedTicketFile(cwd, sourceAbs, dryRun);
+        continue;
+      }
+    }
+  }
+}
+
+function canonicalizeAgentRootLayout(cwd, dryRun) {
+  const agentRoot = join(cwd, AGENT_ROOT_DIR);
+  if (!existsSync(agentRoot)) return;
+  const allowedDirs = new Set(["docs", "knowledge", "tickets"]);
+  const allowedFiles = new Set(["config.json", "telemetry.jsonl"]);
+
+  for (const entry of sortedDirEntries(agentRoot, { withFileTypes: true })) {
+    const sourceAbs = join(agentRoot, entry.name);
+    if (entry.isDirectory() && allowedDirs.has(entry.name)) continue;
+    if (entry.isFile() && allowedFiles.has(entry.name)) continue;
+
+    if (entry.isFile()) {
+      const targetAbs = classifyAgentFileTarget(cwd, sourceAbs);
+      moveOrMergeFile(sourceAbs, targetAbs, cwd, dryRun, "misplaced agent root cleanup");
+      continue;
+    }
+
+    if (!entry.isDirectory()) continue;
+    for (const fileAbs of collectFilesRecursively(sourceAbs)) {
+      const targetAbs = classifyAgentFileTarget(cwd, fileAbs);
+      moveOrMergeFile(fileAbs, targetAbs, cwd, dryRun, `misplaced agent root directory cleanup: ${entry.name}`);
+    }
+    removeEmptyDirsBottomUp(sourceAbs, cwd, dryRun);
+  }
+}
+
+export function enforceCanonicalAgentLayout(cwd, dryRun) {
+  canonicalizeAgentDocsLayout(cwd, dryRun);
+  canonicalizeAgentTicketsLayout(cwd, dryRun);
+  canonicalizeAgentRootLayout(cwd, dryRun);
+}
+
+function collectMarkdownFilesRecursively(dir, out = []) {
+  if (!existsSync(dir)) return out;
+  for (const entry of sortedDirEntries(dir, { withFileTypes: true })) {
+    const p = join(dir, entry.name);
+    if (entry.isDirectory()) {
+      collectMarkdownFilesRecursively(p, out);
+      continue;
+    }
+    if (entry.isFile() && entry.name.endsWith(".md")) {
+      out.push(p);
+    }
+  }
+  return out;
+}
+
+function listFlatMarkdownFiles(dir) {
+  if (!existsSync(dir)) return [];
+  return sortedDirEntries(dir)
+    .filter((name) => typeof name === "string" && name.endsWith(".md"))
+    .map((name) => join(dir, name));
+}
+
+function canonicalizeTicketArchivePath(cwd, dryRun) {
+  const ticketDir = join(cwd, AGENT_ROOT_DIR, TICKET_SUBDIR);
+  const archiveRoot = join(ticketDir, "archive");
+  if (!existsSync(archiveRoot)) return;
+
+  const { byFileName, byId } = mapTicketIndexByFileName(cwd);
+  const archiveFiles = collectMarkdownFilesRecursively(archiveRoot);
+
+  for (const sourceAbs of archiveFiles) {
+    const relParts = toPosixPath(relative(archiveRoot, sourceAbs)).split("/");
+    if (relParts.length < 2) continue;
+
+    const fileName = basename(sourceAbs);
+    const sourceBase = basename(sourceAbs, ".md");
+    const sourceMeta = parseFrontMatter(safeReadText(sourceAbs)).meta || {};
+    const matchedEntry = byFileName.get(fileName)
+      || byId.get(sourceMeta.id)
+      || byFileName.get(`${sourceBase}.md`);
+
+    const status = String(matchedEntry?.status || sourceMeta.status || "archived").toLowerCase();
+    const group = normalizeTicketGroup(matchedEntry?.group || relParts[0], "sub");
+    const partition = inferPartitionFromFile(statSync(sourceAbs), matchedEntry);
+    const shouldBeOpen = isActiveTicketStatus(status);
+    const targetAbs = shouldBeOpen
+      ? join(ticketDir, group, fileName)
+      : join(archiveRoot, group, partition.yearMonth, partition.day, fileName);
+    if (sourceAbs === targetAbs) continue;
+
+    const moved = moveOrMergeFile(sourceAbs, targetAbs, cwd, dryRun, "ticket archive cleanup");
+    if (moved && sourceAbs !== targetAbs && !dryRun) {
+      console.log(`[CLEANUP] ticket archive normalized: ${toRepoRelativePath(cwd, sourceAbs)} -> ${toRepoRelativePath(cwd, targetAbs)}`);
+    }
+  }
+}
+
+function rewritePlanLinkReferences(cwd, sourceAbs, targetAbs, dryRun) {
+  const sourceRel = toRepoRelativePath(cwd, sourceAbs);
+  const targetRel = toRepoRelativePath(cwd, targetAbs);
+  if (sourceRel === targetRel) return;
+
+  const ticketDir = join(cwd, AGENT_ROOT_DIR, TICKET_SUBDIR);
+  for (const ticketAbs of collectMarkdownFilesRecursively(ticketDir)) {
+    const raw = safeReadText(ticketAbs);
+    if (!raw.includes(sourceRel)) continue;
+
+    let parsed;
+    try {
+      parsed = parseFrontMatter(raw);
+    } catch {
+      continue;
+    }
+
+    const nextMeta = { ...parsed.meta };
+    if (nextMeta.planLink === sourceRel) nextMeta.planLink = targetRel;
+    const nextContent = String(parsed.content || "").replaceAll(sourceRel, targetRel);
+    const nextRaw = stringifyFrontMatter(nextMeta, nextContent);
+    if (nextRaw === raw) continue;
+
+    if (!dryRun) writeFileSync(ticketAbs, nextRaw, "utf8");
+    console.log(`[MIGRATE] Updated planLink reference: ${toRepoRelativePath(cwd, ticketAbs)} -> ${targetRel}`);
+  }
+}
+
+export function canonicalizeDocsArchiveBuckets(cwd, dryRun) {
+  const docsRoot = join(cwd, AGENT_ROOT_DIR, "docs");
+  const archivePlansDir = join(docsRoot, "archive", "plans");
+  const archiveWalkthroughsDir = join(docsRoot, "archive", "walkthroughs");
+  const buckets = [
+    { name: "plans", source: join(docsRoot, "plans"), archiveBase: archivePlansDir },
+    { name: "walkthroughs", source: join(docsRoot, "walkthroughs"), archiveBase: archiveWalkthroughsDir },
+    { name: "scratch", source: join(docsRoot, "scratch"), archiveBase: null },
+  ];
+
+  const { byFileName, byId } = mapTicketIndexByFileName(cwd);
+  for (const bucket of buckets) {
+    if (!existsSync(bucket.source)) continue;
+
+    const docFiles = collectFilesRecursively(bucket.source).filter((p) => p.endsWith(".md"));
+    for (const sourceAbs of docFiles) {
+      const fileName = basename(sourceAbs);
+      const sourceMeta = parseFrontMatter(safeReadText(sourceAbs)).meta || {};
+      const matchedEntry = resolveDocTicketEntry(fileName, sourceMeta, byFileName, byId);
+      const inferredBucket = inferDocsBucketFromFileName(fileName);
+      const status = String(matchedEntry?.status || sourceMeta.status || "active").toLowerCase();
+      const isActive = isActiveTicketStatus(status);
+      const shouldArchive = !isActive;
+
+      if (bucket.name === "scratch" && !["plans", "walkthroughs"].includes(inferredBucket)) {
+        continue;
+      }
+
+      const yearMonth = parseYearMonth(matchedEntry?.archiveYearMonth)
+        || parseYearMonth(matchedEntry?.createdAt)
+        || parseYearMonth(matchedEntry?.updatedAt)
+        || parseYearMonth(statSync(sourceAbs).mtime.toISOString())
+        || parseYearMonth(new Date().toISOString());
+      if (!yearMonth) continue;
+
+      let targetAbs = null;
+      if (bucket.name === "scratch") {
+        targetAbs = isActive
+          ? join(docsRoot, inferredBucket, fileName)
+          : join(inferredBucket === "plans" ? archivePlansDir : archiveWalkthroughsDir, yearMonth, fileName);
+      } else if (shouldArchive) {
+        targetAbs = join(bucket.archiveBase, yearMonth, fileName);
+      } else {
+        continue;
+      }
+
+      if (!targetAbs) continue;
+      const moved = moveOrMergeFile(sourceAbs, targetAbs, cwd, dryRun, `docs lifecycle cleanup: ${bucket.name}`);
+      if (moved) {
+        rewritePlanLinkReferences(cwd, sourceAbs, targetAbs, dryRun);
+      }
+    }
+  }
+}
+
+function walkMdFiles(dir, callback) {
+  if (!existsSync(dir)) return;
+  for (const entry of sortedDirEntries(dir, { withFileTypes: true })) {
+    const p = join(dir, entry.name);
+    if (entry.isDirectory()) {
+      walkMdFiles(p, callback);
+    } else if (entry.isFile() && entry.name.endsWith(".md")) {
+      callback(p);
+    }
+  }
+}
+
+function escapeRegExp(value) {
+  return String(value || "").replace(/[.*+?^${}()|[\]\\]/g, "\\$&");
 }
 
 function migrateHtmlMarkersToHeadings(cwd, dryRun) {
@@ -232,17 +925,6 @@ function migrateMissingFrontmatter(cwd, dryRun) {
   }
   if (count > 0) {
     console.log(`[MIGRATE] Frontmatter migration: ${count} file(s) ${dryRun ? "would be " : ""}updated.`);
-  }
-}
-
-function walkMdFiles(dir, callback) {
-  for (const entry of readdirSync(dir, { withFileTypes: true })) {
-    const p = join(dir, entry.name);
-    if (entry.isDirectory()) {
-      walkMdFiles(p, callback);
-    } else if (entry.name.endsWith(".md")) {
-      callback(p);
-    }
   }
 }
 
@@ -441,6 +1123,11 @@ async function initSingleWorkspace(subCwd, opts, bundleRoot, selectedTools) {
   // 2.5. Frontmatter migration (add missing frontmatter to deuk-agent docs/tickets)
   migrateMissingFrontmatter(subCwd, opts.dryRun);
 
+  // 2.6. Deterministic archive/docs normalization
+  canonicalizeTicketArchivePath(subCwd, opts.dryRun);
+  canonicalizeDocsArchiveBuckets(subCwd, opts.dryRun);
+  enforceCanonicalAgentLayout(subCwd, opts.dryRun);
+
   // 3. Spoke Pointers (e.g. .cursor/rules/deuk-agent.mdc)
   removeDuplicateRuleCopies(subCwd, opts.dryRun);
   deploySpokePointers(subCwd, bundleRoot, opts.dryRun, selectedTools);
@@ -471,6 +1158,3 @@ export function runMerge(opts, bundleRoot) {
   
   syncTemplates(opts.cwd, bundleRoot, opts.dryRun);
 }
-
-
-

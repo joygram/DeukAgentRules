@@ -3,7 +3,7 @@ import { basename, dirname, join, resolve } from "path";
 import { hostname as osHostname } from "os";
 import { 
   AGENT_ROOT_DIR, TICKET_SUBDIR, TICKET_INDEX_FILENAME,
-  toSlug, findFileRecursively, toRepoRelativePath, detectConsumerTicketDir, computeTicketPath
+  toSlug, findFileRecursively, toRepoRelativePath, detectConsumerTicketDir, computeTicketPath, normalizeTicketGroup
 } from "./cli-utils.mjs";
 
 const TICKET_ARCHIVE_INDEX_FILENAME = "INDEX.archive.json";
@@ -84,7 +84,7 @@ function parseIndexFile(absPath) {
   try {
     const j = JSON.parse(readFileSync(absPath, "utf8"));
     const entries = Array.isArray(j.entries) ? j.entries.map(e => {
-      const entry = { ...e, status: e.status || "open" };
+      const entry = { ...e, status: e.status || "open", group: normalizeTicketGroup(e.group, "sub") };
       entry.path = computeTicketPath(entry);
       return entry;
     }) : [];
@@ -144,7 +144,7 @@ export function readTicketIndexJson(cwd) {
 
   const archiveEntries = archiveFiles.flatMap(file => file.entries || []);
   const entries = mergeIndexEntries(main.entries, archiveEntries).map(entry => {
-    const next = { ...entry, status: entry.status || "open" };
+    const next = { ...entry, status: entry.status || "open", group: normalizeTicketGroup(entry.group, "sub") };
     next.path = computeTicketPath(next);
     return next;
   });
