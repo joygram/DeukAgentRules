@@ -60,6 +60,12 @@ WRITE tools requiring active ticket: `write_to_file`, `replace_file_content`, `m
 | 3: Verify | Run build/tests. Record issues. | — |
 | 4: Close | Close ticket and file follow-ups if needed. Do not immediately archive a just-closed ticket; leave archiving to lazy cleanup or explicit archive work. | **NEVER skip close.** |
 
+Phase 1 document boundary rule:
+- Once a ticket's `planLink` and APC are complete and linted, do not keep rewriting ticket/plan prose to mirror phase progress or lifecycle state.
+- Phase transitions, archive, and close actions are lifecycle events, not permission to reopen document boundaries.
+- If the work scope changes materially after Phase 1, create a new ticket instead of mutating the old ticket/plan into a new contract.
+- Corrections to factual mistakes in `planLink` are allowed only when they preserve the original scope; new requirements belong in a new ticket.
+
 Plan-only mode: Do Phases 0–1 only. Defer code/config writes as text in plan. On transition to Execute → run deferred commands → Phase 2.
 
 ### Exploration-Only Mode
@@ -125,6 +131,7 @@ Use DeukAgentContext as an advisory memory layer, not as a substitute for readin
   - `planLink` MUST NOT contain progress checkboxes (`[ ]` or `[x]`). Progress checkboxes belong only in the ticket.
   - If a section would repeat the other artifact, replace it with a pointer instead of copying text.
 - Ticket in Phase 1 is **not complete** unless its `planLink` file exists and contains substantive, non-placeholder analysis sections.
+- Ticket/plan document edits after Phase 1 should be limited to factual corrections, verification outcomes, or lifecycle-finalization notes; they must not be used as a running worklog.
 - Platform native paths (`brain/`, `.cursor/plans/`) are NOT indexed → copy to `.deuk-agent/docs/`.
 - Platform features (planning, artifacts, KI) co-exist. NEVER disable them. Always call `set_workflow_context`.
 - Run `npx deuk-agent-rule lint:md` after markdown edits. For Phase 1 completion, lint **both** ticket and `planLink` in one run.

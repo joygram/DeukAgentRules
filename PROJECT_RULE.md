@@ -37,6 +37,12 @@ architecture_docs: "docs/architecture.md"
 | DC-LEGACY | No v1/v2 HTML markers (`<!-- deuk-agent-rule:begin -->`). Templates use copy-only distribution. |
 | DC-OSS | `scripts/sync-oss.mjs` controls public distribution. `.internal.` files and `ticket/` dir are auto-excluded. |
 
+## Workflow Boundary
+
+- After Phase 1, ticket and planLink files are planning records plus verification notes, not a running worklog.
+- Lifecycle state changes (`move`, `close`, `archive`) should be captured as lifecycle events, not used as a reason to reopen document boundaries.
+- If the work scope changes materially, prefer a new ticket over repeated edits to the old ticket/plan pair.
+
 ## Build & Test
 
 | Action | Command |

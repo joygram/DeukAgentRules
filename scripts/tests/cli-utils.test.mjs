@@ -212,10 +212,36 @@ test("cli-utils.mjs - isMcpActive skips malformed config and checks next MCP pat
 });
 
 test("cli-args.mjs - parseTelemetryArgs supports remote sync target", () => {
-  const opts = parseTelemetryArgs(["--cwd", "/tmp/work", "--tokens", "42", "--remote", "http://127.0.0.1:8001/ingest"]);
+  const opts = parseTelemetryArgs([
+    "--cwd", "/tmp/work",
+    "--tokens", "42",
+    "--remote", "http://127.0.0.1:8001/ingest",
+    "--rag-result", "hit",
+    "--local-fallback",
+    "--knowledge-action", "add_knowledge",
+    "--token-quality", "saved",
+    "--saved-tokens", "1200",
+    "--source", "internal",
+    "--kind", "workflow_event",
+    "--event", "ticket_created",
+    "--occurred-at", "2026-05-02T00:00:00.000Z",
+    "--phase", "1",
+    "--status", "open"
+  ]);
   assert.strictEqual(opts.cwd, "/tmp/work");
   assert.strictEqual(opts.tokens, 42);
   assert.strictEqual(opts.remote, "http://127.0.0.1:8001/ingest");
+  assert.strictEqual(opts.ragResult, "hit");
+  assert.strictEqual(opts.localFallback, true);
+  assert.strictEqual(opts.knowledgeAction, "add_knowledge");
+  assert.strictEqual(opts.tokenQuality, "saved");
+  assert.strictEqual(opts.savedTokens, 1200);
+  assert.strictEqual(opts.source, "internal");
+  assert.strictEqual(opts.kind, "workflow_event");
+  assert.strictEqual(opts.event, "ticket_created");
+  assert.strictEqual(opts.occurredAt, "2026-05-02T00:00:00.000Z");
+  assert.strictEqual(opts.phase, 1);
+  assert.strictEqual(opts.status, "open");
 });
 
 test("cli-args.mjs - parseTicketArgs supports strict/guard flags", () => {

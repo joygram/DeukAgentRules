@@ -662,11 +662,18 @@ test("runTicketArchive distills ticket and planLink analysis into knowledge json
   const telemetryPath = join(cwd, ".deuk-agent", "telemetry.jsonl");
   assert.ok(existsSync(telemetryPath), "telemetry jsonl should be written");
   const telemetryLines = readFileSync(telemetryPath, "utf8").trim().split("\n").filter(Boolean);
-  const lastTelemetry = JSON.parse(telemetryLines.at(-1));
-  assert.strictEqual(lastTelemetry.action, "knowledge-distill");
-  assert.strictEqual(lastTelemetry.ticket, "006-default-host");
-  assert.strictEqual(lastTelemetry.knowledgeAction, "add_knowledge");
-  assert.strictEqual(lastTelemetry.tokenQuality, "saved");
+  const telemetryRows = telemetryLines.map(line => JSON.parse(line));
+  const knowledgeTelemetry = telemetryRows.find(row => row.event === "knowledge_distilled");
+  const archiveTelemetry = telemetryRows.find(row => row.event === "ticket_archived");
+  assert.ok(knowledgeTelemetry, "knowledge distill telemetry event should be written");
+  assert.ok(archiveTelemetry, "ticket archive telemetry event should be written");
+  assert.strictEqual(knowledgeTelemetry.source, "internal");
+  assert.strictEqual(knowledgeTelemetry.kind, "workflow_event");
+  assert.strictEqual(knowledgeTelemetry.action, "knowledge-distill");
+  assert.strictEqual(knowledgeTelemetry.ticket, "006-default-host");
+  assert.strictEqual(knowledgeTelemetry.knowledgeAction, "add_knowledge");
+  assert.strictEqual(knowledgeTelemetry.tokenQuality, "saved");
+  assert.strictEqual(archiveTelemetry.ticket, "006-default-host");
 
   rmSync(cwd, { recursive: true, force: true });
 });

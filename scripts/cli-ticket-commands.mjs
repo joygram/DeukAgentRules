@@ -1,4 +1,4 @@
-import { existsSync, mkdirSync, readFileSync, writeFileSync, appendFileSync, unlinkSync, copyFileSync, readdirSync, rmSync, statSync } from "fs";
+import { existsSync, mkdirSync, readFileSync, writeFileSync, unlinkSync, copyFileSync, readdirSync, rmSync, statSync } from "fs";
 import { hostname } from "os";
 import { basename, join, dirname, relative, resolve } from "path";
 import { 
@@ -8,6 +8,7 @@ import {
 } from "./cli-utils.mjs";
 import { readTicketIndexJson, writeTicketIndexJson, syncActiveTicketId, generateTicketId, syncToPipeline } from "./cli-ticket-index.mjs";
 import { appendTicketEntry, rebuildTicketIndexFromTopicFilesIfNeeded, writeTicketListFile, updateTicketEntryStatus } from "./cli-ticket-parser.mjs";
+import { appendInternalWorkflowEvent } from "./cli-telemetry-commands.mjs";
 import { parsePlan } from "./plan-parser.mjs";
 import { lintMarkdownPaths } from "./lint-md.mjs";
 import ejs from "ejs";
@@ -19,7 +20,6 @@ import { selectOne } from "./cli-prompts.mjs";
 const MAX_OPEN_TICKETS = 20;
 const OPEN_TICKET_STATUSES = new Set(["open", "active"]);
 const AUTO_ARCHIVE_DONE_STATUSES = new Set(["closed", "cancelled", "wontfix"]);
-const TELEMETRY_FILE = `${AGENT_ROOT_DIR}/telemetry.jsonl`;
 
 async function ensurePhase0Validation(opts) {
   if (!opts.evidence && !opts.skipPhase0) {
@@ -734,6 +734,16 @@ export async function runTicketCreate(opts) {
     if (!opts.dryRun) updatePreviousTicketRef(opts.cwd, prevTicketEntry, ticketId);
 
     console.log(`${opts.dryRun ? "Ticket would be created" : "Ticket created"}: ${toFileUri(abs)}`);
+    if (!opts.dryRun) {
+      appendTelemetryEvent(opts.cwd, {
+        event: "ticket_created",
+        action: "ticket-create",
+        ticket: ticketId,
+        file: path,
+        phase: 1,
+        status: "open"
+      });
+    }
     
     // Remote Sync Hook
     const configSync = loadInitConfig(opts.cwd);
@@ -891,6 +901,14 @@ export async function runTicketClose(opts) {
     const lintTargets = collectTicketLifecycleMarkdownTargets(opts.cwd, abs, meta.planLink);
     lintTicketLifecycleMarkdown(opts.cwd, lintTargets, `ticket close ${entry.topic}`);
     syncActiveTicketId(opts.cwd);
+    appendTelemetryEvent(opts.cwd, {
+      event: "ticket_closed",
+      action: "ticket-close",
+      ticket: entry.id || entry.topic,
+      file: entry.path,
+      phase: 4,
+      status: opts.status
+    });
     console.log(`ticket: ${opts.status} -> ${entry.topic} (${entry.path})`);
   } catch (err) {
     rollbackTicketLifecycleArtifacts(opts.cwd, previousIndex, previousBody, abs, opts);
@@ -1021,6 +1039,7 @@ function distillKnowledge(absPath, ticketId, cwd, sourceBody = null) {
     writeFileSync(dest, JSON.stringify(data, null, 2), "utf8");
     console.log(`Knowledge distilled to ${toFileUri(dest)}`);
     appendTelemetryEvent(cwd, {
+      event: "knowledge_distilled",
       action: "knowledge-distill",
       ticket: ticketId,
       file: toRepoRelativePath(cwd, absPath),
@@ -1034,26 +1053,19 @@ function distillKnowledge(absPath, ticketId, cwd, sourceBody = null) {
 
 function appendTelemetryEvent(cwd, entry) {
   try {
-    const telemetryDir = join(cwd, AGENT_ROOT_DIR);
-    if (!existsSync(telemetryDir)) mkdirSync(telemetryDir, { recursive: true });
-    const telemetryPath = join(cwd, TELEMETRY_FILE);
-    const payload = {
-      ts: Math.floor(Date.now() / 1000),
-      tokens: 0,
-      tdw: 0,
-      model: "archive",
-      client: "DeukAgentRules",
+    appendInternalWorkflowEvent(cwd, {
+      event: entry.event || "workflow_event",
       ticket: entry.ticket || "",
-      action: entry.action || "knowledge-distill",
+      action: entry.action || entry.event || "workflow-event",
       file: entry.file || "",
+      phase: entry.phase,
+      status: entry.status || "",
       ragResult: entry.ragResult || "",
       localFallback: Boolean(entry.localFallback),
       knowledgeAction: entry.knowledgeAction || "",
       tokenQuality: entry.tokenQuality || "",
-      savedTokens: Number(entry.savedTokens || 0),
-      synced: false
-    };
-    appendFileSync(telemetryPath, JSON.stringify(payload) + "\n", "utf8");
+      savedTokens: Number(entry.savedTokens || 0)
+    });
   } catch (err) {
     console.warn(`[WARNING] Telemetry append failed for ${entry.ticket || "unknown"}: ${err.message}`);
   }
@@ -1124,6 +1136,15 @@ export async function runTicketArchive(opts) {
   writeTicketIndexJson(opts.cwd, indexJson, opts);
   if (opts.render) writeTicketListFile(opts.cwd, indexJson.entries, opts);
   syncActiveTicketId(opts.cwd);
+  if (result?.id) {
+    appendTelemetryEvent(opts.cwd, {
+      event: "ticket_archived",
+      action: "ticket-archive",
+      ticket: result.id,
+      file: result.path,
+      status: "archived"
+    });
+  }
   return result;
 }
 
@@ -1269,6 +1290,14 @@ export async function runTicketMove(opts) {
     lintTicketLifecycleMarkdown(opts.cwd, lintTargets, `ticket move ${entry.topic}`);
 
     syncActiveTicketId(opts.cwd);
+    appendTelemetryEvent(opts.cwd, {
+      event: "ticket_phase_moved",
+      action: "ticket-move",
+      ticket: entry.id || entry.topic,
+      file: entry.path,
+      phase: nextPhase,
+      status: meta.status
+    });
     console.log(`ticket: moved -> ${entry.topic} is now in Phase ${nextPhase} (${meta.status})`);
   } catch (err) {
     rollbackTicketLifecycleArtifacts(opts.cwd, previousIndex, body, abs, opts);

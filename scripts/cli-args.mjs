@@ -78,7 +78,29 @@ export function parseArgs(argv) {
   return out;
 }
 export function parseTelemetryArgs(argv) {
-  const out = { cwd: process.cwd(), tokens: 0, tdw: 0, model: "", client: "", ticket: "", action: "", file: "", remote: "", json: false };
+  const out = {
+    cwd: process.cwd(),
+    tokens: 0,
+    tdw: 0,
+    model: "",
+    client: "",
+    ticket: "",
+    action: "",
+    file: "",
+    remote: "",
+    source: "",
+    kind: "",
+    event: "",
+    occurredAt: "",
+    phase: "",
+    status: "",
+    ragResult: "",
+    localFallback: false,
+    knowledgeAction: "",
+    tokenQuality: "",
+    savedTokens: 0,
+    json: false
+  };
   for (let i = 0; i < argv.length; i++) {
     const a = argv[i];
     if (a === "--cwd") out.cwd = argv[++i];
@@ -90,6 +112,17 @@ export function parseTelemetryArgs(argv) {
     else if (a === "--action") out.action = argv[++i];
     else if (a === "--file") out.file = argv[++i];
     else if (a === "--remote") out.remote = argv[++i];
+    else if (a === "--source") out.source = argv[++i];
+    else if (a === "--kind") out.kind = argv[++i];
+    else if (a === "--event") out.event = argv[++i];
+    else if (a === "--occurred-at") out.occurredAt = argv[++i];
+    else if (a === "--phase") out.phase = Number(argv[++i]);
+    else if (a === "--status") out.status = argv[++i];
+    else if (a === "--rag-result") out.ragResult = argv[++i];
+    else if (a === "--local-fallback") out.localFallback = true;
+    else if (a === "--knowledge-action") out.knowledgeAction = argv[++i];
+    else if (a === "--token-quality") out.tokenQuality = argv[++i];
+    else if (a === "--saved-tokens") out.savedTokens = Number(argv[++i]);
     else if (a === "--json") out.json = true;
   }
   return out;
