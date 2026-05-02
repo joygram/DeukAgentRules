@@ -3,6 +3,7 @@ import { readFileSync, readdirSync, statSync } from "fs";
 import { join, relative, dirname, resolve } from "path";
 import { spawnSync } from "child_process";
 import YAML from "yaml";
+import { AGENT_ROOT_DIR } from "./cli-utils.mjs";
 
 const ignoredDirs = new Set([".git", "node_modules"]);
 
@@ -78,7 +79,7 @@ function lintFile(absPath, repoRoot) {
     } else {
       try {
         const parsed = YAML.parse(match[1]);
-        const isDeukAgentDoc = rel.includes(".deuk-agent/docs/") || rel.includes(".deuk-agent/tickets/");
+        const isDeukAgentDoc = rel.includes(`${AGENT_ROOT_DIR}/docs/`) || rel.includes(`${AGENT_ROOT_DIR}/tickets/`);
         const isArchive = rel.includes("archive/");
         const isTemplate = rel.includes("templates/");
         if (isDeukAgentDoc && !isArchive && !isTemplate) {
@@ -94,7 +95,7 @@ function lintFile(absPath, repoRoot) {
       }
     }
   } else {
-    const isDeukAgentDoc = rel.includes(".deuk-agent/docs/") || rel.includes(".deuk-agent/tickets/");
+    const isDeukAgentDoc = rel.includes(`${AGENT_ROOT_DIR}/docs/`) || rel.includes(`${AGENT_ROOT_DIR}/tickets/`);
     const isArchive = rel.includes("archive/");
     const isTemplate = rel.includes("templates/");
     if (isDeukAgentDoc && !isArchive && !isTemplate) {
@@ -128,6 +129,15 @@ function statExists(absPath) {
   }
 }
 
+function resolveMarkdownLintTargets(repoRoot, explicitPaths = []) {
+  const files = explicitPaths.length > 0
+    ? explicitPaths.map(p => resolve(repoRoot, p)).filter(statExists).filter(isMarkdownFile)
+    : collectChangedMarkdownFiles(repoRoot).map(p => join(repoRoot, p));
+
+  const targets = files.length > 0 ? files : walkMarkdownFiles(repoRoot);
+  return Array.from(new Set(targets));
+}
+
 function parseLintArgs(argv) {
   const out = { cwd: process.cwd(), paths: [] };
   for (let i = 0; i < argv.length; i++) {
@@ -143,25 +153,35 @@ function parseLintArgs(argv) {
   return out;
 }
 
+export function lintMarkdownPaths(paths, cwd = process.cwd()) {
+  const repoRoot = resolve(cwd);
+  const targets = Array.from(new Set(
+    (Array.isArray(paths) ? paths : [])
+      .map(p => resolve(repoRoot, p))
+      .filter(statExists)
+      .filter(isMarkdownFile)
+  ));
+  const errors = [];
+  for (const filePath of targets) {
+    errors.push(...lintFile(filePath, repoRoot));
+  }
+  return { repoRoot, targets, errors };
+}
+
 export function runMarkdownLint(argv = process.argv.slice(2)) {
   const opts = parseLintArgs(argv);
   const repoRoot = resolve(opts.cwd);
-  const explicitPaths = opts.paths;
-  const files = explicitPaths.length > 0
-    ? explicitPaths.map(p => resolve(repoRoot, p)).filter(statExists).filter(isMarkdownFile)
-    : collectChangedMarkdownFiles(repoRoot).map(p => join(repoRoot, p));
-
-  const targets = files.length > 0 ? files : walkMarkdownFiles(repoRoot);
-  const uniqueTargets = Array.from(new Set(targets));
-
-  if (uniqueTargets.length === 0) {
-    console.log("lint:md: no markdown files found");
-    return;
+  const targets = opts.paths.length > 0
+    ? lintMarkdownPaths(opts.paths, opts.cwd).targets
+    : resolveMarkdownLintTargets(repoRoot);
+  const errors = [];
+  for (const filePath of targets) {
+    errors.push(...lintFile(filePath, repoRoot));
   }
 
-  const errors = [];
-  for (const filePath of uniqueTargets) {
-    errors.push(...lintFile(filePath, repoRoot));
+  if (targets.length === 0) {
+    console.log("lint:md: no markdown files found");
+    return;
   }
 
   if (errors.length > 0) {
@@ -170,7 +190,7 @@ export function runMarkdownLint(argv = process.argv.slice(2)) {
     process.exit(1);
   }
 
-  console.log(`lint:md passed (${uniqueTargets.length} file${uniqueTargets.length === 1 ? "" : "s"})`);
+  console.log(`lint:md passed (${targets.length} file${targets.length === 1 ? "" : "s"})`);
 }
 
 if (import.meta.url === `file://${process.argv[1]}`) {

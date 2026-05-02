@@ -1,0 +1,52 @@
+---
+summary: "Agent problem analysis and decision trace for 179-md-lint-automation-and-rule-hard-joy-nucb-plan"
+status: draft
+priority: P2
+tags:
+  - plan
+  - phase1
+createdAt: "2026-05-02 09:52:13"
+---
+
+# Agent Analysis Plan
+
+## Ticket Contract Pointer
+- Linked ticket owns summary, scope, constraints, and APC.
+- This planLink owns the agent's problem analysis and decision trail.
+- Do not copy ticket APC or summary text into this document.
+
+## Problem Analysis
+현재 `lint:md`는 존재하지만, 티켓 라이프사이클이 그 검증을 자동으로 보장하지 않습니다. `ticket create`, `move`, `close`, `archive`가 Markdown 파일을 쓰는 동안 잘못된 frontmatter, 깨진 링크, 미완성 템플릿이 그대로 인덱스에 반영될 수 있습니다. 그 결과는 두 가지입니다. 첫째, 문서가 "생성됨" 상태로 보이지만 실제로는 에이전트가 안전하게 읽을 수 없는 상태가 됩니다. 둘째, 규칙 문서에는 lint를 하라고 써 있어도 실행 경로가 자동화되어 있지 않으면 사용자가 기억해야만 막을 수 있습니다.
+
+## Source Observations
+- `scripts/lint-md.mjs`는 현재 Markdown 파일을 검사하는 CLI이지만, 재사용 가능한 함수 경로가 약해서 lifecycle 코드에서 바로 호출하기 불편했습니다.
+- `scripts/cli-ticket-commands.mjs`는 ticket create/move/close/archive를 한 곳에서 처리하지만, write 이후에 markdown 검증을 자동 수행하는 공통 훅은 없었습니다.
+- `core-rules/AGENTS.md`에는 markdown edit 후 lint를 권장하는 문구가 있었지만, lifecycle command 수준의 강제 규칙은 명시적이지 않았습니다.
+- `templates/TICKET_TEMPLATE.md`는 수동 체크리스트 중심이라 lifecycle 자동 검증을 기대하기 어렵습니다.
+
+## Cause Hypotheses
+- lint 로직이 CLI 진입점에만 묶여 있어서 command 내부에서 재사용할 수 없습니다.
+- ticket lifecycle은 여러 파일을 동시에 바꾸는데, write 직후 검증과 rollback 전략이 분리되어 있어 자동화가 빠지기 쉽습니다.
+- 규칙 문구가 "lint를 하라" 수준이면, 실행 순서나 실패 시 복구 동작이 구현되지 않아도 문제로 감지되지 않습니다.
+
+## Decision Rationale
+- `lint-md`를 함수로 분리해 lifecycle command가 직접 호출하도록 합니다.
+- `create/move/close/archive`는 write 후 성공 반환 전에 lint를 실행하고, 실패하면 원상복구하도록 만듭니다.
+- 규칙과 템플릿에도 같은 제약을 적어두어, 코드와 문서의 기대치를 맞춥니다.
+- 외부 셸로 `npx deuk-agent-rule lint:md`를 다시 호출하는 방식은 간단하지만, rollback과 공통 에러 메시지를 관리하기 어렵기 때문에 내부 함수 재사용을 선택합니다.
+
+## Execution Strategy
+- `scripts/lint-md.mjs`에 재사용 가능한 `lintMarkdownPaths()`를 노출합니다.
+- `scripts/cli-ticket-commands.mjs`에 lifecycle lint helper를 추가하고, ticket create/move/close/archive 경로에 연결합니다.
+- create는 ticket/plan draft가 만들어진 직후 lint하고, 실패 시 새 파일과 plan draft를 함께 제거합니다.
+- move/close는 기존 본문과 index 스냅샷을 저장한 뒤 write 후 lint하고, 실패하면 이전 상태로 되돌립니다.
+- archive는 이동된 ticket, linked plan, attached report까지 검증하고, 실패하면 이동/knowledge/report 생성 결과를 롤백합니다.
+- `core-rules/AGENTS.md`와 `templates/TICKET_TEMPLATE.md`에는 lifecycle auto-lint 정책을 명시합니다.
+- 테스트는 create/move/archive의 rollback 동작과 자동 lint 실패를 모두 확인하는 방향으로 추가합니다.
+
+## Verification Design
+- `runTicketCreate`는 broken markdown template를 만나면 ticket/plan/index를 남기지 않고 실패해야 합니다.
+- `runTicketMove`는 linked plan의 broken link를 만나면 phase/status 변경을 되돌려야 합니다.
+- `runTicketArchive`는 plan lint 실패 시 archive 이동, knowledge json, report copy를 되돌려야 합니다.
+- 문서 변경 후에는 markdown lint가 수동 audit 용도로만 남아 있어도, lifecycle path가 먼저 차단해야 합니다.
+- 남는 리스크는 auto-archive 연쇄 실패처럼 복수 ticket을 한 번에 다루는 경로인데, 그 경우에도 최소한 현재 ticket mutation이 깨끗하게 롤백되는지 확인해야 합니다.

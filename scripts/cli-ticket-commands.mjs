@@ -1,4 +1,4 @@
-import { existsSync, mkdirSync, readFileSync, writeFileSync, unlinkSync, copyFileSync, readdirSync, rmSync, statSync } from "fs";
+import { existsSync, mkdirSync, readFileSync, writeFileSync, appendFileSync, unlinkSync, copyFileSync, readdirSync, rmSync, statSync } from "fs";
 import { hostname } from "os";
 import { basename, join, dirname, relative, resolve } from "path";
 import { 
@@ -9,6 +9,7 @@ import {
 import { readTicketIndexJson, writeTicketIndexJson, syncActiveTicketId, generateTicketId, syncToPipeline } from "./cli-ticket-index.mjs";
 import { appendTicketEntry, rebuildTicketIndexFromTopicFilesIfNeeded, writeTicketListFile, updateTicketEntryStatus } from "./cli-ticket-parser.mjs";
 import { parsePlan } from "./plan-parser.mjs";
+import { lintMarkdownPaths } from "./lint-md.mjs";
 import ejs from "ejs";
 import YAML from "yaml";
 
@@ -18,6 +19,7 @@ import { selectOne } from "./cli-prompts.mjs";
 const MAX_OPEN_TICKETS = 20;
 const OPEN_TICKET_STATUSES = new Set(["open", "active"]);
 const AUTO_ARCHIVE_DONE_STATUSES = new Set(["closed", "cancelled", "wontfix"]);
+const TELEMETRY_FILE = `${AGENT_ROOT_DIR}/telemetry.jsonl`;
 
 async function ensurePhase0Validation(opts) {
   if (!opts.evidence && !opts.skipPhase0) {
@@ -151,6 +153,54 @@ function ensurePlanDraftFile(cwd, planLink, summary, opts = {}) {
   mkdirSync(dirname(planAbs), { recursive: true });
   writeFileSync(planAbs, planBody + "\n", "utf8");
   return planAbs;
+}
+
+function lintTicketLifecycleMarkdown(cwd, targets, context) {
+  const uniqueTargets = Array.from(new Set((targets || []).filter(Boolean)));
+  if (uniqueTargets.length === 0) return { errors: [], targets: [] };
+
+  const result = lintMarkdownPaths(uniqueTargets, cwd);
+  if (result.errors.length > 0) {
+    const details = result.errors.map(err => `- ${err}`).join("\n");
+    throw new Error(`[VALIDATION FAILED] ${context}: markdown lint failed\n${details}`);
+  }
+  return result;
+}
+
+function collectTicketLifecycleMarkdownTargets(cwd, ticketAbsPath, planLink, extraTargets = []) {
+  const targets = [];
+  if (ticketAbsPath) targets.push(ticketAbsPath);
+
+  if (planLink) {
+    const planAbsPath = resolve(cwd, planLink);
+    if (!existsSync(planAbsPath)) {
+      throw new Error(`[VALIDATION FAILED] linked plan file not found: ${planLink}`);
+    }
+    targets.push(planAbsPath);
+  }
+
+  for (const target of extraTargets || []) {
+    if (!target) continue;
+    targets.push(target);
+  }
+
+  return Array.from(new Set(targets));
+}
+
+function restoreTicketIndexSnapshot(cwd, snapshot, opts = {}) {
+  if (opts.dryRun) return;
+  writeTicketIndexJson(cwd, snapshot, opts);
+  writeTicketListFile(cwd, snapshot.entries || [], { ...opts, render: true });
+}
+
+function rollbackTicketLifecycleArtifacts(cwd, previousIndex, previousBody, absPath, opts = {}) {
+  if (opts.dryRun) return;
+  if (previousBody !== undefined && absPath) {
+    writeFileSync(absPath, previousBody, "utf8");
+  }
+  if (previousIndex) {
+    restoreTicketIndexSnapshot(cwd, previousIndex, opts);
+  }
 }
 
 function getPhase1IncompleteReasons(cwd, absPath) {
@@ -378,11 +428,14 @@ function archiveTicketEntry({ cwd, ticketDir, indexJson, found, opts = {}, repor
     throw new Error("ticket archive: file not found " + found.path);
   }
 
+  const originalBody = readFileSync(absPath, "utf8");
+  const { meta: archiveMeta } = parseFrontMatter(originalBody);
   const { archiveDir, archiveYearMonth, archiveDay, newAbsPath } = getArchiveDestination(ticketDir, found, fileName);
   if (!opts.dryRun) mkdirSync(archiveDir, { recursive: true });
 
-  const bodyLines = readFileSync(absPath, "utf8").trimEnd().split(/\r?\n/);
+  const bodyLines = originalBody.trimEnd().split(/\r?\n/);
   const reportSrc = resolveArchiveReport(cwd, fileName, report);
+  let reportDest = null;
 
   if (reportSrc) {
     if (!existsSync(reportSrc)) {
@@ -392,7 +445,7 @@ function archiveTicketEntry({ cwd, ticketDir, indexJson, found, opts = {}, repor
     if (!opts.dryRun) mkdirSync(reportDir, { recursive: true });
 
     const reportBaseName = fileName.replace(/\.md$/i, "-report.md");
-    const reportDest = join(reportDir, reportBaseName);
+    reportDest = join(reportDir, reportBaseName);
     if (!opts.dryRun) copyFileSync(reportSrc, reportDest);
     console.log("ticket archive: copied report to " + toFileUri(reportDest));
 
@@ -402,15 +455,24 @@ function archiveTicketEntry({ cwd, ticketDir, indexJson, found, opts = {}, repor
     bodyLines.push(`- [View Report](${relativeLink})`);
   }
 
+  const lintTargets = collectTicketLifecycleMarkdownTargets(cwd, newAbsPath, archiveMeta.planLink, reportDest ? [reportDest] : []);
   if (opts.dryRun) {
     console.log("ticket archive: would move " + toRepoRelativePath(cwd, absPath) + " to " + toRepoRelativePath(cwd, newAbsPath));
     return { dryRun: true };
   }
 
-  distillKnowledge(absPath, found.id, cwd);
-
   writeFileSync(newAbsPath, bodyLines.join("\n") + "\n", "utf8");
   rmSync(absPath);
+  try {
+    lintTicketLifecycleMarkdown(cwd, lintTargets, `ticket archive ${found.id}`);
+  } catch (err) {
+    rmSync(newAbsPath, { force: true });
+    writeFileSync(absPath, originalBody, "utf8");
+    if (reportDest) rmSync(reportDest, { force: true });
+    throw err;
+  }
+
+  distillKnowledge(absPath, found.id, cwd, originalBody);
   console.log("ticket archive: moved ticket to " + toFileUri(newAbsPath));
 
   const entryIdx = indexJson.entries.findIndex(e => e.id === found.id);
@@ -453,19 +515,11 @@ function autoArchiveDoneTickets(cwd, indexJson, opts = {}) {
 }
 
 function rollbackCreatedTicket(cwd, abs, planLink, rollbackIndexJson, opts = {}) {
-  if (!opts.dryRun) {
-    rmSync(abs, { force: true });
-    if (planLink) rmSync(resolve(cwd, planLink), { force: true });
-  }
+  if (opts.dryRun) return;
+  rmSync(abs, { force: true });
+  if (planLink) rmSync(resolve(cwd, planLink), { force: true });
   writeTicketIndexJson(cwd, rollbackIndexJson, opts);
-}
-
-function buildCreateRollbackIndex(indexJson, ticketId, previousIndexJson) {
-  return {
-    ...indexJson,
-    activeTicketId: previousIndexJson.activeTicketId || "",
-    entries: (indexJson.entries || []).filter(entry => entry.id !== ticketId)
-  };
+  writeTicketListFile(cwd, rollbackIndexJson.entries || [], { ...opts, render: true });
 }
 
 export async function runTicketCreate(opts) {
@@ -621,33 +675,42 @@ export async function runTicketCreate(opts) {
       finalContent = ejs.render(tplText, { meta, frontmatter, apcDraft });
     }
 
-    ensurePlanDraftFile(opts.cwd, meta.planLink, summary, opts);
-    
+    const planAbs = ensurePlanDraftFile(opts.cwd, meta.planLink, summary, opts);
+    const lifecycleTargets = [abs, planAbs];
+
     if (!opts.dryRun) writeFileSync(abs, finalContent, "utf8");
     source = "ticket-create";
 
-    if (strictCreate && !opts.dryRun) {
-      const reasons = getPhase1IncompleteReasons(opts.cwd, abs);
-      if (reasons.length > 0) {
-        rmSync(abs, { force: true });
-        throw new Error(`[VALIDATION FAILED] ticket create strict mode rejected placeholder/incomplete phase1 state: ${reasons.join(", ")}`);
+    try {
+      if (strictCreate && !opts.dryRun) {
+        const reasons = getPhase1IncompleteReasons(opts.cwd, abs);
+        if (reasons.length > 0) {
+          throw new Error(`[VALIDATION FAILED] ticket create strict mode rejected placeholder/incomplete phase1 state: ${reasons.join(", ")}`);
+        }
       }
-    }
 
-    appendTicketEntry(opts.cwd, {
-      id: ticketId,
-      title, topic, group, project: opts.project || "global",
-      createdAt: new Date().toISOString(), path, source
-    }, opts);
+      if (!opts.dryRun) {
+        lintTicketLifecycleMarkdown(opts.cwd, lifecycleTargets, `ticket create ${ticketId}`);
+      }
 
-    const limitIndexJson = readTicketIndexJson(opts.cwd);
-    autoArchiveDoneTickets(opts.cwd, limitIndexJson, opts);
+      appendTicketEntry(opts.cwd, {
+        id: ticketId,
+        title, topic, group, project: opts.project || "global",
+        createdAt: new Date().toISOString(), path, source
+      }, opts);
 
-    const limitError = buildOpenTicketLimitError(readTicketIndexJson(opts.cwd));
-    if (limitError) {
-      const rollbackIndexJson = buildCreateRollbackIndex(readTicketIndexJson(opts.cwd), ticketId, indexJson);
-      rollbackCreatedTicket(opts.cwd, abs, meta.planLink, rollbackIndexJson, opts);
-      throw new Error(limitError);
+      const limitIndexJson = readTicketIndexJson(opts.cwd);
+      autoArchiveDoneTickets(opts.cwd, limitIndexJson, opts);
+
+      const limitError = buildOpenTicketLimitError(readTicketIndexJson(opts.cwd));
+      if (limitError) {
+        throw new Error(limitError);
+      }
+    } catch (err) {
+      if (!opts.dryRun) {
+        rollbackCreatedTicket(opts.cwd, abs, meta.planLink, indexJson, opts);
+      }
+      throw err;
     }
 
     if (!opts.dryRun) updatePreviousTicketRef(opts.cwd, prevTicketEntry, ticketId);
@@ -794,9 +857,27 @@ export async function runTicketClose(opts) {
   }
   // Respect --status flag (e.g. 'cancelled', 'wontfix'); default to 'closed'
   if (!opts.status) opts.status = "closed";
-  const entry = updateTicketEntryStatus(opts.cwd, opts);
-  syncActiveTicketId(opts.cwd);
-  console.log(`ticket: ${opts.status} -> ${entry.topic} (${entry.path})`);
+  const previousIndex = readTicketIndexJson(opts.cwd);
+  const targetEntry = pickTicketEntry(opts, previousIndex);
+  if (!targetEntry) {
+    throw new Error("No matching ticket found to update status");
+  }
+
+  const abs = join(opts.cwd, targetEntry.path);
+  if (!existsSync(abs)) throw new Error("Ticket file not found: " + targetEntry.path);
+  const previousBody = readFileSync(abs, "utf8");
+
+  try {
+    const entry = updateTicketEntryStatus(opts.cwd, opts);
+    const { meta } = parseFrontMatter(previousBody);
+    const lintTargets = collectTicketLifecycleMarkdownTargets(opts.cwd, abs, meta.planLink);
+    lintTicketLifecycleMarkdown(opts.cwd, lintTargets, `ticket close ${entry.topic}`);
+    syncActiveTicketId(opts.cwd);
+    console.log(`ticket: ${opts.status} -> ${entry.topic} (${entry.path})`);
+  } catch (err) {
+    rollbackTicketLifecycleArtifacts(opts.cwd, previousIndex, previousBody, abs, opts);
+    throw err;
+  }
 }
 
 export async function runTicketUse(opts) {
@@ -856,21 +937,51 @@ export async function runTicketUse(opts) {
 
 
 
-function distillKnowledge(absPath, ticketId, cwd) {
-  try {
-    const body = readFileSync(absPath, "utf8");
-    const { meta, content } = parseFrontMatter(body);
-    
-    const sections = {};
-    const sectionNames = ["Design Decisions", "Analysis & Constraints", "Tasks", "Done When"];
-    
-    for (const name of sectionNames) {
-      const regex = new RegExp(`## ${name}[\\s\\S]*?(?=## |$)`, "i");
-      const match = content.match(regex);
-      if (match) {
-        sections[name] = match[0].replace(new RegExp(`## ${name}`, "i"), "").trim();
-      }
+function extractMarkdownSections(content, sectionNames) {
+  const sections = {};
+  for (const name of sectionNames) {
+    const escapedName = name.replace(/[.*+?^${}()|[\]\\]/g, "\\$&");
+    const regex = new RegExp(`^##\\s+${escapedName}\\s*\\n([\\s\\S]*?)(?=^##\\s+|(?![\\s\\S]))`, "im");
+    const match = content.match(regex);
+    if (match) {
+      const value = match[1].trim();
+      if (value) sections[name] = value;
     }
+  }
+  return sections;
+}
+
+function readPlanLinkSections(cwd, planLink) {
+  if (!planLink) return {};
+  const absPlanPath = resolve(cwd, planLink);
+  if (!existsSync(absPlanPath)) return {};
+  const planBody = readFileSync(absPlanPath, "utf8");
+  const { content } = parseFrontMatter(planBody);
+  return extractMarkdownSections(content, [
+    "Problem Analysis",
+    "Source Observations",
+    "Cause Hypotheses",
+    "Decision Rationale",
+    "Execution Strategy",
+    "Execution Notes",
+    "Verification Design",
+    "Verification Outcome"
+  ]);
+}
+
+function distillKnowledge(absPath, ticketId, cwd, sourceBody = null) {
+  try {
+    const body = sourceBody !== null ? sourceBody : readFileSync(absPath, "utf8");
+    const { meta, content } = parseFrontMatter(body);
+    const ticketSections = extractMarkdownSections(content, [
+      "Scope & Constraints",
+      "Agent Permission Contract (APC)",
+      "Tasks",
+      "Done When",
+      "Design Decisions",
+      "Analysis & Constraints"
+    ]);
+    const planSections = readPlanLinkSections(cwd, meta.planLink);
 
     const knowledgeDir = join(cwd, AGENT_ROOT_DIR, "knowledge");
     if (!existsSync(knowledgeDir)) mkdirSync(knowledgeDir, { recursive: true });
@@ -882,13 +993,51 @@ function distillKnowledge(absPath, ticketId, cwd) {
       project: meta.project || "global",
       createdAt: meta.createdAt,
       archivedAt: new Date().toISOString(),
-      sections
+      summary: meta.summary || "",
+      sourceTicketPath: toRepoRelativePath(cwd, absPath),
+      planLink: meta.planLink || "",
+      sections: ticketSections,
+      analysis: planSections
     };
 
     writeFileSync(dest, JSON.stringify(data, null, 2), "utf8");
     console.log(`Knowledge distilled to ${toFileUri(dest)}`);
+    appendTelemetryEvent(cwd, {
+      action: "knowledge-distill",
+      ticket: ticketId,
+      file: toRepoRelativePath(cwd, absPath),
+      knowledgeAction: "add_knowledge",
+      tokenQuality: "saved"
+    });
   } catch (err) {
     console.warn(`[WARNING] Knowledge distillation failed for ${ticketId}: ${err.message}`);
+  }
+}
+
+function appendTelemetryEvent(cwd, entry) {
+  try {
+    const telemetryDir = join(cwd, AGENT_ROOT_DIR);
+    if (!existsSync(telemetryDir)) mkdirSync(telemetryDir, { recursive: true });
+    const telemetryPath = join(cwd, TELEMETRY_FILE);
+    const payload = {
+      ts: Math.floor(Date.now() / 1000),
+      tokens: 0,
+      tdw: 0,
+      model: "archive",
+      client: "DeukAgentRules",
+      ticket: entry.ticket || "",
+      action: entry.action || "knowledge-distill",
+      file: entry.file || "",
+      ragResult: entry.ragResult || "",
+      localFallback: Boolean(entry.localFallback),
+      knowledgeAction: entry.knowledgeAction || "",
+      tokenQuality: entry.tokenQuality || "",
+      savedTokens: Number(entry.savedTokens || 0),
+      synced: false
+    };
+    appendFileSync(telemetryPath, JSON.stringify(payload) + "\n", "utf8");
+  } catch (err) {
+    console.warn(`[WARNING] Telemetry append failed for ${entry.ticket || "unknown"}: ${err.message}`);
   }
 }
 
@@ -1046,6 +1195,7 @@ export async function runTicketMove(opts) {
   const abs = join(opts.cwd, entry.path);
   if (!existsSync(abs)) throw new Error("Ticket file not found: " + entry.path);
 
+  const previousIndex = readTicketIndexJson(opts.cwd);
   const body = readFileSync(abs, "utf8");
   const { meta, content } = parseFrontMatter(body);
 
@@ -1082,21 +1232,30 @@ export async function runTicketMove(opts) {
   } else if (nextPhase >= 2 && (!meta.status || meta.status === "open")) {
     meta.status = "active";
   }
-  
-  const newBody = stringifyFrontMatter(meta, content);
-  writeFileSync(abs, newBody, "utf8");
 
-  // Re-sync index to reflect the status change if any
-  opts.topic = entry.topic;
-  if (meta.status !== entry.status) {
-    opts.status = meta.status;
-    updateTicketEntryStatus(opts.cwd, opts);
-  } else {
-    rebuildTicketIndexFromTopicFilesIfNeeded(opts.cwd, { ...opts, force: true });
+  const newBody = stringifyFrontMatter(meta, content);
+
+  try {
+    writeFileSync(abs, newBody, "utf8");
+
+    // Re-sync index to reflect the status change if any
+    opts.topic = entry.topic;
+    if (meta.status !== entry.status) {
+      opts.status = meta.status;
+      updateTicketEntryStatus(opts.cwd, opts);
+    } else {
+      rebuildTicketIndexFromTopicFilesIfNeeded(opts.cwd, { ...opts, force: true });
+    }
+
+    const lintTargets = collectTicketLifecycleMarkdownTargets(opts.cwd, abs, meta.planLink);
+    lintTicketLifecycleMarkdown(opts.cwd, lintTargets, `ticket move ${entry.topic}`);
+
+    syncActiveTicketId(opts.cwd);
+    console.log(`ticket: moved -> ${entry.topic} is now in Phase ${nextPhase} (${meta.status})`);
+  } catch (err) {
+    rollbackTicketLifecycleArtifacts(opts.cwd, previousIndex, body, abs, opts);
+    throw err;
   }
-  
-  syncActiveTicketId(opts.cwd);
-  console.log(`ticket: moved -> ${entry.topic} is now in Phase ${nextPhase} (${meta.status})`);
 }
 
 export async function runTicketNext(opts) {

@@ -1,6 +1,6 @@
 ---
-version: 24
-changelog: "v24: Relax immediate archive requirement; closed tickets may remain for lazy cleanup, and unmatched ticket use must present last-closed/open candidates."
+version: 25
+changelog: "v25: Add MCP knowledge quality gate and require reusable local findings to be promoted into DeukAgentContext."
 ---
 
 # Agent Rules
@@ -54,7 +54,7 @@ WRITE tools requiring active ticket: `write_to_file`, `replace_file_content`, `m
 
 | Phase | What to do | STOP condition |
 |-------|-----------|----------------|
-| 0: Research | Skip if context sufficient. IF search needed: MAX 2 MCP calls, prefer local reads, specific terms only. | 2 searches → no result → stop searching. |
+| 0: Research | Skip if context sufficient. IF search needed: MAX 2 MCP calls, prefer local reads, specific terms only. Treat placeholder/duplicate/stale-low-signal MCP results as a miss. | 2 searches or low-quality hits → stop searching and inspect local files. |
 | 1: Ticket + Plan | Create or select the ticket → read arch rules → fill ticket-owned scope/APC in the user's prompt language → create/update distinct prose `planLink` problem analysis, hypotheses, rationale, strategy, and verification design with frontmatter, also in the prompt language. Ticket/plan docs are planning records, not code writes. | If the user asked only to plan, stop. If execution intent is explicit and Phase 1 is complete/linted, move to Phase 2. |
 | 2: Execute | Implement per approved or explicit user-requested plan. Update checkboxes `[x]`. | — |
 | 3: Verify | Run build/tests. Record issues. | — |
@@ -69,6 +69,18 @@ If G6 matches:
 - Forbidden without follow-up approval: source/templates/generated outputs, benchmark/report artifacts, package metadata, CI, official catalogs, expected matrices, compatibility contracts.
 - Label results as `draft`, `candidate`, or `not yet official`.
 - Do not convert findings into implementation in the same turn unless the user says to apply them.
+
+### MCP Knowledge Quality Gate
+
+Use DeukAgentContext as an advisory memory layer, not as a substitute for reading current code.
+
+- Search narrowly. One query should name the project plus the concrete symbol, file, command, or failure mode.
+- Stop after 2 MCP calls for the same question. Do not broaden repeatedly.
+- Treat these as `[RAG-MISS]`: placeholder summaries, duplicated ticket/report chunks, stale archive-only hits, unrelated projects, or results that only say to `view_file` without a useful summary.
+- After a miss or weak hit, switch to local code reads (`rg`, `sed`, tests, git history) and use the code as the source of truth.
+- If local analysis produces reusable knowledge, call `add_knowledge` once with a concise fact that includes project, source path, current code status, and the condition under which it applies.
+- If an existing indexed doc is wrong or stale, call `refresh_document` instead of adding a competing fragment.
+- Do not use MCP for ticket navigation. Ticket lookup is CLI state, not semantic search.
 
 ## 4. HALT Conditions + File Guards
 
@@ -104,6 +116,8 @@ If G6 matches:
 
 - ALL artifacts MUST be under `.deuk-agent/docs/` for RAG indexing.
 - ALL plan/report files MUST have frontmatter (`summary`, `status`, `priority`, `tags`). Run `enrich_frontmatter` after creation.
+- Ticket lifecycle commands (`ticket create`, `move`, `close`, `archive`) must auto-run `lint:md` against touched markdown artifacts before they exit successfully. If lint fails, roll back the lifecycle mutation and keep ticket/index state consistent.
+- Manual `npx deuk-agent-rule lint:md` remains an audit command, not the primary enforcement path.
 - Phase 1 is **ticket creation plus indexed planning evidence**. Do not create duplicate tickets just to restate the same plan; update the existing ticket/`planLink`.
 - Ticket and `planLink` MUST NOT duplicate content:
   - Ticket owns identity, scope, constraints, APC boundary/contract, and lifecycle checklist.

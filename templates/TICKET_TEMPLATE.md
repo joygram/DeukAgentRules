@@ -12,6 +12,7 @@
 - **Context Files:** `PROJECT_RULE.md`, relevant architecture docs, and target source files
 - **PlanLink:** `<%= meta.planLink %>` owns evidence, decisions, detailed steps, and verification notes.
 - **Constraints:** No generated output edits, no unrelated refactors, no broad regeneration without approval.
+- **Lifecycle Guard:** ticket lifecycle commands auto-run markdown lint on touched files and fail fast on broken markdown or missing linked artifacts.
 
 ## Agent Permission Contract (APC)
 
@@ -39,3 +40,4 @@
 - APC is complete and non-placeholder.
 - Target changes are implemented inside the declared boundary.
 - Markdown lint/tests relevant to this ticket pass or failures are recorded.
+- Lifecycle commands can persist the ticket and planLink without manual lint intervention.

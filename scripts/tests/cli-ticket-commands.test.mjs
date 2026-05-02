@@ -3,7 +3,7 @@ import assert from "node:assert";
 import { existsSync, mkdtempSync, mkdirSync, readFileSync, readdirSync, rmSync, writeFileSync } from "node:fs";
 import { tmpdir } from "node:os";
 import { join } from "node:path";
-import { pickTicketEntry, runTicketArchive, runTicketCreate, runTicketNext, runTicketUse } from "../cli-ticket-commands.mjs";
+import { pickTicketEntry, runTicketArchive, runTicketCreate, runTicketClose, runTicketMove, runTicketNext, runTicketUse } from "../cli-ticket-commands.mjs";
 import { readTicketIndexJson } from "../cli-ticket-index.mjs";
 import { TICKET_INDEX_FILENAME } from "../cli-utils.mjs";
 
@@ -412,6 +412,393 @@ test("runTicketArchive auto-detects existing walkthrough report and attaches lin
   assert.ok(archivedContent.includes("View Report"));
 
   rmSync(cwd, { recursive: true, force: true });
+});
+
+test("runTicketArchive distills ticket and planLink analysis into knowledge json", async () => {
+  const ticketPath = ".deuk-agent/tickets/sub/006-default-host.md";
+  const planPath = ".deuk-agent/docs/plans/006-default-host-plan.md";
+  const { cwd } = makeTicketWorkspace([
+    makeEntry({
+      id: "006-default-host",
+      title: "knowledge-rich",
+      topic: "006-default-host",
+      fileName: "006-default-host.md",
+      path: ticketPath,
+      status: "closed"
+    })
+  ]);
+
+  mkdirSync(join(cwd, ".deuk-agent", "tickets", "sub"), { recursive: true });
+  mkdirSync(join(cwd, ".deuk-agent", "docs", "plans"), { recursive: true });
+
+  writeFileSync(join(cwd, ticketPath), [
+    "---",
+    "id: 006-default-host",
+    "title: knowledge-rich",
+    "phase: 4",
+    "status: closed",
+    "summary: archive knowledge test",
+    "priority: P2",
+    "tags: [test]",
+    `planLink: ${planPath}`,
+    "---",
+    "# knowledge-rich",
+    "",
+    "## Scope & Constraints",
+    "- Target: source module",
+    "",
+    "## Agent Permission Contract (APC)",
+    "### [BOUNDARY]",
+    "- Editable modules: source module",
+    "",
+    "## Tasks",
+    "- [x] Done",
+    ""
+  ].join("\n"), "utf8");
+
+  writeFileSync(join(cwd, planPath), [
+    "---",
+    "summary: archive knowledge plan",
+    "status: ready",
+    "priority: P2",
+    "tags: [test]",
+    "---",
+    "# Agent Analysis Plan",
+    "",
+    "## Problem Analysis",
+    "MCP results were stale and local code analysis found the current behavior.",
+    "",
+    "## Source Observations",
+    "scripts/example.mjs owns the current behavior.",
+    "",
+    "## Decision Rationale",
+    "Store reusable facts from planLink because the ticket body is intentionally thin.",
+    "",
+    "## Verification Outcome",
+    "The archive flow produced a knowledge file with analysis evidence.",
+    ""
+  ].join("\n"), "utf8");
+
+  await runTicketArchive({ cwd, topic: "006", nonInteractive: true });
+
+  const knowledgePath = join(cwd, ".deuk-agent", "knowledge", "006-default-host.json");
+  assert.ok(existsSync(knowledgePath), "knowledge json should be written");
+  const knowledge = JSON.parse(readFileSync(knowledgePath, "utf8"));
+  assert.strictEqual(knowledge.summary, "archive knowledge test");
+  assert.strictEqual(knowledge.planLink, planPath);
+  assert.match(knowledge.sections["Scope & Constraints"], /Target: source module/);
+  assert.match(knowledge.sections["Agent Permission Contract (APC)"], /Editable modules: source module/);
+  assert.match(knowledge.analysis["Problem Analysis"], /MCP results were stale/);
+  assert.match(knowledge.analysis["Source Observations"], /scripts\/example\.mjs/);
+  assert.match(knowledge.analysis["Decision Rationale"], /ticket body is intentionally thin/);
+  assert.match(knowledge.analysis["Verification Outcome"], /knowledge file with analysis evidence/);
+
+  const telemetryPath = join(cwd, ".deuk-agent", "telemetry.jsonl");
+  assert.ok(existsSync(telemetryPath), "telemetry jsonl should be written");
+  const telemetryLines = readFileSync(telemetryPath, "utf8").trim().split("\n").filter(Boolean);
+  const lastTelemetry = JSON.parse(telemetryLines.at(-1));
+  assert.strictEqual(lastTelemetry.action, "knowledge-distill");
+  assert.strictEqual(lastTelemetry.ticket, "006-default-host");
+  assert.strictEqual(lastTelemetry.knowledgeAction, "add_knowledge");
+  assert.strictEqual(lastTelemetry.tokenQuality, "saved");
+
+  rmSync(cwd, { recursive: true, force: true });
+});
+
+test("runTicketCreate rolls back when markdown lint fails", async () => {
+  const { cwd, ticketDir } = makeTemplateWorkspace();
+  writeFileSync(join(cwd, ".deuk-agent", "templates", "TICKET_TEMPLATE.md"), [
+    "---",
+    "<%- frontmatter %>",
+    "---",
+    "# <%= meta.title %>",
+    "[broken](./missing.md)",
+    ""
+  ].join("\n"), "utf8");
+
+  try {
+    await assert.rejects(
+      () => runTicketCreate({
+        cwd,
+        topic: "lint-guard",
+        summary: "lint guard",
+        nonInteractive: true,
+        skipPhase0: true
+      }),
+      err => {
+        assert.match(err.message, /markdown lint failed/);
+        return true;
+      }
+    );
+
+    const index = readTicketIndexJson(cwd);
+    assert.strictEqual(index.entries.length, 0);
+
+    const ticketSubDir = join(ticketDir, "sub");
+    const ticketFiles = existsSync(ticketSubDir)
+      ? readdirSync(ticketSubDir).filter(name => name.endsWith(".md"))
+      : [];
+    assert.strictEqual(ticketFiles.length, 0);
+
+    const planDir = join(cwd, ".deuk-agent", "docs", "plans");
+    const planFiles = existsSync(planDir)
+      ? readdirSync(planDir).filter(name => name.endsWith(".md"))
+      : [];
+    assert.strictEqual(planFiles.length, 0);
+  } finally {
+    rmSync(cwd, { recursive: true, force: true });
+  }
+});
+
+test("runTicketMove rolls back when linked plan markdown fails lint", async () => {
+  const ticketPath = ".deuk-agent/tickets/sub/001-default-host.md";
+  const planPath = ".deuk-agent/docs/plans/001-default-host-plan.md";
+  const { cwd, ticketDir } = makeTicketWorkspace([
+    makeEntry({
+      id: "001-default-host",
+      title: "move-guard",
+      topic: "001-default-host",
+      fileName: "001-default-host.md",
+      path: ticketPath,
+      status: "open",
+      phase: 1
+    })
+  ]);
+
+  mkdirSync(join(ticketDir, "sub"), { recursive: true });
+  mkdirSync(join(cwd, ".deuk-agent", "docs", "plans"), { recursive: true });
+
+  writeFileSync(join(cwd, ticketPath), [
+    "---",
+    "id: 001-default-host",
+    "title: move-guard",
+    "phase: 1",
+    "status: open",
+    "summary: move guard",
+    "priority: P2",
+    "tags: [test]",
+    `planLink: ${planPath}`,
+    "---",
+    "# move-guard",
+    "",
+    "## Scope & Constraints",
+    "- Target: source module",
+    "",
+    "## Agent Permission Contract (APC)",
+    "### [BOUNDARY]",
+    "- Editable modules: source module",
+    "",
+    "### [CONTRACT]",
+    "- Input: source context",
+    "- Output: minimal implementation",
+    "- Side effects: docs only",
+    "",
+    "### [PATCH PLAN]",
+    "- Plan pointer",
+    "",
+    "## Tasks",
+    "- [ ] placeholder",
+    "",
+    "## Done When",
+    "- [ ] placeholder",
+    ""
+  ].join("\n"), "utf8");
+
+  writeFileSync(join(cwd, planPath), [
+    "---",
+    "summary: move lint plan",
+    "status: draft",
+    "priority: P2",
+    "tags: [plan]",
+    "---",
+    "# Agent Analysis Plan",
+    "",
+    "## Problem Analysis",
+    "Broken [link](./missing.md)",
+    ""
+  ].join("\n"), "utf8");
+
+  try {
+    await assert.rejects(
+      () => runTicketMove({ cwd, topic: "001", next: true, nonInteractive: true }),
+      err => {
+        assert.match(err.message, /markdown lint failed/);
+        return true;
+      }
+    );
+
+    const body = readFileSync(join(cwd, ticketPath), "utf8");
+    assert.match(body, /phase: 1/);
+    assert.match(body, /status: open/);
+    assert.doesNotMatch(body, /phase: 2/);
+    assert.doesNotMatch(body, /status: active/);
+
+    const index = JSON.parse(readFileSync(join(ticketDir, TICKET_INDEX_FILENAME), "utf8"));
+    assert.strictEqual(index.entries[0].status, "open");
+  } finally {
+    rmSync(cwd, { recursive: true, force: true });
+  }
+});
+
+test("runTicketClose rolls back when linked plan markdown fails lint", async () => {
+  const ticketPath = ".deuk-agent/tickets/sub/002-default-host.md";
+  const planPath = ".deuk-agent/docs/plans/002-default-host-plan.md";
+  const { cwd, ticketDir } = makeTicketWorkspace([
+    makeEntry({
+      id: "002-default-host",
+      title: "close-guard",
+      topic: "002-default-host",
+      fileName: "002-default-host.md",
+      path: ticketPath,
+      status: "open",
+      phase: 1
+    })
+  ]);
+
+  mkdirSync(join(ticketDir, "sub"), { recursive: true });
+  mkdirSync(join(cwd, ".deuk-agent", "docs", "plans"), { recursive: true });
+
+  writeFileSync(join(cwd, ticketPath), [
+    "---",
+    "id: 002-default-host",
+    "title: close-guard",
+    "phase: 1",
+    "status: open",
+    "summary: close guard",
+    "priority: P2",
+    "tags: [test]",
+    `planLink: ${planPath}`,
+    "---",
+    "# close-guard",
+    "",
+    "## Scope & Constraints",
+    "- Target: source module",
+    "",
+    "## Agent Permission Contract (APC)",
+    "### [BOUNDARY]",
+    "- Editable modules: source module",
+    "",
+    "### [CONTRACT]",
+    "- Input: source context",
+    "- Output: minimal implementation",
+    "- Side effects: docs only",
+    "",
+    "### [PATCH PLAN]",
+    "- Plan pointer",
+    ""
+  ].join("\n"), "utf8");
+
+  writeFileSync(join(cwd, planPath), [
+    "---",
+    "summary: close lint plan",
+    "status: draft",
+    "priority: P2",
+    "tags: [plan]",
+    "---",
+    "# Agent Analysis Plan",
+    "",
+    "## Problem Analysis",
+    "Broken [link](./missing.md)",
+    ""
+  ].join("\n"), "utf8");
+
+  try {
+    await assert.rejects(
+      () => runTicketClose({ cwd, topic: "002", nonInteractive: true }),
+      err => {
+        assert.match(err.message, /markdown lint failed/);
+        return true;
+      }
+    );
+
+    const body = readFileSync(join(cwd, ticketPath), "utf8");
+    assert.match(body, /phase: 1/);
+    assert.match(body, /status: open/);
+
+    const index = JSON.parse(readFileSync(join(ticketDir, TICKET_INDEX_FILENAME), "utf8"));
+    assert.strictEqual(index.entries[0].status, "open");
+  } finally {
+    rmSync(cwd, { recursive: true, force: true });
+  }
+});
+
+test("runTicketArchive rolls back when linked plan markdown fails lint", async () => {
+  const ticketPath = ".deuk-agent/tickets/sub/007-default-host.md";
+  const planPath = ".deuk-agent/docs/plans/007-default-host-plan.md";
+  const { cwd } = makeTicketWorkspace([
+    makeEntry({
+      id: "007-default-host",
+      title: "archive-guard",
+      topic: "007-default-host",
+      fileName: "007-default-host.md",
+      path: ticketPath,
+      status: "closed",
+      phase: 4
+    })
+  ]);
+
+  mkdirSync(join(cwd, ".deuk-agent", "tickets", "sub"), { recursive: true });
+  mkdirSync(join(cwd, ".deuk-agent", "docs", "plans"), { recursive: true });
+
+  writeFileSync(join(cwd, ticketPath), [
+    "---",
+    "id: 007-default-host",
+    "title: archive-guard",
+    "phase: 4",
+    "status: closed",
+    "summary: archive guard",
+    "priority: P2",
+    "tags: [test]",
+    `planLink: ${planPath}`,
+    "---",
+    "# archive-guard",
+    "",
+    "## Scope & Constraints",
+    "- Target: source module",
+    "",
+    "## Agent Permission Contract (APC)",
+    "### [BOUNDARY]",
+    "- Editable modules: source module",
+    "",
+    "### [CONTRACT]",
+    "- Input: source context",
+    "- Output: minimal implementation",
+    "- Side effects: docs only",
+    "",
+    "### [PATCH PLAN]",
+    "- Plan pointer",
+    ""
+  ].join("\n"), "utf8");
+
+  writeFileSync(join(cwd, planPath), [
+    "---",
+    "summary: archive lint plan",
+    "status: draft",
+    "priority: P2",
+    "tags: [plan]",
+    "---",
+    "# Agent Analysis Plan",
+    "",
+    "## Problem Analysis",
+    "Broken [link](./missing.md)",
+    ""
+  ].join("\n"), "utf8");
+
+  try {
+    await assert.rejects(
+      () => runTicketArchive({ cwd, topic: "007", nonInteractive: true }),
+      err => {
+        assert.match(err.message, /markdown lint failed/);
+        return true;
+      }
+    );
+
+    assert.ok(existsSync(join(cwd, ticketPath)), "original ticket should be restored");
+    assert.ok(!existsSync(join(cwd, ".deuk-agent", "tickets", "archive", "sub", "2026-05", "02", "007-default-host.md")), "archived copy should be rolled back");
+    assert.ok(!existsSync(join(cwd, ".deuk-agent", "knowledge", "007-default-host.json")), "knowledge json should be removed on rollback");
+  } finally {
+    rmSync(cwd, { recursive: true, force: true });
+  }
 });
 
 test("runTicketCreate/next/archive roundtrip preserves language template output", async () => {
