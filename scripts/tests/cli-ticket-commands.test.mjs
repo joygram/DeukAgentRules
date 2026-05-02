@@ -551,6 +551,76 @@ test("runTicketCreate blocks excess open tickets and asks user to choose archive
   }
 });
 
+test("runTicketCreate dry-run does not write ticket, plan, index, or active ticket frontmatter", async () => {
+  const { cwd, ticketDir } = makeTemplateWorkspace();
+  const srcDir = join(ticketDir, "sub");
+  mkdirSync(srcDir, { recursive: true });
+
+  const activeId = "001-active-host";
+  const activeFileName = `${activeId}.md`;
+  const activeEntry = makeEntry({
+    id: activeId,
+    title: "active completed ticket",
+    topic: activeId,
+    fileName: activeFileName,
+    createdAt: "2026-04-01 00:00:00",
+    status: "active"
+  });
+  const activePath = join(srcDir, activeFileName);
+  writeFileSync(activePath, [
+    "---",
+    `id: ${activeId}`,
+    "title: active completed ticket",
+    "phase: 3",
+    "status: active",
+    "summary: active ticket should not be closed during dry-run",
+    "priority: P2",
+    "tags: [test]",
+    "---",
+    "# active completed ticket",
+    "",
+    "## Tasks",
+    "- [x] Done",
+    ""
+  ].join("\n"), "utf8");
+
+  const initialIndex = makeIndex([activeEntry]);
+  initialIndex.activeTicketId = activeId;
+  writeFileSync(join(ticketDir, TICKET_INDEX_FILENAME), JSON.stringify(initialIndex, null, 2) + "\n", "utf8");
+  const beforeIndexText = readFileSync(join(ticketDir, TICKET_INDEX_FILENAME), "utf8");
+  const beforeActiveText = readFileSync(activePath, "utf8");
+
+  const originalLog = console.log;
+  const originalWarn = console.warn;
+  const logs = [];
+  console.log = msg => logs.push(String(msg));
+  console.warn = () => {};
+
+  try {
+    await runTicketCreate({
+      cwd,
+      topic: "dry-run-ticket",
+      summary: "preview ticket creation without writing any files",
+      nonInteractive: true,
+      docsLanguage: "en",
+      skipPhase0: true,
+      dryRun: true,
+      chain: true,
+      requireFilled: true
+    });
+
+    assert.strictEqual(readFileSync(join(ticketDir, TICKET_INDEX_FILENAME), "utf8"), beforeIndexText);
+    assert.strictEqual(readFileSync(activePath, "utf8"), beforeActiveText);
+    assert.ok(!readdirSync(srcDir).some(name => name.includes("dry-run-ticket")));
+    assert.ok(!existsSync(join(cwd, ".deuk-agent/docs/plans")));
+    assert.ok(logs.some(line => line.includes("Ticket would be created:")));
+  } finally {
+    console.log = originalLog;
+    console.warn = originalWarn;
+    rmSync(cwd, { recursive: true, force: true });
+  }
+});
+
 test("runTicketCreate auto-archives closed tickets before enforcing open ticket limit", async () => {
   const { cwd, ticketDir } = makeTemplateWorkspace();
   const srcDir = join(ticketDir, "sub");

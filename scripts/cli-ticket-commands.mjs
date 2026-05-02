@@ -542,20 +542,24 @@ export async function runTicketCreate(opts) {
         }
 
         if (shouldClose) {
-          activeEntry.status = "closed";
-          activeEntry.updatedAt = new Date().toISOString();
-          // Sync to frontmatter
-          if (existsSync(absPath)) {
-            try {
-              const body = readFileSync(absPath, "utf8");
-              const parsed = parseFrontMatter(body);
-              parsed.meta.status = "closed";
-              parsed.meta.phase = 4;
-              writeFileSync(absPath, stringifyFrontMatter(parsed.meta, parsed.content), "utf8");
-            } catch (err) { /* skip */ }
+          if (opts.dryRun) {
+            console.log(`[DRY-RUN] Would auto-close ${activeId} (${reason}).`);
+          } else {
+            activeEntry.status = "closed";
+            activeEntry.updatedAt = new Date().toISOString();
+            // Sync to frontmatter
+            if (existsSync(absPath)) {
+              try {
+                const body = readFileSync(absPath, "utf8");
+                const parsed = parseFrontMatter(body);
+                parsed.meta.status = "closed";
+                parsed.meta.phase = 4;
+                writeFileSync(absPath, stringifyFrontMatter(parsed.meta, parsed.content), "utf8");
+              } catch (err) { /* skip */ }
+            }
+            writeTicketIndexJson(opts.cwd, indexJson, opts);
+            console.log(`[AUTO-CLOSE] ${activeId} completed (${reason}).`);
           }
-          writeTicketIndexJson(opts.cwd, indexJson);
-          console.log(`[AUTO-CLOSE] ${activeId} completed (${reason}).`);
         } else {
           console.warn(`[NOTICE] Switching from ${activeId} (${reason}). Ticket stays open.`);
         }
@@ -569,7 +573,7 @@ export async function runTicketCreate(opts) {
     const finalFileName = `${ticketId}.md`;
 
     const abs = join(ticketDir, group, finalFileName);
-    mkdirSync(join(ticketDir, group), { recursive: true });
+    if (!opts.dryRun) mkdirSync(join(ticketDir, group), { recursive: true });
     path = toRepoRelativePath(opts.cwd, abs);
 
     let prevTicketEntry = null;
@@ -619,10 +623,10 @@ export async function runTicketCreate(opts) {
 
     ensurePlanDraftFile(opts.cwd, meta.planLink, summary, opts);
     
-    writeFileSync(abs, finalContent, "utf8");
+    if (!opts.dryRun) writeFileSync(abs, finalContent, "utf8");
     source = "ticket-create";
 
-    if (strictCreate) {
+    if (strictCreate && !opts.dryRun) {
       const reasons = getPhase1IncompleteReasons(opts.cwd, abs);
       if (reasons.length > 0) {
         rmSync(abs, { force: true });
@@ -646,18 +650,18 @@ export async function runTicketCreate(opts) {
       throw new Error(limitError);
     }
 
-    updatePreviousTicketRef(opts.cwd, prevTicketEntry, ticketId);
+    if (!opts.dryRun) updatePreviousTicketRef(opts.cwd, prevTicketEntry, ticketId);
 
-    console.log(`Ticket created: ${toFileUri(abs)}`);
+    console.log(`${opts.dryRun ? "Ticket would be created" : "Ticket created"}: ${toFileUri(abs)}`);
     
     // Remote Sync Hook
     const configSync = loadInitConfig(opts.cwd);
-    if (configSync && configSync.remoteSync && configSync.pipelineUrl) {
+    if (!opts.dryRun && configSync && configSync.remoteSync && configSync.pipelineUrl) {
       syncToPipeline(configSync.pipelineUrl, { action: "create", ticket: meta });
     }
   }
 
-  syncActiveTicketId(opts.cwd);
+  syncActiveTicketId(opts.cwd, opts);
 }
 
 export async function runTicketList(opts) {

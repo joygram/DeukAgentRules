@@ -95,13 +95,14 @@ export function generateTicketId(topicSlug, existingEntries) {
   return `${numStr}-${finalSlug}-${hostname}`;
 }
 
-export function syncActiveTicketId(cwd) {
+export function syncActiveTicketId(cwd, opts = {}) {
   const index = readTicketIndexJson(cwd);
   const activeEntry = index.entries.find(e => e.status === "active") || 
                        index.entries.find(e => e.status === "open");
   
   const ticketDir = detectConsumerTicketDir(cwd);
   if (!ticketDir) return;
+  if (opts.dryRun) return;
 
   const activeId = activeEntry ? activeEntry.id : null;
   if (index.activeTicketId !== activeId) {
