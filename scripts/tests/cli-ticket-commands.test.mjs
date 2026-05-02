@@ -293,13 +293,79 @@ test("runTicketArchive updates index path to archived ticket location", async ()
   }
 
   const archivedPath = ".deuk-agent/tickets/archive/sub/2026-05/01/001-default-host.md";
-  const index = JSON.parse(readFileSync(join(ticketDir, TICKET_INDEX_FILENAME), "utf8"));
+  const index = readTicketIndexJson(cwd);
+  const archiveIndex = JSON.parse(readFileSync(join(ticketDir, "INDEX.archive.json"), "utf8"));
   assert.ok(existsSync(join(cwd, archivedPath)), "archived ticket file should exist");
-  assert.strictEqual(index.entries[0].status, "archived");
-  assert.strictEqual(index.entries[0].archiveYearMonth, "2026-05");
-  assert.strictEqual(index.entries[0].archiveDay, "01");
+  assert.strictEqual(index.entries.find(e => e.id === "001-default-host").status, "archived");
+  assert.strictEqual(index.entries.find(e => e.id === "001-default-host").archiveYearMonth, "2026-05");
+  assert.strictEqual(index.entries.find(e => e.id === "001-default-host").archiveDay, "01");
+  assert.strictEqual(JSON.parse(readFileSync(join(ticketDir, TICKET_INDEX_FILENAME), "utf8")).entries.length, 0);
+  assert.strictEqual(archiveIndex.entries.find(e => e.id === "001-default-host").status, "archived");
   assert.strictEqual(result.path, archivedPath);
   assert.ok(lines.includes("ticket archive: final ticket path " + archivedPath));
+
+  rmSync(cwd, { recursive: true, force: true });
+});
+
+test("runTicketArchive splits active and archive index storage", async () => {
+  const ticketPath = ".deuk-agent/tickets/sub/010-split-host.md";
+  const { cwd, ticketDir } = makeTicketWorkspace([
+    makeEntry({
+      id: "010-split-host",
+      title: "split-index",
+      topic: "010-split-host",
+      fileName: "010-split-host.md",
+      path: ticketPath,
+      status: "closed"
+    }),
+    makeEntry({
+      id: "011-open-host",
+      title: "open-stays-active",
+      topic: "011-open-host",
+      fileName: "011-open-host.md",
+      path: ".deuk-agent/tickets/sub/011-open-host.md",
+      status: "open"
+    })
+  ]);
+  const srcDir = join(ticketDir, "sub");
+  mkdirSync(srcDir, { recursive: true });
+  writeFileSync(join(cwd, ticketPath), [
+    "---",
+    "id: 010-split-host",
+    "title: split-index",
+    "phase: 4",
+    "status: closed",
+    "summary: split index test",
+    "priority: P2",
+    "tags: [test]",
+    "---",
+    "# split-index",
+    ""
+  ].join("\n"), "utf8");
+  writeFileSync(join(cwd, ".deuk-agent/tickets/sub/011-open-host.md"), [
+    "---",
+    "id: 011-open-host",
+    "title: open-stays-active",
+    "phase: 1",
+    "status: open",
+    "summary: open ticket",
+    "priority: P2",
+    "tags: [test]",
+    "---",
+    "# open-stays-active",
+    ""
+  ].join("\n"), "utf8");
+
+  await runTicketArchive({ cwd, topic: "010", nonInteractive: true });
+
+  const mainIndex = JSON.parse(readFileSync(join(ticketDir, TICKET_INDEX_FILENAME), "utf8"));
+  const archiveIndexPath = join(ticketDir, "INDEX.archive.json");
+  assert.ok(existsSync(archiveIndexPath), "archive index should be written");
+  const archiveIndex = JSON.parse(readFileSync(archiveIndexPath, "utf8"));
+
+  assert.ok(mainIndex.entries.every(e => e.status === "open" || e.status === "active"), "main index should only keep active/open entries");
+  assert.ok(archiveIndex.entries.some(e => e.id === "010-split-host"), "archive index should keep archived entries");
+  assert.ok(archiveIndex.entries.every(e => e.status !== "open" && e.status !== "active"), "archive index should not keep active/open entries");
 
   rmSync(cwd, { recursive: true, force: true });
 });
@@ -347,12 +413,15 @@ test("runTicketArchive updates activeTicketId when archiving active ticket", asy
 
   await runTicketArchive({ cwd, topic: "001", nonInteractive: true });
 
-  const index = JSON.parse(readFileSync(join(ticketDir, TICKET_INDEX_FILENAME), "utf8"));
+  const index = readTicketIndexJson(cwd);
+  const archivedIndex = JSON.parse(readFileSync(join(ticketDir, "INDEX.archive.json"), "utf8"));
   assert.strictEqual(index.activeTicketId, "002-waiting-host");
   const archivedEntry = index.entries.find(e => e.id === "001-default-host");
   const openEntry = index.entries.find(e => e.id === "002-waiting-host");
   assert.strictEqual(archivedEntry.status, "archived");
   assert.strictEqual(openEntry.status, "open");
+  assert.strictEqual(JSON.parse(readFileSync(join(ticketDir, TICKET_INDEX_FILENAME), "utf8")).entries.length, 1);
+  assert.strictEqual(archivedIndex.entries.find(e => e.id === "001-default-host").status, "archived");
 
   rmSync(cwd, { recursive: true, force: true });
 });

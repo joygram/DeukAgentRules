@@ -6,32 +6,77 @@ import {
   toSlug, findFileRecursively, toRepoRelativePath, detectConsumerTicketDir, computeTicketPath
 } from "./cli-utils.mjs";
 
-export function readTicketIndexJson(cwd) {
-  const dir = detectConsumerTicketDir(cwd);
-  if (!dir) return { version: 1, updatedAt: null, entries: [] };
-  const p = join(dir, TICKET_INDEX_FILENAME);
-  if (!existsSync(p)) {
-    return { version: 1, updatedAt: null, entries: [] };
+const TICKET_ARCHIVE_INDEX_FILENAME = "INDEX.archive.json";
+
+function parseIndexFile(absPath) {
+  if (!existsSync(absPath)) {
+    return { version: 1, updatedAt: null, activeTicketId: null, entries: [] };
   }
   try {
-    const j = JSON.parse(readFileSync(p, "utf8"));
+    const j = JSON.parse(readFileSync(absPath, "utf8"));
     const entries = Array.isArray(j.entries) ? j.entries.map(e => {
       const entry = { ...e, status: e.status || "open" };
-      // Dynamically re-derive path from state to ensure zero-drift
       entry.path = computeTicketPath(entry);
       return entry;
     }) : [];
-    
-    return { 
-      version: j.version || 1, 
-      updatedAt: j.updatedAt ?? null, 
-      activeTicketId: j.activeTicketId ?? null, 
-      entries 
+    return {
+      version: j.version || 1,
+      updatedAt: j.updatedAt ?? null,
+      activeTicketId: j.activeTicketId ?? null,
+      entries
     };
   } catch (err) {
-    console.error(`[ERROR] Failed to parse ${TICKET_INDEX_FILENAME} at ${p}:`, err.message);
+    console.error(`[ERROR] Failed to parse ${basename(absPath)} at ${absPath}:`, err.message);
     return { version: 1, updatedAt: null, activeTicketId: null, entries: [], _corrupt: true };
   }
+}
+
+function splitEntriesForStorage(entries = []) {
+  const activeEntries = [];
+  const archiveEntries = [];
+  for (const entry of entries) {
+    const status = String(entry?.status || "open").toLowerCase();
+    if (status === "open" || status === "active") {
+      activeEntries.push(entry);
+    } else {
+      archiveEntries.push(entry);
+    }
+  }
+  return { activeEntries, archiveEntries };
+}
+
+function mergeIndexEntries(primaryEntries = [], archiveEntries = []) {
+  const merged = new Map();
+  for (const entry of primaryEntries || []) {
+    if (entry?.id) merged.set(entry.id, entry);
+  }
+  for (const entry of archiveEntries || []) {
+    if (entry?.id) merged.set(entry.id, entry);
+  }
+  return Array.from(merged.values());
+}
+
+export function readTicketIndexJson(cwd) {
+  const dir = detectConsumerTicketDir(cwd);
+  if (!dir) return { version: 1, updatedAt: null, entries: [] };
+  const mainPath = join(dir, TICKET_INDEX_FILENAME);
+  const archivePath = join(dir, TICKET_ARCHIVE_INDEX_FILENAME);
+  const main = parseIndexFile(mainPath);
+  const archive = parseIndexFile(archivePath);
+
+  const entries = mergeIndexEntries(main.entries, archive.entries).map(entry => {
+    const next = { ...entry, status: entry.status || "open" };
+    next.path = computeTicketPath(next);
+    return next;
+  });
+
+  return {
+    version: main.version || archive.version || 1,
+    updatedAt: main.updatedAt ?? archive.updatedAt ?? null,
+    activeTicketId: main.activeTicketId ?? null,
+    entries,
+    _corrupt: Boolean(main._corrupt || archive._corrupt)
+  };
 }
 
 export function writeTicketIndexJson(cwd, indexJson, opts = {}) {
@@ -41,6 +86,7 @@ export function writeTicketIndexJson(cwd, indexJson, opts = {}) {
   }
   const dir = detectConsumerTicketDir(cwd, { createIfMissing: true });
   const p = join(dir, TICKET_INDEX_FILENAME);
+  const archivePath = join(dir, TICKET_ARCHIVE_INDEX_FILENAME);
   if (opts.dryRun) return;
   mkdirSync(dir, { recursive: true });
   
@@ -48,12 +94,27 @@ export function writeTicketIndexJson(cwd, indexJson, opts = {}) {
   delete out._corrupt;
   
   // Strip physical path snapshots before saving to enforce state-driven resolution
-  out.entries = out.entries.map(e => {
+  const entries = Array.isArray(out.entries) ? out.entries : [];
+  const { activeEntries, archiveEntries } = splitEntriesForStorage(entries);
+  out.entries = activeEntries.map(e => {
     const { path, ...clean } = e;
     return clean;
   });
-
+  out.activeTicketId = out.activeTicketId || activeEntries.find(e => e.status === "active")?.id || activeEntries.find(e => e.status === "open")?.id || null;
   writeFileSync(p, JSON.stringify(out, null, 2) + "\n", "utf8");
+
+  const archiveOut = {
+    version: out.version || 1,
+    updatedAt: out.updatedAt || new Date().toISOString(),
+    activeTicketId: null,
+    entries: archiveEntries.map(e => {
+      const { path, ...clean } = e;
+      return clean;
+    })
+  };
+  if (archiveOut.entries.length > 0 || existsSync(archivePath)) {
+    writeFileSync(archivePath, JSON.stringify(archiveOut, null, 2) + "\n", "utf8");
+  }
 }
 
 export function getHostnameSlug() {
