@@ -1068,6 +1068,20 @@ function syncTemplates(cwd, bundleRoot, dryRun) {
   console.log(`[SYNC] templates synced to ${toRepoRelativePath(cwd, tplDestDir)} (dry-run mode)`);
 }
 
+function syncSkillTemplates(cwd, bundleRoot, dryRun) {
+  const skillDestDir = join(cwd, AGENT_ROOT_DIR, "skill-templates");
+  const skillSourceDir = join(bundleRoot, "templates", "skills");
+  if (!existsSync(skillSourceDir)) return;
+
+  if (!dryRun) {
+    mkdirSync(skillDestDir, { recursive: true });
+    cpSync(skillSourceDir, skillDestDir, { recursive: true });
+    console.log(`[SYNC] skill templates synced to ${toRepoRelativePath(cwd, skillDestDir)}`);
+    return;
+  }
+  console.log(`[SYNC] skill templates synced to ${toRepoRelativePath(cwd, skillDestDir)} (dry-run mode)`);
+}
+
 /**
  * Scans .deuk-agent/tickets/ and .deuk-agent/docs/ for markdown files
  * missing YAML frontmatter or missing required frontmatter keys,
@@ -1357,6 +1371,7 @@ async function initSingleWorkspace(subCwd, opts, bundleRoot, selectedTools) {
 
   // 5. Templates Sync (.deuk-agent/templates/)
   syncTemplates(subCwd, bundleRoot, opts.dryRun);
+  syncSkillTemplates(subCwd, bundleRoot, opts.dryRun);
 }
 
 export function runMerge(opts, bundleRoot) {
@@ -1370,4 +1385,5 @@ export function runMerge(opts, bundleRoot) {
   }
   
   syncTemplates(opts.cwd, bundleRoot, opts.dryRun);
+  syncSkillTemplates(opts.cwd, bundleRoot, opts.dryRun);
 }

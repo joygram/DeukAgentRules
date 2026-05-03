@@ -80,6 +80,20 @@ export function parseArgs(argv) {
   }
   return out;
 }
+
+export function parseSkillArgs(argv) {
+  const out = { cwd: process.cwd(), dryRun: false, nonInteractive: false };
+  for (let i = 0; i < argv.length; i++) {
+    const a = argv[i];
+    if (a === "--cwd") out.cwd = argv[++i];
+    else if (a === "--dry-run") out.dryRun = true;
+    else if (a === "--non-interactive") out.nonInteractive = true;
+    else if (a === "--skill" || a === "--id") out.skill = argv[++i];
+    else if (a === "--platform") out.platform = argv[++i];
+    else if (a === "--json") out.json = true;
+  }
+  return out;
+}
 export function parseTelemetryArgs(argv) {
   const out = {
     cwd: process.cwd(),

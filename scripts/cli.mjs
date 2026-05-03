@@ -2,7 +2,7 @@
 import { existsSync, rmSync } from "fs";
 import { dirname, join } from "path";
 import { fileURLToPath } from "url";
-import { parseArgs, parseTicketArgs, parseTelemetryArgs } from "./cli-args.mjs";
+import { parseArgs, parseTicketArgs, parseSkillArgs, parseTelemetryArgs } from "./cli-args.mjs";
 import { runInit, runMerge } from "./cli-init-commands.mjs";
 import { runTicketCreate, runTicketList, runTicketUse, runTicketClose, runTicketArchive, runTicketReports, runTicketMeta, runTicketConnect, runTicketRebuild, runTicketReportAttach, runTicketMove, runTicketNext, runTicketHotfix, runTicketStatus, runTicketHandoff } from "./cli-ticket-commands.mjs";
 import { runTelemetry } from "./cli-telemetry-commands.mjs";
@@ -64,6 +64,14 @@ async function main() {
   if (sub === "telemetry") {
     const opts = parseTelemetryArgs(rest);
     await runTelemetry(opts);
+    return;
+  }
+
+  if (sub === "skill") {
+    const action = rest[0];
+    const opts = parseSkillArgs(rest.slice(1));
+    const { runSkill } = await import("./cli-skill-commands.mjs");
+    await runSkill(action, opts);
     return;
   }
 
@@ -151,6 +159,7 @@ Usage:
   npx deuk-agent-rule merge  [options]
   npx deuk-agent-rule lint:md [--cwd <path>] [files...]
   npx deuk-agent-rule rules audit [--compact|--json]
+  npx deuk-agent-rule skill <list|add|expose|lint> [options]
   npx deuk-agent-rule ticket <create|list|status|handoff|continue|use|close|archive|reports|migrate|upgrade|meta|connect|move> [options]
   npx deuk-agent-rule telemetry <log|sync|summary|migrate> [options]
 
@@ -168,6 +177,10 @@ Options:
   --remote <url>        Temporary pipeline URL
   --sync                Force enable remote sync
   --no-sync             Force disable remote sync
+
+Skill Options:
+  --skill, --id <name>  Skill ID (safe-refactor|generated-file-guard|context-recall)
+  --platform <name>     Exposure target (claude|cursor)
 
 Ticket Options:
   --topic, --id <name>  Ticket topic slug or ID

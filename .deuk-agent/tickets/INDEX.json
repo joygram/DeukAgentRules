@@ -1,6 +1,7 @@
 {
   "version": 1,
-  "updatedAt": "2026-05-03T23:28:19.363Z",
+  "updatedAt": "2026-05-03T23:53:15.130Z",
+  "activeTicketId": "257-득팩-처리-수준-개선-joy-nucb",
   "entries": [
     {
       "id": "257-득팩-처리-수준-개선-joy-nucb",
@@ -132,6 +133,5 @@
       "source": "ticket-sync",
       "status": "open"
     }
-  ],
-  "activeTicketId": "257-득팩-처리-수준-개선-joy-nucb"
+  ]
 }

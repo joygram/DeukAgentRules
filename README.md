@@ -103,6 +103,10 @@ Delegate these to your AI agent via natural language prompts!
 | `deuk-agent-rule ticket create` | Issues a new execution contract. <br>💬 *"Create ticket: refactor-ui"* |
 | `deuk-agent-rule ticket list` | Displays active work orders. <br>💬 *"Show active tickets"* |
 | `deuk-agent-rule ticket archive` | Securely stores completed work. <br>💬 *"Archive ticket 068"* |
+| `deuk-agent-rule skill list` | Shows first-party thin skills such as `safe-refactor`, `generated-file-guard`, and `context-recall`. |
+| `deuk-agent-rule skill add --skill safe-refactor` | Installs a skill into the local registry without changing the TDW/APC authority model. |
+| `deuk-agent-rule skill expose --platform claude` | Exposes installed skills as platform-specific thin wrappers. Supported MVP platforms: `claude`, `cursor`. |
+| `deuk-agent-rule skill lint` | Audits skill files for duplicate workflow contracts and unsafe generated-file guidance. |
 
 ---
 
@@ -116,8 +120,16 @@ Where prompt-level guideline files improve agent behavior inside one client,
 DeukAgentRules adds a repository-level workflow layer: tickets, phase gates,
 scoped permissions, verification, and archiveable engineering memory.
 
+The first-party skill MVP keeps that boundary explicit: skills are short
+`SKILL.md` playbooks for recurring failure patterns, while `core-rules/AGENTS.md`
+remains the workflow authority. Use `skill add` and `skill expose` to make those
+playbooks visible to Claude or Cursor without copying the full rule contract.
+
 ```bash
 npx deuk-agent-rule init
+npx deuk-agent-rule skill list
+npx deuk-agent-rule skill add --skill safe-refactor
+npx deuk-agent-rule skill expose --platform claude
 ```
 
 ---

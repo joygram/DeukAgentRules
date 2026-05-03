@@ -1,0 +1,12 @@
+---
+description: "DeukAgentRules skill pointers"
+globs: ["**/*"]
+alwaysApply: false
+---
+# DeukAgentRules Skills
+
+These are thin behavior playbooks. They do not override `core-rules/AGENTS.md`, TDW, APC, Phase Gate, or PROJECT_RULE.md.
+
+- safe-refactor: .deuk-agent/skills/safe-refactor/SKILL.md
+- generated-file-guard: .deuk-agent/skills/generated-file-guard/SKILL.md
+- context-recall: .deuk-agent/skills/context-recall/SKILL.md

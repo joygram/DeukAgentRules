@@ -170,9 +170,11 @@ DeukAgentRules가 먼저 만들어야 할 것은 거대한 marketplace가 아니
 
 - `safe-refactor`: 작은 변경, 테스트 우선, scope audit
 - `generated-file-guard`: generated output 직접 수정 금지
-- `ticket-first-coding`: No Ticket, No Code 절차
-- `phase-gate-review`: Plan, Execute, Verify 전환 체크
 - `context-recall`: DeukAgentContext에서 유사 티켓 검색
+
+초기 MVP는 위 세 가지로 시작했다. `ticket-first-coding`과 `phase-gate-review`는 skill로
+분리하면 core rule과 중복되므로, 별도 `SKILL.md`가 아니라 TDW/APC/Phase Gate의 CLI/상태
+UX로 노출하는 편이 맞다.
 
 목표는 Karpathy-style 사용자에게 익숙한 `SKILL.md` 표면을 제공하면서, 내부적으로는 DeukAgentRules ticket workflow로 유도하는 것이다.
 
@@ -239,8 +241,8 @@ skill 사용자는 눈에 보이는 피드백에 반응한다. VS Code/Cursor co
 | 단계 | 목표 | 산출물 |
 |---|---|---|
 | 0 | 메시지 정리 | README에 "skills complement, workflow controls" 문구 추가 |
-| 1 | First-party skill pack | `safe-refactor`, `ticket-first-coding`, `generated-file-guard` |
-| 2 | Skill expose MVP | Claude/Cursor/Copilot/Codex 지침 표면으로 pointer 생성 |
+| 1 | First-party skill pack MVP | `safe-refactor`, `generated-file-guard`, `context-recall` |
+| 2 | Skill expose MVP | Claude/Cursor 지침 표면으로 pointer 생성, Copilot/Codex는 후속 |
 | 3 | Context recall MVP | 티켓 생성 시 유사 티켓과 규칙 추천 |
 | 4 | VS Code companion | active ticket, phase, open count, exposed skills, memory status |
 | 5 | Community loop | skill contribution guide, examples, badge, PR report |
