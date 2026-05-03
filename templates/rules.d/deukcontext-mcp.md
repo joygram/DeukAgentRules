@@ -21,6 +21,7 @@ inject_target: ["AGENTS.md", "GEMINI.md"]
 - When a result only says to read the file, read the current file locally before deciding.
 - Prefer `search_code` for implementation questions and request evidence only when the extra context is likely to be useful.
 - Record hit/weak-hit/miss/stale evidence in the ticket when it changes confidence, plan, or follow-up direction.
+- For investigation, regression, quality, or root-cause tasks, write confirmed facts, hypotheses, improvement direction, and open questions into the active ticket before asking the user for clarification. Then point the user to the ticket instead of keeping the analysis only in chat.
 
 ### RAG Failure Handling
 - **Error** (2+ failures): Switch to local search (`grep_search`/`view_file`). Do not retry in a loop.

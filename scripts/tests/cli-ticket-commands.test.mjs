@@ -1822,6 +1822,12 @@ test("runTicketCreate generates main-ticket compact plan by default", async () =
     assert.match(ticketText, /issue\/regression reports/i);
     assert.match(ticketText, /Do not execute before post-ticket approval/i);
     assert.match(ticketText, /## Compact Plan/);
+    assert.match(ticketText, /## Problem Analysis/);
+    assert.match(ticketText, /## Source Observations/);
+    assert.match(ticketText, /## Cause Hypotheses/);
+    assert.match(ticketText, /## Improvement Direction/);
+    assert.match(ticketText, /## Open Questions/);
+    assert.match(ticketText, /before asking the user for clarification/i);
     assert.match(ticketText, /Ticket Numbering/);
     assert.match(ticketText, new RegExp(summary));
 

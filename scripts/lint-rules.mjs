@@ -51,6 +51,13 @@ const RULE_CHECKS = [
       && /Approval must be after the ticket exists and the Phase 1 plan is reviewable/i.test(rules)
   },
   {
+    code: "DR-TICKET-03",
+    message: "Investigation clarifications must be ticket-first.",
+    test: (rules) => /Before asking a clarification during an investigation/i.test(rules)
+      && /confirmed facts, hypotheses, improvement direction, and unresolved question/i.test(rules)
+      && /point the user to that ticket/i.test(rules)
+  },
+  {
     code: "DR-SEARCH-01",
     message: "Repository search must be rg-first.",
     test: (rules) => /use `rg`\/`rg --files` first/i.test(rules)

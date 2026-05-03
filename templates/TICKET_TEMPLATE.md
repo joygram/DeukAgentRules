@@ -39,6 +39,26 @@
 - **Verification:** List the smallest relevant commands/checks, expected result, and the pass/fail signal that must be recorded after execution. Prefer the narrowest gate that proves the fix.
 - **Ticket Numbering:** infer the master/sub ticket from the numbered ticket ID; do not add inline child-ticket links.
 
+## Problem Analysis
+
+For investigation, regression, quality, or root-cause tickets, record the current analysis here before asking the user for clarification. Chat should point back to this ticket after the analysis is recorded.
+
+## Source Observations
+
+- Record confirmed local, RAG, code, command, or document evidence.
+
+## Cause Hypotheses
+
+- Record the current best explanation and competing plausible causes.
+
+## Improvement Direction
+
+- Record the proposed fix direction or follow-up design path.
+
+## Open Questions
+
+- Record only the unresolved questions that require user clarification.
+
 ## Tasks
 
 - [ ] Complete compact plan and APC.

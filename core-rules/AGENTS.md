@@ -1,6 +1,6 @@
 ---
-version: 36
-changelog: "v36: Refactor rule flow, ticket record boundaries, and MCP RAG decision order."
+version: 37
+changelog: "v37: Require ticket-first investigation analysis before clarification."
 ---
 
 # Agent Rules
@@ -91,6 +91,7 @@ Phase 1 document boundary rule:
 
 Durable ticket record rule:
 - Investigation records must include the finding, root cause or hypothesis, affected files/symbols, and planned fix direction when the work produces reusable knowledge.
+- Before asking a clarification during an investigation, regression, quality issue, or root-cause task, first write the current confirmed facts, hypotheses, improvement direction, and unresolved question into the active ticket. Then point the user to that ticket and ask only the unresolved question.
 - Verification records must include the command/check, observed result, key pass/fail signal, and follow-up direction when the result implies more work.
 - RAG records must state which MCP query/tool was used, whether it was hit/weak-hit/miss/stale, and how it changed or did not change the plan.
 - Chat must stay compact after the ticket has the durable record: summarize the outcome and point to the ticket instead of duplicating details.
@@ -101,6 +102,7 @@ Plan-only mode: Do Phases 0–1 only. Defer code/config writes as text in plan. 
 
 If the user reports a bug, regression, policy violation, surprising behavior, or asks "why did this happen?", treat it as review-gated even when the prompt includes words like "fix", "resolve", or "해결".
 - Create or select the ticket and complete Phase 1 with root-cause hypotheses, scope, APC, and the proposed patch plan.
+- For investigation-style Phase 1 records, include `Problem Analysis`, `Source Observations`, `Cause Hypotheses`, `Improvement Direction`, and `Open Questions` when any part is still uncertain.
 - Stop after the ticket-start line or a concise review-request final answer. Do not move to Phase 2, edit product/source/config files, or close the ticket until the user approves the Phase 1 plan.
 - Approval must be after the ticket exists and the Phase 1 plan is reviewable. Pre-ticket issue wording is not enough to bypass review.
 
