@@ -1,7 +1,18 @@
 {
   "version": 1,
-  "updatedAt": "2026-05-03T14:30:55.107Z",
+  "updatedAt": "2026-05-03T14:39:01.786Z",
+  "activeTicketId": "250-source-chunk-usage-validation-joy-nucb",
   "entries": [
+    {
+      "id": "250-source-chunk-usage-validation-joy-nucb",
+      "title": "source-chunk-usage-validation",
+      "topic": "source-chunk-usage-validation",
+      "group": "sub",
+      "project": "global",
+      "createdAt": "2026-05-03T14:39:01.784Z",
+      "source": "ticket-create",
+      "status": "open"
+    },
     {
       "id": "242-commit-after-other-project-ticke-joy-nucb",
       "title": "commit-after-other-project-tickets-not-entering",
@@ -80,6 +91,5 @@
       "source": "ticket-sync",
       "status": "open"
     }
-  ],
-  "activeTicketId": "242-commit-after-other-project-ticke-joy-nucb"
+  ]
 }
