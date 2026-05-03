@@ -32,8 +32,8 @@ changelog: "v28: Make post-execute verification mandatory unless explicitly defe
 
 ## 1. Boot Sequence (run once)
 
-1. Read this file (AGENTS.md) → state version number **and confirm the file path you called `read_file` on this session**. If you cannot confirm you called `read_file` on this exact path, call it now and halt all other actions until done.
-2. Read `PROJECT_RULE.md` in workspace root → list applicable DC-* rules.
+1. Read this file (AGENTS.md) → internally note the version number and exact file path read. Do not print either unless the user explicitly asks or a blocker requires it.
+2. Read `PROJECT_RULE.md` in workspace root → internally identify applicable DC-* rules. Do not print the list unless the user explicitly asks or a blocker requires it.
 3. Find or create active ticket (1-CALL RULE below) → call `set_workflow_context(project, ticket_id, phase)`.
 
 ### Ticket Discovery (1-CALL RULE)

@@ -1430,8 +1430,10 @@ function generateSpokeContent(spoke, bundleRoot) {
 > Proceeding without this call is a **HARD VIOLATION** — halt immediately and read the file first.
 
 After reading, you must:
-1. State the version number from the frontmatter.
-2. List which DC-* rules from PROJECT_RULE.md apply to your current task, with a one-line justification for each.
+1. Internally note the version number from the frontmatter.
+2. Internally identify which DC-* rules from PROJECT_RULE.md apply to your current task.
+
+Do not print the version number or DC-* list unless the user explicitly asks for rule details or a blocker requires it.
 `;
 
   if (spoke.format === "mdc") {

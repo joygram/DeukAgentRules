@@ -23,6 +23,14 @@ const RULE_CHECKS = [
     test: (rules) => /Treat tool output as input-token cost/i.test(rules)
   },
   {
+    code: "DR-TOKEN-05",
+    message: "Boot sequence must not require routine version/DC rule screen output.",
+    test: (rules) => /internally note the version number/i.test(rules)
+      && /internally identify applicable DC-\* rules/i.test(rules)
+      && !/state version number/i.test(rules)
+      && !/list applicable DC-\* rules/i.test(rules)
+  },
+  {
     code: "DR-TICKET-01",
     message: "Main ticket must be the default planning SSoT.",
     test: (rules) => /main ticket is the default SSoT/i.test(rules)

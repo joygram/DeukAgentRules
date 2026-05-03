@@ -1,20 +1,7 @@
 {
   "version": 1,
-  "updatedAt": "2026-05-03T07:42:51.120Z",
+  "updatedAt": "2026-05-03T07:48:04.119Z",
   "entries": [
-    {
-      "id": "205-codex-token-output-and-ticket-fa-joy-nucb",
-      "title": "205-codex-token-output-and-ticket-fa-joy-nucb",
-      "topic": "205-codex-token-output-and-ticket-fa-joy-nucb",
-      "group": "sub",
-      "fileName": "205-codex-token-output-and-ticket-fa-joy-nucb.md",
-      "project": "global",
-      "submodule": "",
-      "createdAt": "2026-05-03 07:16:33",
-      "updatedAt": "2026-05-03T07:29:54.496Z",
-      "source": "ticket-sync",
-      "status": "active"
-    },
     {
       "id": "206-remove-legacy split reference-from-tickets-joy-nucb",
       "title": "206-remove-legacy split reference-from-tickets-joy-nucb",
@@ -29,5 +16,5 @@
       "status": "open"
     }
   ],
-  "activeTicketId": "205-codex-token-output-and-ticket-fa-joy-nucb"
+  "activeTicketId": "206-remove-legacy split reference-from-tickets-joy-nucb"
 }
