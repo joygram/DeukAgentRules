@@ -40,18 +40,20 @@ deuk-agent-rule ticket create --topic user-auth-impl --evidence "기존 auth 로
 ```
 이미 작성된 마크다운 형식의 구현 계획서가 있다면 `--from-plan` 옵션을 통해 바로 티켓으로 변환할 수도 있습니다.
 
-기존 작업을 이어받으려는데 `ticket next`가 진행 가능한 티켓을 찾지 못하면, 에이전트는 새 티켓을 즉시 만들지 않고 최근 git history를 먼저 분석해 실제 후속 작업 후보를 복원합니다. 새 티켓은 그 분석 근거를 planLink에 기록한 뒤 생성합니다.
+기존 작업을 이어받으려는데 `ticket next`가 진행 가능한 티켓을 찾지 못하면, 에이전트는 새 티켓을 즉시 만들지 않고 최근 git history를 먼저 분석해 실제 후속 작업 후보를 복원합니다. 새 티켓은 그 분석 근거를 메인 티켓의 compact plan에 기록한 뒤 생성합니다.
 
-### 2단계: APC(Agent Permission Contract) 및 planLink 기록
-생성된 티켓은 기본적으로 **Phase 1 (Ticket + Plan)** 상태입니다. 에이전트는 코드를 수정하기 전에 티켓 내의 APC 블록(`[BOUNDARY]`, `[CONTRACT]`, `[PATCH PLAN]`)과 planLink 문서를 채워야 합니다.
+### 2단계: APC(Agent Permission Contract) 기록
+생성된 티켓은 기본적으로 **Phase 1 (Ticket + Plan)** 상태입니다. 에이전트는 코드를 수정하기 전에 티켓 내의 APC 블록(`[BOUNDARY]`, `[CONTRACT]`, `[PATCH PLAN]`)을 채워야 합니다.
 
-티켓과 planLink는 같은 내용을 반복하지 않습니다. 티켓은 스코프, 제약, APC 계약, 진행 체크를 맡고, planLink는 에이전트의 서술형 문제 분석, 원인 가설, 결정 근거, 실행 전략, 검증 설계를 맡습니다. planLink에는 진행 체크박스를 두지 않습니다.
+티켓은 스코프, 제약, APC 계약, 라이프사이클 체크, 검증 결과를 맡습니다. 실행 로그, 명령 transcript, 완료 요약, 검증 결과를 계획 문구와 섞지 않습니다.
 
 사용자가 실행을 명확히 요청했고 Phase 1 기록이 완성되어 있으면, 에이전트가 다음 명령으로 Phase 승급을 시도합니다:
 ```bash
 deuk-agent-rule ticket move --topic user-auth-impl
 ```
-만약 APC나 planLink가 비어있거나 불완전하다면, 에이전트는 코딩 전에 이를 먼저 채웁니다.
+만약 APC나 compact plan이 비어있거나 불완전하다면, 에이전트는 코딩 전에 이를 먼저 채웁니다.
+
+이슈/회귀/정책 위반을 제기한 경우에는 티켓 생성 직후 바로 실행하지 않습니다. 에이전트는 Phase 1에 원인 가설, 범위, APC, 패치 계획을 채운 뒤 멈추고 사용자의 검토 승인을 기다립니다. 원래 요청에 "수정", "해결"이 포함되어 있어도 티켓 계획을 본 뒤의 승인으로 보지 않습니다.
 
 ### 3단계: 작업 실행 (Phase 2: Execute)
 티켓이 **Phase 2 (Execute)** 로 승급되면, 에이전트는 제한된 경계 내에서 코드를 수정하고 단위 테스트 등 검증 작업을 수행합니다.
@@ -69,7 +71,7 @@ deuk-agent-rule ticket move --topic user-auth-impl
 에이전트가 DeukAgentRules 프로토콜을 엄격히 준수하도록 하려면 프로젝트 시작 시 다음과 같은 **페르소나 주입(Persona Injection)**이 도움이 됩니다.
 
 > **에이전트 지침 예시:**
-> "너는 DeukAgentRules 프로토콜을 준수하는 시니어 엔지니어다. 모든 코드 수정 전에는 반드시 `ticket create` 또는 기존 티켓 선택을 통해 Phase 1 기록을 만들고, 티켓에는 APC 경계/계약만, planLink에는 문제 분석/원인 가설/결정 근거/실행 전략/검증 설계만 담아 중복을 피한다. 실행 의도가 명확하면 `ticket move` 명령으로 Phase 2로 승급하여 코드를 작성한다. 작업이 완료되면 진행 기록을 정리하고 티켓을 `archive`해라. 규칙 파일인 `PROJECT_RULE.md`와 포인터가 가리키는 `AGENTS.md`를 항상 최우선으로 참조하라."
+> "너는 DeukAgentRules 프로토콜을 준수하는 시니어 엔지니어다. 모든 코드 수정 전에는 반드시 `ticket create` 또는 기존 티켓 선택을 통해 Phase 1 기록을 만들고, 티켓에는 APC 경계/계약과 compact plan을 담는다. 이슈/회귀/정책 위반 보고는 티켓 생성 후 Phase 1 계획을 사용자에게 검토받고, 승인 후에만 Phase 2로 승급한다. 작업이 완료되면 검증 결과를 티켓 또는 리포트에 기록하고 티켓을 `archive`해라. 규칙 파일인 `PROJECT_RULE.md`와 포인터가 가리키는 `AGENTS.md`를 항상 최우선으로 참조하라."
 
 ---
 

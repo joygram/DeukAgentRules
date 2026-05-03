@@ -37,14 +37,14 @@ Respect human-authored content while cleaning system-generated noise.
 Execution must be strictly bounded by a Ticket and its Phase.
 
 - **Why**: AI agents wander without boundaries. Explicit scope locking reduces token usage and prevents scope-creep.
-- **Mechanism**: Phase 1 issues or selects a ticket, fills the Agent Permission Contract (APC), and records the planLink. When no active/open ticket exists, the agent inspects recent git history before creating a follow-up ticket. The ticket owns scope, contract, and progress checkboxes; planLink owns the agent's prose problem analysis, cause hypotheses, decision rationale, execution strategy, and verification design. planLink must not contain progress checkboxes.
+- **Mechanism**: Phase 1 issues or selects a ticket and fills the Agent Permission Contract (APC). Keep all planning in the main ticket's compact plan. When no active/open ticket exists, the agent inspects recent git history before creating a follow-up ticket. The ticket owns scope, contract, lifecycle checks, and verification outcomes; planning text must not contain progress checkboxes, execution logs, command transcripts, completion summaries, or verification results.
 
 ## 6. Plan Before Mutation
 
 Design must be explicit before state changes occur.
 
 - **Why**: Intent and scope should be recorded before code or config files are modified. Ticket and plan documents are records, not a reason to create duplicate tickets.
-- **Mechanism**: Before writing code, the ticket APC blocks (`[BOUNDARY]`, `[CONTRACT]`, `[PATCH PLAN]`) and planLink must be filled. APC records boundary and contract only; the reasoning behind the diagnosis and chosen approach stays in planLink.
+- **Mechanism**: Before writing code, the ticket APC blocks (`[BOUNDARY]`, `[CONTRACT]`, `[PATCH PLAN]`) must be filled. APC records boundary and contract only. The reasoning behind diagnosis and chosen approach stays in the main ticket's compact plan and is not a destination for execution records.
 
 ## 7. Documentation Complements RAG
 

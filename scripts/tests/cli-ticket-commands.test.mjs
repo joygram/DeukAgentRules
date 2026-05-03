@@ -1817,11 +1817,10 @@ test("runTicketCreate generates main-ticket compact plan by default", async () =
     assert.ok(ticketFile, "ticket markdown should be created");
 
     const ticketText = readFileSync(ticketFile, "utf8");
-    const planLink = ticketText.match(/planLink:\s*(.+)/)?.[1]?.trim();
-    assert.ok(!planLink, "ticket should not record planLink by default");
-    assert.doesNotMatch(ticketText, /PlanLink:/);
     assert.doesNotMatch(ticketText, /Read relevant architecture and target module files/);
     assert.match(ticketText, /main ticket owns design and analysis/i);
+    assert.match(ticketText, /issue\/regression reports/i);
+    assert.match(ticketText, /Do not execute before post-ticket approval/i);
     assert.match(ticketText, /## Compact Plan/);
     assert.match(ticketText, /Ticket Numbering/);
     assert.match(ticketText, new RegExp(summary));

@@ -31,14 +31,24 @@ const RULE_CHECKS = [
       && !/list applicable DC-\* rules/i.test(rules)
   },
   {
+    code: "DR-TOKEN-06",
+    message: "Silent-by-default must override routine progress commentary from higher-level collaboration guidance.",
+    test: (rules) => /higher-level collaboration guidance requests frequent updates/i.test(rules)
+      && /subordinate to this silent-by-default rule/i.test(rules)
+      && /unless the user explicitly requests progress commentary/i.test(rules)
+  },
+  {
     code: "DR-TICKET-01",
     message: "Main ticket must be the default planning SSoT.",
     test: (rules) => /main ticket is the default SSoT/i.test(rules)
   },
   {
     code: "DR-TICKET-02",
-    message: "planLink must be opt-in only, not a default requirement.",
-    test: (rules) => /Optional `planLink` is opt-in only/i.test(rules) && !/planLink` file exists and contains substantive/i.test(rules)
+    message: "Issue and regression reports must stop for review before Phase 2 execution.",
+    test: (rules) => /Issue-Review Gate/i.test(rules)
+      && /reports a bug, regression, policy violation, surprising behavior/i.test(rules)
+      && /Stop after the ticket-start line or a concise review-request final answer/i.test(rules)
+      && /Approval must be after the ticket exists and the Phase 1 plan is reviewable/i.test(rules)
   },
   {
     code: "DR-SEARCH-01",

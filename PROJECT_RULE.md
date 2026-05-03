@@ -40,7 +40,8 @@ architecture_docs: "docs/architecture.md"
 
 ## Workflow Boundary
 
-- After Phase 1, ticket and planLink files are planning records plus verification notes, not a running worklog.
+- Issue/regression reports are review-gated. Create/fill the ticket first, then wait for user approval before Phase 2 execution; pre-ticket wording such as "원인 분석 및 해결" is not execution approval.
+- After Phase 1, the main ticket may receive lifecycle verification outcomes. Do not move execution logs, command transcripts, completion summaries, or verification results into planning text.
 - Lifecycle state changes (`move`, `close`, `archive`) should be captured as lifecycle events, not used as a reason to reopen document boundaries.
 - If the work scope changes materially, prefer a new ticket over repeated edits to the old ticket/plan pair.
 
@@ -54,4 +55,4 @@ architecture_docs: "docs/architecture.md"
 
 ## Ticket Guard Reminder
 
-- `ticket create` 직후 placeholder 상태(본문/APC/planLink 미충족)는 미완료다. 실행 작업 전에 반드시 채워야 한다.
+- `ticket create` 직후 placeholder 상태(본문/APC/compact plan 미충족)는 미완료다. 실행 작업 전에 반드시 채워야 한다.

@@ -6,6 +6,7 @@
 > Restrict changes to **Target Module**. Read **Context Files** before code generation.
 > Do not narrate progress. If the workflow requires a ticket-start line, that is the only allowed pre-work commentary.
 > Keep planning compact in this ticket. The main ticket owns design and analysis; do not mirror screen progress here.
+> For issue/regression reports, stop after Phase 1 for user review. Do not execute before post-ticket approval.
 
 ## Scope & Constraints
 

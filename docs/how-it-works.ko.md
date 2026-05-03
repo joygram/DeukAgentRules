@@ -45,7 +45,8 @@ CLI(`deuk-agent-rule`)는 **소스 주권(Source Sovereignty)** 메커니즘을 
 ## 5. 엄격한 Phase 기반 티켓 워크플로우 (TDW)
 
 1. **티켓 발행 (Phase 1)**: `ticket create` 또는 기존 티켓 선택을 통해 타겟 범위를 정의합니다. `--from-plan`으로 계획서를 변환할 수도 있습니다. `ticket next`가 진행 가능한 티켓을 찾지 못하면, 후속 티켓을 만들기 전에 최근 git history를 먼저 분석합니다.
-2. **APC 및 planLink 기록**: 에이전트는 코드를 수정하기 전, 티켓에 명시된 APC(Agent Permission Contract)의 `[BOUNDARY]`, `[CONTRACT]`, `[PATCH PLAN]`과 planLink를 채웁니다. 티켓은 스코프/계약/진행 체크를, planLink는 서술형 문제 분석/원인 가설/결정 근거/실행 전략/검증 설계를 맡으며 같은 내용을 반복하지 않습니다.
-3. **Phase 승급**: 사용자가 실행을 명확히 요청했고 Phase 1 기록이 완성되어 있으면 `ticket move` 명령을 호출하여 Phase 2 (Execute)로 승급합니다.
-4. **실행 및 검증 (Phase 2)**: 격리된 경계 내에서 코드를 수정하고 검증을 수행합니다.
-5. **지식 증류 아카이빙**: 작업 완료 후 `archive` 시, 핵심 정보만 추출(Zero-Token Distillation)하여 장기 엔지니어링 메모리로 보관합니다.
+2. **APC 및 메인 티켓 기록**: 에이전트는 코드를 수정하기 전, 메인 티켓에 명시된 APC(Agent Permission Contract)의 `[BOUNDARY]`, `[CONTRACT]`, `[PATCH PLAN]`을 채웁니다. 티켓은 스코프/계약/라이프사이클 체크/실행 계획/검증 결과를 맡고, 실행 로그, 명령 transcript, 완료 요약, 검증 결과를 계획 문구에 섞으면 안 됩니다.
+3. **검토 게이트**: 이슈/회귀 보고는 Phase 1 이후 멈춥니다. 사용자가 티켓 계획을 검토한 뒤 실행을 승인해야 하며, 원래 이슈 문장의 "수정", "해결" 같은 표현만으로 검토를 건너뛰면 안 됩니다.
+4. **Phase 승급**: Phase 1 계획이 검토 가능하고 사용자가 실행을 승인하면 `ticket move` 명령을 호출하여 Phase 2 (Execute)로 승급합니다.
+5. **실행 및 검증 (Phase 2)**: 격리된 경계 내에서 코드를 수정하고 검증을 수행합니다.
+6. **지식 증류 아카이빙**: 작업 완료 후 `archive` 시, 핵심 정보만 추출(Zero-Token Distillation)하여 장기 엔지니어링 메모리로 보관합니다.

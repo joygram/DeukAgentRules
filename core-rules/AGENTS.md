@@ -44,7 +44,8 @@ changelog: "v33: Make silent-by-default stricter by forbidding progress narratio
 | User mentions ticket ID/topic | Use directly. No search. |
 | Mentioned ticket ID/topic does not match | Show the latest closed ticket plus current open/active tickets and ask the user to choose. In non-interactive mode, print those candidates and stop. |
 | Resuming previous work | Ticket ID already known. No search. |
-| New work | Create ticket immediately. No search. |
+| User reports an issue/regression or asks to investigate why something happened | Create ticket immediately, fill Phase 1 review evidence, print the ticket-start line, then stop for review approval before Phase 2. |
+| New execution work with explicit post-review approval | Create ticket immediately. No search. |
 | Truly unknown | `npx deuk-agent-rule ticket next --path-only` → `view_file`. Done. |
 | `ticket next` finds no active/open ticket | Read-only fallback: inspect recent git history (`git log --oneline -n 20`, then targeted `git show --stat`/docs as needed) and identify likely follow-up work. Create a new ticket only after that analysis, using the git-history evidence in the ticket plan section. |
 
@@ -55,7 +56,7 @@ changelog: "v33: Make silent-by-default stricter by forbidding progress narratio
 | # | Check | IF YES → Action |
 |---|-------|-----------------|
 | G1 | No active ticket + about to WRITE? | **HARD BLOCK.** Create ticket first. Read-only tools are allowed. |
-| G1.1 | About to edit product/source/config files while active ticket phase is < 2? | **HARD BLOCK.** Complete Phase 1, then move to Phase 2. Explicit user execution intent counts as approval unless G6-G8/F3/F5 applies. |
+| G1.1 | About to edit product/source/config files while active ticket phase is < 2? | **HARD BLOCK.** Complete Phase 1, then move to Phase 2 only after review approval. Explicit execution intent counts as approval only when it is given after the Phase 1 ticket plan has been created or reviewed, unless G6-G8/F3/F5 applies. |
 | G1.2 | About to execute code writes but ticket planning evidence or APC is missing/placeholder-only? | **HARD BLOCK.** Fill the main ticket plan/APC, then lint before execute writes. |
 | G1.3 | About to finish after Phase 2 code/config/product writes without Phase 3 verification recorded? | **HARD BLOCK.** Run the smallest relevant build/test/lint gate and record the result. Only skip if the user explicitly deferred verification, the task was plan/exploration-only, or an environment blocker is recorded. |
 | G2 | `set_workflow_context` not called? | Call now. |
@@ -76,8 +77,8 @@ WRITE tools requiring active ticket: `write_to_file`, `replace_file_content`, `m
 | Phase | What to do | STOP condition |
 |-------|-----------|----------------|
 | 0: Research | Skip if context sufficient. IF search needed: MAX 2 MCP calls, prefer local reads, specific terms only. Treat placeholder/duplicate/stale-low-signal MCP results as a miss. | 2 searches or low-quality hits → stop searching and inspect local files. |
-| 1: Ticket + Plan | Create or select the ticket → read arch rules → fill ticket-owned scope/APC and compact plan sections in the user's prompt language. Use an external `planLink` only for large/multi-module design that cannot fit compactly in the main ticket. | If the user asked only to plan, stop. If execution intent is explicit and Phase 1 is complete/linted, move to Phase 2. |
-| 2: Execute | Implement per approved or explicit user-requested plan. Update checkboxes `[x]`. | Do not stop after writes; continue to Phase 3 unless verification is explicitly deferred or blocked. |
+| 1: Ticket + Plan | Create or select the ticket → read arch rules → fill ticket-owned scope/APC and compact plan sections in the user's prompt language. Keep the main ticket as the only Phase 1 planning record. | For issue/regression reports, stop after Phase 1 and wait for user review approval. For direct execution requests, move to Phase 2 only after the Phase 1 plan is complete/linted and the approval is post-plan or unambiguous. |
+| 2: Execute | Implement per approved post-review plan. Update checkboxes `[x]`. | Do not stop after writes; continue to Phase 3 unless verification is explicitly deferred or blocked. |
 | 3: Verify | Run the smallest relevant build/tests/lint gate for the changed surface. Record pass/fail/blocker evidence in the ticket. User did not explicitly ask for tests is **not** a valid skip reason after execute writes. | Verification may stop only on pass, recorded failure, explicit user deferral, or recorded environment blocker. |
 | 4: Close | Close ticket and file follow-ups if needed. Do not immediately archive a just-closed ticket; leave archiving to lazy cleanup or explicit archive work. | **NEVER skip close.** |
 
@@ -90,6 +91,13 @@ Phase 1 document boundary rule:
 - Corrections to factual mistakes in the ticket plan are allowed only when they preserve the original scope; new requirements belong in a linked ticket.
 
 Plan-only mode: Do Phases 0–1 only. Defer code/config writes as text in plan. On transition to Execute → run deferred commands → Phase 2.
+
+### Issue-Review Gate
+
+If the user reports a bug, regression, policy violation, surprising behavior, or asks "why did this happen?", treat it as review-gated even when the prompt includes words like "fix", "resolve", or "해결".
+- Create or select the ticket and complete Phase 1 with root-cause hypotheses, scope, APC, and the proposed patch plan.
+- Stop after the ticket-start line or a concise review-request final answer. Do not move to Phase 2, edit product/source/config files, or close the ticket until the user approves the Phase 1 plan.
+- Approval must be after the ticket exists and the Phase 1 plan is reviewable. Pre-ticket issue wording is not enough to bypass review.
 
 ### Exploration-Only Mode
 
@@ -152,7 +160,6 @@ Treat it as online-only advisory memory; do not rely on offline mirrors or cache
 - Ticket lifecycle commands (`ticket create`, `move`, `close`, `archive`) must auto-run `lint:md` against touched markdown artifacts before they exit successfully. If lint fails, roll back the lifecycle mutation and keep ticket/index state consistent.
 - Manual `npx deuk-agent-rule lint:md` remains an audit command, not the primary enforcement path.
 - Phase 1 is **ticket creation plus indexed planning evidence in the main ticket**. Do not create duplicate tickets just to restate the same plan; update the existing ticket's compact plan.
-- Optional `planLink` is opt-in only. Use it for large design records, not routine work.
 - Main ticket MUST NOT duplicate screen progress. It owns identity, scope, constraints, APC, compact plan, linked issues, lifecycle checklist, and verification outcome.
 - Ticket in Phase 1 is **not complete** unless its APC and compact plan sections contain substantive, non-placeholder content.
 - `ticket create` seeds a compact draft plan, but draft scaffolds are not complete. Use `npx deuk-agent-rule ticket create --require-filled` when you need creation to fail unless ticket APC and compact plan content are already substantive.
@@ -182,5 +189,5 @@ NEVER manually edit `INDEX.json` or ticket files via `sed`/`awk`/`echo`.
 ## 8. Auditable Rule Returns
 
 - Rule violations must be machine-returnable. Prefer CLI guards that exit non-zero with stable codes over prose-only reminders.
-- `rules audit` MUST fail if core rules reintroduce progress beacons, default `planLink` requirements, non-`rg` search defaults, post-execute verification optionality, or verbose duplicate-output policies.
+- `rules audit` MUST fail if core rules reintroduce progress beacons, non-`rg` search defaults, post-execute verification optionality, or verbose duplicate-output policies.
 - In compact mode, rule audits print only `rules:audit ok` or `rules:audit failed <count>`.
