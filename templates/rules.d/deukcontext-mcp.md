@@ -7,10 +7,12 @@ inject_target: ["AGENTS.md", "GEMINI.md"]
 ## DeukContext RAG Protocol
 
 ### RAG Usage
-- Use `mcp_deukcontext_search_*` during Phase 0 (Research) and when encountering unfamiliar code during Phase 2 (Execute).
+- Start with local source-of-truth files: current source code, tests, project rules, and CLI ticket state.
+- Use `mcp_deukcontext_search_*` when local evidence is insufficient, prior decisions may matter, the task crosses old tickets, or the user asks for historical/deep analysis.
 - Use RAG as advisory memory. Current source code, tests, and ticket state remain the source of truth.
 - Treat DeukAgentContext as an online-only memory layer. Do not rely on offline snapshots or local mirrors as the primary context source.
-- Search narrowly: include the concrete project plus symbol, file, command, or failure mode.
+- Choose the narrowest MCP tool: `search_code` for symbols, `search_rules` for policy, `search_tickets` for prior outcomes, and `synthesize_knowledge` only for cross-collection questions.
+- Search narrowly: include the concrete project plus symbol, file, command, rule id, or failure mode.
 - Stop after 2 MCP calls for the same question. Do not broaden repeatedly.
 - **Do NOT use RAG for Ticket Navigation.** Ticket lookup is a direct CLI operation, not a search task.
 
@@ -18,6 +20,7 @@ inject_target: ["AGENTS.md", "GEMINI.md"]
 - Treat placeholder summaries, duplicate ticket/report chunks, stale archive-only hits, unrelated projects, or summaries with no usable fact as a miss.
 - When a result only says to read the file, read the current file locally before deciding.
 - Prefer `search_code` for implementation questions and request evidence only when the extra context is likely to be useful.
+- Record hit/weak-hit/miss/stale evidence in the ticket when it changes confidence, plan, or follow-up direction.
 
 ### RAG Failure Handling
 - **Error** (2+ failures): Switch to local search (`grep_search`/`view_file`). Do not retry in a loop.

@@ -5,7 +5,7 @@
 
 > Restrict changes to **Target Module**. Read **Context Files** before code generation.
 > Do not narrate progress. If the workflow requires a ticket-start line, that is the only allowed pre-work commentary.
-> Keep planning compact in this ticket. The main ticket owns design and analysis; do not mirror screen progress here.
+> Keep planning compact but substantive in this ticket. The main ticket owns investigation, design, RAG evidence, and verification; chat stays short and points here.
 > For issue/regression reports, stop after Phase 1 for user review. Do not execute before post-ticket approval.
 
 ## Scope & Constraints
@@ -32,16 +32,18 @@
 
 ## Compact Plan
 
-- **Problem:** Record the stable issue once in this main ticket. Do not duplicate design or analysis in follow-up tickets.
-- **Approach:** Capture the selected design and analysis path here, including root cause, constraints, and the implementation direction. Split related follow-up work into sub tickets instead of expanding this record.
-- **Verification:** List the smallest relevant commands or checks and the expected result.
+- **Finding:** Record the concrete symptom, risk, or requested change this ticket owns.
+- **Root cause / hypothesis:** Capture the current best explanation and cite affected files, symbols, commands, or rules.
+- **RAG evidence:** Record MCP tool/query quality when used: hit, weak-hit, miss, stale, and whether it changed the plan.
+- **Approach:** Capture the selected design path and implementation direction. Split material new scope into sub tickets instead of expanding this record.
+- **Verification:** List the smallest relevant commands/checks, expected result, and the pass/fail signal that must be recorded after execution.
 - **Ticket Numbering:** infer the master/sub ticket from the numbered ticket ID; do not add inline child-ticket links.
 
 ## Tasks
 
 - [ ] Complete compact plan and APC.
 - [ ] Execute changes inside APC boundary.
-- [ ] Record verification outcome.
+- [ ] Record durable verification outcome in this ticket.
 
 ## Done When
 
