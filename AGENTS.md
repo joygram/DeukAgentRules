@@ -18,6 +18,3 @@ After reading, you must:
 1. State the version number from the frontmatter.
 2. List which DC-* rules from PROJECT_RULE.md apply to your current task, with a one-line justification for each.
 
-Ticket workflow reminder:
-- `ticket create` 직후 placeholder 상태(본문/APC/planLink 미충족)는 미완료다. 작업 착수 전 반드시 채워야 한다.
-

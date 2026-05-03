@@ -39,8 +39,8 @@ function isMarkdownFile(filePath) {
   return lower.endsWith(".md") || lower.endsWith(".mdx") || lower.endsWith(".markdown");
 }
 
-function isWalkthroughReport(relPath) {
-  return relPath.includes(`${AGENT_ROOT_DIR}/docs/walkthroughs/`) && relPath.endsWith("-report.md");
+function isPlanReport(relPath) {
+  return relPath.includes(`${AGENT_ROOT_DIR}/docs/plan/`) && relPath.endsWith("-report.md");
 }
 
 function lintWalkthroughReportStructure(relPath, content) {
@@ -50,13 +50,13 @@ function lintWalkthroughReportStructure(relPath, content) {
   const hasOutcome = /##\s+(Verification Outcome|Verification Results|검증 결과)(?:\s|$)/i.test(content);
 
   if (!hasSummary) {
-    errors.push(`${relPath}: walkthrough report missing Summary/요약 section`);
+    errors.push(`${relPath}: report missing Summary/요약 section`);
   }
   if (!hasVerification) {
-    errors.push(`${relPath}: walkthrough report missing Verification/검증 section`);
+    errors.push(`${relPath}: report missing Verification/검증 section`);
   }
   if (!hasOutcome) {
-    errors.push(`${relPath}: walkthrough report missing Verification Outcome/Verification Results/검증 결과 section`);
+    errors.push(`${relPath}: report missing Verification Outcome/Verification Results/검증 결과 section`);
   }
 
   return errors;
@@ -141,7 +141,7 @@ function lintFile(absPath, repoRoot) {
     }
   }
 
-  if (isWalkthroughReport(rel)) {
+  if (isPlanReport(rel)) {
     errors.push(...lintWalkthroughReportStructure(rel, content));
   }
 

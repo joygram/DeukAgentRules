@@ -37,7 +37,7 @@ Respect human-authored content while cleaning system-generated noise.
 Execution must be strictly bounded by a Ticket and its Phase.
 
 - **Why**: AI agents wander without boundaries. Explicit scope locking reduces token usage and prevents scope-creep.
-- **Mechanism**: Phase 1 issues or selects a ticket, fills the Agent Permission Contract (APC), and records the planLink. The ticket owns scope, contract, and progress checkboxes; planLink owns the agent's prose problem analysis, cause hypotheses, decision rationale, execution strategy, and verification design. planLink must not contain progress checkboxes.
+- **Mechanism**: Phase 1 issues or selects a ticket, fills the Agent Permission Contract (APC), and records the planLink. When no active/open ticket exists, the agent inspects recent git history before creating a follow-up ticket. The ticket owns scope, contract, and progress checkboxes; planLink owns the agent's prose problem analysis, cause hypotheses, decision rationale, execution strategy, and verification design. planLink must not contain progress checkboxes.
 
 ## 6. Plan Before Mutation
 
@@ -51,10 +51,17 @@ Design must be explicit before state changes occur.
 Stable principles and dynamic knowledge must work together.
 
 - **Docs**: Explain the stable model and operating assumptions.
-- **RAG (DeukAgentContext)**: Synchronizes engineering memory and past decisions.
-- **Why**: Together they provide the highest signal for agent intelligence.
+- **RAG (DeukAgentContext)**: Synchronizes engineering memory and past decisions through the online MCP layer only.
+- **Why**: Local files stay the source of truth, RAG stays advisory, and archive preserves durable history without mixing live state into the memory layer.
 
-## 8. Bilingual Parity
+## 8. Archive Preservation
+
+Archive is a required lifecycle layer, not an optional afterthought.
+
+- **Why**: Live context should stay small and current, while completed work must be moved into archive/knowledge so the history remains searchable without polluting active context.
+- **Mechanism**: Use ticket archive and distillation to move finished work out of the active loop, then treat the archived result as durable reference material.
+
+## 9. Bilingual Parity
 
 English and Korean documentation are mirrors of a single model.
 

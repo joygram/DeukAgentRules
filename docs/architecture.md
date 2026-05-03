@@ -12,6 +12,8 @@ In the v3 model, **`AGENTS.md`** acts as the global **Hub** (the single source o
 - **SSoT (Single Source of Truth)**: All operational rules are defined in `AGENTS.md`, and project-specific contexts go into `PROJECT_RULE.md`.
 - **Lightweight Spokes (Zero-Copy)**: IDE rules do not duplicate content; they use absolute paths to point the agent to the Hubs.
 - **Zero-Legacy**: The `init` command aggressively purges obsolete v1/v2 configurations.
+- **Online RAG Only**: DeukAgentContext is used as an online advisory memory layer, not as a local cache or alternate source of truth.
+- **Archive Preservation**: Completed work should move into archive/knowledge so the active context stays small and current.
 
 ## 2. Global CLI Proxy (Kind: Src)
 

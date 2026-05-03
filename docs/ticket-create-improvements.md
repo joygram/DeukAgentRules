@@ -7,6 +7,7 @@
 
 1) CLI 개선
 - `ticket create`에 `--require-filled` 플래그 추가: 플래그 사용 시 본문/APC/planLink가 없으면 생성 실패.
+- `planLink`는 파일 존재뿐 아니라 실제 분석 내용까지 검사해 placeholder 초안이 완료 상태로 보이지 않게 한다.
 - `--from-plan`을 점진적으로 기본값으로 전환(레거시 호환성 고려) 또는 별도 `--strict` 모드 제공.
 
 2) 룰 개선 (프로젝트 루트)

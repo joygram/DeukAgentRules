@@ -33,95 +33,107 @@ function stripOssVersionrcScripts(ossVersionrcPath) {
   writeFileSync(ossVersionrcPath, t, "utf8");
 }
 
+export function buildOssPackageJson(srcPkg, baseUrl = base, gitRemoteUrl = gitUrl) {
+  const outPkg = {
+    ...srcPkg,
+    license: srcPkg.license || "Apache-2.0",
+    repository: {
+      type: "git",
+      url: gitRemoteUrl,
+    },
+    bugs: {
+      url: baseUrl.startsWith("http") ? baseUrl + "/issues" : baseUrl,
+    },
+    homepage: baseUrl.startsWith("http") ? baseUrl + "#readme" : baseUrl,
+    files: [
+      "LICENSE",
+      "bundle/**/*",
+      "scripts/**/*.mjs",
+      "README.md",
+      "README.ko.md",
+      "CHANGELOG.md",
+      "CHANGELOG.ko.md",
+    ],
+  };
+
+  delete outPkg.private;
+  if (outPkg.scripts && outPkg.scripts["merge:dry"]) {
+    const { "merge:dry": _md, ...r2 } = outPkg.scripts;
+    outPkg.scripts = r2;
+  }
+  if (outPkg.scripts && outPkg.scripts["sync:oss"]) {
+    const { "sync:oss": _drop, ...rest } = outPkg.scripts;
+    outPkg.scripts = rest;
+  }
+  /** Mirror is not a template/version source: no bump scripts or release devDependencies. */
+  for (const k of ["bump", "bump:patch", "bump:minor", "bump:major"]) {
+    if (outPkg.scripts && outPkg.scripts[k]) {
+      const { [k]: _drop, ...rest } = outPkg.scripts;
+      outPkg.scripts = rest;
+    }
+  }
+  delete outPkg.devDependencies;
+  return outPkg;
+}
+
 mkdirSync(join(ossRoot, "scripts"), { recursive: true });
 mkdirSync(join(ossRoot, "templates"), { recursive: true });
 
-cpSync(join(pkgRoot, "templates"), join(ossRoot, "templates"), { recursive: true, force: true });
-if (existsSync(join(pkgRoot, ".github"))) {
-  cpSync(join(pkgRoot, ".github"), join(ossRoot, ".github"), { recursive: true, force: true });
-}
-cpSync(join(pkgRoot, "scripts"), join(ossRoot, "scripts"), { recursive: true, force: true });
-
-if (!existsSync(ossPublic)) {
-  throw new Error("Missing oss-public/: " + ossPublic);
-}
-cpSync(join(pkgRoot, "README.md"), join(ossRoot, "README.md"), { force: true });
-cpSync(join(pkgRoot, "README.ko.md"), join(ossRoot, "README.ko.md"), { force: true });
-if (existsSync(join(pkgRoot, "CHANGELOG.md"))) {
-  cpSync(join(pkgRoot, "CHANGELOG.md"), join(ossRoot, "CHANGELOG.md"), { force: true });
-}
-if (existsSync(join(pkgRoot, "CHANGELOG.ko.md"))) {
-  cpSync(join(pkgRoot, "CHANGELOG.ko.md"), join(ossRoot, "CHANGELOG.ko.md"), { force: true });
-}
-if (existsSync(join(pkgRoot, "package-lock.json"))) {
-  cpSync(join(pkgRoot, "package-lock.json"), join(ossRoot, "package-lock.json"), { force: true });
-}
-if (existsSync(join(pkgRoot, "LICENSE"))) {
-  cpSync(join(pkgRoot, "LICENSE"), join(ossRoot, "LICENSE"), { force: true });
-}
-if (existsSync(join(pkgRoot, ".npmrc"))) {
-  cpSync(join(pkgRoot, ".npmrc"), join(ossRoot, ".npmrc"), { force: true });
-}
-if (existsSync(join(pkgRoot, ".versionrc.cjs"))) {
-  cpSync(join(pkgRoot, ".versionrc.cjs"), join(ossRoot, ".versionrc.cjs"), { force: true });
-  stripOssVersionrcScripts(join(ossRoot, ".versionrc.cjs"));
-}
-const changelogTemplates = join(pkgRoot, "changelog-templates");
-if (existsSync(changelogTemplates)) {
-  cpSync(changelogTemplates, join(ossRoot, "changelog-templates"), { recursive: true, force: true });
-}
-cpSync(join(ossPublic, "RELEASING.md"), join(ossRoot, "RELEASING.md"), { force: true });
-cpSync(join(ossPublic, "RELEASING.ko.md"), join(ossRoot, "RELEASING.ko.md"), { force: true });
-cpSync(join(ossPublic, "GITHUB_DESCRIPTION.md"), join(ossRoot, "GITHUB_DESCRIPTION.md"), {
-  force: true,
-});
-
-const srcPkg = JSON.parse(readFileSync(join(pkgRoot, "package.json"), "utf8"));
-const outPkg = {
-  ...srcPkg,
-  license: srcPkg.license || "Apache-2.0",
-  repository: {
-    type: "git",
-    url: gitUrl,
-  },
-  bugs: {
-    url: base.startsWith("http") ? base + "/issues" : base,
-  },
-  homepage: base.startsWith("http") ? base + "#readme" : base,
-  files: [
-    "LICENSE",
-    "bundle/**/*",
-    "scripts/**/*.mjs",
-    "README.md",
-    "README.ko.md",
-    "CHANGELOG.md",
-    "CHANGELOG.ko.md",
-  ],
-};
-delete outPkg.private;
-if (outPkg.scripts && outPkg.scripts["merge:dry"]) {
-  const { "merge:dry": _md, ...r2 } = outPkg.scripts;
-  outPkg.scripts = r2;
-}
-if (outPkg.scripts && outPkg.scripts["sync:oss"]) {
-  const { "sync:oss": _drop, ...rest } = outPkg.scripts;
-  outPkg.scripts = rest;
-}
-/** Mirror is not a template/version source: no bump scripts or release devDependencies. */
-for (const k of ["bump", "bump:patch", "bump:minor", "bump:major"]) {
-  if (outPkg.scripts && outPkg.scripts[k]) {
-    const { [k]: _drop, ...rest } = outPkg.scripts;
-    outPkg.scripts = rest;
+export function syncOssTree() {
+  cpSync(join(pkgRoot, "templates"), join(ossRoot, "templates"), { recursive: true, force: true });
+  if (existsSync(join(pkgRoot, ".github"))) {
+    cpSync(join(pkgRoot, ".github"), join(ossRoot, ".github"), { recursive: true, force: true });
   }
+  cpSync(join(pkgRoot, "scripts"), join(ossRoot, "scripts"), { recursive: true, force: true });
+
+  if (!existsSync(ossPublic)) {
+    throw new Error("Missing oss-public/: " + ossPublic);
+  }
+  cpSync(join(pkgRoot, "README.md"), join(ossRoot, "README.md"), { force: true });
+  cpSync(join(pkgRoot, "README.ko.md"), join(ossRoot, "README.ko.md"), { force: true });
+  if (existsSync(join(pkgRoot, "CHANGELOG.md"))) {
+    cpSync(join(pkgRoot, "CHANGELOG.md"), join(ossRoot, "CHANGELOG.md"), { force: true });
+  }
+  if (existsSync(join(pkgRoot, "CHANGELOG.ko.md"))) {
+    cpSync(join(pkgRoot, "CHANGELOG.ko.md"), join(ossRoot, "CHANGELOG.ko.md"), { force: true });
+  }
+  if (existsSync(join(pkgRoot, "package-lock.json"))) {
+    cpSync(join(pkgRoot, "package-lock.json"), join(ossRoot, "package-lock.json"), { force: true });
+  }
+  if (existsSync(join(pkgRoot, "LICENSE"))) {
+    cpSync(join(pkgRoot, "LICENSE"), join(ossRoot, "LICENSE"), { force: true });
+  }
+  if (existsSync(join(pkgRoot, ".npmrc"))) {
+    cpSync(join(pkgRoot, ".npmrc"), join(ossRoot, ".npmrc"), { force: true });
+  }
+  if (existsSync(join(pkgRoot, ".versionrc.cjs"))) {
+    cpSync(join(pkgRoot, ".versionrc.cjs"), join(ossRoot, ".versionrc.cjs"), { force: true });
+    stripOssVersionrcScripts(join(ossRoot, ".versionrc.cjs"));
+  }
+  const changelogTemplates = join(pkgRoot, "changelog-templates");
+  if (existsSync(changelogTemplates)) {
+    cpSync(changelogTemplates, join(ossRoot, "changelog-templates"), { recursive: true, force: true });
+  }
+  cpSync(join(ossPublic, "RELEASING.md"), join(ossRoot, "RELEASING.md"), { force: true });
+  cpSync(join(ossPublic, "RELEASING.ko.md"), join(ossRoot, "RELEASING.ko.md"), { force: true });
+  cpSync(join(ossPublic, "GITHUB_DESCRIPTION.md"), join(ossRoot, "GITHUB_DESCRIPTION.md"), {
+    force: true,
+  });
+
+  const srcPkg = JSON.parse(readFileSync(join(pkgRoot, "package.json"), "utf8"));
+  const outPkg = buildOssPackageJson(srcPkg);
+
+  writeFileSync(join(ossRoot, "package.json"), JSON.stringify(outPkg, null, 2) + "\n", "utf8");
+
+  const ossPolish = join(ossRoot, "scripts", "changelog-polish.mjs");
+  if (existsSync(ossPolish)) {
+    unlinkSync(ossPolish);
+  }
+
+  console.log("deuk-agent-rule: synced OSS tree at " + ossRoot);
+  console.log("  Override repo URL: DEUK_AGENT_RULES_OSS_REPO=https://github.com/joygram/DeukAgentRules");
 }
-delete outPkg.devDependencies;
 
-writeFileSync(join(ossRoot, "package.json"), JSON.stringify(outPkg, null, 2) + "\n", "utf8");
-
-const ossPolish = join(ossRoot, "scripts", "changelog-polish.mjs");
-if (existsSync(ossPolish)) {
-  unlinkSync(ossPolish);
+if (process.argv[1] === fileURLToPath(import.meta.url)) {
+  syncOssTree();
 }
-
-console.log("deuk-agent-rule: synced OSS tree at " + ossRoot);
-console.log("  Override repo URL: DEUK_AGENT_RULES_OSS_REPO=https://github.com/joygram/DeukAgentRules");

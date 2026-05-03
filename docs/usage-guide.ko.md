@@ -40,6 +40,8 @@ deuk-agent-rule ticket create --topic user-auth-impl --evidence "기존 auth 로
 ```
 이미 작성된 마크다운 형식의 구현 계획서가 있다면 `--from-plan` 옵션을 통해 바로 티켓으로 변환할 수도 있습니다.
 
+기존 작업을 이어받으려는데 `ticket next`가 진행 가능한 티켓을 찾지 못하면, 에이전트는 새 티켓을 즉시 만들지 않고 최근 git history를 먼저 분석해 실제 후속 작업 후보를 복원합니다. 새 티켓은 그 분석 근거를 planLink에 기록한 뒤 생성합니다.
+
 ### 2단계: APC(Agent Permission Contract) 및 planLink 기록
 생성된 티켓은 기본적으로 **Phase 1 (Ticket + Plan)** 상태입니다. 에이전트는 코드를 수정하기 전에 티켓 내의 APC 블록(`[BOUNDARY]`, `[CONTRACT]`, `[PATCH PLAN]`)과 planLink 문서를 채워야 합니다.
 

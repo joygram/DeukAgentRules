@@ -7,7 +7,7 @@ import { runInit, runMerge } from "./cli-init-commands.mjs";
 import { runTicketCreate, runTicketList, runTicketUse, runTicketClose, runTicketArchive, runTicketReports, runTicketMeta, runTicketConnect, runTicketRebuild, runTicketReportAttach, runTicketMove, runTicketNext, runTicketHotfix, runTicketStatus } from "./cli-ticket-commands.mjs";
 import { runTelemetry } from "./cli-telemetry-commands.mjs";
 import { performUpgradeMigration } from "./cli-ticket-migration.mjs";
-import { loadInitConfig, writeInitConfig, checkUpdateNotifier, normalizeWorkflowMode, WORKFLOW_MODE_EXECUTE, AGENT_ROOT_DIR, resolveWorkflowMode } from "./cli-utils.mjs";
+import { loadInitConfig, writeInitConfig, checkUpdateNotifier, normalizeWorkflowMode, WORKFLOW_MODE_EXECUTE, AGENT_ROOT_DIR, resolveWorkflowMode, LEGACY_TEMPLATE_DIR, LEGACY_CONFIG_FILE } from "./cli-utils.mjs";
 import { runInteractive } from "./cli-prompts.mjs";
 
 const updatePromise = checkUpdateNotifier();
@@ -105,8 +105,8 @@ async function main() {
 async function handleInit(opts, saved) {
   if (opts.clean && !opts.dryRun) {
     console.log(`[CLEAN] Removing legacy templates and config...`);
-    const templatesDir = join(opts.cwd, ".deuk-agent-templates");
-    const configFile = join(opts.cwd, ".deuk-agent-rule.config.json");
+    const templatesDir = join(opts.cwd, LEGACY_TEMPLATE_DIR);
+    const configFile = join(opts.cwd, LEGACY_CONFIG_FILE);
     if (existsSync(templatesDir)) rmSync(templatesDir, { recursive: true, force: true });
     if (existsSync(configFile)) rmSync(configFile, { force: true });
   }
@@ -137,6 +137,7 @@ Usage:
   npx deuk-agent-rule merge  [options]
   npx deuk-agent-rule lint:md [--cwd <path>] [files...]
   npx deuk-agent-rule ticket <create|list|status|use|close|archive|reports|migrate|upgrade|meta|connect|move> [options]
+  npx deuk-agent-rule telemetry <log|sync|summary|migrate> [options]
 
 Options:
   --cwd <path>          Target repo root
@@ -162,8 +163,9 @@ Ticket Options:
   --evidence <text>     Provide Phase 0 RAG evidence summary
   --skip-phase0         Bypass Phase 0 RAG validation
   --from-plan <path>    Create ticket from an existing plan markdown file
-  --require-filled      Enforce non-placeholder APC and existing planLink before create succeeds
+  --require-filled      Enforce non-placeholder APC and substantive planLink content before create succeeds
   --allow-placeholder   Opt out of strict create guard (legacy behavior)
+  --compact             Prefer one-line ticket outputs in automation flows
   --status-detail       Include detailed reasons in ticket status output
   --phase <number>      Explicitly set the phase number (e.g., --phase 2)
   --next                Move to the next phase

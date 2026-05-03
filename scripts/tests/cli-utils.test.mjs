@@ -273,7 +273,13 @@ test("cli-args.mjs - parseTicketArgs supports strict/guard flags", () => {
   assert.strictEqual(opts.summary, "summary");
   assert.strictEqual(opts.requireFilled, true);
   assert.strictEqual(opts.statusDetail, true);
+  assert.strictEqual(opts.compact, undefined);
   assert.strictEqual(opts.fromPlan, "plans/a.md");
+});
+
+test("cli-args.mjs - parseTicketArgs supports compact ticket output", () => {
+  const opts = parseTicketArgs(["--topic", "demo", "--compact"]);
+  assert.strictEqual(opts.compact, true);
 });
 
 test("cli-args.mjs - parseTicketArgs supports bare --from-plan flag", () => {

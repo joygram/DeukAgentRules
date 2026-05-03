@@ -66,6 +66,26 @@ function hasPlaceholderTokens(text) {
   return src.includes("[add ") || src.includes("[fill") || src.includes("placeholder") || src.includes("todo") || src.includes("tbd");
 }
 
+const PLAN_SCAFFOLD_PHRASES = [
+  "Describe what is actually broken, missing, ambiguous, or risky.",
+  "Record concrete code/docs observations with file references.",
+  "List plausible causes or design gaps before choosing an approach.",
+  "Explain the selected approach and why alternatives were not chosen.",
+  "Describe the implementation strategy without using progress checkboxes.",
+  "List commands to run, expected outcomes, and residual risks."
+];
+
+function hasSubstantivePlanContent(text) {
+  const normalized = String(text || "").replace(/\s+/g, " ").trim().toLowerCase();
+  if (!normalized) return false;
+  if (normalized.includes("[add ") || normalized.includes("[fill") || normalized.includes("todo") || normalized.includes("tbd")) return false;
+  return !PLAN_SCAFFOLD_PHRASES.some(phrase => normalized.includes(phrase.toLowerCase()));
+}
+
+function isCompactTicketOutput(opts = {}) {
+  return Boolean(opts.compact || opts.nonInteractive);
+}
+
 function summarizeForSentence(summary) {
   const clean = String(summary || "").replace(/\s+/g, " ").trim();
   return clean.length > 180 ? `${clean.slice(0, 177)}...` : clean;
@@ -216,6 +236,17 @@ function getPhase1IncompleteReasons(cwd, absPath) {
   else {
     const planAbs = resolve(cwd, meta.planLink);
     if (!existsSync(planAbs)) reasons.push("planLink_file_missing");
+    else {
+      try {
+        const planBody = readFileSync(planAbs, "utf8");
+        const { content: planContent } = parseFrontMatter(planBody);
+        if (!hasSubstantivePlanContent(planContent)) {
+          reasons.push("planLink_placeholder_or_incomplete");
+        }
+      } catch (err) {
+        reasons.push("planLink_unreadable");
+      }
+    }
   }
 
   reasons.push(...evaluateApcCompleteness(content));
@@ -235,7 +266,7 @@ function updatePreviousTicketRef(cwd, prevTicketEntry, ticketId) {
     return match;
   });
   writeFileSync(prevAbsPath, prevContent, "utf8");
-  console.log(`Linked to previous ticket: ${prevTicketEntry.id}`);
+  return prevTicketEntry.id;
 }
 
 function archivePartitionForEntry(entry, now = new Date()) {
@@ -406,7 +437,7 @@ function buildOpenTicketLimitError(indexJson) {
 function resolveArchiveReport(cwd, fileName, report) {
   if (report) return resolve(cwd, report);
 
-  const reportDir = join(cwd, AGENT_ROOT_DIR, "docs", "walkthroughs");
+  const reportDir = join(cwd, AGENT_ROOT_DIR, "docs", "plan");
   const potentialReport = fileName.replace(/\.md$/i, "-report.md");
   const potentialPath = join(reportDir, potentialReport);
   return existsSync(potentialPath) ? potentialPath : null;
@@ -428,7 +459,9 @@ function archiveTicketEntry({ cwd, ticketDir, indexJson, found, opts = {}, repor
         indexJson.entries[entryIdx].updatedAt = new Date().toISOString();
       }
       const archivedRelativePath = toRepoRelativePath(cwd, archivedAbsPath);
-      console.warn("ticket archive: repaired already archived ticket " + archivedRelativePath);
+      if (!isCompactTicketOutput(opts)) {
+        console.warn("ticket archive: repaired already archived ticket " + archivedRelativePath);
+      }
       return { id: found.id, path: archivedRelativePath, repaired: true };
     }
     throw new Error("ticket archive: file not found " + found.path);
@@ -443,17 +476,19 @@ function archiveTicketEntry({ cwd, ticketDir, indexJson, found, opts = {}, repor
   const reportSrc = resolveArchiveReport(cwd, fileName, report);
   let reportDest = null;
 
-  if (reportSrc) {
-    if (!existsSync(reportSrc)) {
-      throw new Error("ticket archive: report file not found " + report);
-    }
-    const reportDir = join(cwd, AGENT_ROOT_DIR, "docs", "walkthroughs");
+    if (reportSrc) {
+      if (!existsSync(reportSrc)) {
+        throw new Error("ticket archive: report file not found " + report);
+      }
+      const reportDir = join(cwd, AGENT_ROOT_DIR, "docs", "plan");
     if (!opts.dryRun) mkdirSync(reportDir, { recursive: true });
 
     const reportBaseName = fileName.replace(/\.md$/i, "-report.md");
     reportDest = join(reportDir, reportBaseName);
     if (!opts.dryRun) copyFileSync(reportSrc, reportDest);
-    console.log("ticket archive: copied report to " + toFileUri(reportDest));
+    if (!isCompactTicketOutput(opts)) {
+      console.log("ticket archive: copied report to " + toFileUri(reportDest));
+    }
 
     bodyLines.push("");
     bodyLines.push("## 📄 Attached Report");
@@ -463,7 +498,9 @@ function archiveTicketEntry({ cwd, ticketDir, indexJson, found, opts = {}, repor
 
   const lintTargets = collectTicketLifecycleMarkdownTargets(cwd, newAbsPath, archiveMeta.planLink, reportDest ? [reportDest] : []);
   if (opts.dryRun) {
-    console.log("ticket archive: would move " + toRepoRelativePath(cwd, absPath) + " to " + toRepoRelativePath(cwd, newAbsPath));
+    if (!isCompactTicketOutput(opts)) {
+      console.log("ticket archive: would move " + toRepoRelativePath(cwd, absPath) + " to " + toRepoRelativePath(cwd, newAbsPath));
+    }
     return { dryRun: true };
   }
 
@@ -479,7 +516,9 @@ function archiveTicketEntry({ cwd, ticketDir, indexJson, found, opts = {}, repor
   }
 
   distillKnowledge(absPath, found.id, cwd, originalBody);
-  console.log("ticket archive: moved ticket to " + toFileUri(newAbsPath));
+  if (!isCompactTicketOutput(opts)) {
+    console.log("ticket archive: moved ticket to " + toFileUri(newAbsPath));
+  }
 
   const entryIdx = indexJson.entries.findIndex(e => e.id === found.id);
   if (entryIdx >= 0) {
@@ -491,7 +530,9 @@ function archiveTicketEntry({ cwd, ticketDir, indexJson, found, opts = {}, repor
   }
 
   const archivedRelativePath = toRepoRelativePath(cwd, newAbsPath);
-  console.log("ticket archive: final ticket path " + archivedRelativePath);
+  if (!isCompactTicketOutput(opts)) {
+    console.log("ticket archive: final ticket path " + archivedRelativePath);
+  }
   return { id: found.id, path: archivedRelativePath };
 }
 
@@ -508,7 +549,9 @@ function autoArchiveDoneTickets(cwd, indexJson, opts = {}) {
     const result = archiveTicketEntry({ cwd, ticketDir, indexJson, found: candidate, opts, report: null });
     if (result?.id) {
       archived.push(result);
-      console.warn(`[AUTO-ARCHIVE] ${candidate.id} (${candidate.status}) archived before open-ticket limit check.`);
+      if (!isCompactTicketOutput(opts)) {
+        console.warn(`[AUTO-ARCHIVE] ${candidate.id} (${candidate.status}) archived before open-ticket limit check.`);
+      }
     }
   }
 
@@ -611,7 +654,9 @@ export async function runTicketCreate(opts) {
 
         if (shouldClose) {
           if (opts.dryRun) {
-            console.log(`[DRY-RUN] Would auto-close ${activeId} (${reason}).`);
+            if (!isCompactTicketOutput(opts)) {
+              console.log(`[DRY-RUN] Would auto-close ${activeId} (${reason}).`);
+            }
           } else {
             activeEntry.status = "closed";
             activeEntry.updatedAt = new Date().toISOString();
@@ -626,10 +671,14 @@ export async function runTicketCreate(opts) {
               } catch (err) { /* skip */ }
             }
             writeTicketIndexJson(opts.cwd, indexJson, opts);
-            console.log(`[AUTO-CLOSE] ${activeId} completed (${reason}).`);
+            if (!isCompactTicketOutput(opts)) {
+              console.log(`[AUTO-CLOSE] ${activeId} completed (${reason}).`);
+            }
           }
         } else {
-          console.warn(`[NOTICE] Switching from ${activeId} (${reason}). Ticket stays open.`);
+          if (!isCompactTicketOutput(opts)) {
+            console.warn(`[NOTICE] Switching from ${activeId} (${reason}). Ticket stays open.`);
+          }
         }
       }
     }
@@ -731,7 +780,12 @@ export async function runTicketCreate(opts) {
       throw err;
     }
 
-    if (!opts.dryRun) updatePreviousTicketRef(opts.cwd, prevTicketEntry, ticketId);
+    if (!opts.dryRun) {
+      const linkedPrev = updatePreviousTicketRef(opts.cwd, prevTicketEntry, ticketId);
+      if (linkedPrev && !isCompactTicketOutput(opts)) {
+        console.log(`Linked to previous ticket: ${linkedPrev}`);
+      }
+    }
 
     console.log(`${opts.dryRun ? "Ticket would be created" : "Ticket created"}: ${toFileUri(abs)}`);
     if (!opts.dryRun) {
@@ -825,6 +879,12 @@ export async function runTicketStatus(opts) {
 
   if (opts.json) {
     console.log(JSON.stringify(out, null, 2));
+    return;
+  }
+
+  if (isCompactTicketOutput(opts)) {
+    const reasonText = out.reasons.length === 0 ? "ok" : out.reasons.join(", ");
+    console.log(`${out.id} | phase=${out.phase} | status=${out.status} | ${reasonText}`);
     return;
   }
 
@@ -1121,7 +1181,7 @@ export async function runTicketArchive(opts) {
   // Auto-search for report if not provided
   let report = opts.report;
   if (!opts.report) {
-    const reportDir = join(opts.cwd, AGENT_ROOT_DIR, "docs", "walkthroughs");
+    const reportDir = join(opts.cwd, AGENT_ROOT_DIR, "docs", "plan");
     const potentialReport = fileName.replace(/\.md$/i, "-report.md");
     const potentialPath = join(reportDir, potentialReport);
     if (existsSync(potentialPath)) {
@@ -1151,7 +1211,7 @@ export async function runTicketArchive(opts) {
 export async function runTicketReports(opts) {
   const ticketDir = detectConsumerTicketDir(opts.cwd);
   if (!ticketDir) throw new Error("No ticket system found.");
-  const reportDir = join(opts.cwd, AGENT_ROOT_DIR, "docs", "walkthroughs");
+  const reportDir = join(opts.cwd, AGENT_ROOT_DIR, "docs", "plan");
   console.log("\n📄 Agent Reports:");
   if (!existsSync(reportDir)) {
     console.log("  No reports found.");
@@ -1190,7 +1250,7 @@ export async function runTicketReportAttach(opts) {
   const reportSrc = resolve(opts.cwd, opts.report);
   if (!existsSync(reportSrc)) throw new Error("Report file not found: " + opts.report);
 
-  const reportDir = join(opts.cwd, AGENT_ROOT_DIR, "docs", "walkthroughs");
+  const reportDir = join(opts.cwd, AGENT_ROOT_DIR, "docs", "plan");
   if (!opts.dryRun) mkdirSync(reportDir, { recursive: true });
 
   const ticketFileName = found.path.split(/[/\\]/).pop();

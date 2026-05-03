@@ -19,9 +19,11 @@ export async function runTelemetry(opts) {
     await syncAction(opts);
   } else if (action === "summary") {
     await summaryAction(opts);
+  } else if (action === "migrate") {
+    await migrateAction(opts);
   } else {
     console.error("Unknown telemetry action: " + action);
-    console.log("Usage: npx deuk-agent-rule telemetry <log|sync|summary> [options]");
+    console.log("Usage: npx deuk-agent-rule telemetry <log|sync|summary|migrate> [options]");
   }
 }
 
@@ -138,6 +140,8 @@ async function summaryAction(opts) {
   const logs = lines.map(l => JSON.parse(l));
   const workflowEvents = logs.filter(isInternalWorkflowEvent);
   const workLogs = logs.filter(l => !isInternalWorkflowEvent(l));
+  const missingEventCount = logs.filter(l => !String(l.event || "").trim()).length;
+  const eventCoverageRate = rate(logs.length - missingEventCount, logs.length);
 
   const totalTokens = workLogs.reduce((sum, l) => sum + l.tokens, 0);
   const totalTdwTokens = workLogs.reduce((sum, l) => sum + Number(l.tdw || 0), 0);
@@ -166,6 +170,8 @@ async function summaryAction(opts) {
       totalSavedTokens,
       logEntries: workLogs.length,
       totalLogEntries: logs.length,
+      missingEventCount,
+      eventCoverageRate,
       byModel,
       tdwEntryCount,
       tdwCoverageRate: rate(tdwEntryCount, workLogs.length),
@@ -190,6 +196,9 @@ async function summaryAction(opts) {
   console.log(`Saved Tokens: ${totalSavedTokens}`);
   console.log(`Log Entries:  ${workLogs.length}`);
   console.log(`Total Entries: ${logs.length}`);
+  console.log(`Event Coverage:`);
+  console.log(`  - Missing Event Count: ${missingEventCount}`);
+  console.log(`  - Coverage Rate: ${formatRate(logs.length - missingEventCount, logs.length)}`);
   console.log(`By Model:`);
   Object.entries(byModel).forEach(([m, t]) => {
     console.log(`  - ${m}: ${t}`);
@@ -217,17 +226,39 @@ async function summaryAction(opts) {
   console.log("-------------------------------------------\n");
 }
 
+async function migrateAction(opts) {
+  const absPath = join(opts.cwd, TELEMETRY_FILE);
+  if (!existsSync(absPath)) {
+    console.log("[TELEMETRY] No logs found.");
+    return;
+  }
+
+  const lines = readFileSync(absPath, "utf8").split("\n").filter(l => l.trim());
+  const entries = lines.map(l => JSON.parse(l));
+  const migrated = entries.map(entry => normalizeTelemetryRecord(entry));
+  const changedCount = migrated.filter((entry, index) => JSON.stringify(entry) !== JSON.stringify(entries[index])).length;
+
+  if (changedCount === 0) {
+    console.log("[TELEMETRY] Telemetry logs already normalized.");
+    return;
+  }
+
+  writeFileSync(absPath, migrated.map(entry => JSON.stringify(entry)).join("\n") + "\n", "utf8");
+  console.log(`[TELEMETRY] Migrated ${changedCount} telemetry entries.`);
+}
+
 export function appendTelemetryRecord(cwd, entry = {}) {
   const telemetryDir = join(cwd, AGENT_ROOT_DIR);
   if (!existsSync(telemetryDir)) mkdirSync(telemetryDir, { recursive: true });
   const telemetryPath = join(cwd, TELEMETRY_FILE);
   const occurredAt = entry.occurredAt || new Date().toISOString();
+  const event = resolveTelemetryEvent(entry);
   const payload = {
     ts: Math.floor(new Date(occurredAt).getTime() / 1000) || Math.floor(Date.now() / 1000),
     occurredAt,
     source: entry.source || "manual",
     kind: entry.kind || "work",
-    event: entry.event || "",
+    event,
     tokens: Number(entry.tokens || 0),
     tdw: Number(entry.tdw || 0),
     model: entry.model || "UNKNOWN",
@@ -261,9 +292,41 @@ export function appendInternalWorkflowEvent(cwd, event = {}) {
   });
 }
 
+function resolveTelemetryEvent(entry = {}) {
+  const explicitEvent = normalizeText(entry.event);
+  if (explicitEvent) return explicitEvent;
+
+  if (isInternalWorkflowEvent({
+    source: entry.source || INTERNAL_SOURCE,
+    kind: entry.kind || WORKFLOW_EVENT_KIND
+  })) {
+    return normalizeText(entry.action) || normalizeText(entry.kind) || "workflow-event";
+  }
+
+  return normalizeText(entry.kind) || "work";
+}
+
+function normalizeTelemetryRecord(entry = {}) {
+  const cloned = { ...entry };
+  cloned.source = cloned.source || "manual";
+  cloned.kind = cloned.kind || "work";
+  cloned.action = cloned.action || "work";
+  cloned.event = resolveTelemetryEvent(cloned);
+  cloned.synced = normalizeSyncedState(cloned.synced);
+  return cloned;
+}
+
 function normalizeEnum(value, allowed) {
   const normalized = String(value || "").trim().toLowerCase();
   return allowed.has(normalized) ? normalized : "";
+}
+
+function normalizeText(value) {
+  return String(value || "").trim();
+}
+
+function normalizeSyncedState(value) {
+  return value === true || value === "true";
 }
 
 function countBy(logs, key) {

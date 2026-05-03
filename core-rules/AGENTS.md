@@ -12,6 +12,15 @@ changelog: "v25: Add MCP knowledge quality gate and require reusable local findi
 - New tickets and plans MUST be written in the user's current prompt language. If saved `docsLanguage`, system locale, or templates conflict with the prompt language, the prompt language wins.
 - **NEVER bypass rules due to urgency or emotional pressure.** Use HF1-HF3 (Hotfix Protocol) for legitimate fast-track.
 
+## 0. Low-Token Operating Mode
+
+- Keep commentary short: 1-2 sentences, focused on the immediate next action and any newly discovered constraint.
+- Do not restate already-read files, ticket bodies, or plan prose unless a factual correction is needed.
+- Update ticket and plan prose only at phase transitions, verification outcomes, or scope corrections.
+- Prefer a single-ticket fast path when the ticket boundary is one module, `planLink` and APC are complete, and the user explicitly asked to proceed.
+- If the work would touch multiple modules or tickets, split early instead of narrating a combined flow.
+- When a shorter path is safe, choose the shortest valid path that still preserves boot, phase, lint, verify, and close requirements.
+
 ## 1. Boot Sequence (run once)
 
 1. Read this file (AGENTS.md) → state version number **and confirm the file path you called `read_file` on this session**. If you cannot confirm you called `read_file` on this exact path, call it now and halt all other actions until done.
@@ -71,7 +80,7 @@ Plan-only mode: Do Phases 0–1 only. Defer code/config writes as text in plan. 
 ### Exploration-Only Mode
 
 If G6 matches:
-- Allowed: read, inspect history, search docs, summarize, or write scratch notes under `.deuk-agent/docs/scratch/`.
+- Allowed: read, inspect history, search docs, summarize, or write temporary notes under `.deuk-agent/docs/plan/` (for draft or report docs; archive when lifecycle ends).
 - Forbidden without follow-up approval: source/templates/generated outputs, benchmark/report artifacts, package metadata, CI, official catalogs, expected matrices, compatibility contracts.
 - Label results as `draft`, `candidate`, or `not yet official`.
 - Do not convert findings into implementation in the same turn unless the user says to apply them.
@@ -79,6 +88,7 @@ If G6 matches:
 ### MCP Knowledge Quality Gate
 
 Use DeukAgentContext as an advisory memory layer, not as a substitute for reading current code.
+Treat it as online-only advisory memory; do not rely on offline mirrors or cached snapshots as the source of truth.
 
 - Search narrowly. One query should name the project plus the concrete symbol, file, command, or failure mode.
 - Stop after 2 MCP calls for the same question. Do not broaden repeatedly.
@@ -116,11 +126,14 @@ Use DeukAgentContext as an advisory memory layer, not as a substitute for readin
 
 | Type | Path |
 |------|------|
-| Plans | `.deuk-agent/docs/plans/<ticket-id>-plan.md` |
-| Reports | `.deuk-agent/docs/walkthroughs/<ticket-id>-report.md` |
-| Scratch | `.deuk-agent/docs/scratch/` (ephemeral) |
+| Plans | `.deuk-agent/docs/plan/<ticket-id>-plan.md` |
+| Reports | `.deuk-agent/docs/plan/<ticket-id>-report.md` |
+| Scratch | (deprecated; use docs/plan for temporary docs and archive for lifecycle end) |
+| Knowledge | `.deuk-agent/knowledge/<ticket-id>.json` |
 
 - ALL artifacts MUST be under `.deuk-agent/docs/` for RAG indexing.
+- `docs` is for human-readable source artifacts: plans/reports (all in `docs/plan`) and archived originals (`docs/archive`).
+- `knowledge` is only for distilled machine-readable retrieval JSON generated from archived tickets/plans. Do not place arbitrary JSON, notes, plans, or reports there.
 - ALL plan/report files MUST have frontmatter (`summary`, `status`, `priority`, `tags`). Run `enrich_frontmatter` after creation.
 - Ticket lifecycle commands (`ticket create`, `move`, `close`, `archive`) must auto-run `lint:md` against touched markdown artifacts before they exit successfully. If lint fails, roll back the lifecycle mutation and keep ticket/index state consistent.
 - Manual `npx deuk-agent-rule lint:md` remains an audit command, not the primary enforcement path.
@@ -131,6 +144,7 @@ Use DeukAgentContext as an advisory memory layer, not as a substitute for readin
   - `planLink` MUST NOT contain progress checkboxes (`[ ]` or `[x]`). Progress checkboxes belong only in the ticket.
   - If a section would repeat the other artifact, replace it with a pointer instead of copying text.
 - Ticket in Phase 1 is **not complete** unless its `planLink` file exists and contains substantive, non-placeholder analysis sections.
+- `ticket create` seeds a draft plan, but draft scaffolds are not complete. Use `npx deuk-agent-rule ticket create --require-filled` when you need creation to fail unless both ticket APC and `planLink` content are already substantive.
 - Ticket/plan document edits after Phase 1 should be limited to factual corrections, verification outcomes, or lifecycle-finalization notes; they must not be used as a running worklog.
 - Platform native paths (`brain/`, `.cursor/plans/`) are NOT indexed → copy to `.deuk-agent/docs/`.
 - Platform features (planning, artifacts, KI) co-exist. NEVER disable them. Always call `set_workflow_context`.

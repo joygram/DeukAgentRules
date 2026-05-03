@@ -44,7 +44,7 @@ CLI(`deuk-agent-rule`)는 **소스 주권(Source Sovereignty)** 메커니즘을 
 
 ## 5. 엄격한 Phase 기반 티켓 워크플로우 (TDW)
 
-1. **티켓 발행 (Phase 1)**: `ticket create` 또는 기존 티켓 선택을 통해 타겟 범위를 정의합니다. `--from-plan`으로 계획서를 변환할 수도 있습니다.
+1. **티켓 발행 (Phase 1)**: `ticket create` 또는 기존 티켓 선택을 통해 타겟 범위를 정의합니다. `--from-plan`으로 계획서를 변환할 수도 있습니다. `ticket next`가 진행 가능한 티켓을 찾지 못하면, 후속 티켓을 만들기 전에 최근 git history를 먼저 분석합니다.
 2. **APC 및 planLink 기록**: 에이전트는 코드를 수정하기 전, 티켓에 명시된 APC(Agent Permission Contract)의 `[BOUNDARY]`, `[CONTRACT]`, `[PATCH PLAN]`과 planLink를 채웁니다. 티켓은 스코프/계약/진행 체크를, planLink는 서술형 문제 분석/원인 가설/결정 근거/실행 전략/검증 설계를 맡으며 같은 내용을 반복하지 않습니다.
 3. **Phase 승급**: 사용자가 실행을 명확히 요청했고 Phase 1 기록이 완성되어 있으면 `ticket move` 명령을 호출하여 Phase 2 (Execute)로 승급합니다.
 4. **실행 및 검증 (Phase 2)**: 격리된 경계 내에서 코드를 수정하고 검증을 수행합니다.

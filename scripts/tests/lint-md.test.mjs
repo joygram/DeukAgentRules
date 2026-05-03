@@ -6,7 +6,7 @@ import { join } from "node:path";
 import { lintMarkdownPaths } from "../lint-md.mjs";
 
 function makeReportFile(root, fileName, body) {
-  const reportDir = join(root, ".deuk-agent", "docs", "walkthroughs");
+  const reportDir = join(root, ".deuk-agent", "docs", "plan");
   mkdirSync(reportDir, { recursive: true });
   const abs = join(reportDir, fileName);
   writeFileSync(abs, body, "utf8");
@@ -16,7 +16,7 @@ function makeReportFile(root, fileName, body) {
 test("lintMarkdownPaths rejects walkthrough reports missing verification outcome", () => {
   const cwd = mkdtempSync(join(tmpdir(), "deuk-lint-report-"));
   try {
-    const rel = ".deuk-agent/docs/walkthroughs/001-sample-report.md";
+    const rel = ".deuk-agent/docs/plan/001-sample-report.md";
     makeReportFile(cwd, "001-sample-report.md", [
       "---",
       "summary: sample report",
@@ -42,7 +42,7 @@ test("lintMarkdownPaths rejects walkthrough reports missing verification outcome
 test("lintMarkdownPaths accepts walkthrough reports with explicit outcome section", () => {
   const cwd = mkdtempSync(join(tmpdir(), "deuk-lint-report-ok-"));
   try {
-    const rel = ".deuk-agent/docs/walkthroughs/002-sample-report.md";
+    const rel = ".deuk-agent/docs/plan/002-sample-report.md";
     makeReportFile(cwd, "002-sample-report.md", [
       "---",
       "summary: sample report",

@@ -105,10 +105,9 @@ function isActiveTicketStatus(status) {
 
 function inferDocsBucketFromFileName(fileName) {
   const lower = fileName.toLowerCase();
-  if (lower.endsWith(".deuk")) return "schemas";
-  if (lower.endsWith("-plan.md") || lower === "plan.md") return "plans";
-  if (lower.endsWith("-report.md") || lower.startsWith("report-")) return "walkthroughs";
-  return "scratch";
+  if (lower.endsWith("-plan.md") || lower === "plan.md") return "plan";
+  if (lower.endsWith("-report.md") || lower.startsWith("report-")) return "plan";
+  return "plan";
 }
 
 function resolveDocTicketEntry(fileName, sourceMeta, byFileName, byId) {
@@ -161,14 +160,9 @@ function collectFilesRecursively(dir, out = []) {
   return out;
 }
 
-function classifyDocTarget(cwd, sourceAbs, fallbackDir = "scratch") {
+function classifyDocTarget(cwd, sourceAbs, fallbackDir = "plan") {
   const docsRoot = join(cwd, AGENT_ROOT_DIR, "docs");
   const fileName = basename(sourceAbs);
-  const lower = fileName.toLowerCase();
-
-  if (lower.endsWith(".deuk")) return join(docsRoot, "schemas", fileName);
-  if (lower.endsWith("-plan.md") || lower === "plan.md") return join(docsRoot, "plans", fileName);
-  if (lower.endsWith("-report.md") || lower.startsWith("report-")) return join(docsRoot, "walkthroughs", fileName);
   return join(docsRoot, fallbackDir, fileName);
 }
 
@@ -191,7 +185,7 @@ function isDistilledKnowledgeJson(sourceAbs) {
   }
 }
 
-function classifyAgentFileTarget(cwd, sourceAbs, fallbackDir = "scratch") {
+function classifyAgentFileTarget(cwd, sourceAbs, fallbackDir = "plan") {
   const fileName = basename(sourceAbs);
   const lower = fileName.toLowerCase();
 
@@ -352,7 +346,7 @@ function migrateLegacyAgentWorkflows(cwd, dryRun) {
   for (const sourceAbs of listFlatMarkdownFiles(workflowsDir)) {
     const partition = inferPartitionFromFile(statSync(sourceAbs));
     const targetName = `agent-workflow-${basename(sourceAbs)}`;
-    const targetAbs = join(cwd, AGENT_ROOT_DIR, "docs", "archive", "walkthroughs", partition.yearMonth, targetName);
+    const targetAbs = join(cwd, AGENT_ROOT_DIR, "docs", "archive", partition.yearMonth, targetName);
     moveOrMergeFile(sourceAbs, targetAbs, cwd, dryRun, "legacy agent workflow cleanup");
   }
 
@@ -371,7 +365,7 @@ function removeLegacyContainer(cwd, dryRun) {
 
 export function migrateLegacyReports(cwd, dryRun) {
   const legacyReportsDir = join(cwd, AGENT_ROOT_DIR, TICKET_SUBDIR, "reports");
-  const reportTargetDir = join(cwd, AGENT_ROOT_DIR, "docs", "walkthroughs");
+  const reportTargetDir = join(cwd, AGENT_ROOT_DIR, "docs", "plan");
   if (!existsSync(legacyReportsDir)) return;
 
   const reportFiles = sortedDirEntries(legacyReportsDir, { withFileTypes: true })
@@ -409,11 +403,11 @@ export function migrateLegacyReports(cwd, dryRun) {
 
 export function migrateLegacyScratchReports(cwd, dryRun) {
   const scratchDir = join(cwd, AGENT_ROOT_DIR, "docs", "scratch");
-  const walkthroughDir = join(cwd, AGENT_ROOT_DIR, "docs", "walkthroughs");
+  const walkthroughDir = join(cwd, AGENT_ROOT_DIR, "docs", "plan");
   if (!existsSync(scratchDir)) return;
 
   const reportFiles = sortedDirEntries(scratchDir, { withFileTypes: true })
-    .filter(ent => ent.isFile() && ent.name.endsWith("-report.md"))
+    .filter(ent => ent.isFile())
     .map(ent => join(scratchDir, ent.name));
 
   if (reportFiles.length === 0) return;
@@ -551,7 +545,7 @@ function routeMisplacedTicketFile(cwd, sourceAbs, dryRun) {
 function canonicalizeAgentDocsLayout(cwd, dryRun) {
   const docsRoot = join(cwd, AGENT_ROOT_DIR, "docs");
   if (!existsSync(docsRoot)) return;
-  const allowedDirs = new Set(["archive", "plans", "schemas", "scratch", "walkthroughs"]);
+  const allowedDirs = new Set(["archive", "plan"]);
 
   for (const entry of sortedDirEntries(docsRoot, { withFileTypes: true })) {
     const sourceAbs = join(docsRoot, entry.name);
@@ -645,6 +639,7 @@ function canonicalizeAgentRootLayout(cwd, dryRun) {
 
 export function enforceCanonicalAgentLayout(cwd, dryRun) {
   canonicalizeAgentDocsLayout(cwd, dryRun);
+  canonicalizeLegacyArchiveDocsBuckets(cwd, dryRun);
   canonicalizeAgentTicketsLayout(cwd, dryRun);
   canonicalizeAgentRootLayout(cwd, dryRun);
 }
@@ -736,12 +731,9 @@ function rewritePlanLinkReferences(cwd, sourceAbs, targetAbs, dryRun) {
 
 export function canonicalizeDocsArchiveBuckets(cwd, dryRun) {
   const docsRoot = join(cwd, AGENT_ROOT_DIR, "docs");
-  const archivePlansDir = join(docsRoot, "archive", "plans");
-  const archiveWalkthroughsDir = join(docsRoot, "archive", "walkthroughs");
+  const archiveDir = join(docsRoot, "archive");
   const buckets = [
-    { name: "plans", source: join(docsRoot, "plans"), archiveBase: archivePlansDir },
-    { name: "walkthroughs", source: join(docsRoot, "walkthroughs"), archiveBase: archiveWalkthroughsDir },
-    { name: "scratch", source: join(docsRoot, "scratch"), archiveBase: null },
+    { name: "plan", source: join(docsRoot, "plan"), archiveBase: archiveDir },
   ];
 
   const { byFileName, byId } = mapTicketIndexByFileName(cwd);
@@ -753,14 +745,9 @@ export function canonicalizeDocsArchiveBuckets(cwd, dryRun) {
       const fileName = basename(sourceAbs);
       const sourceMeta = parseFrontMatter(safeReadText(sourceAbs)).meta || {};
       const matchedEntry = resolveDocTicketEntry(fileName, sourceMeta, byFileName, byId);
-      const inferredBucket = inferDocsBucketFromFileName(fileName);
       const status = String(matchedEntry?.status || sourceMeta.status || "active").toLowerCase();
       const isActive = isActiveTicketStatus(status);
       const shouldArchive = !isActive;
-
-      if (bucket.name === "scratch" && !["plans", "walkthroughs"].includes(inferredBucket)) {
-        continue;
-      }
 
       const yearMonth = parseYearMonth(matchedEntry?.archiveYearMonth)
         || parseYearMonth(matchedEntry?.createdAt)
@@ -769,22 +756,51 @@ export function canonicalizeDocsArchiveBuckets(cwd, dryRun) {
         || parseYearMonth(new Date().toISOString());
       if (!yearMonth) continue;
 
-      let targetAbs = null;
-      if (bucket.name === "scratch") {
-        targetAbs = isActive
-          ? join(docsRoot, inferredBucket, fileName)
-          : join(inferredBucket === "plans" ? archivePlansDir : archiveWalkthroughsDir, yearMonth, fileName);
-      } else if (shouldArchive) {
-        targetAbs = join(bucket.archiveBase, yearMonth, fileName);
-      } else {
-        continue;
-      }
+      const targetAbs = isActive ? join(docsRoot, "plan", fileName) : join(bucket.archiveBase, yearMonth, fileName);
 
-      if (!targetAbs) continue;
       const moved = moveOrMergeFile(sourceAbs, targetAbs, cwd, dryRun, `docs lifecycle cleanup: ${bucket.name}`);
       if (moved) {
         rewritePlanLinkReferences(cwd, sourceAbs, targetAbs, dryRun);
       }
+    }
+  }
+}
+
+function canonicalizeLegacyArchiveDocsBuckets(cwd, dryRun) {
+  const docsRoot = join(cwd, AGENT_ROOT_DIR, "docs");
+  const archiveRoot = join(docsRoot, "archive");
+  if (!existsSync(archiveRoot)) return;
+
+  const legacyBuckets = ["plans", "walkthroughs"];
+  const now = new Date();
+  const fallbackYearMonth = `${now.getFullYear()}-${String(now.getMonth() + 1).padStart(2, "0")}`;
+
+  for (const bucket of legacyBuckets) {
+    const sourceRoot = join(archiveRoot, bucket);
+    if (!existsSync(sourceRoot)) continue;
+
+    for (const sourceAbs of collectFilesRecursively(sourceRoot)) {
+      if (!sourceAbs.endsWith(".md")) continue;
+
+      const relParts = toPosixPath(relative(sourceRoot, sourceAbs)).split("/");
+      const yearMonth = parseYearMonth(relParts[0]) || parseYearMonth(statSync(sourceAbs).mtime.toISOString()) || fallbackYearMonth;
+      const targetAbs = join(archiveRoot, yearMonth, ...relParts.slice(relParts[0] && parseYearMonth(relParts[0]) ? 1 : 0));
+      if (sourceAbs === targetAbs) continue;
+
+      const moved = moveOrMergeFile(sourceAbs, targetAbs, cwd, dryRun, `legacy archive docs cleanup: ${bucket}`);
+      if (moved) {
+        rewriteLegacyReportLinks(cwd, targetAbs, basename(sourceAbs), dryRun);
+      }
+    }
+
+    try {
+      if (!dryRun && sortedDirEntries(sourceRoot).length === 0) {
+        rmSync(sourceRoot, { recursive: true, force: true });
+      } else if (!dryRun) {
+        removeEmptyDirsBottomUp(sourceRoot, cwd, dryRun);
+      }
+    } catch (err) {
+      if (process.env.DEBUG) console.warn(`[DEBUG] Failed to remove legacy docs archive bucket ${sourceRoot}:`, err);
     }
   }
 }

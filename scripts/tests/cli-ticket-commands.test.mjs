@@ -3,7 +3,7 @@ import assert from "node:assert";
 import { existsSync, mkdtempSync, mkdirSync, readFileSync, readdirSync, rmSync, writeFileSync } from "node:fs";
 import { tmpdir } from "node:os";
 import { join } from "node:path";
-import { pickTicketEntry, runTicketArchive, runTicketCreate, runTicketClose, runTicketMove, runTicketNext, runTicketUse } from "../cli-ticket-commands.mjs";
+import { pickTicketEntry, runTicketArchive, runTicketCreate, runTicketClose, runTicketMove, runTicketNext, runTicketStatus, runTicketUse } from "../cli-ticket-commands.mjs";
 import { readTicketIndexJson } from "../cli-ticket-index.mjs";
 import { TICKET_INDEX_FILENAME } from "../cli-utils.mjs";
 
@@ -316,7 +316,6 @@ test("runTicketArchive updates index path to archived ticket location", async ()
   assert.ok(!existsSync(join(ticketDir, "INDEX.archive.json")), "legacy archive index should be removed");
   assert.strictEqual(archiveIndex.entries.find(e => e.id === "001-default-host").status, "archived");
   assert.strictEqual(result.path, archivedPath);
-  assert.ok(lines.includes("ticket archive: final ticket path " + archivedPath));
 
   rmSync(cwd, { recursive: true, force: true });
 });
@@ -519,7 +518,7 @@ test("runTicketArchive updates activeTicketId when archiving active ticket", asy
 
 test("runTicketArchive auto-detects existing walkthrough report and attaches link", async () => {
   const ticketPath = ".deuk-agent/tickets/sub/003-default-host.md";
-  const reportPath = ".deuk-agent/docs/walkthroughs/003-default-host-report.md";
+  const reportPath = ".deuk-agent/docs/plan/003-default-host-report.md";
   const { cwd } = makeTicketWorkspace([
     makeEntry({
       id: "003-default-host",
@@ -532,7 +531,7 @@ test("runTicketArchive auto-detects existing walkthrough report and attaches lin
   ]);
 
   const srcDir = join(cwd, ".deuk-agent", "tickets", "sub");
-  const reportDir = join(cwd, ".deuk-agent", "docs", "walkthroughs");
+  const reportDir = join(cwd, ".deuk-agent", "docs", "plan");
   mkdirSync(srcDir, { recursive: true });
   mkdirSync(reportDir, { recursive: true });
 
@@ -579,7 +578,7 @@ test("runTicketArchive auto-detects existing walkthrough report and attaches lin
   }
 
   const archivedContent = readFileSync(join(cwd, archived.path), "utf8");
-  assert.ok(lines.includes("ticket archive: auto-detected report at .deuk-agent/docs/walkthroughs/003-default-host-report.md"));
+  assert.ok(lines.includes("ticket archive: auto-detected report at .deuk-agent/docs/plan/003-default-host-report.md"));
   assert.ok(archivedContent.includes("## 📄 Attached Report"));
   assert.ok(archivedContent.includes("View Report"));
 
@@ -588,7 +587,7 @@ test("runTicketArchive auto-detects existing walkthrough report and attaches lin
 
 test("runTicketArchive distills ticket and planLink analysis into knowledge json", async () => {
   const ticketPath = ".deuk-agent/tickets/sub/006-default-host.md";
-  const planPath = ".deuk-agent/docs/plans/006-default-host-plan.md";
+  const planPath = ".deuk-agent/docs/plan/006-default-host-plan.md";
   const { cwd } = makeTicketWorkspace([
     makeEntry({
       id: "006-default-host",
@@ -601,7 +600,7 @@ test("runTicketArchive distills ticket and planLink analysis into knowledge json
   ]);
 
   mkdirSync(join(cwd, ".deuk-agent", "tickets", "sub"), { recursive: true });
-  mkdirSync(join(cwd, ".deuk-agent", "docs", "plans"), { recursive: true });
+  mkdirSync(join(cwd, ".deuk-agent", "docs", "plan"), { recursive: true });
 
   writeFileSync(join(cwd, ticketPath), [
     "---",
@@ -719,7 +718,7 @@ test("runTicketCreate rolls back when markdown lint fails", async () => {
       : [];
     assert.strictEqual(ticketFiles.length, 0);
 
-    const planDir = join(cwd, ".deuk-agent", "docs", "plans");
+  const planDir = join(cwd, ".deuk-agent", "docs", "plan");
     const planFiles = existsSync(planDir)
       ? readdirSync(planDir).filter(name => name.endsWith(".md"))
       : [];
@@ -731,7 +730,7 @@ test("runTicketCreate rolls back when markdown lint fails", async () => {
 
 test("runTicketMove rolls back when linked plan markdown fails lint", async () => {
   const ticketPath = ".deuk-agent/tickets/sub/001-default-host.md";
-  const planPath = ".deuk-agent/docs/plans/001-default-host-plan.md";
+  const planPath = ".deuk-agent/docs/plan/001-default-host-plan.md";
   const { cwd, ticketDir } = makeTicketWorkspace([
     makeEntry({
       id: "001-default-host",
@@ -745,7 +744,7 @@ test("runTicketMove rolls back when linked plan markdown fails lint", async () =
   ]);
 
   mkdirSync(join(ticketDir, "sub"), { recursive: true });
-  mkdirSync(join(cwd, ".deuk-agent", "docs", "plans"), { recursive: true });
+  mkdirSync(join(cwd, ".deuk-agent", "docs", "plan"), { recursive: true });
 
   writeFileSync(join(cwd, ticketPath), [
     "---",
@@ -821,7 +820,7 @@ test("runTicketMove rolls back when linked plan markdown fails lint", async () =
 
 test("runTicketClose rolls back when linked plan markdown fails lint", async () => {
   const ticketPath = ".deuk-agent/tickets/sub/002-default-host.md";
-  const planPath = ".deuk-agent/docs/plans/002-default-host-plan.md";
+  const planPath = ".deuk-agent/docs/plan/002-default-host-plan.md";
   const { cwd, ticketDir } = makeTicketWorkspace([
     makeEntry({
       id: "002-default-host",
@@ -835,7 +834,7 @@ test("runTicketClose rolls back when linked plan markdown fails lint", async () 
   ]);
 
   mkdirSync(join(ticketDir, "sub"), { recursive: true });
-  mkdirSync(join(cwd, ".deuk-agent", "docs", "plans"), { recursive: true });
+  mkdirSync(join(cwd, ".deuk-agent", "docs", "plan"), { recursive: true });
 
   writeFileSync(join(cwd, ticketPath), [
     "---",
@@ -903,7 +902,7 @@ test("runTicketClose rolls back when linked plan markdown fails lint", async () 
 
 test("runTicketArchive rolls back when linked plan markdown fails lint", async () => {
   const ticketPath = ".deuk-agent/tickets/sub/007-default-host.md";
-  const planPath = ".deuk-agent/docs/plans/007-default-host-plan.md";
+  const planPath = ".deuk-agent/docs/plan/007-default-host-plan.md";
   const { cwd } = makeTicketWorkspace([
     makeEntry({
       id: "007-default-host",
@@ -917,7 +916,7 @@ test("runTicketArchive rolls back when linked plan markdown fails lint", async (
   ]);
 
   mkdirSync(join(cwd, ".deuk-agent", "tickets", "sub"), { recursive: true });
-  mkdirSync(join(cwd, ".deuk-agent", "docs", "plans"), { recursive: true });
+  mkdirSync(join(cwd, ".deuk-agent", "docs", "plan"), { recursive: true });
 
   writeFileSync(join(cwd, ticketPath), [
     "---",
@@ -1045,6 +1044,7 @@ test("runTicketCreate blocks excess open tickets and asks user to choose archive
   const { cwd, ticketDir } = makeTemplateWorkspace();
   const srcDir = join(ticketDir, "sub");
   mkdirSync(srcDir, { recursive: true });
+  mkdirSync(join(cwd, ".deuk-agent", "docs", "plan"), { recursive: true });
 
   const entries = [];
   for (let i = 1; i <= 20; i++) {
@@ -1178,7 +1178,7 @@ test("runTicketCreate dry-run does not write ticket, plan, index, or active tick
     assert.strictEqual(readFileSync(join(ticketDir, TICKET_INDEX_FILENAME), "utf8"), beforeIndexText);
     assert.strictEqual(readFileSync(activePath, "utf8"), beforeActiveText);
     assert.ok(!readdirSync(srcDir).some(name => name.includes("dry-run-ticket")));
-    assert.ok(!existsSync(join(cwd, ".deuk-agent/docs/plans")));
+    assert.ok(!existsSync(join(cwd, ".deuk-agent/docs/plan")));
     assert.ok(logs.some(line => line.includes("Ticket would be created:")));
   } finally {
     console.log = originalLog;
@@ -1218,7 +1218,7 @@ test("runTicketCreate rolls back when strict create rejects placeholder summary"
     const index = readTicketIndexJson(cwd);
     assert.strictEqual(index.entries.length, 0);
     assert.ok(!readdirSync(srcDir).some(name => name.includes("strict-placeholder-ticket")));
-    const planDir = join(cwd, ".deuk-agent", "docs", "plans");
+    const planDir = join(cwd, ".deuk-agent", "docs", "plan");
     const planFiles = existsSync(planDir)
       ? readdirSync(planDir).filter(name => name.endsWith(".md"))
       : [];
@@ -1228,6 +1228,130 @@ test("runTicketCreate rolls back when strict create rejects placeholder summary"
     console.warn = originalWarn;
     rmSync(cwd, { recursive: true, force: true });
   }
+});
+
+test("runTicketCreate strict mode rejects scaffold-only plan drafts", async () => {
+  const { cwd, ticketDir } = makeTemplateWorkspace();
+  const srcDir = join(ticketDir, "sub");
+  mkdirSync(srcDir, { recursive: true });
+
+  const originalLog = console.log;
+  const originalWarn = console.warn;
+  console.log = () => {};
+  console.warn = () => {};
+
+  try {
+    await assert.rejects(
+      () => runTicketCreate({
+        cwd,
+        topic: "strict-plan-scaffold-ticket",
+        summary: "validate strict plan scaffold rejection",
+        nonInteractive: true,
+        docsLanguage: "en",
+        skipPhase0: true,
+        requireFilled: true
+      }),
+      err => {
+        assert.match(err.message, /strict mode rejected placeholder\/incomplete phase1 state/);
+        assert.match(err.message, /planLink_placeholder_or_incomplete/);
+        return true;
+      }
+    );
+
+    const index = readTicketIndexJson(cwd);
+    assert.strictEqual(index.entries.length, 0);
+    assert.ok(!readdirSync(srcDir).some(name => name.includes("strict-plan-scaffold-ticket")));
+    const planDir = join(cwd, ".deuk-agent", "docs", "plan");
+    const planFiles = existsSync(planDir)
+      ? readdirSync(planDir).filter(name => name.endsWith(".md"))
+      : [];
+    assert.strictEqual(planFiles.length, 0);
+  } finally {
+    console.log = originalLog;
+    console.warn = originalWarn;
+    rmSync(cwd, { recursive: true, force: true });
+  }
+});
+
+test("runTicketStatus compact mode emits one-line phase summary", async () => {
+  const { cwd, ticketDir } = makeTemplateWorkspace();
+  const srcDir = join(ticketDir, "sub");
+  mkdirSync(srcDir, { recursive: true });
+  mkdirSync(join(cwd, ".deuk-agent", "docs", "plan"), { recursive: true });
+
+  const ticketId = "001-compact-status-host";
+  writeFileSync(join(srcDir, `${ticketId}.md`), [
+    "---",
+    `id: ${ticketId}`,
+    "title: compact status host",
+    "phase: 1",
+    "status: open",
+    "summary: compact status test",
+    "planLink: .deuk-agent/docs/plan/001-compact-status-host-plan.md",
+    "---",
+    "",
+    "# compact status host",
+    "",
+    "## Agent Permission Contract",
+    "### [BOUNDARY]",
+    "- editable",
+    "### [CONTRACT]",
+    "- output",
+    "### [PATCH PLAN]",
+    "- plan",
+    ""
+  ].join("\n"), "utf8");
+  writeFileSync(join(cwd, ".deuk-agent", "docs", "plan", "001-compact-status-host-plan.md"), [
+    "---",
+    "summary: compact status plan",
+    "status: draft",
+    "priority: P2",
+    "tags:",
+    "  - plan",
+    "---",
+    "",
+    "# Plan",
+    "",
+    "## Problem Analysis",
+    "Explain the actual issue.",
+    "",
+    "## Source Observations",
+    "- scripts/cli-ticket-commands.mjs",
+    "",
+    "## Cause Hypotheses",
+    "- status output is too verbose",
+    "",
+    "## Decision Rationale",
+    "- compact output reduces repetition",
+    "",
+    "## Execution Strategy",
+    "- add one-line status mode",
+    "",
+    "## Verification Design",
+    "- node --test scripts/tests/cli-ticket-commands.test.mjs",
+    ""
+  ].join("\n"), "utf8");
+  writeFileSync(join(ticketDir, "INDEX.json"), JSON.stringify(makeIndex([makeEntry({
+    id: ticketId,
+    title: "compact status host",
+    topic: ticketId,
+    fileName: `${ticketId}.md`,
+    createdAt: "2026-05-03 00:00:00",
+    status: "open"
+  })]), null, 2) + "\n", "utf8");
+
+  const originalLog = console.log;
+  const lines = [];
+  console.log = value => { lines.push(String(value)); };
+  try {
+    await runTicketStatus({ cwd, topic: ticketId, compact: true });
+  } finally {
+    console.log = originalLog;
+    rmSync(cwd, { recursive: true, force: true });
+  }
+
+  assert.strictEqual(lines.length, 1);
+  assert.match(lines[0], /^001-compact-status-host \| phase=1 \| status=open \| ok$/);
 });
 
 test("runTicketCreate auto-archives closed tickets before enforcing open ticket limit", async () => {

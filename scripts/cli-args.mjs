@@ -45,6 +45,7 @@ export function parseTicketArgs(argv) {
     else if (a === "--reason") out.reason = argv[++i];
     else if (a === "--require-filled") out.requireFilled = true;
     else if (a === "--allow-placeholder") out.allowPlaceholder = true;
+    else if (a === "--compact") out.compact = true;
     else if (a === "--status-detail") out.statusDetail = true;
   }
   return out;

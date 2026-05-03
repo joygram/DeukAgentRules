@@ -1,6 +1,6 @@
 import test from "node:test";
 import assert from "node:assert";
-import { execSync } from "node:child_process";
+import { execFileSync } from "node:child_process";
 import { readdirSync, readFileSync, existsSync } from "node:fs";
 import { join, resolve, dirname } from "node:path";
 import { fileURLToPath } from "node:url";
@@ -26,8 +26,13 @@ const ROOT = resolve(__dirname, "..", "..");
 /** Helper: grep across project files */
 function grep(pattern, pathSpec, opts = "") {
   try {
-    const cmd = `grep -rn ${opts} "${pattern}" ${pathSpec}`;
-    const result = execSync(cmd, { cwd: ROOT, encoding: "utf-8" });
+    const options = opts
+      ? opts.match(/[^	 "']+|"([^"]*)"|'([^']*)'/g).map((tok) => tok.replace(/^"|"$|^'|'$/g, ""))
+      : [];
+    const result = execFileSync("grep", ["-rn", ...options, pattern, pathSpec], {
+      cwd: ROOT,
+      encoding: "utf-8"
+    });
     return result.trim().split("\n").filter(Boolean);
   } catch {
     return [];
@@ -49,7 +54,7 @@ test("DR-01: No manual INDEX.json editing patterns in scripts", () => {
 
   const allViolations = [];
   for (const pattern of patterns) {
-    const hits = grep(pattern, "scripts/", '--include="*.mjs"');
+    const hits = grep(pattern, "scripts/", '--include=*.mjs');
     // Allow: legitimate INDEX.json management in cli-ticket-index.mjs
     const violations = hits.filter(
       (line) =>
@@ -128,7 +133,7 @@ test("DR-02: No circular imports in CLI scripts", () => {
 // ─────────────────────────────────────────────
 test("DR-03: No hardcoded .deuk-agent paths outside constants", () => {
   // All references to .deuk-agent should go through AGENT_ROOT_DIR constant
-  const hits = grep('"\\.deuk-agent', "scripts/", '--include="*.mjs"');
+    const hits = grep('"\\.deuk-agent', "scripts/", '--include=*.mjs');
 
   // Allow: cli-utils.mjs where the constant is DEFINED
   // Allow: test files
@@ -153,7 +158,7 @@ test("DR-03: No hardcoded .deuk-agent paths outside constants", () => {
 // ─────────────────────────────────────────────
 test("DR-04: No inline YAML parsing outside cli-utils", () => {
   // All frontmatter parsing should use parseFrontMatter from cli-utils
-  const hits = grep("yaml\\.parse\\|YAML\\.parse", "scripts/", '--include="*.mjs"');
+  const hits = grep("yaml\\.parse\\|YAML\\.parse", "scripts/", '--include=*.mjs');
 
   const violations = hits.filter(
     (line) =>
@@ -180,7 +185,7 @@ test("DR-05: No inline slug generation outside cli-utils", () => {
   const hits = grep(
     "replace.*[^a-z].*replace.*toLowerCase\\|toLowerCase.*replace.*[^a-z]",
     "scripts/",
-    '--include="*.mjs"'
+    '--include=*.mjs'
   );
 
   const violations = hits.filter(

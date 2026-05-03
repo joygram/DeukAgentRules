@@ -1,7 +1,7 @@
 import { existsSync, mkdirSync, readFileSync, writeFileSync, unlinkSync, copyFileSync, statSync } from "fs";
 import { basename, dirname, join, relative } from "path";
 import { 
-  toRepoRelativePath, AGENT_ROOT_DIR, TICKET_SUBDIR, TICKET_LIST_FILENAME, TICKET_LIST_TEMPLATE_FILENAME,
+  toRepoRelativePath, AGENT_ROOT_DIR, TICKET_SUBDIR, TICKET_LIST_FILENAME, TICKET_LIST_TEMPLATE_FILENAME, PLAN_LINKS_DIR,
   parseFrontMatter, stringifyFrontMatter, findFileRecursively, detectConsumerTicketDir
 } from "./cli-utils.mjs";
 import { readTicketIndexJson, writeTicketIndexJson, syncActiveTicketId } from "./cli-ticket-index.mjs";
@@ -116,7 +116,7 @@ export function extractSummary(meta, content) {
 export function ensurePlanLink(meta) {
   if (meta.planLink) return false;
   if (!meta.id) return false;
-  meta.planLink = `.deuk-agent/docs/plans/${meta.id}-plan.md`;
+  meta.planLink = `${PLAN_LINKS_DIR}/${meta.id}-plan.md`;
   return true;
 }
 

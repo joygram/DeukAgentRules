@@ -23,7 +23,7 @@ Before saving any artifact, verify the platform's native path is NOT the only co
 | Platform Native Path | RAG-Indexed? | Action Required |
 |---------------------|:------------:|-----------------|
 | `brain/<conv>/` (Antigravity) | NO | Copy to `.deuk-agent/docs/` |
-| `.cursor/plans/` (Cursor) | NO | Copy to `.deuk-agent/docs/plans/` |
+| `.cursor/plans/` (Cursor) | NO | Copy to `.deuk-agent/docs/plan/` |
 | Terminal output (Claude/Codex) | NO | Save directly to `.deuk-agent/docs/` |
-| VS Code diff (Copilot) | NO | Save plan text to `.deuk-agent/docs/plans/` |
+| VS Code diff (Copilot) | NO | Save plan text to `.deuk-agent/docs/plan/` |
 | `.deuk-agent/docs/` | **YES** | ✓ Correct path |

@@ -1,54 +1,20 @@
 {
   "version": 1,
-  "updatedAt": "2026-05-02T10:23:55.912Z",
+  "updatedAt": "2026-05-03T04:00:28.602Z",
   "entries": [
     {
-      "id": "180-index-json-분리-및-경량화-joy-nucb",
-      "title": "INDEX.json 분리 및 경량화",
-      "topic": "index-json-분리-및-경량화",
+      "id": "202-fix-legacy-ticket-layout-sync-joy-nucb",
+      "title": "fix-legacy-ticket-layout-sync",
+      "topic": "202-fix-legacy-ticket-layout-sync-joy-nucb",
       "group": "sub",
-      "project": "global",
-      "createdAt": "2026-05-02T10:21:19.959Z",
-      "source": "ticket-create",
-      "status": "active",
-      "updatedAt": "2026-05-02T10:23:55.909Z"
-    },
-    {
-      "id": "179-md-lint-automation-and-rule-hard-joy-nucb",
-      "title": "md-lint-automation-and-rule-hardening",
-      "topic": "md-lint-automation-and-rule-hardening",
-      "group": "sub",
-      "project": "global",
-      "createdAt": "2026-05-02T09:52:13.411Z",
-      "source": "ticket-create",
-      "status": "open"
-    },
-    {
-      "id": "171-deukpack-cross-language-protocol-joy-nucb",
-      "title": "deukpack-cross-language-protocol-runtime-consistency",
-      "topic": "171-deukpack-cross-language-protocol-joy-nucb",
-      "group": "sub",
-      "fileName": "171-deukpack-cross-language-protocol-joy-nucb.md",
+      "fileName": "202-fix-legacy-ticket-layout-sync-joy-nucb.md",
       "project": "global",
       "submodule": "",
-      "createdAt": "2026-05-02 04:44:14",
-      "updatedAt": "2026-05-02T04:44:14.217Z",
+      "createdAt": "2026-05-02 23:31:29",
+      "updatedAt": "2026-05-03T03:22:15.643Z",
       "source": "ticket-sync",
-      "status": "open"
-    },
-    {
-      "id": "169-deukpack-bmt-csharp-generated-ro-joy-nucb",
-      "title": "deukpack-bmt-csharp-generated-roundtrip-fix",
-      "topic": "169-deukpack-bmt-csharp-generated-ro-joy-nucb",
-      "group": "sub",
-      "fileName": "169-deukpack-bmt-csharp-generated-ro-joy-nucb.md",
-      "project": "global",
-      "submodule": "",
-      "createdAt": "2026-05-02 04:00:34",
-      "updatedAt": "2026-05-02T04:37:49.388Z",
-      "source": "ticket-sync",
-      "status": "open"
+      "status": "active"
     }
   ],
-  "activeTicketId": "180-index-json-분리-및-경량화-joy-nucb"
+  "activeTicketId": "202-fix-legacy-ticket-layout-sync-joy-nucb"
 }
