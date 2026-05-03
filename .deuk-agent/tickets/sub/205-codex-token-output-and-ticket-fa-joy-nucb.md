@@ -1,70 +1,59 @@
 ---
-id: 205-codex-token-output-and-ticket-fa-joy-nucb
-title: codex-token-output-and-ticket-fastpath
-phase: 2
+summary: 205-codex-token-output-and-ticket-fa-joy-nucb
 status: active
-docsLanguage: ko
-summary: Codex 출력 토큰 소비를 줄이고 다음 티켓 탐색을 CLI 원샷으로 단축하는 개선 계획 수립
-priority: P2
-tags: []
-createdAt: 2026-05-03 06:08:44
+priority: P3
+tags: migrated
+id: 205-codex-token-output-and-ticket-fa-joy-nucb
+title: 205-codex-token-output-and-ticket-fa-joy-nucb
+createdAt: 2026-05-03 07:16:33
 ---
 
-
-# codex-token-output-and-ticket-fastpath
+# 205-codex-token-output-and-ticket-fa-joy-nucb
 
 > Restrict changes to **Target Module**. Read **Context Files** before code generation.
-> Keep execution evidence and detailed steps in `planLink`; do not duplicate them here.
+> Keep planning compact in this ticket. Do not mirror screen progress here.
 
 ## Scope & Constraints
 
-- **Target:** `core-rules/AGENTS.md`, `templates/TICKET_TEMPLATE.md`, `scripts/cli-ticket-commands.mjs`, `scripts/cli-ticket-migration.mjs`, `scripts/cli-init-commands.mjs`, `scripts/lint-rules.mjs`, `scripts/cli-args.mjs`, `scripts/cli.mjs`, related CLI tests
-- **Context Files:** `PROJECT_RULE.md`, `docs/architecture.md`, target source files, linked plan
-- **PlanLink:** `.deuk-agent/docs/plan/205-codex-token-output-and-ticket-fa-joy-nucb-plan.md` owns evidence, decisions, detailed steps, and verification notes.
-- **Constraints:** No generated output edits, no unrelated refactors, no broad regeneration without approval.
-- **Lifecycle Guard:** ticket lifecycle commands auto-run markdown lint on touched files and fail fast on broken markdown or missing linked artifacts.
+- **Target:** CLI ticket discovery, token output, and fast-path navigation rules.
+- **Context Files:** `PROJECT_RULE.md`, `core-rules/AGENTS.md`, ticket CLI source files, and relevant tests.
+- **Constraints:** no unrelated refactors, no broad regeneration without approval, no generated output edits.
+- **Lifecycle Guard:** ticket lifecycle commands auto-run markdown lint on touched files and fail fast on broken markdown.
 
 ## Agent Permission Contract (APC)
 
 ### [BOUNDARY]
-- Editable modules: `core-rules/AGENTS.md`, ticket template, ticket/init/rules CLI command/argument/help/migration code, and related tests required for compact ticket output, planLink consolidation, and rule audit returns.
-- Forbidden modules: generated artifacts, unrelated shared infrastructure, external module roots
-- Rule citation: PROJECT_RULE.md + core-rules/AGENTS.md
+- Editable modules: `scripts/cli-ticket-commands.mjs`, `scripts/cli-ticket-migration.mjs`, `scripts/cli-init-commands.mjs`, `scripts/cli-args.mjs`, `scripts/cli.mjs`, and relevant tests.
+- Forbidden modules: generated artifacts, unrelated shared infrastructure, external module roots.
+- Rule citation: `PROJECT_RULE.md` + `core-rules/AGENTS.md`
 
 ### [CONTRACT]
-- Input: current Low-Token rules, ticket discovery rules, `ticket next` behavior, CLI argument parsing, and ticket command tests.
-- Output: main-ticket SSoT workflow, optional planLink creation, init migration for existing planLink consolidation, rg-first source inspection rules, machine-returnable rules audit, and matching tests.
-- Side effects: ticket + plan docs updates, scoped code changes only
+- Input: current low-token rules, ticket discovery rules, CLI argument parsing, and ticket command tests.
+- Output: single-ticket SSoT workflow, faster ticket discovery, and stable rule-audit returns.
+- Side effects: ticket updates and scoped code changes only.
 
 ### [PATCH PLAN]
-- Problem analysis, cause hypotheses, rationale, execution strategy, and verification design live in planLink.
-- Ticket records only the allowed patch boundary and contract.
-- Do not duplicate planLink content here; reference it when detail is needed.
+- Keep the main ticket as the default planning SSOT.
+- Reduce duplicate output and unnecessary token spend in ticket/init flows.
+- Keep fast-path behavior explicit and auditable.
 
 ## Compact Plan
 
-- **Problem:** screen progress, ticket text, and planLink text duplicate the same planning facts and increase output plus future input token cost.
-- **Approach:** make the main ticket the default planning SSoT, keep planLink opt-in for new tickets, consolidate existing planLink files into tickets during init, record related issues through CLI links, require rg-first source inspection, and add `rules audit` so violations return non-zero.
-- **Verification:** run ticket/init CLI tests and markdown lint for changed rule/template/test files.
+- **Problem:** ticket/init flows still emit too much duplicated context and can lose the fast path for next-ticket discovery.
+- **Approach:** keep the main ticket compact, reduce duplicate progress text, and ensure CLI discovery stays one-shot and auditable.
+- **Verification:** run the relevant CLI tests and rule audit checks against ticket/init paths.
 - **Linked Issues:** none.
 
 ## Tasks
 
-- [x] Complete non-duplicative `planLink` evidence/steps/verification.
-- [x] Implement main-ticket compact plan default and optional planLink.
-- [x] Implement init migration that removes existing ticket `planLink` frontmatter after compact consolidation.
-- [x] Implement CLI rule audit for low-token and ticket SSoT violations.
-- [x] Record verification outcome after markdown lint.
-
-## Verification Outcome
-
-- `node --test scripts/tests/cli-ticket-commands.test.mjs scripts/tests/cli-init-commands.test.mjs scripts/tests/cli-utils.test.mjs scripts/tests/lint-rules.test.mjs` passed.
-- `node scripts/cli.mjs rules audit --compact` returned `rules:audit ok`.
-- `npx deuk-agent-rule lint:md core-rules/AGENTS.md templates/TICKET_TEMPLATE.md scripts/lint-rules.mjs scripts/cli.mjs scripts/cli-args.mjs scripts/tests/lint-rules.test.mjs scripts/tests/cli-utils.test.mjs .deuk-agent/tickets/sub/205-codex-token-output-and-ticket-fa-joy-nucb.md` passed.
+- [x] Complete compact plan and APC.
+- [x] Execute changes inside APC boundary.
+- [x] Record verification outcome.
 
 ## Done When
 
 - APC is complete and non-placeholder.
+- Compact plan is complete and non-placeholder.
 - Target changes are implemented inside the declared boundary.
 - Markdown lint/tests relevant to this ticket pass or failures are recorded.
-- Lifecycle commands can persist the ticket and planLink without manual lint intervention.
+- Lifecycle commands can persist the ticket without manual lint intervention.

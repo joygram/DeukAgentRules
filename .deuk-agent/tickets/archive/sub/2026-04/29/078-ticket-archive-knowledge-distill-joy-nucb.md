@@ -1,54 +1,31 @@
----
-id: 078-ticket-archive-knowledge-distill-joy-nucb
-priority: P1
-status: open
-summary: "Target: [Fill in the target module/submodule path] - Context Files:
-  [List architecture docs or key files to read first] - Root Cause: ticket
-  archive 명령어가 단순히 파일을 archive/ 디렉토리로 이동시키기만 하여, 티켓 본문에 포함된 핵심 의사결정(Design
-  Decisions)이나 분석 결과가 구조화된 지식으로 남지 않음."
-tags: rag, tickets, architecture, testing
-title: 078-ticket-archive-knowledge-distillation
----
+ - - - i d : 0 7 8 - t i c k e t - a r c h i v e - k n o w l e d g e - d i s t i l l - j o y - n u c b p r i o r i t y : P 1 s t a t u s : o p e n s u m m a r y : " T a r g e t : [ F i l l i n t h e t a r g e t m o d u l e / s u b m o d u l e p a t h ] - C o n t e x t F i l e s : [ L i s t a r c h i t e c t u r e d o c s o r k e y f i l e s t o r e a d f i r s t ] - R o o t C a u s e : t i c k e t a r c h i v e 명 령 어 가 단 순 히 파 일 을 a r c h i v e / 디 렉 토 리 로 이 동 시 키 기 만 하 여 , 티 켓 본 문 에 포 함 된 핵 심 의 사 결 정 ( D e s i g n D e c i s i o n s ) 이 나 분 석 결 과 가 구 조 화 된 지 식 으 로 남 지 않 음 . " t a g s : r a g , t i c k e t s , a r c h i t e c t u r e , t e s t i n g t i t l e : 0 7 8 - t i c k e t - a r c h i v e - k n o w l e d g e - d i s t i l l a t i o n - - - # 0 7 8 - t i c k e t - a r c h i v e - k n o w l e d g e - d i s t i l l a t i o n > * * [ C A U T I O N F O R A I A G E N T S ] * * > 1 . R e s t r i c t a l l a n a l y s i s , f i l e c r e a t i o n , a n d m o d i f i c a t i o n s t o t h e d e c l a r e d * * T a r g e t M o d u l e * * b e l o w . > 2 . R e a d t h e f i l e s l i s t e d i n * * C o n t e x t F i l e s * * b e f o r e d o i n g A N Y c o d e g e n e r a t i o n . > 3 . D O N O T l e a k c o n f i g u r a t i o n , l o g i c , o r d e p e n d e n c i e s f r o m o t h e r m o d u l e s . # # T a r g e t M o d u l e - * * T a r g e t : * * [ F i l l i n t h e t a r g e t m o d u l e / s u b m o d u l e p a t h ] - * * C o n t e x t F i l e s : * * [ L i s t a r c h i t e c t u r e d o c s o r k e y f i l e s t o r e a d f i r s t ] # # A n a l y s i s & C o n s t r a i n t s ( D e e p R e v i e w ) - * * R o o t C a u s e * * : t i c k e t a r c h i v e 명 령 어 가 단 순 히 파 일 을 a r c h i v e / 디 렉 토 리 로 이 동 시 키 기 만 하 여 , 티 켓 본 문 에 포 함 된 핵 심 의 사 결 정 ( D e s i g n D e c i s i o n s ) 이 나 분 석 결 과 가 구 조 화 된 지 식 으 로 남 지 않 음 . - * * D e a d C o d e A u d i t * * : 프 로 젝 트 가 V 2 로 마 이 그 레 이 션 되 면 서 c l i - t i c k e t - c o m m a n d s . m j s 및 c l i - u t i l s . m j s 내 에 잔 존 하 는 레 거 시 경 로 참 조 ( . d e u k - a g e n t - t e m p l a t e s 등 ) 및 미 사 용 유 틸 리 티 함 수 들 을 식 별 함 . - * * C o n s t r a i n t 1 ( Z e r o - T o k e n ) * * : 지 식 추 출 시 L L M 호 출 을 배 제 하 고 정 규 식 기 반 의 패 턴 매 칭 만 사 용 함 . ( 비 용 및 속 도 최 적 화 ) - * * C o n s t r a i n t 2 ( N o n - B l o c k i n g ) * * : 동 기 I / O 기 반 으 로 작 성 하 여 워 크 플 로 의 보 틀 넥 이 되 지 않 도 록 함 . - * * C o n s t r a i n t 3 ( P e r s i s t e n c e ) * * : 추 출 된 지 식 은 . d e u k - a g e n t / k n o w l e d g e / < t i c k e t - i d > . j s o n 파 일 로 저 장 하 여 R A G 시 스 템 이 즉 시 인 덱 싱 할 수 있 게 함 . # # S t r i c t R u l e s C h e c k - [ x ] D r y , c o n c i s e , t e c h n i c a l t o n e . - [ x ] R e p l y i n K o r e a n 해 요 체 . - [ x ] N o e x t e r n a l d e p e n d e n c i e s ( u s e b u i l t - i n N o d e . j s m o d u l e s ) . # # S c o p e ( I n / O u t ) - * * I n * * : # # D e s i g n D e c i s i o n s , # # A n a l y s i s & C o n s t r a i n t s , # # T a s k s 섹 션 추 출 . - * * I n * * : 추 출 된 데 이 터 를 J S O N 형 식 으 로 . d e u k - a g e n t / k n o w l e d g e / 에 저 장 . - * * I n * * : c l i - t i c k e t - c o m m a n d s . m j s 및 c l i - u t i l s . m j s 내 의 데 드 코 드 및 레 거 시 참 조 제 거 . - * * O u t * * : L L M 을 통 한 자 동 요 약 기 능 . ( 사 용 자 의 명 시 적 요 청 시 별 도 명 령 어 로 처 리 ) - * * O u t * * : 티 켓 파 일 의 물 리 적 삭 제 ( 기 존 a r c h i v e 로 직 에 서 처 리 됨 ) . # # T a s k s - [ ] s c r i p t s / c l i - t i c k e t - c o m m a n d s . m j s 에 d i s t i l l K n o w l e d g e 함 수 구 현 . - [ ] r u n T i c k e t A r c h i v e 함 수 내 에 서 아 카 이 브 이 동 직 전 에 d i s t i l l K n o w l e d g e 호 출 하 도 록 통 합 . - [ ] . d e u k - a g e n t / k n o w l e d g e / 디 렉 토 리 자 동 생 성 로 직 추 가 . - [ ] c l i - t i c k e t - c o m m a n d s . m j s 및 c l i - u t i l s . m j s 전 수 조 사 후 데 드 코 드 ( 레 거 시 경 로 참 조 등 ) 제 거 . - [ ] 실 제 티 켓 아 카 이 브 테 스 트 및 J S O N 생 성 확 인 . # # D o n e W h e n - n p x d e u k - a g e n t - r u l e t i c k e t a r c h i v e - - l a t e s t 실 행 후 . d e u k - a g e n t / k n o w l e d g e / 경 로 에 해 당 티 켓 의 I D 를 이 름 으 로 하 는 J S O N 파 일 이 생 성 됨 . - J S O N 파 일 내 에 티 켓 의 주 요 섹 션 내 용 이 정 확 히 포 함 됨 .
+
+## Merged Legacy Document
 
 
-# 078-ticket-archive-knowledge-distillation
+### 078 test final evidence joy nucb plan
 
-> **[CAUTION FOR AI AGENTS]**
-> 1. Restrict all analysis, file creation, and modifications to the declared **Target Module** below.
-> 2. Read the files listed in **Context Files** before doing ANY code generation.
-> 3. DO NOT leak configuration, logic, or dependencies from other modules.
+# 계획: test-final-evidence
 
-## Target Module
-- **Target:** [Fill in the target module/submodule path]
-- **Context Files:** [List architecture docs or key files to read first]
+## 요약
+- 목적:
+- 범위:
+- 비범위:
 
-## Analysis & Constraints (Deep Review)
-- **Root Cause**: `ticket archive` 명령어가 단순히 파일을 `archive/` 디렉토리로 이동시키기만 하여, 티켓 본문에 포함된 핵심 의사결정(Design Decisions)이나 분석 결과가 구조화된 지식으로 남지 않음.
-- **Dead Code Audit**: 프로젝트가 V2로 마이그레이션되면서 `cli-ticket-commands.mjs` 및 `cli-utils.mjs` 내에 잔존하는 레거시 경로 참조(`.deuk-agent-templates` 등) 및 미사용 유틸리티 함수들을 식별함.
-- **Constraint 1 (Zero-Token)**: 지식 추출 시 LLM 호출을 배제하고 정규식 기반의 패턴 매칭만 사용함. (비용 및 속도 최적화)
-- **Constraint 2 (Non-Blocking)**: 동기 I/O 기반으로 작성하여 워크플로의 보틀넥이 되지 않도록 함.
-- **Constraint 3 (Persistence)**: 추출된 지식은 `.deuk-agent/knowledge/<ticket-id>.json` 파일로 저장하여 RAG 시스템이 즉시 인덱싱할 수 있게 함.
+## 현재 격차
+-
 
-## Strict Rules Check
-- [x] Dry, concise, technical tone.
-- [x] Reply in Korean 해요체.
-- [x] No external dependencies (use built-in Node.js modules).
+## 설계 결정
+-
 
-## Scope (In / Out)
-- **In**: `## Design Decisions`, `## Analysis & Constraints`, `## Tasks` 섹션 추출.
-- **In**: 추출된 데이터를 JSON 형식으로 `.deuk-agent/knowledge/`에 저장.
-- **In**: `cli-ticket-commands.mjs` 및 `cli-utils.mjs` 내의 데드코드 및 레거시 참조 제거.
-- **Out**: LLM을 통한 자동 요약 기능. (사용자의 명시적 요청 시 별도 명령어로 처리)
-- **Out**: 티켓 파일의 물리적 삭제 (기존 `archive` 로직에서 처리됨).
+## 구현 계획
+1.
 
-## Tasks
-- [ ] `scripts/cli-ticket-commands.mjs`에 `distillKnowledge` 함수 구현.
-- [ ] `runTicketArchive` 함수 내에서 아카이브 이동 직전에 `distillKnowledge` 호출하도록 통합.
-- [ ] `.deuk-agent/knowledge/` 디렉토리 자동 생성 로직 추가.
-- [ ] `cli-ticket-commands.mjs` 및 `cli-utils.mjs` 전수 조사 후 데드코드(레거시 경로 참조 등) 제거.
-- [ ] 실제 티켓 아카이브 테스트 및 JSON 생성 확인.
+## 검증 계획
+-
 
+## 리스크
+-
 
-## Done When
-- `npx deuk-agent-rule ticket archive --latest` 실행 후 `.deuk-agent/knowledge/` 경로에 해당 티켓의 ID를 이름으로 하는 JSON 파일이 생성됨.
-- JSON 파일 내에 티켓의 주요 섹션 내용이 정확히 포함됨.
+## 수용 기준
+-

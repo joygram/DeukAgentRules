@@ -1,6 +1,6 @@
 import { existsSync, readdirSync, readFileSync, statSync, mkdirSync, writeFileSync } from "fs";
 import { basename, dirname, join } from "path";
-import { 
+import {
   AGENT_ROOT_DIR, TICKET_SUBDIR, TICKET_INDEX_FILENAME, TICKET_LIST_FILENAME, TICKET_LIST_TEMPLATE_FILENAME,
   toPosixPath, toRepoRelativePath, makeEntryId, detectProjectFromBody, deriveTopicFromBaseName, normalizeTicketGroup,
   parseFrontMatter, stringifyFrontMatter, discoverAllWorkspaces, detectConsumerTicketDir,
@@ -9,52 +9,11 @@ import {
 import { readTicketIndexJson, writeTicketIndexJson } from "./cli-ticket-index.mjs";
 import ejs from "ejs";
 
-const DEFAULT_TICKET_LIST_TEMPLATE = `# Ticket List
+const BUNDLE_TICKET_LIST_TEMPLATE = join(new URL(".", import.meta.url).pathname, "..", "templates", TICKET_LIST_TEMPLATE_FILENAME);
 
-> Source index: \`<%= sourceIndex %>\`
-
-## Latest
-
-<% if (latest) { %>
-- [<%= latest.safeTitle %>](<%= latest.fileUri %>)
-- status: \`<%= latest.status %>\` / group: \`<%= latest.group %>\` / project: \`<%= latest.project %>\`
-<% } else { %>
-- No active ticket entries yet.
-<% } %>
-
-## Entries
-
-### 🚀 Active Tickets
-
-| # | Status | Pri | ID | Title | Group | Project | Created | Path |
-|---|---|---|---|---|---|---|---|---|
-<% if (activeRows.length > 0) { %>
-<% activeRows.forEach(row => { %>
-<%- row %>
-<% }) %>
-<% } else { %>
-| - | - | - | - | No active tickets | - | - | - | - |
-<% } %>
-
-### 📦 Archived Tickets
-
-| # | Status | Pri | ID | Title | Group | Project | Created | Path |
-|---|---|---|---|---|---|---|---|---|
-<% if (archivedRows.length > 0) { %>
-<% archivedRows.forEach(row => { %>
-<%- row %>
-<% }) %>
-<% } else { %>
-| - | - | - | - | No archived tickets | - | - | - | - |
-<% } %>
-
-## Commands
-
-\`\`\`bash
-<%= cmdList %>
-<%= cmdUseLatest %>
-\`\`\`
-`;
+function resolveTicketListTemplatePath() {
+  return BUNDLE_TICKET_LIST_TEMPLATE;
+}
 
 export function collectTicketMarkdownFiles(dir, out = []) {
   if (!existsSync(dir)) return out;
@@ -195,8 +154,7 @@ export function renderTicketListMarkdown(cwd, entries) {
   const latest = sorted.find(e => e.status !== "archived") || sorted[0] || null;
 
   const ticketDir = detectConsumerTicketDir(cwd, { createIfMissing: true });
-  const templatePath = join(ticketDir, TICKET_LIST_TEMPLATE_FILENAME);
-  const template = existsSync(templatePath) ? readFileSync(templatePath, "utf8") : DEFAULT_TICKET_LIST_TEMPLATE;
+  const template = readFileSync(resolveTicketListTemplatePath(cwd), "utf8");
 
   const sourceIndex = `${toRepoRelativePath(cwd, ticketDir)}/${TICKET_INDEX_FILENAME}`;
   
@@ -232,7 +190,8 @@ function renderLine(e, i, ticketDir, cwd) {
   const safeTitle = String(e.title || "").replace(/\|/g, '&#124;').replace(/(\n|\\n)+/g, ' ');
   const prio = e.priority || "P2";
   const safeId = String(e.id || "").replace(/\|/g, '&#124;');
-  return `| ${i + 1} | ${statusIcon}${e.status} | ${prio} | ${safeId} | ${safeTitle} | ${e.group} | ${e.project} | ${e.createdAt.split('T')[0]} | [open](${fileUri}) |`;
+  const phase = e.phase != null ? String(e.phase) : "-";
+  return `| ${i + 1} | ${phase} | ${statusIcon}${e.status} | ${prio} | ${safeId} | ${safeTitle} | ${e.group} | ${e.project} | ${e.createdAt.split('T')[0]} | [open](${fileUri}) |`;
 }
 
 export function writeTicketListFile(cwd, entries, opts = {}) {
@@ -282,6 +241,9 @@ export function updateTicketEntryStatus(cwd, opts = {}) {
   const entry = indexJson.entries[foundIndex];
   const newStatus = opts.status || "closed";
   entry.status = newStatus;
+  if (newStatus === "closed" || newStatus === "cancelled" || newStatus === "wontfix") {
+    entry.phase = 4;
+  }
   entry.updatedAt = new Date().toISOString();
   
   // Sync status back to .md frontmatter to prevent rebuild reversion
@@ -292,6 +254,9 @@ export function updateTicketEntryStatus(cwd, opts = {}) {
       const parsed = parseFrontMatter(body);
       if (parsed.meta.status !== newStatus) {
         parsed.meta.status = newStatus;
+        if (newStatus === "closed" || newStatus === "cancelled" || newStatus === "wontfix") {
+          parsed.meta.phase = 4;
+        }
         const newBody = stringifyFrontMatter(parsed.meta, parsed.content);
         writeFileSync(absPath, newBody, "utf8");
       }

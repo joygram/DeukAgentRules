@@ -1,8 +1,18 @@
 {
   "version": 1,
-  "updatedAt": "2026-05-03T06:11:31.914Z",
+  "updatedAt": "2026-05-03T07:06:49.489Z",
   "activeTicketId": "202-fix-legacy-ticket-layout-sync-joy-nucb",
   "entries": [
+    {
+      "id": "206-remove-analysisDoc-from-tickets-joy-nucb",
+      "title": "remove-analysisDoc-from-tickets",
+      "topic": "remove-analysisDoc-from-tickets",
+      "group": "sub",
+      "project": "global",
+      "createdAt": "2026-05-03T07:06:49.487Z",
+      "source": "ticket-create",
+      "status": "open"
+    },
     {
       "id": "205-codex-token-output-and-ticket-fa-joy-nucb",
       "title": "codex-token-output-and-ticket-fastpath",

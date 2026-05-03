@@ -1,6 +1,6 @@
 import { join, dirname, basename, relative } from "path";
 import { homedir } from "os";
-import { existsSync, readFileSync, writeFileSync, mkdirSync, copyFileSync, readdirSync, unlinkSync, rmSync, renameSync, statSync } from "fs";
+import { existsSync, readFileSync, writeFileSync, mkdirSync, copyFileSync, readdirSync, unlinkSync, rmSync, renameSync, statSync, cpSync } from "fs";
 
 import { ensureTicketDirAndGitignore } from "./cli-init-logic.mjs";
 import { normalizeTicketPaths } from "./cli-ticket-migration.mjs";
@@ -778,6 +778,147 @@ function buildCompactPlanFromLinkedPlan(ticketMeta, planRaw) {
   ].join("\n");
 }
 
+function normalizeStem(value) {
+  return String(value || "")
+    .toLowerCase()
+    .replace(/\.md$/i, "")
+    .replace(/[\u2000-\u206F\u2E00-\u2E7F'"`]/g, "")
+    .replace(/\s+/g, "-")
+    .replace(/-+/g, "-")
+    .replace(/^-+|-+$/g, "");
+}
+
+function splitTicketSeedFromId(ticketId) {
+  const seed = String(ticketId || "").trim();
+  if (!seed) return "";
+  const first = seed.split("-")[0];
+  return /^[0-9]+$/.test(first) ? first : seed;
+}
+
+function tokenizeWords(value) {
+  return uniqueStable(
+    String(value || "")
+      .toLowerCase()
+      .replace(/[\u2000-\u206F\u2E00-\u2E7F'"`]/g, "")
+      .split(/[^a-z0-9가-힣]+/u)
+  );
+}
+
+function uniqueStable(values) {
+  const seen = new Set();
+  const out = [];
+  for (const item of values) {
+    const value = String(item || "").trim().toLowerCase();
+    if (!value || seen.has(value)) continue;
+    seen.add(value);
+    out.push(value);
+  }
+  return out;
+}
+
+function extractPlanRelatedIds(meta = {}) {
+  const direct = [
+    meta.ticketId,
+    meta.ticket,
+    meta.ticket_ref,
+    meta.ticketRef,
+    meta.refTicket,
+    meta.referenceTicket,
+    meta.issue,
+    meta.task,
+  ];
+  const collect = [...direct];
+  for (const key of ["ticketIds", "links", "linkedTickets"]) {
+    const raw = meta[key];
+    if (Array.isArray(raw)) collect.push(...raw);
+  }
+  return uniqueStable(collect.filter(Boolean));
+}
+
+function listPlanFiles(docsRoot) {
+  const planRoots = [join(docsRoot, "plan"), join(docsRoot, "archive", "plan"), join(docsRoot, "archive", "plans")];
+  const files = [];
+  for (const root of planRoots) {
+    if (!existsSync(root)) continue;
+    files.push(...collectFilesRecursively(root));
+  }
+  const archiveRoot = join(docsRoot, "archive");
+  if (existsSync(archiveRoot)) {
+    files.push(
+      ...collectFilesRecursively(archiveRoot)
+        .filter((p) => /(?:^|[-_])(plan|report)\.md$/i.test(basename(p)))
+    );
+  }
+
+  return files
+    .filter((p) => p.endsWith(".md"))
+    .map((p) => ({
+      abs: p,
+      name: basename(p, ".md"),
+      stem: normalizeStem(basename(p)),
+      lower: basename(p, ".md").toLowerCase(),
+      title: tokenizeWords((parseFrontMatter(safeReadText(p)).meta || {}).title),
+      summary: tokenizeWords((parseFrontMatter(safeReadText(p)).meta || {}).summary),
+      idTokens: tokenizeWords((parseFrontMatter(safeReadText(p)).meta || {}).id),
+      relatedIds: extractPlanRelatedIds(parseFrontMatter(safeReadText(p)).meta || {}),
+    }));
+}
+
+function bestPlanMatchForTicket(ticketAbs, ticketMeta, planFiles) {
+  const ticketStem = normalizeStem(ticketMeta.id || basename(ticketAbs, ".md"));
+  const seed = splitTicketSeedFromId(ticketMeta.id || basename(ticketAbs, ".md"));
+  const ticketTokens = tokenizeWords(`${ticketMeta.id || ""} ${ticketMeta.title || ""} ${ticketMeta.summary || ""}`);
+  const directIds = extractPlanRelatedIds(ticketMeta);
+  const exactTicketName = ticketMeta.id || basename(ticketAbs, ".md");
+
+  if (directIds.length > 0) {
+    for (const targetId of directIds) {
+      const exact = planFiles.filter((p) => p.relatedIds.includes(targetId));
+      if (exact.length === 1) return exact[0];
+      if (exact.length > 1 && exact.some((p) => p.idTokens.includes(targetId))) {
+        return exact.find((p) => p.idTokens.includes(targetId));
+      }
+    }
+  }
+
+  const exact = planFiles.filter((p) => p.stem === ticketStem || p.stem.startsWith(`${ticketStem}-`));
+  if (exact.length === 1) return exact[0];
+  if (exact.length > 1) {
+    const suffixed = exact.filter((p) => /-(plan|task|report|summary|analysis|walkthrough|handoff)$/i.test(p.name));
+    if (suffixed.length === 1) return suffixed[0];
+  }
+
+  const idPrefixed = planFiles.filter((p) => p.lower.startsWith(`${seed.toLowerCase()}-`));
+  if (idPrefixed.length === 1) return idPrefixed[0];
+
+  const titleSeed = normalizeStem(ticketMeta.title || ticketMeta.summary || "");
+  if (titleSeed) {
+    const titleMatch = planFiles.filter((p) =>
+      p.name.toLowerCase().includes(titleSeed) || p.stem.startsWith(titleSeed)
+    );
+    if (titleMatch.length === 1) return titleMatch[0];
+  }
+
+  const directNameMatch = planFiles.filter((p) => p.name === exactTicketName || p.lower === exactTicketName.toLowerCase());
+  if (directNameMatch.length === 1) return directNameMatch[0];
+
+  if (ticketTokens.length) {
+    let best = null;
+    let bestScore = 0;
+    for (const p of planFiles) {
+      const planTokens = uniqueStable([...(p.title || []), ...(p.summary || []), ...(p.idTokens || []), ...tokenizeWords(p.name)]);
+      const score = ticketTokens.filter((token) => new Set(planTokens).has(token)).length;
+      if (score > bestScore) {
+        bestScore = score;
+        best = p;
+      }
+    }
+    if (bestScore >= 2) return best;
+  }
+
+  return null;
+}
+
 function insertCompactPlan(content, compactPlan) {
   if (/^## Compact Plan\s*$/im.test(content)) return content;
   if (/^## Tasks\s*$/im.test(content)) {
@@ -786,15 +927,185 @@ function insertCompactPlan(content, compactPlan) {
   return `${String(content || "").trimEnd()}\n\n${compactPlan}`;
 }
 
+function stripFrontMatterBlock(raw) {
+  return String(raw || "").replace(/^---\s*\n[\s\S]*?\n---\s*\n?/, "").trim();
+}
+
+function docTicketIdFromFile(fileAbs) {
+  const name = basename(fileAbs).replace(/\.[^.]+$/, "");
+  const match = name.match(/^(?:\d+-)?(\d{3})(?:-|$)/) || name.match(/^(\d{3})-/);
+  return match?.[1] || null;
+}
+
+function legacyDocSlug(fileAbs) {
+  return basename(fileAbs)
+    .replace(/\.[^.]+$/, "")
+    .toLowerCase()
+    .replace(/[^a-z0-9가-힣]+/gu, "-")
+    .replace(/^-+|-+$/g, "") || "legacy-doc";
+}
+
+function legacyDocTitle(fileAbs) {
+  return basename(fileAbs)
+    .replace(/\.[^.]+$/, "")
+    .replace(/[-_]+/g, " ")
+    .replace(/\s+/g, " ")
+    .trim();
+}
+
+function buildLegacyDocBody(fileAbs) {
+  const raw = safeReadText(fileAbs);
+  if (fileAbs.endsWith(".md")) return stripFrontMatterBlock(raw);
+  return ["```text", raw.trim(), "```"].join("\n");
+}
+
+function createLegacyDocTicket(ticketAbs, id, title, sourceAbs, dryRun) {
+  if (existsSync(ticketAbs)) return false;
+  const sourceMeta = parseFrontMatter(safeReadText(sourceAbs)).meta || {};
+  const summary = String(sourceMeta.summary || title).replace(/\n/g, " ").replace(/:/g, "-");
+  const createdAt = sourceMeta.createdAt || new Date().toISOString().slice(0, 19).replace("T", " ");
+  const body = [
+    "---",
+    `summary: ${summary}`,
+    "status: archived",
+    "priority: P3",
+    "tags: migrated",
+    `id: ${id}`,
+    `title: ${title}`,
+    `createdAt: ${createdAt}`,
+    "---",
+    "",
+    `# ${title}`,
+    "",
+    "> Legacy separated docs are merged here so this ticket is the single source of truth.",
+    "",
+    "## Scope & Constraints",
+    "",
+    "- **Target:** migrated legacy work record.",
+    "- **Context Files:** merged legacy content below.",
+    "- **Constraints:** preserve historical content without keeping separate docs files.",
+    "- **Lifecycle Guard:** this ticket is the canonical record.",
+    "",
+    "## Agent Permission Contract (APC)",
+    "",
+    "### [BOUNDARY]",
+    "- Editable modules: historical ticket record only.",
+    "- Forbidden modules: product/source changes from this migration.",
+    "- Rule citation: local project rules if present.",
+    "",
+    "### [CONTRACT]",
+    "- Input: separated legacy docs files.",
+    "- Output: one canonical ticket containing merged legacy content.",
+    "- Side effects: legacy docs files removed after merge.",
+    "",
+    "### [PATCH PLAN]",
+    "- Merge separated docs into this ticket.",
+    "- Remove source docs after merge.",
+    "",
+    "## Compact Plan",
+    "",
+    "- **Problem:** this work item existed as separated docs outside the ticket.",
+    "- **Approach:** merge the legacy content below and keep this ticket as canonical.",
+    "- **Verification:** confirm the source docs files are removed and this ticket remains.",
+    "- **Linked Issues:** none.",
+    "",
+    "## Tasks",
+    "",
+    "- [x] Merge separated docs content into this ticket.",
+    "- [x] Remove separated docs files.",
+    "",
+    "## Done When",
+    "",
+    "- This ticket contains the merged content.",
+    "- Separate docs files are removed.",
+    ""
+  ].join("\n");
+  if (!dryRun) {
+    mkdirSync(dirname(ticketAbs), { recursive: true });
+    writeFileSync(ticketAbs, body, "utf8");
+  }
+  return true;
+}
+
+function mergeDocIntoTicket(ticketAbs, docAbs, dryRun) {
+  const body = buildLegacyDocBody(docAbs);
+  if (!body) return false;
+
+  const title = legacyDocTitle(docAbs);
+  const section = [
+    "",
+    "## Merged Legacy Document",
+    "",
+    `### ${title}`,
+    "",
+    body,
+    ""
+  ].join("\n");
+  const ticketRaw = safeReadText(ticketAbs).trimEnd();
+  if (!dryRun) {
+    writeFileSync(ticketAbs, `${ticketRaw}${section}`, "utf8");
+    unlinkSync(docAbs);
+  }
+  return true;
+}
+
+function mergeSeparatedDocsIntoTickets(cwd, dryRun) {
+  const docsRoot = join(cwd, AGENT_ROOT_DIR, "docs");
+  const ticketDir = join(cwd, AGENT_ROOT_DIR, TICKET_SUBDIR);
+  if (!existsSync(docsRoot)) return 0;
+
+  const ticketFiles = collectMarkdownFilesRecursively(ticketDir)
+    .filter((p) => basename(p) !== TICKET_LIST_FILENAME);
+  const ticketsById = new Map();
+  for (const ticketAbs of ticketFiles) {
+    const id = docTicketIdFromFile(ticketAbs);
+    if (!id) continue;
+    if (!ticketsById.has(id)) ticketsById.set(id, []);
+    ticketsById.get(id).push(ticketAbs);
+  }
+
+  let merged = 0;
+  let created = 0;
+  for (const docAbs of collectFilesRecursively(docsRoot)) {
+    const id = docTicketIdFromFile(docAbs);
+    let ticketAbs = null;
+    if (id && ticketsById.has(id)) {
+      const candidates = ticketsById.get(id);
+      ticketAbs = candidates.find((p) => p.includes(`${TICKET_SUBDIR}/sub/`)) || candidates[0];
+    }
+
+    if (!ticketAbs) {
+      const slug = legacyDocSlug(docAbs);
+      const ticketId = id || slug;
+      ticketAbs = join(ticketDir, "archive", "sub", "legacy-docs", `${ticketId}.md`);
+      if (createLegacyDocTicket(ticketAbs, ticketId, slug, docAbs, dryRun)) created++;
+      if (id) {
+        if (!ticketsById.has(id)) ticketsById.set(id, []);
+        ticketsById.get(id).push(ticketAbs);
+      }
+    }
+
+    if (mergeDocIntoTicket(ticketAbs, docAbs, dryRun)) merged++;
+  }
+
+  if (!dryRun) rmSync(docsRoot, { recursive: true, force: true });
+  if (merged > 0 || created > 0) {
+    console.log(`[MIGRATE] separated docs merged into tickets: merged=${merged}, created=${created}`);
+  }
+  return merged;
+}
+
 export function migratePlanLinksIntoTickets(cwd, dryRun) {
   const ticketDir = join(cwd, AGENT_ROOT_DIR, TICKET_SUBDIR);
   if (!existsSync(ticketDir)) return 0;
+  const planFiles = listPlanFiles(join(cwd, AGENT_ROOT_DIR, "docs"));
+  if (planFiles.length === 0) return 0;
 
   let migrated = 0;
+  let linkedMigrated = 0;
+  let heuristicMigrated = 0;
   for (const ticketAbs of collectMarkdownFilesRecursively(ticketDir)) {
     const raw = safeReadText(ticketAbs);
-    if (!raw.includes("planLink:")) continue;
-
     let parsed;
     try {
       parsed = parseFrontMatter(raw);
@@ -802,12 +1113,22 @@ export function migratePlanLinksIntoTickets(cwd, dryRun) {
       continue;
     }
 
-    const planLink = parsed.meta.planLink;
-    if (!planLink) continue;
+    let planAbs = null;
+    let isLinked = false;
+    if (raw.includes("planLink:")) {
+      const planLink = parsed.meta.planLink;
+      if (planLink) {
+        planAbs = join(cwd, planLink);
+        isLinked = true;
+      }
+    } else {
+      const match = bestPlanMatchForTicket(ticketAbs, parsed.meta || {}, planFiles);
+      if (match) planAbs = match.abs;
+    }
+    if (!planAbs) continue;
 
-    const planAbs = join(cwd, planLink);
     const nextMeta = { ...parsed.meta };
-    delete nextMeta.planLink;
+    if (nextMeta.planLink) delete nextMeta.planLink;
 
     let nextContent = parsed.content;
     if (existsSync(planAbs)) {
@@ -820,10 +1141,20 @@ export function migratePlanLinksIntoTickets(cwd, dryRun) {
     if (existsSync(planAbs)) {
       const archiveAbs = join(cwd, AGENT_ROOT_DIR, "docs", "archive", "planlink-migrated", basename(planAbs));
       moveOrMergeFile(planAbs, archiveAbs, cwd, dryRun, "planLink consolidation");
+      if (!dryRun && existsSync(archiveAbs)) {
+        unlinkSync(archiveAbs);
+        console.log(`[MIGRATE] Removed archived plan after merge: ${toRepoRelativePath(cwd, archiveAbs)}`);
+      }
     }
 
     migrated++;
-    console.log(`[MIGRATE] Consolidated planLink into ticket: ${toRepoRelativePath(cwd, ticketAbs)}`);
+    if (isLinked) linkedMigrated++;
+    else heuristicMigrated++;
+      console.log(`[MIGRATE] Consolidated ${isLinked ? "linked" : "heuristic"} plan into ticket: ${toRepoRelativePath(cwd, ticketAbs)}`);
+  }
+
+  if (migrated > 0) {
+    console.log(`[MIGRATE] plan consolidation summary: linked=${linkedMigrated}, heuristic=${heuristicMigrated}`);
   }
 
   return migrated;
@@ -959,14 +1290,24 @@ function migrateHtmlMarkersToHeadings(cwd, dryRun) {
 
 function syncTemplates(cwd, bundleRoot, dryRun) {
   const tplDestDir = join(cwd, AGENT_ROOT_DIR, TEMPLATE_SUBDIR);
-  if (!existsSync(tplDestDir)) return;
+  const tplSourceDir = join(bundleRoot, "templates");
+  if (!existsSync(tplSourceDir)) return;
 
-  // SSOT: the bundle's templates/ is the single source of truth.
-  // Local .deuk-agent/templates/ copies are always redundant.
-  if (!dryRun) {
-    rmSync(tplDestDir, { recursive: true, force: true });
+  if (!existsSync(tplDestDir) && !dryRun) {
+    mkdirSync(tplDestDir, { recursive: true });
   }
-  console.log(`[CLEANUP] removed redundant templates directory: ${toRepoRelativePath(cwd, tplDestDir)}`);
+
+  if (!dryRun) {
+    for (const entry of readdirSync(tplSourceDir, { withFileTypes: true })) {
+      if (!entry.isFile()) continue;
+      const source = join(tplSourceDir, entry.name);
+      const target = join(tplDestDir, entry.name);
+      cpSync(source, target);
+    }
+    console.log(`[SYNC] templates synced to ${toRepoRelativePath(cwd, tplDestDir)}`);
+    return;
+  }
+  console.log(`[SYNC] templates synced to ${toRepoRelativePath(cwd, tplDestDir)} (dry-run mode)`);
 }
 
 /**
@@ -1244,6 +1585,7 @@ async function initSingleWorkspace(subCwd, opts, bundleRoot, selectedTools) {
   canonicalizeDocsArchiveBuckets(subCwd, opts.dryRun);
   enforceCanonicalAgentLayout(subCwd, opts.dryRun);
   migratePlanLinksIntoTickets(subCwd, opts.dryRun);
+  mergeSeparatedDocsIntoTickets(subCwd, opts.dryRun);
 
   // 3. Spoke Pointers (e.g. .cursor/rules/deuk-agent.mdc)
   removeDuplicateRuleCopies(subCwd, opts.dryRun);

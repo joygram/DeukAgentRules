@@ -1,94 +1,47 @@
----
-createdAt: 2026-04-24 01:36:33
-id: 064-readme-concept-structure-princip-joy-nucb
-priority: P2
-project: DeukAgentRules
-status: open
-submodule: DeukAgentRules
-summary: "Target Submodule: DeukAgentRules - publish/templates/TICKETTEMPLATE.md
-  - README.md: add concept expansion, document map, and direct links to the
-  detailed docs."
-tags: rag, mcp, tickets, testing
-title: readme-concept-structure-principles-docs
----
+ - - - c r e a t e d A t : 2 0 2 6 - 0 4 - 2 4 0 1 : 3 6 : 3 3 i d : 0 6 4 - r e a d m e - c o n c e p t - s t r u c t u r e - p r i n c i p - j o y - n u c b p r i o r i t y : P 2 p r o j e c t : D e u k A g e n t R u l e s s t a t u s : o p e n s u b m o d u l e : D e u k A g e n t R u l e s s u m m a r y : " T a r g e t S u b m o d u l e : D e u k A g e n t R u l e s - p u b l i s h / t e m p l a t e s / T I C K E T T E M P L A T E . m d - R E A D M E . m d : a d d c o n c e p t e x p a n s i o n , d o c u m e n t m a p , a n d d i r e c t l i n k s t o t h e d e t a i l e d d o c s . " t a g s : r a g , m c p , t i c k e t s , t e s t i n g t i t l e : r e a d m e - c o n c e p t - s t r u c t u r e - p r i n c i p l e s - d o c s - - - # [ E x e c u t i o n ] T a s k : r e a d m e - c o n c e p t - s t r u c t u r e - p r i n c i p l e s - d o c s | I D : 0 6 4 - r e a d m e - c o n c e p t - s t r u c t u r e - p r i n c i p - j o y - n u c b > * * [ C A U T I O N F O R A I A G E N T S ] * * > Y o u a r e o p e r a t i n g w i t h i n a l o c k e d m u l t i - m o d u l e m o n o r e p o . > 1 . R e s t r i c t a b s o l u t e l y a l l a n a l y s i s , f i l e c r e a t i o n , a n d m o d i f i c a t i o n s t o t h e d e c l a r e d * * [ T a r g e t S u b m o d u l e ] * * b e l o w . > 2 . R e a d t h e f i l e s l i s t e d i n * * [ C o n t e x t F i l e s ] * * b e f o r e d o i n g A N Y c o d e g e n e r a t i o n . > 3 . D O N O T l e a k c o n f i g u r a t i o n , l o g i c , o r d e p e n d e n c i e s f r o m o t h e r s u b m o d u l e s . # # � � S c o p e B o u n d s - * * T a r g e t S u b m o d u l e : * * D e u k A g e n t R u l e s - * * C o n t e x t F i l e s : * * - R E A D M E . m d - R E A D M E . k o . m d - A G E N T S . m d - g e m i n i . m d - p u b l i s h / t e m p l a t e s / T I C K E T _ T E M P L A T E . m d # # � � F i l e s t o M o d i f y - R E A D M E . m d : a d d c o n c e p t e x p a n s i o n , d o c u m e n t m a p , a n d d i r e c t l i n k s t o t h e d e t a i l e d d o c s . - R E A D M E . k o . m d : a d d t h e s a m e c o n c e p t e x p a n s i o n i n K o r e a n a n d m i r r o r t h e d e t a i l e d d o c l i n k s . - d o c s / h o w - i t - w o r k s . m d : a d d t h e d e t a i l e d s t r u c t u r e e x p l a n a t i o n f o r t h e t i c k e t w o r k f l o w a n d r u l e l a y o u t . - d o c s / h o w - i t - w o r k s . k o . m d : a d d t h e K o r e a n m i r r o r o f t h e d e t a i l e d s t r u c t u r e e x p l a n a t i o n . - d o c s / p r i n c i p l e s . m d : a d d t h e o p e r a t i n g p r i n c i p l e s a n d w h y t h e w o r k f l o w i s s t r u c t u r e d t h i s w a y . - d o c s / p r i n c i p l e s . k o . m d : a d d t h e K o r e a n m i r r o r o f t h e o p e r a t i n g p r i n c i p l e s . # # � � ️ D e s i g n D e c i s i o n s ( R e f e r t o P l a n ) - R E A D M E s t a y s s h o r t a n d n a v i g a t i o n a l . - D e t a i l e d b e h a v i o r m o v e s i n t o s t a n d a l o n e d o c s s o t h e R E A D M E b e c o m e s a c o n c e p t e n t r y p o i n t r a t h e r t h a n t h e o n l y s o u r c e o f t r u t h . - E n g l i s h a n d K o r e a n d o c s a r e k e p t i n s y n c b e c a u s e t h i s r e p o s h i p s b i l i n g u a l u s e r - f a c i n g d o c u m e n t a t i o n . # # � � S t r i c t C o n s t r a i n t s ( R u l e s t o n e v e r b r e a k ) - P r e s e r v e e x i s t i n g R E A D M E s t r u c t u r e a n d t o n e . - K e e p t h e n e w d o c s a l i g n e d w i t h t h e a l r e a d y e n f o r c e d t i c k e t / a p p r o v a l w o r k f l o w . - D o n o t m o d i f y O S S m i r r o r f i l e s f o r t h i s d o c u m e n t a t i o n t a s k . # # � � P h a s e d E x e c u t i o n S t e p s > A g e n t : D o N O T a t t e m p t t o d o P h a s e 3 b e f o r e P h a s e 1 i s f u l l y t e s t e d . 0 . [ P h a s e 0 > R A G R e s e a r c h ( M C P ) ] - [ x ] m c p _ d e u k r a g _ s e a r c h _ r u l e s 기 반 규 약 검 토 완 료 - [ x ] m c p _ d e u k r a g _ s e a r c h _ t i c k e t s 과 거 유 사 티 켓 이 력 열 람 완 료 - [ x ] ( 필 수 작 성 ) 검 색 된 핵 심 컨 텍 스 트 요 약 : - R E A D M E a l r e a d y c o v e r s w o r k f l o w b a s i c s , b u t i t d o e s n o t y e t e x p o s e a c o m p a c t c o n c e p t m a p o r d i r e c t l i n k s t o d e t a i l e d s t r u c t u r e / p r i n c i p l e d o c s . - E x i s t i n g t i c k e t s a n d r e p o r t s s h o w a p a t t e r n o f k e e p i n g r u n t i m e g a t e s d o c u m e n t e d a l o n g s i d e t h e w o r k f l o w , w h i c h s u p p o r t s a s e p a r a t e p r i n c i p l e s d o c r a t h e r t h a n o v e r l o a d i n g t h e R E A D M E . - T h e r e p o i s b i l i n g u a l , s o t h e d o c s s e t s h o u l d b e m i r r o r e d i n E n g l i s h a n d K o r e a n . - [ x ] ( R A G M i s s 시 필 수 작 성 ) 로 컬 검 색 결 과 m c p _ d e u k r a g _ a d d _ k n o w l e d g e 도 구 로 즉 시 주 입 완 료 여 부 및 주 입 된 파 일 목 록 : - N o t n e e d e d . T h e r e l e v a n t c o n t e x t w a s f o u n d l o c a l l y a n d t h r o u g h D e u k R a g s e a r c h . 0 . 5 [ P h a s e 0 . 5 > D e e p A n a l y s i s ( O p t i o n a l ) ] - [ ] 복 잡 한 아 키 텍 처 변 경 시 별 도 분 석 아 티 팩 트 작 성 및 승 인 완 료 1 . [ P h a s e 1 > S e t u p / P a r s i n g ] - [ x ] R E A D M E e x p a n s i o n s c o p e l o c k e d - [ x ] d e t a i l - d o c f i l e l a y o u t c o n f i r m e d 2 . [ P h a s e 2 > C o r e L o g i c C h a n g e ] - [ x ] ( C O N T I N U O U S R A G ) m a r k d o w n s e c t i o n s a n d l i n k s u p d a t e d w i t h o u t b r e a k i n g e x i s t i n g n a v i g a t i o n - [ x ] d e t a i l e d d o c s a d d e d a n d c r o s s - l i n k e d f r o m b o t h R E A D M E s 3 . [ P h a s e 3 > C l e a n u p / V e r i f i c a t i o n ] - [ x ] R E A D M E l i n k t a r g e t s r e s o l v e - [ x ] b i l i n g u a l d o c s a r e a l i g n e d - [ ] * * P o t e n t i a l I s s u e T a b l e * * : | 이 슈 | 심 각 도 | 설 명 | 조 치 계 획 | | - - - | - - - | - - - | - - - | | 없 음 | 낮 음 | R E A D M E 와 상 세 문 서 가 같 은 구 조 를 공 유 함 | 후 속 조 치 없 음 | 4 . [ P h a s e 4 > F o l l o w - u p C h a i n i n g ( M A N D A T O R Y i f i s s u e s e x i s t ) ] - [ ] 위 표 에 서 즉 시 해 결 불 가 능 한 항 목 에 대 해 별 도 티 켓 발 행 완 료 > C L I C o m m a n d E x a m p l e : d e u k - a g e n t - r u l e t i c k e t c r e a t e - - t o p i c 0 4 8 - F 1 - f i x - i s s u e - - c h a i n - - g r o u p < g r o u p > - [ ] ( 필 수 작 성 ) 발 행 된 후 속 티 켓 번 호 리 스 트 : # # ✅ V e r i f i c a t i o n / Q A - [ x ] * * D e e p A n a l y s i s V e r i f i c a t i o n * * : R E A D M E , d e t a i l e d s t r u c t u r e d o c s , a n d p r i n c i p l e d o c s a l l p r e s e n t t h e s a m e w o r k f l o w m o d e l . - [ x ] * * P o t e n t i a l I s s u e s C h e c k * * : [ I d e n t i f y s i d e e f f e c t s , e d g e c a s e s , o r p e r f o r m a n c e i m p a c t s ] - [ x ] * * S t r i c t C o n s t r a i n t s A u d i t * * : [ N o h o t p a t h L I N Q , A s y n c S a f e t y , N o R a w P o i n t e r s , e t c . ] - [ x ] g i t d i f f - - c h e c k 검 증 결 과 확 인 # # A g e n t P e r m i s s i o n C o n t r a c t ( A P C ) # # # [ B O U N D A R Y ] - E d i t a b l e m o d u l e s : t h i s t i c k e t t a r g e t m o d u l e s # # # [ C O N T R A C T ] - I n p u t : t a s k c o n t e x t i n t h i s t i c k e t . - O u t p u t : s c o p e d i m p l e m e n t a t i o n a n d v a l i d a t i o n . - S i d e e f f e c t s : u p d a t e s o n l y i n t a r g e t m o d u l e ( s ) . # # # [ P A T C H P L A N ] - I m p l e m e n t c h a n g e s i n t a r g e t m o d u l e s o n l y . - U p d a t e v e r i f i c a t i o n e v i d e n c e i n t h i s t i c k e t . # # C o m p a c t P l a n - * * P r o b l e m : * * f r o m l e g a c y p l a n - * * A p p r o a c h : * * [ F i l l d u r i n g e x e c u t i o n ] - * * V e r i f i c a t i o n : * * [ A d d r e l e v a n t c h e c k s ] - * * L i n k e d I s s u e s : * * [ U s e t i c k e t - l e v e l l i n k s o n l y ]
+
+## Merged Legacy Document
 
 
-# [Execution] Task: readme-concept-structure-principles-docs | ID: 064-readme-concept-structure-princip-joy-nucb
+### 064 readme concept structure princip joy nucb plan
 
-> **[CAUTION FOR AI AGENTS]**
-> You are operating within a locked multi-module monorepo.
-> 1. Restrict absolutely all analysis, file creation, and modifications to the declared **[Target Submodule]** below.
-> 2. Read the files listed in **[Context Files]** before doing ANY code generation.
-> 3. DO NOT leak configuration, logic, or dependencies from other submodules.
+# Plan: readme-concept-structure-principles-docs
 
-## 🎯 Scope Bounds
-- **Target Submodule:** `DeukAgentRules`
-- **Context Files:**
-  - `README.md`
-  - `README.ko.md`
-  - `AGENTS.md`
-  - `gemini.md`
-  - `publish/templates/TICKET_TEMPLATE.md`
+## Summary
+- 목적: README에 개념 계층을 추가하고, 상세 구조 설명 문서와 원리 문서를 분리하여 문서 탐색성을 높입니다.
+- 범위: `README.md`, `README.ko.md`, `docs/how-it-works.md`, `docs/how-it-works.ko.md`, `docs/principles.md`, `docs/principles.ko.md`
+- 비범위: CLI behavior changes, ticket format changes, OSS mirror modifications
 
-## 📁 Files to Modify
-- `README.md`: add concept expansion, document map, and direct links to the detailed docs.
-- `README.ko.md`: add the same concept expansion in Korean and mirror the detailed doc links.
-- `docs/how-it-works.md`: add the detailed structure explanation for the ticket workflow and rule layout.
-- `docs/how-it-works.ko.md`: add the Korean mirror of the detailed structure explanation.
-- `docs/principles.md`: add the operating principles and why the workflow is structured this way.
-- `docs/principles.ko.md`: add the Korean mirror of the operating principles.
+## Current Gaps
+- README는 워크플로우 요약은 있지만, "이 도구가 무엇을 추상화하는지"에 대한 개념 지도가 약합니다.
+- 상세 구조와 원리 설명이 README 본문에 흩어져 있어, 처음 보는 사용자가 흐름과 근거를 분리해서 보기 어렵습니다.
+- 국문/영문 설명이 분리된 상태에서 링크 표준이 없습니다.
 
-## 🏗️ Design Decisions (Refer to Plan)
-- **Plan Reference**: [064-readme-concept-structure-princip-joy-nucb-plan.md](file:///home/joy/workspace/i/DeukAgentRules/.deuk-agent/docs/plans/064-readme-concept-structure-princip-joy-nucb-plan.md)
-- **Plan Path Rule**: `.deuk-agent/docs/plans/<ticket-id>-plan.md`
-- README stays short and navigational.
-- Detailed behavior moves into standalone docs so the README becomes a concept entrypoint rather than the only source of truth.
-- English and Korean docs are kept in sync because this repo ships bilingual user-facing documentation.
+## Design Decisions
+- README는 짧은 개념 진입점으로 유지합니다.
+- 상세 구조 설명은 `docs/how-it-works*.md`로 분리합니다.
+- 동작 원리와 설계 이유는 `docs/principles*.md`로 분리합니다.
+- 영문과 국문 문서는 같은 정보 구조를 유지합니다.
 
-## 🛑 Strict Constraints (Rules to never break)
-- Preserve existing README structure and tone.
-- Keep the new docs aligned with the already enforced ticket/approval workflow.
-- Do not modify OSS mirror files for this documentation task.
+## Implementation Plan
+1. README에 concept expansion 섹션과 상세 문서 링크를 추가합니다.
+2. README.ko.md에도 동일한 구조의 개념 확장과 링크를 추가합니다.
+3. `docs/how-it-works.md`와 `docs/how-it-works.ko.md`를 작성합니다.
+4. `docs/principles.md`와 `docs/principles.ko.md`를 작성합니다.
+5. 링크 일관성과 문서 구조를 검증합니다.
 
-## 🔄 Phased Execution Steps
-> Agent: Do NOT attempt to do Phase 3 before Phase 1 is fully tested.
+## Verification Plan
+- README에서 상세 문서로의 링크가 끊기지 않는지 확인합니다.
+- 영문과 국문 문서가 동일한 섹션 구조를 가지는지 확인합니다.
+- 문서 간 용어가 일관되는지 수동 검토합니다.
 
-0. [Phase 0> RAG Research (MCP)]
-   - [x] `mcp_deukrag_search_rules` 기반 규약 검토 완료
-   - [x] `mcp_deukrag_search_tickets` 과거 유사 티켓 이력 열람 완료
-   - [x] (필수 작성) 검색된 핵심 컨텍스트 요약:
-     - README already covers workflow basics, but it does not yet expose a compact concept map or direct links to detailed structure/principle docs.
-     - Existing tickets and reports show a pattern of keeping runtime gates documented alongside the workflow, which supports a separate principles doc rather than overloading the README.
-     - The repo is bilingual, so the docs set should be mirrored in English and Korean.
-   - [x] (RAG Miss 시 필수 작성) 로컬 검색 결과 `mcp_deukrag_add_knowledge` 도구로 즉시 주입 완료 여부 및 주입된 파일 목록:
-     - Not needed. The relevant context was found locally and through DeukRag search.
+## Risks
+- README가 길어지면 첫 화면 가독성이 떨어질 수 있습니다.
+- 영문/국문 문서가 분기되면서 수정 누락이 생길 수 있습니다.
+- 신규 docs 디렉터리가 추가되므로 링크 경로를 잘못 잡으면 탐색성이 떨어질 수 있습니다.
 
-0.5 [Phase 0.5> Deep Analysis (Optional)]
-   - [ ] 복잡한 아키텍처 변경 시 별도 분석 아티팩트 작성 및 승인 완료
-
-1. [Phase 1> Setup / Parsing]
-   - [x] README expansion scope locked
-   - [x] detail-doc file layout confirmed
-
-2. [Phase 2> Core Logic Change]
-   - [x] (CONTINUOUS RAG) markdown sections and links updated without breaking existing navigation
-   - [x] detailed docs added and cross-linked from both READMEs
-
-3. [Phase 3> Cleanup / Verification]
-   - [x] README link targets resolve
-   - [x] bilingual docs are aligned
-   - [ ] **Potential Issue Table**:
-     | 이슈 | 심각도 | 설명 | 조치 계획 |
-     |---|---|---|---|
-     | 없음 | 낮음 | README와 상세 문서가 같은 구조를 공유함 | 후속 조치 없음 |
-
-4. [Phase 4> Follow-up Chaining (MANDATORY if issues exist)]
-   - [ ] 위 표에서 즉시 해결 불가능한 항목에 대해 별도 티켓 발행 완료
-     > CLI Command Example: `deuk-agent-rule ticket create --topic 048-F1-fix-issue --chain --group <group>`
-   - [ ] (필수 작성) 발행된 후속 티켓 번호 리스트:
-
-## ✅ Verification / QA
-- [x] **Deep Analysis Verification**: README, detailed structure docs, and principle docs all present the same workflow model.
-- [x] **Potential Issues Check**: [Identify side effects, edge cases, or performance impacts]
-- [x] **Strict Constraints Audit**: [No hotpath LINQ, Async Safety, No Raw Pointers, etc.]
-- [x] `git diff --check` 검증 결과 확인
+## Acceptance Criteria
+- README 양쪽에 개념 확장 섹션이 추가됩니다.
+- 구조 설명 문서와 원리 문서가 생성됩니다.
+- README에서 해당 문서로 바로 이동할 수 있습니다.
+- 영문/국문 문서가 같은 의미 구조를 유지합니다.

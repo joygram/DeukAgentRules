@@ -1,81 +1,31 @@
----
-createdAt: 2026-04-25 09:30:40
-id: 077-test-evidence-gate-joy-nucb
-priority: P2
-status: open
-summary: "Target: [Fill in the target module/submodule path] - Context Files:
-  [List architecture docs or key files to read first] - Target Submodule: [예:
-  DeukUI | DeukPack | DeukNavigation]"
-tags: rag, mcp, tickets, architecture, performance
-title: test-evidence-gate
----
+ - - - c r e a t e d A t : 2 0 2 6 - 0 4 - 2 5 0 9 : 3 0 : 4 0 i d : 0 7 7 - t e s t - e v i d e n c e - g a t e - j o y - n u c b p r i o r i t y : P 2 s t a t u s : o p e n s u m m a r y : " T a r g e t : [ F i l l i n t h e t a r g e t m o d u l e / s u b m o d u l e p a t h ] - C o n t e x t F i l e s : [ L i s t a r c h i t e c t u r e d o c s o r k e y f i l e s t o r e a d f i r s t ] - T a r g e t S u b m o d u l e : [ 예 : D e u k U I | D e u k P a c k | D e u k N a v i g a t i o n ] " t a g s : r a g , m c p , t i c k e t s , a r c h i t e c t u r e , p e r f o r m a n c e t i t l e : t e s t - e v i d e n c e - g a t e - - - # [ 실 행 ] 작 업 : t e s t - e v i d e n c e - g a t e | I D : 0 7 7 - t e s t - e v i d e n c e - g a t e - j o y - n u c b > * * [ C A U T I O N F O R A I A G E N T S ] * * > 1 . R e s t r i c t a l l a n a l y s i s , f i l e c r e a t i o n , a n d m o d i f i c a t i o n s t o t h e d e c l a r e d * * T a r g e t M o d u l e * * b e l o w . > 2 . R e a d t h e f i l e s l i s t e d i n * * C o n t e x t F i l e s * * b e f o r e d o i n g A N Y c o d e g e n e r a t i o n . > 3 . D O N O T l e a k c o n f i g u r a t i o n , l o g i c , o r d e p e n d e n c i e s f r o m o t h e r m o d u l e s . # # T a r g e t M o d u l e - * * T a r g e t : * * [ F i l l i n t h e t a r g e t m o d u l e / s u b m o d u l e p a t h ] - * * C o n t e x t F i l e s : * * [ L i s t a r c h i t e c t u r e d o c s o r k e y f i l e s t o r e a d f i r s t ] > * * [ 에 이 전 트 주 의 ] * * > 이 작 업 은 잠 긴 멀 티 모 듈 모 노 레 포 안 에 서 진 행 돼 요 . > 1 . 아 래 의 * * [ T a r g e t S u b m o d u l e ] * * 밖 으 로 분 석 , 파 일 생 성 , 수 정 범 위 를 넓 히 지 마 세 요 . > 2 . 코 드 생 성 전 에 * * [ C o n t e x t F i l e s ] * * 를 먼 저 읽 으 세 요 . > 3 . 다 른 서 브 모 듈 의 설 정 , 로 직 , 의 존 성 을 섞 어 쓰 지 마 세 요 . # # � � 범 위 - * * T a r g e t S u b m o d u l e : * * [ 예 : D e u k U I | D e u k P a c k | D e u k N a v i g a t i o n ] - * * C o n t e x t F i l e s : * * - [ 예 : D e u k A g e n t R u l e s / t e m p l a t e s / M O D U L E _ R U L E _ T E M P L A T E . m d ] - [ 예 : p a t h / t o / y o u r / s p e c i f i c / r u l e s . m d ] # # � � 수 정 파 일 - p a t h / f r o m / r o o t / t o / t a r g e t 1 : [ 무 엇 을 수 정 하 는 지 구 체 적 으 로 적 으 세 요 . ] # # � � ️ 설 계 결 정 사 항 - [ 필 요 한 핵 심 결 정 을 간 단 히 적 으 세 요 ] # # � � 엄 격 제 약 - [ 예 : N o h o t p a t h L I N Q , A s y n c S a f e t y , N o R a w P o i n t e r s ] # # � � 단 계 별 실 행 > A g e n t : P h a s e 3 전 에 P h a s e 1 이 완 전 히 검 증 되 기 전 까 지 는 진 행 하 지 마 세 요 . 0 . [ P h a s e 0 > R A G 조 사 ( M C P ) ] - [ ] m c p _ d e u k r a g _ s e a r c h _ r u l e s 기 반 규 약 검 토 완 료 - [ ] m c p _ d e u k r a g _ s e a r c h _ t i c k e t s 과 거 유 사 티 켓 이 력 열 람 완 료 - [ ] ( 필 수 작 성 ) 검 색 된 핵 심 컨 텍 스 트 요 약 : - [ ] ( R A G M i s s 시 필 수 작 성 ) 로 컬 검 색 결 과 m c p _ d e u k r a g _ a d d _ k n o w l e d g e 도 구 로 즉 시 주 입 완 료 여 부 및 주 입 된 파 일 목 록 : 0 . 5 [ P h a s e 0 . 5 > 심 층 분 석 ( 선 택 ) ] - [ ] 복 잡 한 아 키 텍 처 변 경 시 별 도 분 석 아 티 팩 트 작 성 및 승 인 완 료 1 . [ P h a s e 1 > 준 비 / 파 싱 ] 2 . [ P h a s e 2 > 핵 심 로 직 변 경 ] - [ ] ( C O N T I N U O U S R A G ) 새 로 운 함 수 / 클 래 스 수 정 전 m c p _ d e u k r a g _ s e a r c h _ c o d e 및 s e a r c h _ r u l e s 로 관 련 패 턴 수 시 검 색 3 . [ P h a s e 3 > 정 리 / 검 증 ] - [ ] ( V E R I F Y R A G ) 디 버 깅 및 에 러 발 생 시 로 그 덤 프 전 m c p _ d e u k r a g _ s e a r c h _ t i c k e t s 로 과 거 해 결 책 우 선 탐 색 - [ ] * * P o t e n t i a l I s s u e T a b l e * * : | 이 슈 | 심 각 도 | 설 명 | 조 치 계 획 | | - - - | - - - | - - - | - - - | | | | | | 4 . [ P h a s e 4 > 후 속 연 결 ( 이 슈 가 있 으 면 필 수 ) ] - [ ] 위 표 에 서 즉 시 해 결 불 가 능 한 항 목 에 대 해 별 도 티 켓 발 행 완 료 > C L I C o m m a n d E x a m p l e : d e u k - a g e n t - r u l e t i c k e t c r e a t e - - t o p i c 0 4 8 - F 1 - f i x - i s s u e - - c h a i n - - g r o u p < g r o u p > - [ ] ( 필 수 작 성 ) 발 행 된 후 속 티 켓 번 호 리 스 트 : # # ✅ 검 증 / Q A - [ ] * * D e e p A n a l y s i s V e r i f i c a t i o n * * : P h a s e 0 . 5 에 서 도 출 된 핵 심 설 계 및 구 조 적 결 정 사 항 이 코 드 에 모 두 올 바 르 게 반 영 되 었 는 지 확 인 . - [ ] * * P o t e n t i a l I s s u e s C h e c k * * : [ s i d e e f f e c t , e d g e c a s e , p e r f o r m a n c e i m p a c t 를 적 으 세 요 ] - [ ] * * S t r i c t C o n s t r a i n t s A u d i t * * : [ N o h o t p a t h L I N Q , A s y n c S a f e t y , N o R a w P o i n t e r s 등 ] - [ ] n p m r u n t e s t 또 는 관 련 검 증 명 령 실 행 결 과 확 인 # # A g e n t P e r m i s s i o n C o n t r a c t ( A P C ) # # # [ B O U N D A R Y ] - E d i t a b l e m o d u l e s : t h i s t i c k e t t a r g e t m o d u l e s # # # [ C O N T R A C T ] - I n p u t : t a s k c o n t e x t i n t h i s t i c k e t . - O u t p u t : s c o p e d i m p l e m e n t a t i o n a n d v a l i d a t i o n . - S i d e e f f e c t s : u p d a t e s o n l y i n t a r g e t m o d u l e ( s ) . # # # [ P A T C H P L A N ] - I m p l e m e n t c h a n g e s i n t a r g e t m o d u l e s o n l y . - U p d a t e v e r i f i c a t i o n e v i d e n c e i n t h i s t i c k e t . # # C o m p a c t P l a n - * * P r o b l e m : * * f r o m l e g a c y p l a n - * * A p p r o a c h : * * [ F i l l d u r i n g e x e c u t i o n ] - * * V e r i f i c a t i o n : * * [ A d d r e l e v a n t c h e c k s ] - * * L i n k e d I s s u e s : * * [ U s e t i c k e t - l e v e l l i n k s o n l y ]
+
+## Merged Legacy Document
 
 
-# [실행] 작업: test-evidence-gate | ID: 077-test-evidence-gate-joy-nucb
+### 077 test evidence gate joy nucb plan
 
-> **[CAUTION FOR AI AGENTS]**
-> 1. Restrict all analysis, file creation, and modifications to the declared **Target Module** below.
-> 2. Read the files listed in **Context Files** before doing ANY code generation.
-> 3. DO NOT leak configuration, logic, or dependencies from other modules.
+# 계획: test-evidence-gate
 
-## Target Module
-- **Target:** [Fill in the target module/submodule path]
-- **Context Files:** [List architecture docs or key files to read first]
+## 요약
+- 목적:
+- 범위:
+- 비범위:
 
-> **[에이전트 주의]**
-> 이 작업은 잠긴 멀티 모듈 모노레포 안에서 진행돼요.
-> 1. 아래의 **[Target Submodule]** 밖으로 분석, 파일 생성, 수정 범위를 넓히지 마세요.
-> 2. 코드 생성 전에 **[Context Files]** 를 먼저 읽으세요.
-> 3. 다른 서브모듈의 설정, 로직, 의존성을 섞어 쓰지 마세요.
+## 현재 격차
+-
 
-## 🎯 범위
-- **Target Submodule:** `[예: DeukUI | DeukPack | DeukNavigation]`
-- **Context Files:**
-  - `[예: DeukAgentRules/templates/MODULE_RULE_TEMPLATE.md]`
-  - `[예: path/to/your/specific/rules.md]`
+## 설계 결정
+-
 
-## 📁 수정 파일
-- `path/from/root/to/target1`: [무엇을 수정하는지 구체적으로 적으세요.]
+## 구현 계획
+1.
 
-## 🏗️ 설계 결정사항
-- **Plan Reference**: [077-test-evidence-gate-joy-nucb-plan.md](file:///home/joy/workspace/DeukAgentRules/.deuk-agent/docs/plans/077-test-evidence-gate-joy-nucb-plan.md)
-- **Plan Path Rule**: `.deuk-agent/docs/plans/<ticket-id>-plan.md`
-- [필요한 핵심 결정을 간단히 적으세요]
+## 검증 계획
+-
 
-## 🛑 엄격 제약
-- [예: No hotpath LINQ, Async Safety, No Raw Pointers]
+## 리스크
+-
 
-## 🔄 단계별 실행
-> Agent: Phase 3 전에 Phase 1이 완전히 검증되기 전까지는 진행하지 마세요.
-
-0. [Phase 0> RAG 조사 (MCP)]
-   - [ ] `mcp_deukrag_search_rules` 기반 규약 검토 완료
-   - [ ] `mcp_deukrag_search_tickets` 과거 유사 티켓 이력 열람 완료
-   - [ ] (필수 작성) 검색된 핵심 컨텍스트 요약:
-   - [ ] (RAG Miss 시 필수 작성) 로컬 검색 결과 `mcp_deukrag_add_knowledge` 도구로 즉시 주입 완료 여부 및 주입된 파일 목록:
-
-0.5 [Phase 0.5> 심층 분석 (선택)]
-   - [ ] 복잡한 아키텍처 변경 시 별도 분석 아티팩트 작성 및 승인 완료
-
-1. [Phase 1> 준비 / 파싱]
-
-2. [Phase 2> 핵심 로직 변경]
-   - [ ] (CONTINUOUS RAG) 새로운 함수/클래스 수정 전 `mcp_deukrag_search_code` 및 `search_rules`로 관련 패턴 수시 검색
-
-3. [Phase 3> 정리 / 검증]
-   - [ ] (VERIFY RAG) 디버깅 및 에러 발생 시 로그 덤프 전 `mcp_deukrag_search_tickets` 로 과거 해결책 우선 탐색
-   - [ ] **Potential Issue Table**:
-     | 이슈 | 심각도 | 설명 | 조치 계획 |
-     |---|---|---|---|
-     | | | | |
-
-4. [Phase 4> 후속 연결 (이슈가 있으면 필수)]
-   - [ ] 위 표에서 즉시 해결 불가능한 항목에 대해 별도 티켓 발행 완료
-     > CLI Command Example: `deuk-agent-rule ticket create --topic 048-F1-fix-issue --chain --group <group>`
-   - [ ] (필수 작성) 발행된 후속 티켓 번호 리스트:
-
-## ✅ 검증 / QA
-- [ ] **Deep Analysis Verification**: Phase 0.5에서 도출된 핵심 설계 및 구조적 결정사항이 코드에 모두 올바르게 반영되었는지 확인.
-- [ ] **Potential Issues Check**: [side effect, edge case, performance impact를 적으세요]
-- [ ] **Strict Constraints Audit**: [No hotpath LINQ, Async Safety, No Raw Pointers 등]
-- [ ] `npm run test` 또는 관련 검증 명령 실행 결과 확인
+## 수용 기준
+-

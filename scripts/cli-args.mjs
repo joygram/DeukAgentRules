@@ -18,7 +18,6 @@ export function parseTicketArgs(argv) {
         out.fromPlan = true;
       }
     }
-    else if (a === "--with-plan" || a === "--plan-link") out.withPlan = true;
     else if (a === "--ref") out.ref = argv[++i];
     else if (a === "--limit") out.limit = Number(argv[++i]);
     else if (a === "--submodule") out.submodule = argv[++i];

@@ -516,10 +516,6 @@ function buildCreateRollbackIndex(currentIndexJson, ticketId, previousIndexJson)
 
 export async function runTicketCreate(opts) {
   if (!opts.topic && !opts.ref) throw new Error("ticket create requires --topic or --ref");
-  if (opts.withPlan) {
-    throw new Error("ticket create: --with-plan is no longer supported. Include the plan content in the ticket body or use --from-plan to import an existing plan as the ticket.");
-  }
-  
   const inferred = opts.ref ? inferRefTitleAndTopic(opts) : null;
   const topic = toSlug(opts.topic || inferred?.topic || "ticket");
   const title = opts.topic || inferred?.title || "ticket";
@@ -809,7 +805,6 @@ export async function runTicketStatus(opts) {
     phase,
     status: derivedStatus,
     summary: parsed.meta.summary || null,
-    planLink: parsed.meta.planLink || null,
     reasons: incompleteReasons,
   };
 
@@ -1036,24 +1031,6 @@ function extractMarkdownSections(content, sectionNames) {
   return sections;
 }
 
-function readPlanLinkSections(cwd, planLink) {
-  if (!planLink) return {};
-  const absPlanPath = resolve(cwd, planLink);
-  if (!existsSync(absPlanPath)) return {};
-  const planBody = readFileSync(absPlanPath, "utf8");
-  const { content } = parseFrontMatter(planBody);
-  return extractMarkdownSections(content, [
-    "Problem Analysis",
-    "Source Observations",
-    "Cause Hypotheses",
-    "Decision Rationale",
-    "Execution Strategy",
-    "Execution Notes",
-    "Verification Design",
-    "Verification Outcome"
-  ]);
-}
-
 function distillKnowledge(absPath, ticketId, cwd, sourceBody = null) {
   try {
     const body = sourceBody !== null ? sourceBody : readFileSync(absPath, "utf8");
@@ -1061,12 +1038,12 @@ function distillKnowledge(absPath, ticketId, cwd, sourceBody = null) {
     const ticketSections = extractMarkdownSections(content, [
       "Scope & Constraints",
       "Agent Permission Contract (APC)",
+      "Compact Plan",
       "Tasks",
       "Done When",
       "Design Decisions",
       "Analysis & Constraints"
     ]);
-    const planSections = readPlanLinkSections(cwd, meta.planLink);
     const knowledgeDir = join(cwd, AGENT_ROOT_DIR, "knowledge");
     if (!existsSync(knowledgeDir)) mkdirSync(knowledgeDir, { recursive: true });
 
@@ -1079,9 +1056,8 @@ function distillKnowledge(absPath, ticketId, cwd, sourceBody = null) {
       archivedAt: new Date().toISOString(),
       summary: meta.summary || "",
       sourceTicketPath: toRepoRelativePath(cwd, absPath),
-      planLink: meta.planLink || "",
       sections: ticketSections,
-      analysis: planSections
+      analysis: {}
     };
 
     writeFileSync(dest, JSON.stringify(data, null, 2), "utf8");

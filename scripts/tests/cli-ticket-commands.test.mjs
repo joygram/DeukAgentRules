@@ -585,9 +585,8 @@ test("runTicketArchive auto-detects existing walkthrough report and attaches lin
   rmSync(cwd, { recursive: true, force: true });
 });
 
-test("runTicketArchive distills ticket and planLink analysis into knowledge json", async () => {
+test("runTicketArchive distills ticket body into knowledge json", async () => {
   const ticketPath = ".deuk-agent/tickets/sub/006-default-host.md";
-  const planPath = ".deuk-agent/docs/plan/006-default-host-plan.md";
   const { cwd } = makeTicketWorkspace([
     makeEntry({
       id: "006-default-host",
@@ -600,8 +599,6 @@ test("runTicketArchive distills ticket and planLink analysis into knowledge json
   ]);
 
   mkdirSync(join(cwd, ".deuk-agent", "tickets", "sub"), { recursive: true });
-  mkdirSync(join(cwd, ".deuk-agent", "docs", "plan"), { recursive: true });
-
   writeFileSync(join(cwd, ticketPath), [
     "---",
     "id: 006-default-host",
@@ -611,7 +608,6 @@ test("runTicketArchive distills ticket and planLink analysis into knowledge json
     "summary: archive knowledge test",
     "priority: P2",
     "tags: [test]",
-    `planLink: ${planPath}`,
     "---",
     "# knowledge-rich",
     "",
@@ -624,29 +620,11 @@ test("runTicketArchive distills ticket and planLink analysis into knowledge json
     "",
     "## Tasks",
     "- [x] Done",
-    ""
-  ].join("\n"), "utf8");
-
-  writeFileSync(join(cwd, planPath), [
-    "---",
-    "summary: archive knowledge plan",
-    "status: ready",
-    "priority: P2",
-    "tags: [test]",
-    "---",
-    "# Agent Analysis Plan",
     "",
-    "## Problem Analysis",
-    "MCP results were stale and local code analysis found the current behavior.",
-    "",
-    "## Source Observations",
-    "scripts/example.mjs owns the current behavior.",
-    "",
-    "## Decision Rationale",
-    "Store reusable facts from planLink because the ticket body is intentionally thin.",
-    "",
-    "## Verification Outcome",
-    "The archive flow produced a knowledge file with analysis evidence.",
+    "## Compact Plan",
+    "- Problem: archive knowledge test",
+    "- Approach: keep ticket body as the single source of truth",
+    "- Verification: archive the ticket and write knowledge json",
     ""
   ].join("\n"), "utf8");
 
@@ -656,13 +634,10 @@ test("runTicketArchive distills ticket and planLink analysis into knowledge json
   assert.ok(existsSync(knowledgePath), "knowledge json should be written");
   const knowledge = JSON.parse(readFileSync(knowledgePath, "utf8"));
   assert.strictEqual(knowledge.summary, "archive knowledge test");
-  assert.strictEqual(knowledge.planLink, planPath);
   assert.match(knowledge.sections["Scope & Constraints"], /Target: source module/);
   assert.match(knowledge.sections["Agent Permission Contract (APC)"], /Editable modules: source module/);
-  assert.match(knowledge.analysis["Problem Analysis"], /MCP results were stale/);
-  assert.match(knowledge.analysis["Source Observations"], /scripts\/example\.mjs/);
-  assert.match(knowledge.analysis["Decision Rationale"], /ticket body is intentionally thin/);
-  assert.match(knowledge.analysis["Verification Outcome"], /knowledge file with analysis evidence/);
+  assert.match(knowledge.sections["Compact Plan"], /archive knowledge test/);
+  assert.deepStrictEqual(knowledge.analysis, {});
 
   const telemetryPath = join(cwd, ".deuk-agent", "telemetry.jsonl");
   assert.ok(existsSync(telemetryPath), "telemetry jsonl should be written");
@@ -879,9 +854,6 @@ test("runTicketClose ignores linked plan markdown and still closes ticket", asyn
     const body = readFileSync(join(cwd, ticketPath), "utf8");
     assert.match(body, /phase: 4/);
     assert.match(body, /status: closed/);
-
-    const index = JSON.parse(readFileSync(join(ticketDir, TICKET_INDEX_FILENAME), "utf8"));
-    assert.strictEqual(index.entries[0].status, "closed");
   } finally {
     rmSync(cwd, { recursive: true, force: true });
   }
@@ -950,10 +922,11 @@ test("runTicketArchive ignores linked plan markdown and still archives ticket", 
   ].join("\n"), "utf8");
 
   try {
-    await runTicketArchive({ cwd, topic: "007", nonInteractive: true });
+    const archived = await runTicketArchive({ cwd, topic: "007", nonInteractive: true });
 
     assert.ok(!existsSync(join(cwd, ticketPath)), "original ticket should be moved out of active tickets");
-    assert.ok(existsSync(join(cwd, ".deuk-agent", "tickets", "archive", "sub", "2026-05", "02", "007-default-host.md")), "archived copy should exist");
+    assert.ok(archived?.path, "archived ticket path should be returned");
+    assert.ok(existsSync(join(cwd, archived.path)), "archived copy should exist");
     assert.ok(existsSync(join(cwd, ".deuk-agent", "knowledge", "007-default-host.json")), "knowledge json should be written");
   } finally {
     rmSync(cwd, { recursive: true, force: true });

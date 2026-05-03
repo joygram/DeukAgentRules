@@ -2,7 +2,7 @@
  * Populates ../DeukAgentRulesOSS for the public GitHub repo.
  * Run: cd deuk-agent-rule && npm run sync:oss
  */
-import { cpSync, existsSync, mkdirSync, readFileSync, unlinkSync, writeFileSync } from "fs";
+import { cpSync, existsSync, mkdirSync, readFileSync, unlinkSync, writeFileSync, rmSync } from "fs";
 import { dirname, join } from "path";
 import { fileURLToPath } from "url";
 
@@ -80,6 +80,12 @@ mkdirSync(join(ossRoot, "scripts"), { recursive: true });
 mkdirSync(join(ossRoot, "templates"), { recursive: true });
 
 export function syncOssTree() {
+  if (existsSync(join(ossRoot, ".deuk-agent"))) {
+    rmSync(join(ossRoot, ".deuk-agent"), { recursive: true, force: true });
+  }
+  if (existsSync(join(ossRoot, "TICKET_LIST.md"))) {
+    unlinkSync(join(ossRoot, "TICKET_LIST.md"));
+  }
   cpSync(join(pkgRoot, "templates"), join(ossRoot, "templates"), { recursive: true, force: true });
   if (existsSync(join(pkgRoot, ".github"))) {
     cpSync(join(pkgRoot, ".github"), join(ossRoot, ".github"), { recursive: true, force: true });

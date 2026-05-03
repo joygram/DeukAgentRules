@@ -1,69 +1,38 @@
----
-id: 126-normalize-deuk-agent-context-gen-joy-nucb
-title: normalize-deuk-agent-context-generated-namespace
-phase: 4
-status: closed
-docsLanguage: ko
-summary: Fix DeukAgentContext IDL namespaces so generated imports expose only
-  domain namespaces
-priority: P2
-tags: deukpack, python, generated, namespace
-createdAt: 2026-05-01 01:14:42
----
+ - - - i d : 1 2 6 - n o r m a l i z e - d e u k - a g e n t - c o n t e x t - g e n - j o y - n u c b t i t l e : n o r m a l i z e - d e u k - a g e n t - c o n t e x t - g e n e r a t e d - n a m e s p a c e p h a s e : 4 s t a t u s : c l o s e d d o c s L a n g u a g e : k o s u m m a r y : F i x D e u k A g e n t C o n t e x t I D L n a m e s p a c e s s o g e n e r a t e d i m p o r t s e x p o s e o n l y d o m a i n n a m e s p a c e s p r i o r i t y : P 2 t a g s : d e u k p a c k , p y t h o n , g e n e r a t e d , n a m e s p a c e c r e a t e d A t : 2 0 2 6 - 0 5 - 0 1 0 1 : 1 4 : 4 2 - - - # n o r m a l i z e - d e u k - a g e n t - c o n t e x t - g e n e r a t e d - n a m e s p a c e > R e s t r i c t a l l c h a n g e s t o t h e d e c l a r e d * * T a r g e t M o d u l e * * . R e a d * * C o n t e x t F i l e s * * b e f o r e c o d e g e n e r a t i o n . # # S c o p e & C o n s t r a i n t s - * * T a r g e t : * * / h o m e / j o y / w o r k s p a c e / D e u k A g e n t C o n t e x t / d e u k _ i d l , / h o m e / j o y / w o r k s p a c e / D e u k A g e n t C o n t e x t / d e u k p a c k . p i p e l i n e . j s o n , a n d M C P i m p o r t s . - * * C o n t e x t F i l e s : * * / h o m e / j o y / w o r k s p a c e / D e u k A g e n t C o n t e x t / d e u k p a c k . p i p e l i n e . j s o n , / h o m e / j o y / w o r k s p a c e / D e u k A g e n t C o n t e x t / d e u k _ i d l / r a g _ r e s p o n s e . d e u k , / h o m e / j o y / w o r k s p a c e / D e u k P a c k / s r c / c o d e g e n / p l u g i n s / p y t h o n / s r c / P y t h o n G e n e r a t o r . t s , / h o m e / j o y / w o r k s p a c e / D e u k P a c k / s c r i p t s / b u i l d _ d e u k p a c k . j s . - * * D e s i g n R a t i o n a l e : * * T h e c u r r e n t I D L n a m e s p a c e d e u k _ a g e n t _ c o n t e x t i s a p r o j e c t n a m e , n o t a d o m a i n n a m e s p a c e . G e n e r a t e d i m p o r t s s h o u l d e x p o s e o n l y d o m a i n n a m e s p a c e s s u c h a s r a g , w o r k f l o w , a n d m e t r i c s ; s t o r a g e r o o t s l i k e d e u k _ i d l , p y t h o n , a n d g e n e r a t e d m a r k e r s m u s t n o t d e f i n e m o d e l n a m e s p a c e . - * * C o n s t r a i n t s : * * D o n o t e d i t g e n e r a t e d f i l e s d i r e c t l y . D o n o t m o v e g e n e r a t e d f i l e s b y h a n d . A v o i d s y s . p a t h h a c k s . # # A g e n t P e r m i s s i o n C o n t r a c t ( A P C ) # # # [ B O U N D A R Y ] - E d i t a b l e m o d u l e s : / h o m e / j o y / w o r k s p a c e / D e u k A g e n t C o n t e x t / d e u k _ i d l / * . d e u k , / h o m e / j o y / w o r k s p a c e / D e u k A g e n t C o n t e x t / d e u k p a c k . p i p e l i n e . j s o n , / h o m e / j o y / w o r k s p a c e / D e u k A g e n t C o n t e x t / p y p r o j e c t . t o m l , / h o m e / j o y / w o r k s p a c e / D e u k A g e n t C o n t e x t / s r c / m c p / * . p y , t i c k e t / p l a n d o c s . - F o r b i d d e n m o d u l e s : / h o m e / j o y / w o r k s p a c e / D e u k A g e n t C o n t e x t / s r c / m c p / g e n e r a t e d / , / h o m e / j o y / w o r k s p a c e / D e u k A g e n t C o n t e x t / d e u k _ i d l / p y t h o n / , d e u k p a c k _ o u t / , g e n e r a t e d f i l e s . - R u l e c i t a t i o n : D e u k A g e n t C o n t e x t P R O J E C T _ R U L E . m d D C - C O D E G E N ; D e u k A g e n t R u l e s P R O J E C T _ R U L E . m d D C - C O D E G E N . # # # [ C O N T R A C T ] - I n p u t : U s e r c l a r i f i e s t h e I D L i t s e l f i s w r o n g ; d e u k _ a g e n t _ c o n t e x t s h o u l d n o t b e t h e I D L n a m e s p a c e . - O u t p u t : I D L f i l e s u s e d o m a i n n a m e s p a c e s , D e u k P a c k r e g e n e r a t e s P y t h o n p a c k a g e s u n d e r t h o s e n a m e s p a c e s , a n d a p p l i c a t i o n i m p o r t s r e f e r e n c e n a m e s p a c e p a c k a g e s d i r e c t l y . - S i d e e f f e c t s : G e n e r a t e d o u t p u t s c h a n g e t h r o u g h n p x d e u k p a c k r u n ; p a c k a g e c o n f i g m a y e x p o s e g e n e r a t e d n a m e s p a c e p a c k a g e s w i t h o u t p a t h h a c k s . # # # [ P A T C H P L A N ] - S p l i t o r r e w r i t e I D L i n t o d o m a i n n a m e s p a c e f i l e s : r a g , w o r k f l o w , m e t r i c s . - A d j u s t D e u k P a c k p i p e l i n e / p a c k a g e c o n f i g o n l y i f n e e d e d s o g e n e r a t e d n a m e s p a c e p a c k a g e s a r e i m p o r t a b l e w i t h o u t s y s . p a t h h a c k s . - R e g e n e r a t e w i t h n p x d e u k p a c k r u n . - U p d a t e M C P i m p o r t s t o u s e n a m e s p a c e p a c k a g e s s u c h a s r a g . r a g _ r e s p o n s e , w o r k f l o w . w o r k f l o w _ r e p o r t , a n d m e t r i c s . t i c k e t _ m e t r i c . - I f D e u k P a c k c a n n o t s u p p o r t t h i s c l e a n l y w i t h o u t p r o j e c t - l o c a l w o r k a r o u n d s , c r e a t e a D e u k P a c k f o l l o w - u p t i c k e t b e f o r e a p p l y i n g a n y w o r k a r o u n d . # # C o m p a c t P l a n - * * P r o b l e m : * * f r o m l e g a c y p l a n - * * A p p r o a c h : * * [ F i l l d u r i n g e x e c u t i o n ] - * * V e r i f i c a t i o n : * * [ A d d r e l e v a n t c h e c k s ] - * * L i n k e d I s s u e s : * * [ U s e t i c k e t - l e v e l l i n k s o n l y ] # # T a s k s - [ x ] F i x I D L d o m a i n n a m e s p a c e s . - [ x ] R e g e n e r a t e D e u k P a c k P y t h o n o u t p u t s . - [ x ] R e p l a c e a w k w a r d g e n e r a t e d n a m e s p a c e i m p o r t s . - [ x ] R u n D e u k A g e n t C o n t e x t i m p o r t s m o k e t e s t a n d a r c h i t e c t u r e g u a r d . - [ x ] R e c o r d D e u k P a c k f o l l o w - u p t i c k e t . - [ ] R e c o r d a n d c l o s e t i c k e t . # # F i n d i n g s - d e u k _ i d l / r a g _ r e s p o n s e . d e u k u s e d t h e p r o j e c t - s t y l e n a m e s p a c e d e u k _ a g e n t _ c o n t e x t . - T h e I D L s o u r c e w a s s p l i t i n t o d o m a i n n a m e s p a c e f i l e s : - / h o m e / j o y / w o r k s p a c e / D e u k A g e n t C o n t e x t / d e u k _ i d l / r a g . d e u k → n a m e s p a c e r a g - / h o m e / j o y / w o r k s p a c e / D e u k A g e n t C o n t e x t / d e u k _ i d l / w o r k f l o w . d e u k → n a m e s p a c e w o r k f l o w - / h o m e / j o y / w o r k s p a c e / D e u k A g e n t C o n t e x t / d e u k _ i d l / m e t r i c s . d e u k → n a m e s p a c e m e t r i c s - D e u k P a c k t i c k e t 3 2 0 f i x e d t h e s o u r c e - l i n k e d C L I n o - o p p a t h . A f t e r t h a t , n p x d e u k p a c k r u n e m i t t e d n a m e s p a c e p a c k a g e s u n d e r d e u k _ i d l / p y t h o n / r a g , d e u k _ i d l / p y t h o n / w o r k f l o w , a n d d e u k _ i d l / p y t h o n / m e t r i c s . - M C P a p p l i c a t i o n i m p o r t s n o w u s e t h e d o m a i n n a m e s p a c e p a c k a g e s d i r e c t l y . # # V e r i f i c a t i o n - n p x d e u k p a c k r u n p a s s e d i n / h o m e / j o y / w o r k s p a c e / D e u k A g e n t C o n t e x t a n d e m i t t e d n a m e s p a c e p a c k a g e s . - p o e t r y i n s t a l l p a s s e d a f t e r e x p o s i n g r a g , w o r k f l o w , a n d m e t r i c s p a c k a g e s f r o m d e u k _ i d l / p y t h o n . - D e u k A g e n t C o n t e x t s m o k e i m p o r t / r e n d e r p a s s e d . - p o e t r y r u n p y t h o n - m p y t e s t t e s t s / t e s t _ a r c h i t e c t u r e _ g u a r d . p y - q p a s s e d : 1 4 t e s t s . - D e u k P a c k t i c k e t 3 2 0 w a s c o m p l e t e d a n d a r c h i v e d . # # D o n e W h e n > M C P a p p l i c a t i o n c o d e i m p o r t s g e n e r a t e d s t r u c t s b y d o m a i n n a m e s p a c e o n l y , g e n e r a t e d f i l e s a r e r e g e n e r a t e d i n s t e a d o f e d i t e d , a n d t e s t s p a s s .
+
+## Merged Legacy Document
 
 
-# normalize-deuk-agent-context-generated-namespace
+### 126 normalize deuk agent context gen joy nucb plan
 
-> Restrict all changes to the declared **Target Module**. Read **Context Files** before code generation.
+# 계획: IDL namespace 정리
 
-## Scope & Constraints
-- **Target:** `/home/joy/workspace/DeukAgentContext/deuk_idl`, `/home/joy/workspace/DeukAgentContext/deukpack.pipeline.json`, and MCP imports.
-- **Context Files:** `/home/joy/workspace/DeukAgentContext/deukpack.pipeline.json`, `/home/joy/workspace/DeukAgentContext/deuk_idl/rag_response.deuk`, `/home/joy/workspace/DeukPack/src/codegen/plugins/python/src/PythonGenerator.ts`, `/home/joy/workspace/DeukPack/scripts/build_deukpack.js`.
-- **Design Rationale:** The current IDL namespace `deuk_agent_context` is a project name, not a domain namespace. Generated imports should expose only domain namespaces such as `rag`, `workflow`, and `metrics`; storage roots like `deuk_idl`, `python`, and generated markers must not define model namespace.
-- **Constraints:** Do not edit generated files directly. Do not move generated files by hand. Avoid `sys.path` hacks.
+## 문제
 
-## Agent Permission Contract (APC)
+현재 IDL의 `namespace deuk_agent_context`는 프로젝트 이름을 모델 namespace로 사용합니다. 사용자의 기준상 import에는 IDL source/output 경로나 프로젝트명이 아니라 도메인 namespace 단위만 나와야 합니다.
 
-### [BOUNDARY]
-- Editable modules: `/home/joy/workspace/DeukAgentContext/deuk_idl/*.deuk`, `/home/joy/workspace/DeukAgentContext/deukpack.pipeline.json`, `/home/joy/workspace/DeukAgentContext/pyproject.toml`, `/home/joy/workspace/DeukAgentContext/src/mcp/*.py`, ticket/plan docs.
-- Forbidden modules: `/home/joy/workspace/DeukAgentContext/src/mcp/generated/`, `/home/joy/workspace/DeukAgentContext/deuk_idl/python/`, `deukpack_out/`, generated files.
-- Rule citation: DeukAgentContext `PROJECT_RULE.md` DC-CODEGEN; DeukAgentRules `PROJECT_RULE.md` DC-CODEGEN.
+## 방향
 
-### [CONTRACT]
-- Input: User clarifies the IDL itself is wrong; `deuk_agent_context` should not be the IDL namespace.
-- Output: IDL files use domain namespaces, DeukPack regenerates Python packages under those namespaces, and application imports reference namespace packages directly.
-- Side effects: Generated outputs change through `npx deukpack run`; package config may expose generated namespace packages without path hacks.
+IDL을 도메인 단위 namespace로 바꿉니다.
 
-### [PATCH PLAN]
-- Split or rewrite IDL into domain namespace files: `rag`, `workflow`, `metrics`.
-- Adjust DeukPack pipeline/package config only if needed so generated namespace packages are importable without `sys.path` hacks.
-- Regenerate with `npx deukpack run`.
-- Update MCP imports to use namespace packages such as `rag.rag_response`, `workflow.workflow_report`, and `metrics.ticket_metric`.
-- If DeukPack cannot support this cleanly without project-local workarounds, create a DeukPack follow-up ticket before applying any workaround.
+- `rag`: `RagChunk`, `RagResponse`
+- `workflow`: `WorkflowReport`
+- `metrics`: `TicketMetric`
 
-## Tasks
-- [x] Fix IDL domain namespaces.
-- [x] Regenerate DeukPack Python outputs.
-- [x] Replace awkward generated namespace imports.
-- [x] Run DeukAgentContext import smoke test and architecture guard.
-- [x] Record DeukPack follow-up ticket.
-- [ ] Record and close ticket.
+생성 파일은 직접 수정하지 않고 `npx deukpack run`으로 재생성합니다. DeukPack이 namespace-only import를 깨끗하게 지원하지 못하면, DeukPack 쪽 후속 티켓을 먼저 생성하고 원인/대안을 기록합니다.
 
-## Findings
-- `deuk_idl/rag_response.deuk` used the project-style namespace `deuk_agent_context`.
-- The IDL source was split into domain namespace files:
-  - `/home/joy/workspace/DeukAgentContext/deuk_idl/rag.deuk` → `namespace rag`
-  - `/home/joy/workspace/DeukAgentContext/deuk_idl/workflow.deuk` → `namespace workflow`
-  - `/home/joy/workspace/DeukAgentContext/deuk_idl/metrics.deuk` → `namespace metrics`
-- DeukPack ticket 320 fixed the source-linked CLI no-op path. After that, `npx deukpack run` emitted namespace packages under `deuk_idl/python/rag`, `deuk_idl/python/workflow`, and `deuk_idl/python/metrics`.
-- MCP application imports now use the domain namespace packages directly.
+## 실행 절차
 
-## Verification
-- `npx deukpack run` passed in `/home/joy/workspace/DeukAgentContext` and emitted namespace packages.
-- `poetry install` passed after exposing `rag`, `workflow`, and `metrics` packages from `deuk_idl/python`.
-- DeukAgentContext smoke import/render passed.
-- `poetry run python -m pytest tests/test_architecture_guard.py -q` passed: 14 tests.
-- DeukPack ticket 320 was completed and archived.
+1. 티켓을 Phase 2로 이동합니다.
+2. `deuk_idl/rag_response.deuk`를 도메인별 IDL 파일로 분리하거나 namespace를 재구성합니다.
+3. 필요하면 `deukpack.pipeline.json`/`pyproject.toml`을 조정해 생성 namespace package가 path hack 없이 import되게 합니다.
+4. `npx deukpack run`을 실행합니다.
+5. MCP application import를 namespace 기준으로 변경합니다.
+6. `rg`로 `deuk_agent_context` 직접 import가 남았는지 확인합니다.
+7. `poetry run python` smoke test를 실행합니다.
+8. `poetry run python -m pytest tests/test_architecture_guard.py -q`를 실행합니다.
 
-## Done When
-> MCP application code imports generated structs by domain namespace only, generated files are regenerated instead of edited, and tests pass.
+## 제외
+
+- DeukPack generated 파일 직접 수정
+- 생성기 자체 변경은 이번 티켓에서 제외합니다. 필요 시 DeukPack 티켓을 별도로 생성합니다.

@@ -1,89 +1,31 @@
----
-createdAt: 2026-04-25 09:24:43
-id: 076-enforce-phase0-rag-validation-joy-nucb
-priority: P2
-project: DeukAgentRules
-status: open
-summary: "Target: [Fill in the target module/submodule path] - Context Files:
-  [List architecture docs or key files to read first] - Target Submodule:
-  DeukAgentRules (CLI and Templates)"
-tags: rag, mcp, tickets, architecture
-title: 076-enforce-phase0-rag-validation
----
+ - - - c r e a t e d A t : 2 0 2 6 - 0 4 - 2 5 0 9 : 2 4 : 4 3 i d : 0 7 6 - e n f o r c e - p h a s e 0 - r a g - v a l i d a t i o n - j o y - n u c b p r i o r i t y : P 2 p r o j e c t : D e u k A g e n t R u l e s s t a t u s : o p e n s u m m a r y : " T a r g e t : [ F i l l i n t h e t a r g e t m o d u l e / s u b m o d u l e p a t h ] - C o n t e x t F i l e s : [ L i s t a r c h i t e c t u r e d o c s o r k e y f i l e s t o r e a d f i r s t ] - T a r g e t S u b m o d u l e : D e u k A g e n t R u l e s ( C L I a n d T e m p l a t e s ) " t a g s : r a g , m c p , t i c k e t s , a r c h i t e c t u r e t i t l e : 0 7 6 - e n f o r c e - p h a s e 0 - r a g - v a l i d a t i o n - - - # [ 실 행 ] 작 업 : 0 7 6 - e n f o r c e - p h a s e 0 - r a g - v a l i d a t i o n | I D : 0 7 6 - e n f o r c e - p h a s e 0 - r a g - v a l i d a t i o n - j o y - n u c b > * * [ C A U T I O N F O R A I A G E N T S ] * * > 1 . R e s t r i c t a l l a n a l y s i s , f i l e c r e a t i o n , a n d m o d i f i c a t i o n s t o t h e d e c l a r e d * * T a r g e t M o d u l e * * b e l o w . > 2 . R e a d t h e f i l e s l i s t e d i n * * C o n t e x t F i l e s * * b e f o r e d o i n g A N Y c o d e g e n e r a t i o n . > 3 . D O N O T l e a k c o n f i g u r a t i o n , l o g i c , o r d e p e n d e n c i e s f r o m o t h e r m o d u l e s . # # T a r g e t M o d u l e - * * T a r g e t : * * [ F i l l i n t h e t a r g e t m o d u l e / s u b m o d u l e p a t h ] - * * C o n t e x t F i l e s : * * [ L i s t a r c h i t e c t u r e d o c s o r k e y f i l e s t o r e a d f i r s t ] > * * [ 에 이 전 트 주 의 ] * * > 이 작 업 은 잠 긴 멀 티 모 듈 모 노 레 포 안 에 서 진 행 돼 요 . > 1 . 아 래 의 * * [ T a r g e t S u b m o d u l e ] * * 밖 으 로 분 석 , 파 일 생 성 , 수 정 범 위 를 넓 히 지 마 세 요 . > 2 . 코 드 생 성 전 에 * * [ C o n t e x t F i l e s ] * * 를 먼 저 읽 으 세 요 . > 3 . 다 른 서 브 모 듈 의 설 정 , 로 직 , 의 존 성 을 섞 어 쓰 지 마 세 요 . # # � � 범 위 - * * T a r g e t S u b m o d u l e : * * D e u k A g e n t R u l e s ( C L I a n d T e m p l a t e s ) - * * C o n t e x t F i l e s : * * - A G E N T S . m d - b u n d l e / t e m p l a t e s / T I C K E T _ T E M P L A T E . m d - s c r i p t s / c l i - t i c k e t - c o m m a n d s . m j s # # � � 하 드 룰 위 반 원 인 보 고 ( P o s t - M o r t e m ) - * * 위 반 사 항 * * : " t i c k e t - i n t e r n a l p l a n ( H a r d R u l e ) " 위 반 . 정 식 티 켓 본 문 이 아 닌 임 시 아 티 팩 트 ( i m p l e m e n t a t i o n _ p l a n . m d ) 에 플 랜 을 작 성 함 . - * * 근 본 원 인 * * : 저 ( A n t i g r a v i t y ) 의 내 장 코 어 프 롬 프 트 ( P l a n n i n g M o d e ) 는 " 항 상 i m p l e m e n t a t i o n _ p l a n . m d 아 티 팩 트 를 생 성 하 여 승 인 을 받 아 라 " 라 고 강 력 하 게 지 시 하 도 록 설 계 되 어 있 습 니 다 . 이 내 장 지 시 사 항 과 저 장 소 의 A G E N T S . m d 하 드 룰 이 충 돌 했 을 때 , 내 장 지 시 사 항 을 우 선 시 하 는 판 단 오 류 를 범 했 습 니 다 . - * * 재 발 방 지 * * : 향 후 계 획 수 립 시 , 내 장 된 아 티 팩 트 생 성 지 시 보 다 A G E N T S . m d 의 " 티 켓 내 작 성 " 하 드 룰 을 최 우 선 으 로 적 용 하 여 즉 시 t i c k e t c r e a t e 를 호 출 하 겠 습 니 다 . # # � � 수 정 파 일 - A G E N T S . m d : P h a s e 0 ( R A G 조 사 ) 의 비 용 / 편 익 분 석 및 명 확 한 실 행 지 침 추 가 . - b u n d l e / t e m p l a t e s / T I C K E T _ T E M P L A T E . m d & k o . m d : P h a s e 0 체 크 박 스 를 구 체 적 인 E v i d e n c e S u m m a r y 요 구 섹 션 으 로 대 체 . - s c r i p t s / c l i - t i c k e t - c o m m a n d s . m j s : 티 켓 생 성 전 P h a s e 0 증 거 제 출 을 강 제 하 는 P r e - V a l i d a t i o n G a t e 추 가 . # # � � ️ 설 계 결 정 사 항 - * * C L I P r e - V a l i d a t i o n G a t e 방 식 * * : C L I 실 행 시 T T Y 환 경 에 서 는 프 롬 프 트 로 P h a s e 0 수 행 여 부 를 확 인 하 고 , N o n - T T Y 환 경 ( 에 이 전 트 ) 에 서 는 - - e v i d e n c e 플 래 그 를 요 구 합 니 다 . 미 제 공 시 티 켓 생 성 을 차 단 ( T h r o w E r r o r ) 하 여 강 제 성 을 부 여 합 니 다 . - * * 프 롬 프 트 후 킹 ( P l a n n i n g M o d e H o o k ) * * : 에 이 전 트 내 장 시 스 템 프 롬 프 트 가 i m p l e m e n t a t i o n _ p l a n . m d 를 강 제 생 성 하 도 록 지 시 하 더 라 도 , 이 를 A G E N T S . m d 에 서 텍 스 트 패 턴 매 칭 으 로 가 로 채 어 강 제 로 티 켓 시 스 템 으 로 우 회 하 도 록 t i c k e t - i n t e r n a l p l a n 룰 을 강 화 합 니 다 . # # � � 엄 격 제 약 - [ 예 : N o h o t p a t h L I N Q , A s y n c S a f e t y , N o R a w P o i n t e r s ] # # � � 단 계 별 실 행 > A g e n t : P h a s e 3 전 에 P h a s e 1 이 완 전 히 검 증 되 기 전 까 지 는 진 행 하 지 마 세 요 . 0 . [ P h a s e 0 > R A G 조 사 ( M C P ) ] - [ ] m c p _ d e u k r a g _ s e a r c h _ r u l e s 기 반 규 약 검 토 완 료 - [ ] m c p _ d e u k r a g _ s e a r c h _ t i c k e t s 과 거 유 사 티 켓 이 력 열 람 완 료 - [ ] ( 필 수 작 성 ) 검 색 된 핵 심 컨 텍 스 트 요 약 : - [ ] ( R A G M i s s 시 필 수 작 성 ) 로 컬 검 색 결 과 m c p _ d e u k r a g _ a d d _ k n o w l e d g e 도 구 로 즉 시 주 입 완 료 여 부 및 주 입 된 파 일 목 록 : 0 . 5 [ P h a s e 0 . 5 > 심 층 분 석 ( 선 택 ) ] - [ ] 복 잡 한 아 키 텍 처 변 경 시 별 도 분 석 아 티 팩 트 작 성 및 승 인 완 료 1 . [ P h a s e 1 > 준 비 / 파 싱 ] 2 . [ P h a s e 2 > 핵 심 로 직 변 경 ] - [ ] ( C O N T I N U O U S R A G ) 새 로 운 함 수 / 클 래 스 수 정 전 m c p _ d e u k r a g _ s e a r c h _ c o d e 및 s e a r c h _ r u l e s 로 관 련 패 턴 수 시 검 색 3 . [ P h a s e 3 > 정 리 / 검 증 ] - [ ] ( V E R I F Y R A G ) 디 버 깅 및 에 러 발 생 시 로 그 덤 프 전 m c p _ d e u k r a g _ s e a r c h _ t i c k e t s 로 과 거 해 결 책 우 선 탐 색 - [ ] * * P o t e n t i a l I s s u e T a b l e * * : | 이 슈 | 심 각 도 | 설 명 | 조 치 계 획 | | - - - | - - - | - - - | - - - | | | | | | 4 . [ P h a s e 4 > 후 속 연 결 ( 이 슈 가 있 으 면 필 수 ) ] - [ ] 위 표 에 서 즉 시 해 결 불 가 능 한 항 목 에 대 해 별 도 티 켓 발 행 완 료 > C L I C o m m a n d E x a m p l e : d e u k - a g e n t - r u l e t i c k e t c r e a t e - - t o p i c 0 4 8 - F 1 - f i x - i s s u e - - c h a i n - - g r o u p < g r o u p > - [ ] ( 필 수 작 성 ) 발 행 된 후 속 티 켓 번 호 리 스 트 : # # ✅ 검 증 / Q A - [ ] * * D e e p A n a l y s i s V e r i f i c a t i o n * * : P h a s e 0 . 5 에 서 도 출 된 핵 심 설 계 및 구 조 적 결 정 사 항 이 코 드 에 모 두 올 바 르 게 반 영 되 었 는 지 확 인 . - [ ] * * P o t e n t i a l I s s u e s C h e c k * * : [ s i d e e f f e c t , e d g e c a s e , p e r f o r m a n c e i m p a c t 를 적 으 세 요 ] - [ ] * * S t r i c t C o n s t r a i n t s A u d i t * * : [ N o h o t p a t h L I N Q , A s y n c S a f e t y , N o R a w P o i n t e r s 등 ] - [ ] n p m r u n t e s t 또 는 관 련 검 증 명 령 실 행 결 과 확 인 # # A g e n t P e r m i s s i o n C o n t r a c t ( A P C ) # # # [ B O U N D A R Y ] - E d i t a b l e m o d u l e s : t h i s t i c k e t t a r g e t m o d u l e s # # # [ C O N T R A C T ] - I n p u t : t a s k c o n t e x t i n t h i s t i c k e t . - O u t p u t : s c o p e d i m p l e m e n t a t i o n a n d v a l i d a t i o n . - S i d e e f f e c t s : u p d a t e s o n l y i n t a r g e t m o d u l e ( s ) . # # # [ P A T C H P L A N ] - I m p l e m e n t c h a n g e s i n t a r g e t m o d u l e s o n l y . - U p d a t e v e r i f i c a t i o n e v i d e n c e i n t h i s t i c k e t . # # C o m p a c t P l a n - * * P r o b l e m : * * f r o m l e g a c y p l a n - * * A p p r o a c h : * * [ F i l l d u r i n g e x e c u t i o n ] - * * V e r i f i c a t i o n : * * [ A d d r e l e v a n t c h e c k s ] - * * L i n k e d I s s u e s : * * [ U s e t i c k e t - l e v e l l i n k s o n l y ]
+
+## Merged Legacy Document
 
 
-# [실행] 작업: 076-enforce-phase0-rag-validation | ID: 076-enforce-phase0-rag-validation-joy-nucb
+### 076 enforce phase0 rag validation joy nucb plan
 
-> **[CAUTION FOR AI AGENTS]**
-> 1. Restrict all analysis, file creation, and modifications to the declared **Target Module** below.
-> 2. Read the files listed in **Context Files** before doing ANY code generation.
-> 3. DO NOT leak configuration, logic, or dependencies from other modules.
+# 계획: 076-enforce-phase0-rag-validation
 
-## Target Module
-- **Target:** [Fill in the target module/submodule path]
-- **Context Files:** [List architecture docs or key files to read first]
+## 요약
+- 목적:
+- 범위:
+- 비범위:
 
-> **[에이전트 주의]**
-> 이 작업은 잠긴 멀티 모듈 모노레포 안에서 진행돼요.
-> 1. 아래의 **[Target Submodule]** 밖으로 분석, 파일 생성, 수정 범위를 넓히지 마세요.
-> 2. 코드 생성 전에 **[Context Files]** 를 먼저 읽으세요.
-> 3. 다른 서브모듈의 설정, 로직, 의존성을 섞어 쓰지 마세요.
+## 현재 격차
+-
 
-## 🎯 범위
-- **Target Submodule:** `DeukAgentRules` (CLI and Templates)
-- **Context Files:**
-  - `AGENTS.md`
-  - `bundle/templates/TICKET_TEMPLATE.md`
-  - `scripts/cli-ticket-commands.mjs`
+## 설계 결정
+-
 
-## 🚨 하드룰 위반 원인 보고 (Post-Mortem)
-- **위반 사항**: "Plan in Ticket (Hard Rule)" 위반. 정식 티켓 본문이 아닌 임시 아티팩트(`implementation_plan.md`)에 플랜을 작성함.
-- **근본 원인**: 저(Antigravity)의 내장 코어 프롬프트(Planning Mode)는 "항상 `implementation_plan.md` 아티팩트를 생성하여 승인을 받아라"라고 강력하게 지시하도록 설계되어 있습니다. 이 내장 지시사항과 저장소의 `AGENTS.md` 하드룰이 충돌했을 때, 내장 지시사항을 우선시하는 판단 오류를 범했습니다.
-- **재발 방지**: 향후 계획 수립 시, 내장된 아티팩트 생성 지시보다 `AGENTS.md`의 "티켓 내 작성" 하드룰을 최우선으로 적용하여 즉시 `ticket create`를 호출하겠습니다.
+## 구현 계획
+1.
 
-## 📁 수정 파일
-- `AGENTS.md`: Phase 0 (RAG 조사)의 비용/편익 분석 및 명확한 실행 지침 추가.
-- `bundle/templates/TICKET_TEMPLATE.md` & `ko.md`: Phase 0 체크박스를 구체적인 Evidence Summary 요구 섹션으로 대체.
-- `scripts/cli-ticket-commands.mjs`: 티켓 생성 전 Phase 0 증거 제출을 강제하는 Pre-Validation Gate 추가.
+## 검증 계획
+-
 
-## 🏗️ 설계 결정사항
-- **CLI Pre-Validation Gate 방식**: CLI 실행 시 TTY 환경에서는 프롬프트로 Phase 0 수행 여부를 확인하고, Non-TTY 환경(에이전트)에서는 `--evidence` 플래그를 요구합니다. 미제공 시 티켓 생성을 차단(Throw Error)하여 강제성을 부여합니다.
-- **프롬프트 후킹 (Planning Mode Hook)**: 에이전트 내장 시스템 프롬프트가 `implementation_plan.md`를 강제 생성하도록 지시하더라도, 이를 `AGENTS.md`에서 텍스트 패턴 매칭으로 가로채어 강제로 티켓 시스템으로 우회하도록 `Plan in Ticket` 룰을 강화합니다.
+## 리스크
+-
 
-## 🛑 엄격 제약
-- [예: No hotpath LINQ, Async Safety, No Raw Pointers]
-
-## 🔄 단계별 실행
-> Agent: Phase 3 전에 Phase 1이 완전히 검증되기 전까지는 진행하지 마세요.
-
-0. [Phase 0> RAG 조사 (MCP)]
-   - [ ] `mcp_deukrag_search_rules` 기반 규약 검토 완료
-   - [ ] `mcp_deukrag_search_tickets` 과거 유사 티켓 이력 열람 완료
-   - [ ] (필수 작성) 검색된 핵심 컨텍스트 요약:
-   - [ ] (RAG Miss 시 필수 작성) 로컬 검색 결과 `mcp_deukrag_add_knowledge` 도구로 즉시 주입 완료 여부 및 주입된 파일 목록:
-
-0.5 [Phase 0.5> 심층 분석 (선택)]
-   - [ ] 복잡한 아키텍처 변경 시 별도 분석 아티팩트 작성 및 승인 완료
-
-1. [Phase 1> 준비 / 파싱]
-
-2. [Phase 2> 핵심 로직 변경]
-   - [ ] (CONTINUOUS RAG) 새로운 함수/클래스 수정 전 `mcp_deukrag_search_code` 및 `search_rules`로 관련 패턴 수시 검색
-
-3. [Phase 3> 정리 / 검증]
-   - [ ] (VERIFY RAG) 디버깅 및 에러 발생 시 로그 덤프 전 `mcp_deukrag_search_tickets` 로 과거 해결책 우선 탐색
-   - [ ] **Potential Issue Table**:
-     | 이슈 | 심각도 | 설명 | 조치 계획 |
-     |---|---|---|---|
-     | | | | |
-
-4. [Phase 4> 후속 연결 (이슈가 있으면 필수)]
-   - [ ] 위 표에서 즉시 해결 불가능한 항목에 대해 별도 티켓 발행 완료
-     > CLI Command Example: `deuk-agent-rule ticket create --topic 048-F1-fix-issue --chain --group <group>`
-   - [ ] (필수 작성) 발행된 후속 티켓 번호 리스트:
-
-## ✅ 검증 / QA
-- [ ] **Deep Analysis Verification**: Phase 0.5에서 도출된 핵심 설계 및 구조적 결정사항이 코드에 모두 올바르게 반영되었는지 확인.
-- [ ] **Potential Issues Check**: [side effect, edge case, performance impact를 적으세요]
-- [ ] **Strict Constraints Audit**: [No hotpath LINQ, Async Safety, No Raw Pointers 등]
-- [ ] `npm run test` 또는 관련 검증 명령 실행 결과 확인
+## 수용 기준
+-

@@ -1,116 +1,40 @@
----
-createdAt: 2026-04-24 09:51:39
-id: 066-canonical-rule-normalization-joy-nucb
-priority: P2
-status: open
-summary: "Target: [Fill in the target module/submodule path] - Context Files:
-  [List architecture docs or key files to read first] - Target Submodule:
-  DeukAgentRules (Main)"
-tags: rag, mcp, tickets, normalization, architecture
-title: 066-canonical-rule-normalization
----
+ - - - c r e a t e d A t : 2 0 2 6 - 0 4 - 2 4 0 9 : 5 1 : 3 9 i d : 0 6 6 - c a n o n i c a l - r u l e - n o r m a l i z a t i o n - j o y - n u c b p r i o r i t y : P 2 s t a t u s : o p e n s u m m a r y : " T a r g e t : [ F i l l i n t h e t a r g e t m o d u l e / s u b m o d u l e p a t h ] - C o n t e x t F i l e s : [ L i s t a r c h i t e c t u r e d o c s o r k e y f i l e s t o r e a d f i r s t ] - T a r g e t S u b m o d u l e : D e u k A g e n t R u l e s ( M a i n ) " t a g s : r a g , m c p , t i c k e t s , n o r m a l i z a t i o n , a r c h i t e c t u r e t i t l e : 0 6 6 - c a n o n i c a l - r u l e - n o r m a l i z a t i o n - - - # [ 실 행 ] 작 업 : 0 6 6 - c a n o n i c a l - r u l e - n o r m a l i z a t i o n | I D : 0 6 6 - c a n o n i c a l - r u l e - n o r m a l i z a t i o n - j o y - n u c b > * * [ C A U T I O N F O R A I A G E N T S ] * * > 1 . R e s t r i c t a l l a n a l y s i s , f i l e c r e a t i o n , a n d m o d i f i c a t i o n s t o t h e d e c l a r e d * * T a r g e t M o d u l e * * b e l o w . > 2 . R e a d t h e f i l e s l i s t e d i n * * C o n t e x t F i l e s * * b e f o r e d o i n g A N Y c o d e g e n e r a t i o n . > 3 . D O N O T l e a k c o n f i g u r a t i o n , l o g i c , o r d e p e n d e n c i e s f r o m o t h e r m o d u l e s . # # T a r g e t M o d u l e - * * T a r g e t : * * [ F i l l i n t h e t a r g e t m o d u l e / s u b m o d u l e p a t h ] - * * C o n t e x t F i l e s : * * [ L i s t a r c h i t e c t u r e d o c s o r k e y f i l e s t o r e a d f i r s t ] > * * [ 에 이 전 트 주 의 ] * * > 이 작 업 은 잠 긴 멀 티 모 듈 모 노 레 포 안 에 서 진 행 돼 요 . > 1 . 아 래 의 * * [ T a r g e t S u b m o d u l e ] * * 밖 으 로 분 석 , 파 일 생 성 , 수 정 범 위 를 넓 히 지 마 세 요 . > 2 . 코 드 생 성 전 에 * * [ C o n t e x t F i l e s ] * * 를 먼 저 읽 으 세 요 . > 3 . 다 른 서 브 모 듈 의 설 정 , 로 직 , 의 존 성 을 섞 어 쓰 지 마 세 요 . # # � � 범 위 - * * T a r g e t S u b m o d u l e : * * D e u k A g e n t R u l e s ( M a i n ) - * * C o n t e x t F i l e s : * * - b u n d l e / A G E N T S . m d - b u n d l e / r u l e s . d / # # � � 수 정 파 일 - b u n d l e / A G E N T S . m d : 잘 못 된 템 플 릿 경 로 수 정 및 도 메 인 종 속 적 ( D e u k P a c k ) 규 칙 분 리 . I d e n t i t y 섹 션 이 국 어 표 기 정 리 . - b u n d l e / r u l e s . d / d e u k p a c k - c o d e c . m d [ N E W ] : b u n d l e / A G E N T S . m d 에 서 분 리 된 D e u k P a c k 전 용 규 칙 모 듈 . # # � � ️ 설 계 결 정 사 항 - * * M o d u l a r R u l e S e p a r a t i o n * * : 전 역 룰 ( A G E N T S . m d ) 의 범 용 성 확 보 를 위 해 특 정 프 로 젝 트 ( D e u k P a c k ) 에 국 한 된 규 칙 을 별 도 모 듈 로 분 리 . - * * P a t h C o r r e c t i o n * * : . d e u k - a g e n t - t e m p l a t e s / 오 타 를 실 제 경 로 인 . d e u k - a g e n t / t e m p l a t e s / 로 수 정 . # # � � 엄 격 제 약 - 정 본 수 정 시 C R L F / L F 줄 바 꿈 혼 용 주 의 ( L F 로 통 일 권 장 ) . - 기 존 룰 의 핵 심 의 미 훼 손 금 지 . # # � � 단 계 별 실 행 > A g e n t : P h a s e 3 전 에 P h a s e 1 이 완 전 히 검 증 되 기 전 까 지 는 진 행 하 지 마 세 요 . 0 . [ P h a s e 0 > R A G 조 사 ( M C P ) ] - [ x ] m c p _ d e u k r a g _ s e a r c h _ r u l e s 기 반 규 약 검 토 완 료 ( G e n e r i c R u l e s v s S u b m o d u l e R u l e s ) - [ x ] m c p _ d e u k r a g _ s e a r c h _ t i c k e t s 과 거 유 사 티 켓 이 력 열 람 완 료 ( T i c k e t 0 4 5 m o d u l a r i z a t i o n p l a n ) - [ x ] 검 색 된 핵 심 컨 텍 스 트 요 약 : D e u k A g e n t R u l e s 는 범 용 룰 엔 진 을 목 표 로 하 며 , 현 재 D e u k P a c k 규 칙 이 코 어 에 강 결 합 되 어 있 음 . - [ x ] ( R A G M i s s 시 필 수 작 성 ) 로 컬 검 색 결 과 : . d e u k - a g e n t - t e m p l a t e s / 경 로 참 조 오 류 확 인 됨 . 0 . 5 [ P h a s e 0 . 5 > 심 층 분 석 ( 선 택 ) ] - [ ] N / A 1 . [ P h a s e 1 > 준 비 / 파 싱 ] - [ x ] b u n d l e / A G E N T S . m d 의 D e u k P a c k C o d e c 섹 션 을 추 출 하 여 D e u k P a c k 로 컬 도 메 인 룰 로 이 동 준 비 완 료 - [ x ] b u n d l e / A G E N T S . m d 내 템 플 릿 경 로 오 타 수 정 완 료 ( . d e u k - a g e n t / t e m p l a t e s / ) 2 . [ P h a s e 2 > 핵 심 로 직 변 경 ] - [ x ] I d e n t i t y 섹 션 영 어 / 한 글 병 기 구 조 로 정 리 완 료 - [ x ] D e u k A g e n t R u l e s 정 본 에 서 D e u k P a c k 관 련 규 칙 완 전 제 거 완 료 - [ x ] D e u k P a c k 프 로 젝 트 내 . d e u k - a g e n t / d o m a i n - r u l e s / 생 성 및 전 용 규 칙 안 착 완 료 - [ x ] d e u k - a g e n t - r u l e m e r g e 명 령 이 로 컬 도 메 인 룰 을 병 합 하 도 록 로 직 개 선 완 료 3 . [ P h a s e 3 > 정 리 / 검 증 ] - [ x ] n p x d e u k - a g e n t - r u l e m e r g e 를 사 용 하 여 D e u k R a g 및 D e u k P a c k 서 브 모 듈 에 최 신 룰 전 파 테 스 트 완 료 - [ x ] * * P o t e n t i a l I s s u e T a b l e * * : | 이 슈 | 심 각 도 | 설 명 | 조 치 계 획 | | - - - | - - - | - - - | - - - | | 경 로 변 경 영 향 | L o w | 주 요 저 장 소 m e r g e 테 스 트 결 과 이 상 없 음 | 모 니 터 링 유 지 | # # � � E x e c u t i o n R e p o r t ( 작 업 보 고 서 ) # # # 구 현 세 부 사 항 - * * 정 본 정 규 화 * * : D e u k A g e n t R u l e s 의 A G E N T S . m d 템 플 릿 에 서 모 든 도 메 인 종 속 적 규 칙 을 제 거 하 고 범 용 에 이 전 트 하 드 룰 만 남 겼 습 니 다 . - * * 도 메 인 룰 내 제 화 * * : D e u k P a c k 전 용 코 덱 규 칙 은 D e u k P a c k 저 장 소 내 부 의 . d e u k - a g e n t / d o m a i n - r u l e s / d e u k p a c k - c o d e c . m d 로 이 동 되 었 습 니 다 . - * * C L I 기 능 개 선 * * : m e r g e 명 령 이 실 행 될 때 H u b 의 공 통 룰 뿐 만 아 니 라 타 겟 저 장 소 의 d o m a i n - r u l e s / 폴 더 내 규 칙 도 함 께 A G E N T S . m d 에 주 입 하 도 록 c l i - i n i t - c o m m a n d s . m j s 로 직 을 수 정 했 습 니 다 . - * * 경 로 오 류 수 정 * * : . d e u k - a g e n t - t e m p l a t e s / 로 잘 못 기 재 된 모 든 경 로 를 표 준 경 로 인 . d e u k - a g e n t / t e m p l a t e s / 로 일 괄 수 정 했 습 니 다 . # # # 검 증 결 과 - D e u k P a c k / A G E N T S . m d : 로 컬 에 서 정 의 된 D e u k P a c k C o d e c 규 칙 이 정 상 적 으 로 주 입 됨 을 확 인 했 습 니 다 . - D e u k R a g / A G E N T S . m d : D e u k P a c k 관 련 내 용 없 이 순 수 정 본 규 칙 만 깨 끗 하 게 동 기 화 됨 을 확 인 했 습 니 다 . - 전 체 워 크 스 페 이 스 의 템 플 릿 참 조 경 로 가 정 상 작 동 함 을 확 인 했 습 니 다 . 0 . 5 [ P h a s e 0 . 5 > 심 층 분 석 ( 선 택 ) ] - [ ] 복 잡 한 아 키 텍 처 변 경 시 별 도 분 석 아 티 팩 트 작 성 및 승 인 완 료 1 . [ P h a s e 1 > 준 비 / 파 싱 ] 2 . [ P h a s e 2 > 핵 심 로 직 변 경 ] - [ ] ( C O N T I N U O U S R A G ) 새 로 운 함 수 / 클 래 스 수 정 전 m c p _ d e u k r a g _ s e a r c h _ c o d e 및 s e a r c h _ r u l e s 로 관 련 패 턴 수 시 검 색 3 . [ P h a s e 3 > 정 리 / 검 증 ] - [ ] ( V E R I F Y R A G ) 디 버 깅 및 에 러 발 생 시 로 그 덤 프 전 m c p _ d e u k r a g _ s e a r c h _ t i c k e t s 로 과 거 해 결 책 우 선 탐 색 - [ ] * * P o t e n t i a l I s s u e T a b l e * * : | 이 슈 | 심 각 도 | 설 명 | 조 치 계 획 | | - - - | - - - | - - - | - - - | | | | | | 4 . [ P h a s e 4 > 후 속 연 결 ( 이 슈 가 있 으 면 필 수 ) ] - [ ] 위 표 에 서 즉 시 해 결 불 가 능 한 항 목 에 대 해 별 도 티 켓 발 행 완 료 > C L I C o m m a n d E x a m p l e : d e u k - a g e n t - r u l e t i c k e t c r e a t e - - t o p i c 0 4 8 - F 1 - f i x - i s s u e - - c h a i n - - g r o u p < g r o u p > - [ ] ( 필 수 작 성 ) 발 행 된 후 속 티 켓 번 호 리 스 트 : # # ✅ 검 증 / Q A - [ ] * * D e e p A n a l y s i s V e r i f i c a t i o n * * : P h a s e 0 . 5 에 서 도 출 된 핵 심 설 계 및 구 조 적 결 정 사 항 이 코 드 에 모 두 올 바 르 게 반 영 되 었 는 지 확 인 . - [ ] * * P o t e n t i a l I s s u e s C h e c k * * : [ s i d e e f f e c t , e d g e c a s e , p e r f o r m a n c e i m p a c t 를 적 으 세 요 ] - [ ] * * S t r i c t C o n s t r a i n t s A u d i t * * : [ N o h o t p a t h L I N Q , A s y n c S a f e t y , N o R a w P o i n t e r s 등 ] - [ ] n p m r u n t e s t 또 는 관 련 검 증 명 령 실 행 결 과 확 인 # # A g e n t P e r m i s s i o n C o n t r a c t ( A P C ) # # # [ B O U N D A R Y ] - E d i t a b l e m o d u l e s : t h i s t i c k e t t a r g e t m o d u l e s # # # [ C O N T R A C T ] - I n p u t : t a s k c o n t e x t i n t h i s t i c k e t . - O u t p u t : s c o p e d i m p l e m e n t a t i o n a n d v a l i d a t i o n . - S i d e e f f e c t s : u p d a t e s o n l y i n t a r g e t m o d u l e ( s ) . # # # [ P A T C H P L A N ] - I m p l e m e n t c h a n g e s i n t a r g e t m o d u l e s o n l y . - U p d a t e v e r i f i c a t i o n e v i d e n c e i n t h i s t i c k e t . # # C o m p a c t P l a n - * * P r o b l e m : * * f r o m l e g a c y p l a n - * * A p p r o a c h : * * [ F i l l d u r i n g e x e c u t i o n ] - * * V e r i f i c a t i o n : * * [ A d d r e l e v a n t c h e c k s ] - * * L i n k e d I s s u e s : * * [ U s e t i c k e t - l e v e l l i n k s o n l y ]
+
+## Merged Legacy Document
 
 
-# [실행] 작업: 066-canonical-rule-normalization | ID: 066-canonical-rule-normalization-joy-nucb
+### 066 canonical rule normalization joy nucb plan
 
-> **[CAUTION FOR AI AGENTS]**
-> 1. Restrict all analysis, file creation, and modifications to the declared **Target Module** below.
-> 2. Read the files listed in **Context Files** before doing ANY code generation.
-> 3. DO NOT leak configuration, logic, or dependencies from other modules.
+# Plan: 066-canonical-rule-normalization
 
-## Target Module
-- **Target:** [Fill in the target module/submodule path]
-- **Context Files:** [List architecture docs or key files to read first]
+## Summary
+- 목적: `DeukAgentRules` 정본의 룰을 범용화하고 오류(경로 오타 등)를 수정하여 workspace 전체에 신뢰할 수 있는 규칙 전파.
+- 범위: `bundle/AGENTS.md` 수정, `bundle/rules.d/deukpack-codec.md` 신규 생성.
+- 비범위: CLI 바이너리 수정, 신규 MCP 도구 추가.
 
-> **[에이전트 주의]**
-> 이 작업은 잠긴 멀티 모듈 모노레포 안에서 진행돼요.
-> 1. 아래의 **[Target Submodule]** 밖으로 분석, 파일 생성, 수정 범위를 넓히지 마세요.
-> 2. 코드 생성 전에 **[Context Files]** 를 먼저 읽으세요.
-> 3. 다른 서브모듈의 설정, 로직, 의존성을 섞어 쓰지 마세요.
+## Current Gaps
+- **경로 오류**: `AGENTS.md`에서 템플릿 경로를 `.deuk-agent-templates/`로 잘못 참조함 (실제는 `.deuk-agent/templates/`).
+- **도메인 강결합**: 전역 룰인 `AGENTS.md`에 `DeukPack` 전용 코덱 규칙이 포함되어 있어 범용성이 떨어짐.
+- **표기 불일치**: Identity 섹션의 일부 하드룰이 한글로만 되어 있어 글로벌 대응이 부족함.
 
-## 🎯 범위
-- **Target Submodule:** `DeukAgentRules` (Main)
-- **Context Files:**
-  - `bundle/AGENTS.md`
-  - `bundle/rules.d/`
+## Design Decisions
+- **DeukPack 규칙 분리**: `DeukPack Codec & IDL Strict Rules` 섹션을 `bundle/rules.d/deukpack-codec.md`로 이동.
+- **경로 표준화**: 모든 문서 내 템플릿 경로를 실제 디렉토리 구조인 `.deuk-agent/templates/`로 통일.
 
-## 📁 수정 파일
-- `bundle/AGENTS.md`: 잘못된 템플릿 경로 수정 및 도메인 종속적(DeukPack) 규칙 분리. Identity 섹션 이국어 표기 정리.
-- `bundle/rules.d/deukpack-codec.md` [NEW]: `bundle/AGENTS.md`에서 분리된 DeukPack 전용 규칙 모듈.
+## Implementation Plan
+1. `bundle/rules.d/deukpack-codec.md` 파일을 생성하고 `DeukPack` 관련 규칙 이동.
+2. `bundle/AGENTS.md`에서 해당 섹션 삭제 및 템플릿 경로 오타 수정.
+3. Identity 섹션의 한글 규칙을 영어와 병기하도록 수정.
+4. `npx deuk-agent-rule merge` 명령을 통해 `DeukRag` 및 `DeukPack` 저장소에 변경사항 전파 및 검증.
 
-## 🏗️ 설계 결정사항
-- **Plan Reference**: [066-canonical-rule-normalization-joy-nucb-plan.md](file:///home/joy/workspace/i/DeukAgentRules/.deuk-agent/docs/plans/066-canonical-rule-normalization-joy-nucb-plan.md)
-- **Modular Rule Separation**: 전역 룰(`AGENTS.md`)의 범용성 확보를 위해 특정 프로젝트(DeukPack)에 국한된 규칙을 별도 모듈로 분리.
-- **Path Correction**: `.deuk-agent-templates/` 오타를 실제 경로인 `.deuk-agent/templates/`로 수정.
+## Verification Plan
+- 수정 후 `merge` 명령이 정상적으로 룰을 배포하는지 확인.
+- 배포된 각 저장소의 `AGENTS.md`에서 수정된 경로와 분리된 모듈이 올바르게 적용되었는지 `grep`으로 검증.
 
-## 🛑 엄격 제약
-- 정본 수정 시 CRLF/LF 줄바꿈 혼용 주의 (LF로 통일 권장).
-- 기존 룰의 핵심 의미 훼손 금지.
+## Risks
+- 경로 수정 시 기존 자동화 스크립트가 해당 경로를 하드코딩하여 사용 중일 경우 오작동 가능성 -> `grep`으로 workspace 전수 조사 필요.
 
-## 🔄 단계별 실행
-> Agent: Phase 3 전에 Phase 1이 완전히 검증되기 전까지는 진행하지 마세요.
-
-0. [Phase 0> RAG 조사 (MCP)]
-   - [x] `mcp_deukrag_search_rules` 기반 규약 검토 완료 (Generic Rules vs Submodule Rules)
-   - [x] `mcp_deukrag_search_tickets` 과거 유사 티켓 이력 열람 완료 (Ticket 045 modularization plan)
-   - [x] 검색된 핵심 컨텍스트 요약: `DeukAgentRules`는 범용 룰 엔진을 목표로 하며, 현재 `DeukPack` 규칙이 코어에 강결합되어 있음.
-   - [x] (RAG Miss 시 필수 작성) 로컬 검색 결과: `.deuk-agent-templates/` 경로 참조 오류 확인됨.
-
-0.5 [Phase 0.5> 심층 분석 (선택)]
-   - [ ] N/A
-
-1. [Phase 1> 준비 / 파싱]
-   - [x] `bundle/AGENTS.md`의 `DeukPack Codec` 섹션을 추출하여 `DeukPack` 로컬 도메인 룰로 이동 준비 완료
-   - [x] `bundle/AGENTS.md` 내 템플릿 경로 오타 수정 완료 (`.deuk-agent/templates/`)
-
-2. [Phase 2> 핵심 로직 변경]
-   - [x] Identity 섹션 영어/한글 병기 구조로 정리 완료
-   - [x] `DeukAgentRules` 정본에서 `DeukPack` 관련 규칙 완전 제거 완료
-   - [x] `DeukPack` 프로젝트 내 `.deuk-agent/domain-rules/` 생성 및 전용 규칙 안착 완료
-   - [x] `deuk-agent-rule merge` 명령이 로컬 도메인 룰을 병합하도록 로직 개선 완료
-
-3. [Phase 3> 정리 / 검증]
-   - [x] `npx deuk-agent-rule merge`를 사용하여 `DeukRag` 및 `DeukPack` 서브모듈에 최신 룰 전파 테스트 완료
-   - [x] **Potential Issue Table**:
-     | 이슈 | 심각도 | 설명 | 조치 계획 |
-     |---|---|---|---|
-     | 경로 변경 영향 | Low | 주요 저장소 merge 테스트 결과 이상 없음 | 모니터링 유지 |
-
-## 📜 Execution Report (작업 보고서)
-
-### 구현 세부 사항
-- **정본 정규화**: `DeukAgentRules`의 `AGENTS.md` 템플릿에서 모든 도메인 종속적 규칙을 제거하고 범용 에이전트 하드 룰만 남겼습니다.
-- **도메인 룰 내제화**: `DeukPack` 전용 코덱 규칙은 `DeukPack` 저장소 내부의 `.deuk-agent/domain-rules/deukpack-codec.md`로 이동되었습니다.
-- **CLI 기능 개선**: `merge` 명령이 실행될 때 Hub의 공통 룰뿐만 아니라 타겟 저장소의 `domain-rules/` 폴더 내 규칙도 함께 `AGENTS.md`에 주입하도록 `cli-init-commands.mjs` 로직을 수정했습니다.
-- **경로 오류 수정**: `.deuk-agent-templates/`로 잘못 기재된 모든 경로를 표준 경로인 `.deuk-agent/templates/`로 일괄 수정했습니다.
-
-### 검증 결과
-- `DeukPack/AGENTS.md`: 로컬에서 정의된 `DeukPack Codec` 규칙이 정상적으로 주입됨을 확인했습니다.
-- `DeukRag/AGENTS.md`: `DeukPack` 관련 내용 없이 순수 정본 규칙만 깨끗하게 동기화됨을 확인했습니다.
-- 전체 워크스페이스의 템플릿 참조 경로가 정상 작동함을 확인했습니다.
-
-0.5 [Phase 0.5> 심층 분석 (선택)]
-   - [ ] 복잡한 아키텍처 변경 시 별도 분석 아티팩트 작성 및 승인 완료
-
-1. [Phase 1> 준비 / 파싱]
-
-2. [Phase 2> 핵심 로직 변경]
-   - [ ] (CONTINUOUS RAG) 새로운 함수/클래스 수정 전 `mcp_deukrag_search_code` 및 `search_rules`로 관련 패턴 수시 검색
-
-3. [Phase 3> 정리 / 검증]
-   - [ ] (VERIFY RAG) 디버깅 및 에러 발생 시 로그 덤프 전 `mcp_deukrag_search_tickets` 로 과거 해결책 우선 탐색
-   - [ ] **Potential Issue Table**:
-     | 이슈 | 심각도 | 설명 | 조치 계획 |
-     |---|---|---|---|
-     | | | | |
-
-4. [Phase 4> 후속 연결 (이슈가 있으면 필수)]
-   - [ ] 위 표에서 즉시 해결 불가능한 항목에 대해 별도 티켓 발행 완료
-     > CLI Command Example: `deuk-agent-rule ticket create --topic 048-F1-fix-issue --chain --group <group>`
-   - [ ] (필수 작성) 발행된 후속 티켓 번호 리스트:
-
-## ✅ 검증 / QA
-- [ ] **Deep Analysis Verification**: Phase 0.5에서 도출된 핵심 설계 및 구조적 결정사항이 코드에 모두 올바르게 반영되었는지 확인.
-- [ ] **Potential Issues Check**: [side effect, edge case, performance impact를 적으세요]
-- [ ] **Strict Constraints Audit**: [No hotpath LINQ, Async Safety, No Raw Pointers 등]
-- [ ] `npm run test` 또는 관련 검증 명령 실행 결과 확인
+## Acceptance Criteria
+- `AGENTS.md` 내 템플릿 경로가 `.deuk-agent/templates/`로 수정됨.
+- `DeukPack` 규칙이 `AGENTS.md`에서 제거되고 모듈화됨.
+- 전체 workspace에 `merge`를 통한 룰 전파가 성공함.
