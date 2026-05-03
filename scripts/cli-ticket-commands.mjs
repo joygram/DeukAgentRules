@@ -86,6 +86,12 @@ function isCompactTicketOutput(opts = {}) {
   return Boolean(opts.compact || opts.nonInteractive);
 }
 
+function getHandoffSummary(out) {
+  const next = out.nextTicket ? `${out.nextTicket.id}:${out.nextTicket.status}` : "none";
+  const blockers = out.reasons?.length ? out.reasons.join(",") : "none";
+  return `${out.current.id} | phase=${out.current.phase} | status=${out.current.status} | next=${next} | blockers=${blockers}`;
+}
+
 function summarizeForSentence(summary) {
   const clean = String(summary || "").replace(/\s+/g, " ").trim();
   return clean.length > 180 ? `${clean.slice(0, 177)}...` : clean;
@@ -898,6 +904,59 @@ export async function runTicketStatus(opts) {
     if (out.reasons.length === 0) console.log("Reasons: none");
     else console.log(`Reasons: ${out.reasons.join(", ")}`);
   }
+}
+
+export async function runTicketHandoff(opts) {
+  if (!opts.topic && !opts.latest) opts.latest = true;
+  const index = rebuildTicketIndexFromTopicFilesIfNeeded(opts.cwd, { ...opts, force: false });
+  const current = pickTicketEntry(opts, index);
+  if (!current) throw new Error("ticket handoff: no matching ticket found");
+
+  const currentAbs = join(opts.cwd, current.path);
+  const currentMissing = !existsSync(currentAbs);
+  const currentBody = currentMissing ? "" : readFileSync(currentAbs, "utf8");
+  const currentParsed = currentMissing ? { meta: {}, content: "" } : parseFrontMatter(currentBody);
+  const currentPhase = Number(currentParsed.meta.phase || 1);
+  const currentReasons = currentMissing ? ["ticket_file_missing"] : getPhase1IncompleteReasons(opts.cwd, currentAbs);
+  const currentStatus = currentReasons.length > 0 && currentPhase === 1
+    ? "phase1_incomplete"
+    : (currentParsed.meta.status || current.status || "open");
+
+  const rows = filterTicketEntries(index.entries, opts)
+    .sort((a, b) => String(a.createdAt || "").localeCompare(String(b.createdAt || "")));
+  let nextTicket = rows.find(e => e.status === "active" && e.id !== current.id);
+  if (!nextTicket) nextTicket = rows.find(e => e.status === "open" && e.id !== current.id);
+
+  const out = {
+    current: {
+      id: current.id,
+      phase: currentPhase,
+      status: currentStatus,
+      path: current.path,
+      reasons: currentReasons
+    },
+    nextTicket: nextTicket ? {
+      id: nextTicket.id,
+      status: nextTicket.status,
+      path: nextTicket.path
+    } : null,
+    nextAction: nextTicket ? "continue-ticket" : "inspect-git-history"
+  };
+
+  if (opts.json) {
+    console.log(JSON.stringify(out, null, 2));
+    return out;
+  }
+
+  if (isCompactTicketOutput(opts)) {
+    console.log(getHandoffSummary(out));
+    return out;
+  }
+
+  console.log(`Current: ${out.current.id} | phase=${out.current.phase} | status=${out.current.status}`);
+  console.log(`Next: ${out.nextTicket ? `${out.nextTicket.id} (${out.nextTicket.status})` : "none"}`);
+  console.log(`Action: ${out.nextAction}`);
+  return out;
 }
 
 export async function runTicketMeta(opts) {

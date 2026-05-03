@@ -3,7 +3,7 @@ import assert from "node:assert";
 import { existsSync, mkdtempSync, mkdirSync, readFileSync, readdirSync, rmSync, writeFileSync } from "node:fs";
 import { tmpdir } from "node:os";
 import { join } from "node:path";
-import { pickTicketEntry, runTicketArchive, runTicketCreate, runTicketClose, runTicketMove, runTicketNext, runTicketStatus, runTicketUse } from "../cli-ticket-commands.mjs";
+import { pickTicketEntry, runTicketArchive, runTicketCreate, runTicketClose, runTicketMove, runTicketNext, runTicketStatus, runTicketUse, runTicketHandoff } from "../cli-ticket-commands.mjs";
 import { readTicketIndexJson } from "../cli-ticket-index.mjs";
 import { TICKET_INDEX_FILENAME } from "../cli-utils.mjs";
 
@@ -1356,6 +1356,55 @@ test("runTicketStatus compact mode emits one-line phase summary", async () => {
 
   assert.strictEqual(lines.length, 1);
   assert.match(lines[0], /^001-compact-status-host \| phase=1 \| status=open \| ok$/);
+});
+
+test("runTicketHandoff compact mode emits current and next ticket summary", async () => {
+  const { cwd, ticketDir } = makeTicketWorkspace([
+    makeEntry({
+      id: "001-current-host",
+      topic: "001-current-host",
+      fileName: "001-current-host.md",
+      status: "active",
+      createdAt: "2026-05-01 08:00:00"
+    }),
+    makeEntry({
+      id: "002-next-host",
+      topic: "002-next-host",
+      fileName: "002-next-host.md",
+      status: "open",
+      createdAt: "2026-05-01 09:00:00"
+    })
+  ]);
+
+  mkdirSync(join(ticketDir, "sub"), { recursive: true });
+  writeFileSync(join(ticketDir, "sub", "001-current-host.md"), [
+    "---",
+    "id: 001-current-host",
+    "title: current host",
+    "phase: 2",
+    "status: active",
+    "summary: handoff test",
+    "---",
+    "",
+    "# current host",
+    "",
+    "## Compact Plan",
+    "- **Problem:** handoff test",
+    "- **Approach:** keep it short",
+    "- **Verification:** compact mode"
+  ].join("\n"), "utf8");
+
+  const originalLog = console.log;
+  const lines = [];
+  console.log = value => { lines.push(String(value)); };
+  try {
+    await runTicketHandoff({ cwd, topic: "001-current-host", compact: true });
+  } finally {
+    console.log = originalLog;
+    rmSync(cwd, { recursive: true, force: true });
+  }
+
+  assert.deepStrictEqual(lines, ["001-current-host | phase=2 | status=active | next=002-next-host:open | blockers=none"]);
 });
 
 test("runTicketCreate auto-archives closed tickets before enforcing open ticket limit", async () => {
