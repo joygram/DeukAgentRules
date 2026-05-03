@@ -728,7 +728,7 @@ test("runTicketCreate rolls back when markdown lint fails", async () => {
   }
 });
 
-test("runTicketMove rolls back when linked plan markdown fails lint", async () => {
+test("runTicketMove ignores linked plan markdown and still moves ticket", async () => {
   const ticketPath = ".deuk-agent/tickets/sub/001-default-host.md";
   const planPath = ".deuk-agent/docs/plan/001-default-host-plan.md";
   const { cwd, ticketDir } = makeTicketWorkspace([
@@ -797,28 +797,21 @@ test("runTicketMove rolls back when linked plan markdown fails lint", async () =
   ].join("\n"), "utf8");
 
   try {
-    await assert.rejects(
-      () => runTicketMove({ cwd, topic: "001", next: true, nonInteractive: true }),
-      err => {
-        assert.match(err.message, /markdown lint failed/);
-        return true;
-      }
-    );
+    await runTicketMove({ cwd, topic: "001", next: true, nonInteractive: true });
 
     const body = readFileSync(join(cwd, ticketPath), "utf8");
-    assert.match(body, /phase: 1/);
-    assert.match(body, /status: open/);
-    assert.doesNotMatch(body, /phase: 2/);
-    assert.doesNotMatch(body, /status: active/);
+    assert.match(body, /phase: 2/);
+    assert.match(body, /status: active/);
+    assert.doesNotMatch(body, /phase: 1/);
 
     const index = JSON.parse(readFileSync(join(ticketDir, TICKET_INDEX_FILENAME), "utf8"));
-    assert.strictEqual(index.entries[0].status, "open");
+    assert.strictEqual(index.entries[0].status, "active");
   } finally {
     rmSync(cwd, { recursive: true, force: true });
   }
 });
 
-test("runTicketClose rolls back when linked plan markdown fails lint", async () => {
+test("runTicketClose ignores linked plan markdown and still closes ticket", async () => {
   const ticketPath = ".deuk-agent/tickets/sub/002-default-host.md";
   const planPath = ".deuk-agent/docs/plan/002-default-host-plan.md";
   const { cwd, ticketDir } = makeTicketWorkspace([
@@ -881,26 +874,20 @@ test("runTicketClose rolls back when linked plan markdown fails lint", async () 
   ].join("\n"), "utf8");
 
   try {
-    await assert.rejects(
-      () => runTicketClose({ cwd, topic: "002", nonInteractive: true }),
-      err => {
-        assert.match(err.message, /markdown lint failed/);
-        return true;
-      }
-    );
+    await runTicketClose({ cwd, topic: "002", nonInteractive: true });
 
     const body = readFileSync(join(cwd, ticketPath), "utf8");
-    assert.match(body, /phase: 1/);
-    assert.match(body, /status: open/);
+    assert.match(body, /phase: 4/);
+    assert.match(body, /status: closed/);
 
     const index = JSON.parse(readFileSync(join(ticketDir, TICKET_INDEX_FILENAME), "utf8"));
-    assert.strictEqual(index.entries[0].status, "open");
+    assert.strictEqual(index.entries[0].status, "closed");
   } finally {
     rmSync(cwd, { recursive: true, force: true });
   }
 });
 
-test("runTicketArchive rolls back when linked plan markdown fails lint", async () => {
+test("runTicketArchive ignores linked plan markdown and still archives ticket", async () => {
   const ticketPath = ".deuk-agent/tickets/sub/007-default-host.md";
   const planPath = ".deuk-agent/docs/plan/007-default-host-plan.md";
   const { cwd } = makeTicketWorkspace([
@@ -963,17 +950,11 @@ test("runTicketArchive rolls back when linked plan markdown fails lint", async (
   ].join("\n"), "utf8");
 
   try {
-    await assert.rejects(
-      () => runTicketArchive({ cwd, topic: "007", nonInteractive: true }),
-      err => {
-        assert.match(err.message, /markdown lint failed/);
-        return true;
-      }
-    );
+    await runTicketArchive({ cwd, topic: "007", nonInteractive: true });
 
-    assert.ok(existsSync(join(cwd, ticketPath)), "original ticket should be restored");
-    assert.ok(!existsSync(join(cwd, ".deuk-agent", "tickets", "archive", "sub", "2026-05", "02", "007-default-host.md")), "archived copy should be rolled back");
-    assert.ok(!existsSync(join(cwd, ".deuk-agent", "knowledge", "007-default-host.json")), "knowledge json should be removed on rollback");
+    assert.ok(!existsSync(join(cwd, ticketPath)), "original ticket should be moved out of active tickets");
+    assert.ok(existsSync(join(cwd, ".deuk-agent", "tickets", "archive", "sub", "2026-05", "02", "007-default-host.md")), "archived copy should exist");
+    assert.ok(existsSync(join(cwd, ".deuk-agent", "knowledge", "007-default-host.json")), "knowledge json should be written");
   } finally {
     rmSync(cwd, { recursive: true, force: true });
   }

@@ -178,7 +178,6 @@ Ticket Options:
   --evidence <text>     Provide Phase 0 RAG evidence summary
   --skip-phase0         Bypass Phase 0 RAG validation
   --from-plan <path>    Create ticket from an existing plan markdown file
-  --with-plan           Create an optional external planLink file (default: main ticket only)
   --require-filled      Enforce non-placeholder APC and compact plan content before create succeeds
   --allow-placeholder   Opt out of strict create guard (legacy behavior)
   --compact             Prefer one-line ticket outputs in automation flows

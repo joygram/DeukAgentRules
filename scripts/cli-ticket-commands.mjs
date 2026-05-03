@@ -4,7 +4,7 @@ import { basename, join, dirname, relative, resolve } from "path";
 import { 
   toSlug, toRepoRelativePath, toFileUri, inferRefTitleAndTopic, resolveReferencedTicketPath, toPosixPath, stringifyFrontMatter,
   selectLocalizedTemplatePath, resolveDocsLanguage, inferDocsLanguageFromText, normalizeDocsLanguage, isMcpActive, withReadline, parseFrontMatter,
-  AGENT_ROOT_DIR, TICKET_SUBDIR, TEMPLATE_SUBDIR, TICKET_DIR_NAME, detectConsumerTicketDir, PLAN_LINKS_DIR, loadInitConfig
+  AGENT_ROOT_DIR, TICKET_SUBDIR, TEMPLATE_SUBDIR, TICKET_DIR_NAME, detectConsumerTicketDir, loadInitConfig
 } from "./cli-utils.mjs";
 import { readTicketIndexJson, writeTicketIndexJson, syncActiveTicketId, generateTicketId, syncToPipeline } from "./cli-ticket-index.mjs";
 import { appendTicketEntry, rebuildTicketIndexFromTopicFilesIfNeeded, writeTicketListFile, updateTicketEntryStatus } from "./cli-ticket-parser.mjs";
@@ -132,55 +132,6 @@ function evaluateApcCompleteness(content) {
   return reasons;
 }
 
-function ensurePlanDraftFile(cwd, planLink, summary, opts = {}) {
-  const planAbs = resolve(cwd, planLink);
-  if (existsSync(planAbs)) return planAbs;
-  if (opts.dryRun) return planAbs;
-
-  const now = new Date().toISOString().replace("T", " ").split(".")[0];
-  const planSummary = `Agent problem analysis and decision trace for ${basename(planLink, ".md")}`;
-  const planBody = [
-    "---",
-    `summary: \"${planSummary.replace(/\"/g, "'")}\"`,
-    "status: draft",
-    "priority: P2",
-    "tags:",
-    "  - plan",
-    "  - phase1",
-    `createdAt: \"${now}\"`,
-    "---",
-    "",
-    "# Agent Analysis Plan",
-    "",
-    "## Ticket Contract Pointer",
-    "- Linked ticket owns summary, scope, constraints, and APC.",
-    "- This planLink owns the agent's problem analysis and decision trail.",
-    "- Do not copy ticket APC or summary text into this document.",
-    "",
-    "## Problem Analysis",
-    "Describe what is actually broken, missing, ambiguous, or risky.",
-    "",
-    "## Source Observations",
-    "Record concrete code/docs observations with file references.",
-    "",
-    "## Cause Hypotheses",
-    "List plausible causes or design gaps before choosing an approach.",
-    "",
-    "## Decision Rationale",
-    "Explain the selected approach and why alternatives were not chosen.",
-    "",
-    "## Execution Strategy",
-    "Describe the implementation strategy without using progress checkboxes.",
-    "",
-    "## Verification Design",
-    "List commands to run, expected outcomes, and residual risks."
-  ].join("\n");
-
-  mkdirSync(dirname(planAbs), { recursive: true });
-  writeFileSync(planAbs, planBody + "\n", "utf8");
-  return planAbs;
-}
-
 function lintTicketLifecycleMarkdown(cwd, targets, context) {
   const uniqueTargets = Array.from(new Set((targets || []).filter(Boolean)));
   if (uniqueTargets.length === 0) return { errors: [], targets: [] };
@@ -193,17 +144,9 @@ function lintTicketLifecycleMarkdown(cwd, targets, context) {
   return result;
 }
 
-function collectTicketLifecycleMarkdownTargets(cwd, ticketAbsPath, planLink, extraTargets = []) {
+function collectTicketLifecycleMarkdownTargets(cwd, ticketAbsPath, extraTargets = []) {
   const targets = [];
   if (ticketAbsPath) targets.push(ticketAbsPath);
-
-  if (planLink) {
-    const planAbsPath = resolve(cwd, planLink);
-    if (!existsSync(planAbsPath)) {
-      throw new Error(`[VALIDATION FAILED] linked plan file not found: ${planLink}`);
-    }
-    targets.push(planAbsPath);
-  }
 
   for (const target of extraTargets || []) {
     if (!target) continue;
@@ -238,21 +181,6 @@ function getPhase1IncompleteReasons(cwd, absPath) {
 
   const reasons = [];
   if (!meta.summary || hasPlaceholderTokens(meta.summary)) reasons.push("summary_missing_or_placeholder");
-  if (meta.planLink) {
-    const planAbs = resolve(cwd, meta.planLink);
-    if (!existsSync(planAbs)) reasons.push("planLink_file_missing");
-    else {
-      try {
-        const planBody = readFileSync(planAbs, "utf8");
-        const { content: planContent } = parseFrontMatter(planBody);
-        if (!hasSubstantivePlanContent(planContent)) {
-          reasons.push("planLink_placeholder_or_incomplete");
-        }
-      } catch (err) {
-        reasons.push("planLink_unreadable");
-      }
-    }
-  }
   if (!/## Compact Plan/i.test(content) || !hasSubstantivePlanContent(content.split(/## Compact Plan/i)[1] || "")) {
     reasons.push("compact_plan_placeholder_or_incomplete");
   }
@@ -504,7 +432,7 @@ function archiveTicketEntry({ cwd, ticketDir, indexJson, found, opts = {}, repor
     bodyLines.push(`- [View Report](${relativeLink})`);
   }
 
-  const lintTargets = collectTicketLifecycleMarkdownTargets(cwd, newAbsPath, archiveMeta.planLink, reportDest ? [reportDest] : []);
+  const lintTargets = collectTicketLifecycleMarkdownTargets(cwd, newAbsPath, reportDest ? [reportDest] : []);
   if (opts.dryRun) {
     if (!isCompactTicketOutput(opts)) {
       console.log("ticket archive: would move " + toRepoRelativePath(cwd, absPath) + " to " + toRepoRelativePath(cwd, newAbsPath));
@@ -571,10 +499,9 @@ function autoArchiveDoneTickets(cwd, indexJson, opts = {}) {
   return archived;
 }
 
-function rollbackCreatedTicket(cwd, abs, planLink, rollbackIndexJson, opts = {}) {
+function rollbackCreatedTicket(cwd, abs, rollbackIndexJson, opts = {}) {
   if (opts.dryRun) return;
   rmSync(abs, { force: true });
-  if (planLink) rmSync(resolve(cwd, planLink), { force: true });
   writeTicketIndexJson(cwd, rollbackIndexJson, opts);
   writeTicketListFile(cwd, rollbackIndexJson.entries || [], { ...opts, render: true });
 }
@@ -589,6 +516,9 @@ function buildCreateRollbackIndex(currentIndexJson, ticketId, previousIndexJson)
 
 export async function runTicketCreate(opts) {
   if (!opts.topic && !opts.ref) throw new Error("ticket create requires --topic or --ref");
+  if (opts.withPlan) {
+    throw new Error("ticket create: --with-plan is no longer supported. Include the plan content in the ticket body or use --from-plan to import an existing plan as the ticket.");
+  }
   
   const inferred = opts.ref ? inferRefTitleAndTopic(opts) : null;
   const topic = toSlug(opts.topic || inferred?.topic || "ticket");
@@ -732,7 +662,6 @@ export async function runTicketCreate(opts) {
         : [],
       createdAt: new Date().toISOString().replace('T', ' ').split('.')[0],
       prevTicket: prevTicketEntry ? prevTicketEntry.id : undefined,
-      planLink: opts.withPlan ? `${PLAN_LINKS_DIR}/${ticketId}-plan.md` : undefined,
     };
 
     const meta = Object.fromEntries(Object.entries(rawMeta).filter(([k, v]) => {
@@ -748,8 +677,7 @@ export async function runTicketCreate(opts) {
       finalContent = ejs.render(tplText, { meta, frontmatter, apcDraft });
     }
 
-    const planAbs = meta.planLink ? ensurePlanDraftFile(opts.cwd, meta.planLink, summary, opts) : null;
-    const lifecycleTargets = [abs, planAbs].filter(Boolean);
+    const lifecycleTargets = [abs];
     let rollbackIndexJson = indexJson;
 
     if (!opts.dryRun) writeFileSync(abs, finalContent, "utf8");
@@ -783,7 +711,7 @@ export async function runTicketCreate(opts) {
       }
     } catch (err) {
       if (!opts.dryRun) {
-        rollbackCreatedTicket(opts.cwd, abs, meta.planLink, rollbackIndexJson, opts);
+        rollbackCreatedTicket(opts.cwd, abs, rollbackIndexJson, opts);
       }
       throw err;
     }
@@ -1019,7 +947,7 @@ export async function runTicketClose(opts) {
   try {
     const entry = updateTicketEntryStatus(opts.cwd, opts);
     const { meta } = parseFrontMatter(previousBody);
-    const lintTargets = collectTicketLifecycleMarkdownTargets(opts.cwd, abs, meta.planLink);
+    const lintTargets = collectTicketLifecycleMarkdownTargets(opts.cwd, abs);
     lintTicketLifecycleMarkdown(opts.cwd, lintTargets, `ticket close ${entry.topic}`);
     syncActiveTicketId(opts.cwd);
     appendTelemetryEvent(opts.cwd, {
@@ -1139,7 +1067,6 @@ function distillKnowledge(absPath, ticketId, cwd, sourceBody = null) {
       "Analysis & Constraints"
     ]);
     const planSections = readPlanLinkSections(cwd, meta.planLink);
-
     const knowledgeDir = join(cwd, AGENT_ROOT_DIR, "knowledge");
     if (!existsSync(knowledgeDir)) mkdirSync(knowledgeDir, { recursive: true });
 
@@ -1407,7 +1334,7 @@ export async function runTicketMove(opts) {
       rebuildTicketIndexFromTopicFilesIfNeeded(opts.cwd, { ...opts, force: true });
     }
 
-    const lintTargets = collectTicketLifecycleMarkdownTargets(opts.cwd, abs, meta.planLink);
+    const lintTargets = collectTicketLifecycleMarkdownTargets(opts.cwd, abs);
     lintTicketLifecycleMarkdown(opts.cwd, lintTargets, `ticket move ${entry.topic}`);
 
     syncActiveTicketId(opts.cwd);
