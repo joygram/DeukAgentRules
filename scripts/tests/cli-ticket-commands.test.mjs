@@ -1837,6 +1837,46 @@ test("runTicketCreate generates main-ticket compact plan by default", async () =
   }
 });
 
+test("runTicketCreate auto-enables strict mode for investigation tickets", async () => {
+  const { cwd } = makeTemplateWorkspace();
+  const templateDir = join(cwd, ".deuk-agent", "templates");
+  writeFileSync(join(templateDir, "TICKET_TEMPLATE.md"), [
+    "---",
+    "<%- frontmatter %>",
+    "---",
+    "# <%= meta.title %>",
+    "TemplateLocale: base",
+    ""
+  ].join("\n"), "utf8");
+
+  const originalLog = console.log;
+  const originalWarn = console.warn;
+  console.log = () => {};
+  console.warn = () => {};
+
+  try {
+    await assert.rejects(
+      () => runTicketCreate({
+        cwd,
+        topic: "investigate-root-cause",
+        summary: "Investigate why the agent still talks despite silent-by-default rules",
+        nonInteractive: true,
+        docsLanguage: "en",
+        skipPhase0: true
+      }),
+      err => {
+        assert.match(err.message, /strict mode rejected placeholder\/incomplete phase1 state/);
+        assert.match(err.message, /compact_plan_placeholder_or_incomplete/);
+        return true;
+      }
+    );
+  } finally {
+    console.log = originalLog;
+    console.warn = originalWarn;
+    rmSync(cwd, { recursive: true, force: true });
+  }
+});
+
 test("runTicketCreate renders ticket list with required frontmatter", async () => {
   const cwd = mkdtempSync(join(tmpdir(), "deuk-ticket-list-frontmatter-"));
   const originalLog = console.log;

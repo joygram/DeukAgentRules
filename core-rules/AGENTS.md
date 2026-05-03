@@ -169,6 +169,7 @@ Use DeukAgentContext as advisory memory for prior decisions and cross-session co
 - Main ticket MUST NOT duplicate screen progress. It owns identity, scope, constraints, APC, investigation evidence, compact plan, linked issues, lifecycle checklist, and verification outcome.
 - Ticket in Phase 1 is **not complete** unless its APC and compact plan sections contain substantive, non-placeholder content.
 - `ticket create` seeds a compact draft plan, but draft scaffolds are not complete. Use `npx deuk-agent-rule ticket create --require-filled` when you need creation to fail unless ticket APC and compact plan content are already substantive.
+- Investigation, issue, regression, root-cause, and bug tickets should be created in strict Phase 1 mode by default; if the command path does not infer that automatically, pass `--require-filled` explicitly.
 - Ticket document edits after Phase 1 should be limited to factual corrections, linked issue records, verification outcomes, or lifecycle-finalization notes; they must not be used as a running worklog.
 - Investigation, RAG, and verification records follow the Durable ticket record rule above; do not leave those details in chat-only output.
 - Platform native paths (`brain/`, `.cursor/plans/`) are NOT indexed → copy to `.deuk-agent/docs/`.

@@ -82,6 +82,27 @@ function hasSubstantivePlanContent(text) {
   return !PLAN_SCAFFOLD_PHRASES.some(phrase => normalized.includes(phrase.toLowerCase()));
 }
 
+function looksLikeInvestigationTicket(summary, title, topic) {
+  const haystack = [summary, title, topic].filter(Boolean).join(" ").toLowerCase();
+  if (!haystack) return false;
+  return [
+    "investigate",
+    "investigation",
+    "root cause",
+    "why ",
+    " why",
+    "issue",
+    "regression",
+    "bug",
+    "failure",
+    "broken",
+    "unexpected",
+    "does not",
+    "doesn't",
+    "not working"
+  ].some(token => haystack.includes(token));
+}
+
 function isCompactTicketOutput(opts = {}) {
   return Boolean(opts.compact || opts.nonInteractive);
 }
@@ -657,8 +678,6 @@ export async function runTicketCreate(opts) {
 
   await ensurePhase0Validation(opts);
 
-  const strictCreate = !opts.allowPlaceholder && (opts.requireFilled || opts.fromPlan === true);
-
   let path, source;
   if (opts.ref) {
     path = resolveReferencedTicketPath(opts);
@@ -770,6 +789,12 @@ export async function runTicketCreate(opts) {
     if (!summary) {
       throw new Error("[VALIDATION FAILED] 'summary' is mandatory and cannot be empty. Please provide a meaningful summary via --summary or within your plan.");
     }
+
+    const strictCreate = !opts.allowPlaceholder && (
+      opts.requireFilled ||
+      opts.fromPlan === true ||
+      looksLikeInvestigationTicket(summary, finalTitle, finalTopic)
+    );
 
     const promptText = [summary, finalTitle, parsedPlan?.body].filter(Boolean).join("\n");
     const { tplText, docsLanguage } = resolveTicketTemplate(opts.cwd, opts.docsLanguage, promptText);
