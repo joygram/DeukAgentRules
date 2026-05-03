@@ -1,14 +1,16 @@
 ---
 id: 213-legacy-planfile-main-sub-ticket--joy-nucb
 title: legacy-planfile-main-sub-ticket-flow
-phase: 1
-status: open
+phase: 4
+status: closed
 docsLanguage: ko
 summary: 레거시 플랜파일 생성에서 빈 템플릿이 섞이지 않도록, 신규 티켓은 메인으로 시작하고 유사 수정은 서브 티켓으로 넘기는 흐름을 정리한다.
 priority: P2
 tags: []
 createdAt: 2026-05-03 08:16:21
 ---
+
+
 # legacy-planfile-main-sub-ticket-flow
 
 > Restrict changes to **Target Module**. Read **Context Files** before code generation.

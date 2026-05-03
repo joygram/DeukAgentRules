@@ -1,28 +1,7 @@
 {
   "version": 1,
-  "updatedAt": "2026-05-03T08:17:42.591Z",
-  "activeTicketId": "214-silent-progress-suppression-joy-nucb",
+  "updatedAt": "2026-05-03T08:35:16.190Z",
   "entries": [
-    {
-      "id": "214-silent-progress-suppression-joy-nucb",
-      "title": "silent-progress-suppression",
-      "topic": "silent-progress-suppression",
-      "group": "sub",
-      "project": "global",
-      "createdAt": "2026-05-03T08:17:42.589Z",
-      "source": "ticket-create",
-      "status": "open"
-    },
-    {
-      "id": "213-legacy-planfile-main-sub-ticket--joy-nucb",
-      "title": "legacy-planfile-main-sub-ticket-flow",
-      "topic": "legacy-planfile-main-sub-ticket-flow",
-      "group": "sub",
-      "project": "global",
-      "createdAt": "2026-05-03T08:16:22.012Z",
-      "source": "ticket-create",
-      "status": "open"
-    },
     {
       "id": "210-apt-guard-node-reset-otp-port-ma-joy-nucb",
       "title": "apt-guard-node-reset-otp-port-macmini",
@@ -36,5 +15,6 @@
       "source": "ticket-sync",
       "status": "open"
     }
-  ]
+  ],
+  "activeTicketId": "210-apt-guard-node-reset-otp-port-ma-joy-nucb"
 }

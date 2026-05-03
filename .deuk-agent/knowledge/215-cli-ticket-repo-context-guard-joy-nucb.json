@@ -1,0 +1,17 @@
+{
+  "id": "215-cli-ticket-repo-context-guard-joy-nucb",
+  "title": "cli-ticket-repo-context-guard",
+  "project": "global",
+  "createdAt": "2026-05-03 08:26:00",
+  "archivedAt": "2026-05-03T08:31:36.424Z",
+  "summary": "ticket lifecycle CLI가 잘못된 저장소 cwd에서 실행되는 일을 방지",
+  "sourceTicketPath": ".deuk-agent/tickets/sub/215-cli-ticket-repo-context-guard-joy-nucb.md",
+  "sections": {
+    "Scope & Constraints": "- **Target:** `scripts/cli-args.mjs`, `scripts/cli-ticket-commands.mjs`, `scripts/tests/cli-ticket-commands.test.mjs`\n- **Context Files:** `PROJECT_RULE.md`, `core-rules/AGENTS.md`, `scripts/cli-args.mjs`, `scripts/cli-ticket-commands.mjs`, `scripts/tests/cli-ticket-commands.test.mjs`\n- **Constraints:** No generated output edits, no unrelated refactors, no broad regeneration without approval. Keep the fix focused on ticket lifecycle CLI repo context resolution.\n- **Lifecycle Guard:** ticket lifecycle commands auto-run markdown lint on touched files and fail fast on broken markdown.",
+    "Agent Permission Contract (APC)": "### [BOUNDARY]\n- Editable modules: ticket argument parsing, ticket lifecycle command context resolution, and focused ticket CLI tests\n- Forbidden modules: generated artifacts, unrelated shared infrastructure, external module roots, unrelated CLI actions\n- Rule citation: PROJECT_RULE.md + core-rules/AGENTS.md\n\n### [CONTRACT]\n- Input: a ticket markdown path supplied to lifecycle commands from any current working directory\n- Output: lifecycle commands infer the owning repository root from that ticket path before moving, closing, archiving, or using the ticket\n- Side effects: ticket docs updates, scoped CLI behavior change, focused test coverage\n\n### [PATCH PLAN]\n- Keep compact planning in this ticket and avoid a separate plan file.\n- Add path-aware argument parsing and a shared ticket path context resolver.\n- Cover the behavior with focused CLI unit tests.",
+    "Compact Plan": "- **Problem:** `ticket move/close` currently operate only against `opts.cwd`, so a valid ticket path from another repo can fail as \"No matching ticket found\" when the current shell is in the wrong workspace.\n- **Approach:** Add `--ticket-path` and path-like `--topic` support, infer the owning repo root from `.deuk-agent/tickets`, load the ticket frontmatter, and rewrite `opts.cwd/topic` before lifecycle selection.\n- **Verification:** Run focused `node --test scripts/tests/cli-ticket-commands.test.mjs` and markdown lint for touched docs.\n- **Linked Issues:** None.",
+    "Tasks": "- [x] Complete compact plan and APC.\n- [x] Execute changes inside APC boundary.\n- [x] Record verification outcome.",
+    "Done When": "- APC is complete and non-placeholder.\n- Compact plan is complete and non-placeholder.\n- Target changes are implemented inside the declared boundary.\n- Markdown lint/tests relevant to this ticket pass or failures are recorded.\n- Lifecycle commands can persist the ticket without manual lint intervention."
+  },
+  "analysis": {}
+}

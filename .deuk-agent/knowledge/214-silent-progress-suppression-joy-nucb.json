@@ -1,0 +1,17 @@
+{
+  "id": "214-silent-progress-suppression-joy-nucb",
+  "title": "silent-progress-suppression",
+  "project": "global",
+  "createdAt": "2026-05-03 08:17:42",
+  "archivedAt": "2026-05-03T08:26:00.997Z",
+  "summary": "에이전트룰에서 작업 중 진행 보고를 최소화하고, 승인 전에는 추가 commentary를 금지",
+  "sourceTicketPath": ".deuk-agent/tickets/sub/214-silent-progress-suppression-joy-nucb.md",
+  "sections": {
+    "Scope & Constraints": "- **Target:** `/home/joy/workspace/DeukAgentRules/core-rules/AGENTS.md`, `/home/joy/workspace/DeukAgentRules/PROJECT_RULE.md`, `/home/joy/workspace/DeukAgentRules/templates/TICKET_TEMPLATE.md`\n- **Context Files:** `/home/joy/workspace/DeukAgentRules/core-rules/AGENTS.md`, `/home/joy/workspace/DeukAgentRules/PROJECT_RULE.md`, `/home/joy/workspace/DeukAgentRules/templates/TICKET_TEMPLATE.md`\n- **Constraints:** No generated output edits, no unrelated refactors, no broad regeneration without approval. Keep the change limited to rule wording and template mirroring.\n- **Lifecycle Guard:** ticket lifecycle commands auto-run markdown lint on touched files and fail fast on broken markdown.",
+    "Agent Permission Contract (APC)": "### [BOUNDARY]\n- Editable modules: core rule text and distributed template text that define progress narration behavior\n- Forbidden modules: generated artifacts, unrelated shared infrastructure, external module roots, runtime/source code\n- Rule citation: PROJECT_RULE.md + core-rules/AGENTS.md\n\n### [CONTRACT]\n- Input: current rule wording that still allows interim narration to be interpreted as acceptable commentary\n- Output: explicit rule text that forbids progress narration except the required ticket-start line, blocker notices, user decisions, and final answers\n- Side effects: ticket/plan docs updates and markdown lint coverage only\n\n### [PATCH PLAN]\n- Problem analysis, exact wording, and verification notes live in the linked plan file.\n- Keep the ticket as the compact SSoT for scope, APC, and lifecycle status.\n- Use CLI-linked subissues for unrelated follow-up work instead of expanding scope.",
+    "Compact Plan": "- **Problem:** The current agent rules still leave room for commentary that reads like progress reporting, which is what surfaced again in the DeukAgentRules session.\n- **Approach:** Strengthen the core silent-by-default rule, add a dedicated DC guard in `PROJECT_RULE.md`, and mirror the same prohibition in the ticket template so future tickets inherit the stop condition.\n- **Verification:** Run markdown lint on the touched rule files and confirm the new silent-output language is present exactly once in each target file.\n- **Linked Issues:** None.",
+    "Tasks": "- [x] Complete compact plan and APC.\n- [x] Create the linked plan file with the detailed analysis trail.\n- [x] Execute changes inside APC boundary.\n- [x] Record verification outcome.",
+    "Done When": "- APC is complete and non-placeholder.\n- Compact plan is complete and non-placeholder.\n- Target changes are implemented inside the declared boundary.\n- Markdown lint/tests relevant to this ticket pass or failures are recorded.\n- Lifecycle commands can persist the ticket without manual lint intervention."
+  },
+  "analysis": {}
+}

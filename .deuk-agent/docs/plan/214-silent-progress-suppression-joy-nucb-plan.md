@@ -47,3 +47,8 @@ tags:
 
 - `npx deuk-agent-rule lint:md /home/joy/workspace/DeukAgentRules/core-rules/AGENTS.md /home/joy/workspace/DeukAgentRules/PROJECT_RULE.md /home/joy/workspace/DeukAgentRules/templates/TICKET_TEMPLATE.md /home/joy/workspace/DeukAgentRules/.deuk-agent/tickets/sub/214-silent-progress-suppression-joy-nucb.md /home/joy/workspace/DeukAgentRules/.deuk-agent/docs/plan/214-silent-progress-suppression-joy-nucb-plan.md`
 
+## Verification Result
+
+- PASS: markdown lint passed for 5 touched files.
+- PASS: core rules now say the ticket-start line is the only allowed pre-work commentary.
+- PASS: `PROJECT_RULE.md` and the ticket template both restate the silent-output limit.

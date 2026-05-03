@@ -40,6 +40,14 @@ function makeTicketWorkspace(entries) {
   return { cwd, ticketDir };
 }
 
+function makeTicketWorkspaceAt(parent, name, entries) {
+  const cwd = join(parent, name);
+  const ticketDir = join(cwd, ".deuk-agent", "tickets");
+  mkdirSync(ticketDir, { recursive: true });
+  writeFileSync(join(ticketDir, TICKET_INDEX_FILENAME), JSON.stringify(makeIndex(entries), null, 2) + "\n", "utf8");
+  return { cwd, ticketDir };
+}
+
 function writeArchiveShard(ticketDir, yearMonth, entries) {
   writeFileSync(
     join(ticketDir, `INDEX.archive.${yearMonth}.json`),
@@ -785,6 +793,103 @@ test("runTicketMove ignores linked plan markdown and still moves ticket", async 
     assert.strictEqual(index.entries[0].status, "active");
   } finally {
     rmSync(cwd, { recursive: true, force: true });
+  }
+});
+
+test("runTicketMove finds ticket owner repo by topic from sibling cwd", async () => {
+  const parent = mkdtempSync(join(tmpdir(), "deuk-ticket-workspace-"));
+  const ticketPath = ".deuk-agent/tickets/sub/014-sibling-owned-host.md";
+  const wrong = makeTicketWorkspaceAt(parent, "wrong-repo", []);
+  const owner = makeTicketWorkspaceAt(parent, "owner-repo", [
+    makeEntry({
+      id: "014-sibling-owned-host",
+      title: "sibling-owned",
+      topic: "014-sibling-owned-host",
+      fileName: "014-sibling-owned-host.md",
+      path: ticketPath,
+      status: "open",
+      phase: 1
+    })
+  ]);
+
+  mkdirSync(join(owner.ticketDir, "sub"), { recursive: true });
+  writeFileSync(join(owner.cwd, ticketPath), [
+    "---",
+    "id: 014-sibling-owned-host",
+    "title: sibling-owned",
+    "phase: 1",
+    "status: open",
+    "summary: sibling owned",
+    "priority: P2",
+    "tags: [test]",
+    "---",
+    "# sibling-owned",
+    "",
+    "## Scope & Constraints",
+    "- Target: source module",
+    "",
+    "## Agent Permission Contract (APC)",
+    "### [BOUNDARY]",
+    "- Editable modules: source module",
+    "",
+    "### [CONTRACT]",
+    "- Input: source context",
+    "- Output: minimal implementation",
+    "- Side effects: docs only",
+    "",
+    "### [PATCH PLAN]",
+    "- Plan pointer",
+    ""
+  ].join("\n"), "utf8");
+
+  try {
+    await runTicketMove({
+      cwd: wrong.cwd,
+      topic: "014-sibling-owned-host",
+      next: true,
+      nonInteractive: true
+    });
+
+    const body = readFileSync(join(owner.cwd, ticketPath), "utf8");
+    assert.match(body, /phase: 2/);
+    assert.match(body, /status: active/);
+
+    const ownerIndex = JSON.parse(readFileSync(join(owner.ticketDir, TICKET_INDEX_FILENAME), "utf8"));
+    assert.strictEqual(ownerIndex.entries[0].status, "active");
+
+    const wrongIndex = JSON.parse(readFileSync(join(wrong.ticketDir, TICKET_INDEX_FILENAME), "utf8"));
+    assert.strictEqual(wrongIndex.entries.length, 0);
+  } finally {
+    rmSync(parent, { recursive: true, force: true });
+  }
+});
+
+test("runTicketClose fails when topic exists in multiple sibling repos", async () => {
+  const parent = mkdtempSync(join(tmpdir(), "deuk-ticket-workspace-"));
+  const ticketPath = ".deuk-agent/tickets/sub/015-ambiguous-host.md";
+  const wrong = makeTicketWorkspaceAt(parent, "wrong-repo", []);
+  const ownerA = makeTicketWorkspaceAt(parent, "owner-a", [
+    makeEntry({ id: "015-ambiguous-host", topic: "015-ambiguous-host", fileName: "015-ambiguous-host.md", path: ticketPath })
+  ]);
+  const ownerB = makeTicketWorkspaceAt(parent, "owner-b", [
+    makeEntry({ id: "015-ambiguous-host", topic: "015-ambiguous-host", fileName: "015-ambiguous-host.md", path: ticketPath })
+  ]);
+
+  mkdirSync(join(ownerA.ticketDir, "sub"), { recursive: true });
+  mkdirSync(join(ownerB.ticketDir, "sub"), { recursive: true });
+
+  try {
+    await assert.rejects(
+      () => runTicketClose({ cwd: wrong.cwd, topic: "015-ambiguous-host", nonInteractive: true }),
+      err => {
+        assert.match(err.message, /Ambiguous ticket topic/);
+        assert.match(err.message, /owner-a/);
+        assert.match(err.message, /owner-b/);
+        return true;
+      }
+    );
+  } finally {
+    rmSync(parent, { recursive: true, force: true });
   }
 });
 

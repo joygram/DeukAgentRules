@@ -4,7 +4,7 @@ import { basename, join, dirname, relative, resolve } from "path";
 import { 
   toSlug, toRepoRelativePath, toFileUri, inferRefTitleAndTopic, resolveReferencedTicketPath, toPosixPath, stringifyFrontMatter,
   selectLocalizedTemplatePath, resolveDocsLanguage, inferDocsLanguageFromText, normalizeDocsLanguage, isMcpActive, withReadline, parseFrontMatter,
-  AGENT_ROOT_DIR, TICKET_SUBDIR, TEMPLATE_SUBDIR, TICKET_DIR_NAME, detectConsumerTicketDir, loadInitConfig
+  AGENT_ROOT_DIR, TICKET_SUBDIR, TEMPLATE_SUBDIR, TICKET_DIR_NAME, TICKET_INDEX_FILENAME, detectConsumerTicketDir, loadInitConfig
 } from "./cli-utils.mjs";
 import { readTicketIndexJson, writeTicketIndexJson, syncActiveTicketId, generateTicketId, syncToPipeline } from "./cli-ticket-index.mjs";
 import { appendTicketEntry, rebuildTicketIndexFromTopicFilesIfNeeded, writeTicketListFile, updateTicketEntryStatus } from "./cli-ticket-parser.mjs";
@@ -142,6 +142,136 @@ function lintTicketLifecycleMarkdown(cwd, targets, context) {
     throw new Error(`[VALIDATION FAILED] ${context}: markdown lint failed\n${details}`);
   }
   return result;
+}
+
+function looksLikeTicketMarkdownPath(value) {
+  const raw = String(value || "");
+  return /\.md$/i.test(raw) && /[/\\]/.test(raw);
+}
+
+function findTicketRepoRootFromPath(absPath) {
+  let dir = dirname(absPath);
+  while (true) {
+    if (basename(dir) === TICKET_SUBDIR && basename(dirname(dir)) === AGENT_ROOT_DIR) {
+      return dirname(dirname(dir));
+    }
+    const parent = dirname(dir);
+    if (parent === dir) return null;
+    dir = parent;
+  }
+}
+
+function applyTicketPathContext(opts = {}) {
+  const rawTicketPath = opts.ticketPath || (looksLikeTicketMarkdownPath(opts.topic) ? opts.topic : "");
+  if (!rawTicketPath) return opts;
+
+  const absPath = resolve(opts.cwd, rawTicketPath);
+  if (!existsSync(absPath)) {
+    throw new Error(`ticket path not found: ${rawTicketPath}`);
+  }
+
+  const ticketRepoRoot = findTicketRepoRootFromPath(absPath);
+  if (!ticketRepoRoot) {
+    throw new Error(`ticket path is not inside ${AGENT_ROOT_DIR}/${TICKET_SUBDIR}: ${rawTicketPath}`);
+  }
+
+  const { meta } = parseFrontMatter(readFileSync(absPath, "utf8"));
+  const ticketTopic = meta.topic || meta.id || basename(absPath).replace(/\.md$/i, "");
+  if (!ticketTopic) {
+    throw new Error(`ticket path has no id/topic frontmatter: ${rawTicketPath}`);
+  }
+
+  opts.cwd = ticketRepoRoot;
+  opts.topic = ticketTopic;
+  opts.ticketPath = absPath;
+  return opts;
+}
+
+function ticketIndexPathForRoot(root) {
+  return join(root, AGENT_ROOT_DIR, TICKET_SUBDIR, TICKET_INDEX_FILENAME);
+}
+
+function collectNearbyTicketRoots(cwd) {
+  const roots = new Set();
+  let dir = resolve(cwd);
+
+  while (true) {
+    if (existsSync(ticketIndexPathForRoot(dir))) roots.add(dir);
+
+    try {
+      for (const item of readdirSync(dir, { withFileTypes: true })) {
+        if (!item.isDirectory() || item.name.startsWith(".")) continue;
+        const childRoot = join(dir, item.name);
+        if (existsSync(ticketIndexPathForRoot(childRoot))) roots.add(childRoot);
+      }
+    } catch {
+      // Some ancestors may not be readable; skip them and keep climbing.
+    }
+
+    const parent = dirname(dir);
+    if (parent === dir || basename(dir) === "home") break;
+    dir = parent;
+  }
+
+  return [...roots];
+}
+
+function matchingTicketEntriesForTopic(indexJson, topic) {
+  const key = String(topic || "").toLowerCase();
+  if (!key) return [];
+  const rows = indexJson.entries || [];
+  const exact = rows.filter(entry =>
+    String(entry.topic || "").toLowerCase() === key ||
+    String(entry.id || "").toLowerCase() === key
+  );
+  if (exact.length > 0) return exact;
+  return rows.filter(entry =>
+    String(entry.topic || "").toLowerCase().includes(key) ||
+    String(entry.id || "").toLowerCase().includes(key)
+  );
+}
+
+function applyTicketTopicContext(opts = {}) {
+  if (!opts.topic || opts.latest || looksLikeTicketMarkdownPath(opts.topic)) return opts;
+
+  const currentIndexPath = ticketIndexPathForRoot(opts.cwd);
+  if (existsSync(currentIndexPath)) {
+    const currentIndex = readTicketIndexJson(opts.cwd);
+    if (pickTicketEntry(opts, currentIndex)) return opts;
+  }
+
+  const matches = [];
+  for (const root of collectNearbyTicketRoots(opts.cwd)) {
+    if (resolve(root) === resolve(opts.cwd)) continue;
+    let indexJson;
+    try {
+      indexJson = JSON.parse(readFileSync(ticketIndexPathForRoot(root), "utf8"));
+    } catch {
+      continue;
+    }
+    for (const entry of matchingTicketEntriesForTopic(indexJson, opts.topic)) {
+      matches.push({ root, entry });
+    }
+  }
+
+  if (matches.length === 0) return opts;
+  if (matches.length > 1) {
+    const details = matches
+      .slice(0, 10)
+      .map(match => `- ${match.entry.id || match.entry.topic} @ ${match.root}`)
+      .join("\n");
+    throw new Error(`Ambiguous ticket topic "${opts.topic}" found in multiple repositories:\n${details}`);
+  }
+
+  opts.cwd = matches[0].root;
+  opts.topic = matches[0].entry.topic || matches[0].entry.id;
+  return opts;
+}
+
+function applyTicketContext(opts = {}) {
+  applyTicketPathContext(opts);
+  applyTicketTopicContext(opts);
+  return opts;
 }
 
 function collectTicketLifecycleMarkdownTargets(cwd, ticketAbsPath, extraTargets = []) {
@@ -887,6 +1017,7 @@ export async function runTicketHandoff(opts) {
 }
 
 export async function runTicketMeta(opts) {
+  applyTicketContext(opts);
   const index = rebuildTicketIndexFromTopicFilesIfNeeded(opts.cwd, { ...opts, force: false });
   const found = pickTicketEntry(opts, index);
   if (!found) throw new Error("ticket meta: no matching ticket found");
@@ -915,6 +1046,7 @@ export async function runTicketConnect(opts) {
 
 
 export async function runTicketClose(opts) {
+  applyTicketContext(opts);
   if (!opts.topic && !opts.latest) {
     if (opts.nonInteractive) {
       throw new Error("ticket close: --topic or --latest is required in non-interactive mode.");
@@ -965,6 +1097,7 @@ export async function runTicketClose(opts) {
 }
 
 export async function runTicketUse(opts) {
+  applyTicketContext(opts);
   const index = rebuildTicketIndexFromTopicFilesIfNeeded(opts.cwd, { ...opts, force: false });
   
   let targetTopic = opts.topic;
@@ -1122,6 +1255,7 @@ function filterTicketEntries(entries, opts = {}) {
 }
 
 export async function runTicketArchive(opts) {
+  applyTicketContext(opts);
   const indexJson = rebuildTicketIndexFromTopicFilesIfNeeded(opts.cwd, { ...opts, force: false });
   const ticketDir = detectConsumerTicketDir(opts.cwd);
 
@@ -1206,6 +1340,7 @@ export async function runTicketReports(opts) {
 }
 
 export async function runTicketReportAttach(opts) {
+  applyTicketContext(opts);
   if (!opts.report) throw new Error("ticket report attach requires --report <file_path>");
   
   const index = rebuildTicketIndexFromTopicFilesIfNeeded(opts.cwd, { ...opts, force: false });
@@ -1247,6 +1382,7 @@ export async function runTicketRebuild(opts) {
 }
 
 export async function runTicketMove(opts) {
+  applyTicketContext(opts);
   if (!opts.topic && !opts.latest) {
     if (opts.nonInteractive) {
       throw new Error("ticket move: --topic or --latest is required in non-interactive mode.");
