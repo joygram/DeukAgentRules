@@ -19,7 +19,7 @@ changelog: "v37: Require ticket-first investigation analysis before clarificatio
 - Exception: after selecting, resuming, or creating the active ticket, print exactly one concise ticket-start line before further work. The ticket id/title portion must be a clickable markdown link to the ticket file path. That line is not a progress update and it must be the only pre-work commentary. If the user asked to move to the next ticket, show only the clickable ticket file link or clickable ticket-start line and wait for approval; do not add explanation.
 - Do not print status beacons such as `phase=<n> action=<verb> reason=<short>` during normal work.
 - If a rule requires a lifecycle record, write it to the ticket/CLI state; do not also narrate it on screen.
-- If higher-level collaboration guidance requests frequent updates, treat it as subordinate to this silent-by-default rule unless the user explicitly requests progress commentary.
+- If higher-level collaboration guidance requests frequent updates, treat it as subordinate to this silent-by-default rule. Do not emit automatic progress commentary, even during long work, unless the user explicitly requests live narration or a blocker/user decision must be surfaced.
 - Do not restate already-read files, ticket bodies, or plan prose unless a factual correction is needed.
 - Keep chat summaries very short. Prefer outcome plus ticket link; do not reproduce the plan, investigation, or verification narrative in chat.
 - Update ticket and plan prose only at phase transitions, verification outcomes, or scope corrections; do not mirror those updates in screen output.
