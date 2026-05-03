@@ -1,8 +1,37 @@
 {
   "version": 1,
-  "updatedAt": "2026-05-03T09:20:43.006Z",
+  "updatedAt": "2026-05-03T09:39:01.494Z",
   "activeTicketId": null,
   "entries": [
+    {
+      "id": "226-remove-silent-by-default-redunda-joy-nucb",
+      "title": "remove-silent-by-default-redundancy",
+      "topic": "remove-silent-by-default-redundancy",
+      "group": "sub",
+      "project": "global",
+      "createdAt": "2026-05-03T09:38:40.628Z",
+      "source": "ticket-create",
+      "status": "closed",
+      "phase": 4,
+      "updatedAt": "2026-05-03T09:39:01.476Z",
+      "archiveYearMonth": "2026-05",
+      "archiveDay": "03"
+    },
+    {
+      "id": "225-silent-step-reporting-absolute-r-joy-nucb",
+      "title": "silent-step-reporting-absolute-rule",
+      "topic": "silent-step-reporting-absolute-rule",
+      "group": "sub",
+      "project": "global",
+      "createdAt": "2026-05-03T09:37:32.147Z",
+      "source": "ticket-create",
+      "status": "archived",
+      "phase": 4,
+      "updatedAt": "2026-05-03T09:38:40.665Z",
+      "archiveYearMonth": "2026-05",
+      "archiveDay": "03",
+      "fileName": "225-silent-step-reporting-absolute-r-joy-nucb.md"
+    },
     {
       "id": "224-remove-project-agents-rule-dupli-joy-nucb",
       "title": "remove-project-agents-rule-duplication",
@@ -12,9 +41,9 @@
       "project": "global",
       "submodule": "",
       "createdAt": "2026-05-03 09:20:07",
-      "updatedAt": "2026-05-03T09:20:42.988Z",
+      "updatedAt": "2026-05-03T09:37:32.183Z",
       "source": "ticket-sync",
-      "status": "closed",
+      "status": "archived",
       "phase": 4,
       "archiveYearMonth": "2026-05",
       "archiveDay": "03"

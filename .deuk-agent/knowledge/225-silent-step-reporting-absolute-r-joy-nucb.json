@@ -1,0 +1,17 @@
+{
+  "id": "225-silent-step-reporting-absolute-r-joy-nucb",
+  "title": "silent-step-reporting-absolute-rule",
+  "project": "global",
+  "createdAt": "2026-05-03 09:37:32",
+  "archivedAt": "2026-05-03T09:38:40.664Z",
+  "summary": "강제 단계 보고 생략 규칙을 core-rules에 추가",
+  "sourceTicketPath": ".deuk-agent/tickets/sub/225-silent-step-reporting-absolute-r-joy-nucb.md",
+  "sections": {
+    "Scope & Constraints": "- **Target:** module/submodule paths directly required by `silent-step-reporting-absolute-rule`\n- **Context Files:** `PROJECT_RULE.md`, relevant architecture docs, and target source files\n- **Constraints:** No generated output edits, no unrelated refactors, no broad regeneration without approval.\n- **Lifecycle Guard:** ticket lifecycle commands auto-run markdown lint on touched files and fail fast on broken markdown.",
+    "Agent Permission Contract (APC)": "### [BOUNDARY]\n- Editable modules: `core-rules/AGENTS.md` and the ticket metadata/doc fields needed to record this rule update\n- Forbidden modules: generated artifacts, unrelated shared infrastructure, external module roots\n- Rule citation: PROJECT_RULE.md + core-rules/AGENTS.md\n\n### [CONTRACT]\n- Input: current core agent rules and ticket metadata for the silent-by-default workflow\n- Output: a rules update that makes step-by-step reporting explicitly forbidden except for the required ticket-start line\n- Side effects: ticket updates, scoped documentation changes only\n\n### [PATCH PLAN]\n- Compact planning lives in this ticket.\n- Use CLI-linked subissues for related work instead of expanding this ticket.\n- Do not duplicate screen progress here.",
+    "Compact Plan": "- **Problem:** The current low-token guidance still permits progress narration through general silence wording, so the rule needs an explicit absolute prohibition on step-by-step reporting.\n- **Approach:** Add one clear rule line in `core-rules/AGENTS.md` near the silent-by-default section and update the changelog/version so the new prohibition is visible to downstream consumers.\n- **Verification:** Run `npx deuk-agent-rule lint:md` on touched markdown and confirm the updated rule text and ticket metadata lint cleanly.\n- **Ticket Numbering:** use the numbered ticket ID as the canonical reference for this change; do not split this rule update into follow-up tickets.",
+    "Tasks": "- [ ] Complete compact plan and APC.\n- [ ] Execute changes inside APC boundary.\n- [ ] Record verification outcome.",
+    "Done When": "- APC is complete and non-placeholder.\n- Compact plan is complete and non-placeholder.\n- Target changes are implemented inside the declared boundary.\n- Markdown lint/tests relevant to this ticket pass or failures are recorded.\n- Lifecycle commands can persist the ticket without manual lint intervention."
+  },
+  "analysis": {}
+}

@@ -1,6 +1,6 @@
 ---
-version: 33
-changelog: "v33: Make silent-by-default stricter by forbidding progress narration except the required ticket-start line."
+version: 34
+changelog: "v34: Make silent-by-default absolute by forbidding step-by-step reporting except the required ticket-start line."
 ---
 
 # Agent Rules
@@ -14,8 +14,7 @@ changelog: "v33: Make silent-by-default stricter by forbidding progress narratio
 
 ## 0. Low-Token Operating Mode
 
-- Silent-by-default is mandatory. Do not print progress while reading, searching, patching, moving phases, or verifying.
-- Silent-by-default overrides habitual status narration. Do not emit commentary progress updates, interim summaries, or "what I will do next" narration unless the user explicitly asked for live narration or a blocker/user decision must be surfaced.
+- Silent-by-default is mandatory. Do not print progress while reading, searching, patching, moving phases, or verifying. Do not emit commentary progress updates, interim summaries, or "what I will do next" narration unless the user explicitly asked for live narration or a blocker/user decision must be surfaced.
 - Screen output is allowed only for final answers, user decisions, blockers, destructive-risk confirmation, or command results the user explicitly asked to see.
 - Exception: after selecting, resuming, or creating the active ticket, print exactly one concise ticket-start line before further work. The ticket id/title portion must be a clickable markdown link to the ticket file path. That line is not a progress update and it must be the only pre-work commentary. If the user asked to move to the next ticket, show only the clickable ticket file link or clickable ticket-start line and wait for approval; do not add explanation.
 - Do not print status beacons such as `phase=<n> action=<verb> reason=<short>` during normal work.

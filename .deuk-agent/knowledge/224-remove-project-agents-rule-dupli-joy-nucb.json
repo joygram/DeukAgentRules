@@ -1,0 +1,17 @@
+{
+  "id": "224-remove-project-agents-rule-dupli-joy-nucb",
+  "title": "remove-project-agents-rule-duplication",
+  "project": "global",
+  "createdAt": "2026-05-03 09:20:07",
+  "archivedAt": "2026-05-03T09:37:32.182Z",
+  "summary": "Remove duplicated rule text between PROJECT_RULE.md and AGENTS.md by keeping source-of-truth guidance in AGENTS and shortening PROJECT_RULE pointers.",
+  "sourceTicketPath": ".deuk-agent/tickets/sub/224-remove-project-agents-rule-dupli-joy-nucb.md",
+  "sections": {
+    "Scope & Constraints": "- **Target:** `PROJECT_RULE.md` only, with any supporting pointer text needed to keep it aligned with `core-rules/AGENTS.md`.\n- **Context Files:** `PROJECT_RULE.md`, `core-rules/AGENTS.md`, and the existing project architecture notes.\n- **Constraints:** No source code changes, no generated output edits, and no changes outside rule/documentation files.\n- **Lifecycle Guard:** ticket lifecycle commands auto-run markdown lint on touched files and fail fast on broken markdown.",
+    "Agent Permission Contract (APC)": "### [BOUNDARY]\n- Editable modules: `PROJECT_RULE.md` and only the minimal wording needed to remove duplicated rule text.\n- Forbidden modules: generated artifacts, product code, unrelated shared infrastructure, external module roots\n- Rule citation: PROJECT_RULE.md + core-rules/AGENTS.md\n\n### [CONTRACT]\n- Input: the current wording in `PROJECT_RULE.md` and the source-of-truth guidance in `core-rules/AGENTS.md`.\n- Output: a shorter `PROJECT_RULE.md` that points to `core-rules/AGENTS.md` instead of repeating the same workflow rules.\n- Side effects: ticket updates and markdown edits only.\n\n### [PATCH PLAN]\n- Compact planning lives in this ticket.\n- Use CLI-linked subissues for related work instead of expanding this ticket.\n- Do not duplicate screen progress here.",
+    "Compact Plan": "- **Problem:** `PROJECT_RULE.md` repeats workflow guidance that already lives in `core-rules/AGENTS.md`, which makes maintenance harder and risks drift.\n- **Approach:** Keep `PROJECT_RULE.md` focused on project-specific boundaries, generated-file mapping, and build/test commands. Replace duplicated workflow text with a single pointer to `core-rules/AGENTS.md`.\n- **Verification:** Re-read the edited markdown and run `npx deuk-agent-rule lint:md` on the touched files.\n- **Ticket Numbering:** infer the master/sub ticket from the numbered ticket ID; do not add inline child-ticket links.",
+    "Tasks": "- [ ] Complete compact plan and APC.\n- [ ] Execute changes inside APC boundary.\n- [ ] Record verification outcome.",
+    "Done When": "- APC is complete and non-placeholder.\n- Compact plan is complete and non-placeholder.\n- Target changes are implemented inside the declared boundary.\n- Markdown lint/tests relevant to this ticket pass or failures are recorded.\n- Lifecycle commands can persist the ticket without manual lint intervention."
+  },
+  "analysis": {}
+}
