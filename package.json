@@ -37,7 +37,6 @@
     "bump:patch": "commit-and-tag-version -r patch",
     "bump:minor": "commit-and-tag-version -r minor",
     "bump:major": "commit-and-tag-version -r major",
-    "setup": "node scripts/setup.mjs",
     "merge:dry": "node scripts/cli.mjs merge --dry-run --cwd .. --agents skip",
     "lint:md": "node scripts/lint-md.mjs",
     "test": "node --test scripts/tests/*.test.mjs",
