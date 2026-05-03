@@ -1,0 +1,17 @@
+{
+  "id": "209-auto-lint-cli-reduce-manual-joy-nucb",
+  "title": "auto-lint-cli-reduce-manual",
+  "project": "global",
+  "createdAt": "2026-05-03 07:49:34",
+  "archivedAt": "2026-05-03T07:57:25.433Z",
+  "summary": "수동 lint:md 반복 호출을 줄이도록 CLI 자동 린트 흐름을 보강한다.",
+  "sourceTicketPath": ".deuk-agent/tickets/sub/209-auto-lint-cli-reduce-manual-joy-nucb.md",
+  "sections": {
+    "Scope & Constraints": "- **Target:** ticket lifecycle lint helpers in `scripts/cli-ticket-commands.mjs`, markdown lint target discovery in `scripts/lint-md.mjs`, and related tests.\n- **Context Files:** `PROJECT_RULE.md`, `scripts/cli-ticket-commands.mjs`, `scripts/lint-md.mjs`, `scripts/tests/cli-ticket-commands.test.mjs`\n- **Constraints:** No generated output edits, no unrelated refactors, no broad regeneration.\n- **Lifecycle Guard:** ticket lifecycle commands auto-run markdown lint on touched files and fail fast on broken markdown.",
+    "Agent Permission Contract (APC)": "### [BOUNDARY]\n- Editable modules: CLI lint helper and ticket lifecycle command tests.\n- Forbidden modules: generated artifacts, unrelated CLI command surfaces, release/package metadata\n- Rule citation: PROJECT_RULE.md + core-rules/AGENTS.md\n\n### [CONTRACT]\n- Input: user report that manual `lint:md` calls consume time/tokens after rule markdown edits.\n- Output: ticket lifecycle commands automatically lint currently changed markdown files in addition to the ticket markdown they mutate.\n- Side effects: ticket updates, scoped code changes only\n\n### [PATCH PLAN]\n- Reuse `lint-md` changed-file discovery instead of duplicating git parsing.\n- Add changed markdown targets to ticket lifecycle lint targets.\n- Cover the behavior with a ticket move regression test.",
+    "Compact Plan": "- **Problem:** lifecycle commands lint the ticket file they mutate, but markdown files changed during the same task still require separate manual `lint:md` calls.\n- **Approach:** export changed markdown discovery from `lint-md` and include those files in ticket lifecycle lint targets.\n- **Verification:** focused ticket command test, `npx deuk-agent-rule rules audit --compact`, and markdown lint as recorded.\n- **Linked Issues:** Use CLI relationship commands for related issues; do not paste child-ticket bodies here.",
+    "Tasks": "- [x] Complete compact plan and APC.\n- [x] Execute changes inside APC boundary.\n- [x] Record verification outcome.",
+    "Done When": "- APC is complete and non-placeholder.\n- Compact plan is complete and non-placeholder.\n- Target changes are implemented inside the declared boundary.\n- Markdown lint/tests relevant to this ticket pass or failures are recorded.\n- Lifecycle commands can persist the ticket without manual lint intervention."
+  },
+  "analysis": {}
+}

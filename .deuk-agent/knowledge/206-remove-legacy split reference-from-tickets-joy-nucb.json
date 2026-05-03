@@ -1,0 +1,17 @@
+{
+  "id": "206-remove-legacy split reference-from-tickets-joy-nucb",
+  "title": "206-remove-legacy split reference-from-tickets-joy-nucb",
+  "project": "global",
+  "createdAt": "2026-05-03 07:16:33",
+  "archivedAt": "2026-05-03T07:49:34.868Z",
+  "summary": "206-remove-legacy split reference-from-tickets-joy-nucb",
+  "sourceTicketPath": ".deuk-agent/tickets/sub/206-remove-planlink-from-tickets-joy-nucb.md",
+  "sections": {
+    "Scope & Constraints": "- **Target:** ticket normalization, init migration, and final single-ticket cleanup for all legacy split artifacts.\n- **Context Files:** `PROJECT_RULE.md`, `core-rules/AGENTS.md`, `scripts/cli-init-commands.mjs`, `scripts/cli-ticket-commands.mjs`, and relevant ticket templates.\n- **Constraints:** no unrelated refactors, no generated output edits, no broad regeneration without approval.\n- **Lifecycle Guard:** ticket lifecycle commands auto-run markdown lint on touched files and fail fast on broken markdown.",
+    "Agent Permission Contract (APC)": "### [BOUNDARY]\n- Editable modules: ticket parsing, init migration, ticket markdown normalization, and cleanup paths.\n- Forbidden modules: generated artifacts, unrelated shared infrastructure, external module roots.\n- Rule citation: `PROJECT_RULE.md` + `core-rules/AGENTS.md`\n\n### [CONTRACT]\n- Input: existing ticket/plan layout, `legacy split reference` migration behavior, and duplicate ticket records.\n- Output: a single canonical ticket per issue with no surviving split artifacts.\n- Side effects: scoped ticket updates, archive cleanup, and removal of redundant ticket/docs records.\n\n### [PATCH PLAN]\n- Consolidate ticket content into the main ticket body.\n- Remove legacy split reference-based split records, legacy references, and duplicate ticket records.\n- Keep only compact planning and lifecycle evidence in the canonical ticket.",
+    "Compact Plan": "- **Problem:** the same issue is still represented by split ticket/plan artifacts and duplicate ticket bodies, which violates the single-canonical-ticket rule.\n- **Approach:** merge plan content into the canonical ticket body, delete archived plan leftovers after merge, and remove redundant ticket records so only one final ticket artifact remains per issue.\n- **Verification:** inspect ticket markdown for template shape, confirm no `legacy split reference:` remains, confirm merged plan files are removed, and confirm only one canonical ticket exists per issue.\n- **Linked Issues:** use CLI relationship commands for related issues; do not paste child-ticket bodies here.",
+    "Tasks": "- [x] Complete compact plan and APC.\n- [x] Execute changes inside APC boundary.\n- [x] Record verification outcome.\n- [x] Enforce single-ticket-per-issue policy.\n- [x] Consolidate legacy ticket records into one canonical ticket.",
+    "Done When": "- APC is complete and non-placeholder.\n- Compact plan is complete and non-placeholder.\n- Target changes are implemented inside the declared boundary.\n- Markdown lint/tests relevant to this ticket pass or failures are recorded.\n- Lifecycle commands can persist the ticket without manual lint intervention."
+  },
+  "analysis": {}
+}

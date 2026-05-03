@@ -1,6 +1,20 @@
 {
   "version": 1,
-  "updatedAt": "2026-05-03T07:51:20.909Z",
-  "entries": [],
-  "activeTicketId": null
+  "updatedAt": "2026-05-03T08:11:02.432Z",
+  "entries": [
+    {
+      "id": "210-apt-guard-node-reset-otp-port-ma-joy-nucb",
+      "title": "apt-guard-node-reset-otp-port-macmini",
+      "topic": "210-apt-guard-node-reset-otp-port-ma-joy-nucb",
+      "group": "sub",
+      "fileName": "210-apt-guard-node-reset-otp-port-ma-joy-nucb.md",
+      "project": "global",
+      "submodule": "",
+      "createdAt": "2026-05-03 07:57:25",
+      "updatedAt": "2026-05-03T07:57:25.400Z",
+      "source": "ticket-sync",
+      "status": "open"
+    }
+  ],
+  "activeTicketId": "210-apt-guard-node-reset-otp-port-ma-joy-nucb"
 }

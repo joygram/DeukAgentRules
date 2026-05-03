@@ -1,0 +1,17 @@
+{
+  "id": "205-codex-token-output-and-ticket-fa-joy-nucb",
+  "title": "205-codex-token-output-and-ticket-fa-joy-nucb",
+  "project": "global",
+  "createdAt": "2026-05-03 07:16:33",
+  "archivedAt": "2026-05-03T07:46:30.534Z",
+  "summary": "205-codex-token-output-and-ticket-fa-joy-nucb",
+  "sourceTicketPath": ".deuk-agent/tickets/sub/205-codex-token-output-and-ticket-fa-joy-nucb.md",
+  "sections": {
+    "Scope & Constraints": "- **Target:** CLI ticket discovery, token output, and fast-path navigation rules.\n- **Context Files:** `PROJECT_RULE.md`, `core-rules/AGENTS.md`, ticket CLI source files, and relevant tests.\n- **Constraints:** no unrelated refactors, no broad regeneration without approval, no generated output edits.\n- **Lifecycle Guard:** ticket lifecycle commands auto-run markdown lint on touched files and fail fast on broken markdown.",
+    "Agent Permission Contract (APC)": "### [BOUNDARY]\n- Editable modules: `scripts/cli-ticket-commands.mjs`, `scripts/cli-ticket-migration.mjs`, `scripts/cli-init-commands.mjs`, `scripts/cli-args.mjs`, `scripts/cli.mjs`, and relevant tests.\n- Forbidden modules: generated artifacts, unrelated shared infrastructure, external module roots.\n- Rule citation: `PROJECT_RULE.md` + `core-rules/AGENTS.md`\n\n### [CONTRACT]\n- Input: current low-token rules, ticket discovery rules, CLI argument parsing, and ticket command tests.\n- Output: single-ticket SSoT workflow, faster ticket discovery, and stable rule-audit returns.\n- Side effects: ticket updates and scoped code changes only.\n\n### [PATCH PLAN]\n- Keep the main ticket as the default planning SSOT.\n- Reduce duplicate output and unnecessary token spend in ticket/init flows.\n- Keep fast-path behavior explicit and auditable.",
+    "Compact Plan": "- **Problem:** ticket/init flows still emit too much duplicated context and can lose the fast path for next-ticket discovery.\n- **Approach:** keep the main ticket compact, reduce duplicate progress text, and ensure CLI discovery stays one-shot and auditable.\n- **Verification:** run the relevant CLI tests and rule audit checks against ticket/init paths.\n- **Linked Issues:** none.",
+    "Tasks": "- [x] Complete compact plan and APC.\n- [x] Execute changes inside APC boundary.\n- [x] Record verification outcome.",
+    "Done When": "- APC is complete and non-placeholder.\n- Compact plan is complete and non-placeholder.\n- Target changes are implemented inside the declared boundary.\n- Markdown lint/tests relevant to this ticket pass or failures are recorded.\n- Lifecycle commands can persist the ticket without manual lint intervention."
+  },
+  "analysis": {}
+}

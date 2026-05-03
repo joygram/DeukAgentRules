@@ -1,0 +1,17 @@
+{
+  "id": "207-verify-after-execute-rule-harden-joy-nucb",
+  "title": "verify-after-execute-rule-hardening",
+  "project": "global",
+  "createdAt": "2026-05-03 07:41:03",
+  "archivedAt": "2026-05-03T07:46:30.539Z",
+  "summary": "실행 단계 구현 후 검증 생략을 막도록 core agent rules의 검증 의무와 우선순위를 보강",
+  "sourceTicketPath": ".deuk-agent/tickets/sub/207-verify-after-execute-rule-harden-joy-nucb.md",
+  "sections": {
+    "Scope & Constraints": "- **Target:** module/submodule paths directly required by `verify-after-execute-rule-hardening`\n- **Context Files:** `PROJECT_RULE.md`, relevant architecture docs, and target source files\n- **Constraints:** No generated output edits, no unrelated refactors, no broad regeneration without approval.\n- **Lifecycle Guard:** ticket lifecycle commands auto-run markdown lint on touched files and fail fast on broken markdown.",
+    "Agent Permission Contract (APC)": "### [BOUNDARY]\n- Editable modules: ticket target modules directly related to \"실행 단계 구현 후 검증 생략을 막도록 core agent rules의 검증 의무와 우선순위를 보강\"\n- Forbidden modules: generated artifacts, unrelated shared infrastructure, external module roots\n- Rule citation: PROJECT_RULE.md + core-rules/AGENTS.md\n\n### [CONTRACT]\n- Input: existing code/context required to implement \"실행 단계 구현 후 검증 생략을 막도록 core agent rules의 검증 의무와 우선순위를 보강\"\n- Output: minimal implementation and tests that satisfy \"실행 단계 구현 후 검증 생략을 막도록 core agent rules의 검증 의무와 우선순위를 보강\"\n- Side effects: ticket updates, scoped code changes only\n\n### [PATCH PLAN]\n- Compact planning lives in this ticket.\n- Use CLI-linked subissues for related work instead of expanding this ticket.\n- Do not duplicate screen progress here.",
+    "Compact Plan": "- **Problem:** 현재 core rules는 Phase 3 Verify를 정의하지만, 실행 요청 후 구현을 완료한 에이전트가 일반 클라이언트 지침이나 \"사용자 명시 요청\" 해석을 이유로 관련 검증을 생략하는 상황을 충분히 차단하지 못한다.\n- **Approach:** `core-rules/AGENTS.md`에 실행 후 검증이 기본 의무임을 명시하고, 검증 생략 허용 조건을 사용자 명시 보류/환경 차단/계획 전용 작업으로 제한한다.\n- **Verification:** `npx deuk-agent-rule lint:md` 및 `node --test scripts/tests/*.test.mjs`.\n- **Linked Issues:** None.",
+    "Tasks": "- [x] Complete compact plan and APC.\n- [x] Execute changes inside APC boundary.\n- [x] Record verification outcome.",
+    "Done When": "- APC is complete and non-placeholder.\n- Compact plan is complete and non-placeholder.\n- Target changes are implemented inside the declared boundary.\n- Markdown lint/tests relevant to this ticket pass or failures are recorded.\n- Lifecycle commands can persist the ticket without manual lint intervention."
+  },
+  "analysis": {}
+}
