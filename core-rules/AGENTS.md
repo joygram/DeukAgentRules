@@ -1,6 +1,6 @@
 ---
-version: 29
-changelog: "v29: Require a one-line ticket-start announcement after ticket selection or creation."
+version: 32
+changelog: "v32: Require clickable markdown ticket links on next-ticket prompts before approval."
 ---
 
 # Agent Rules
@@ -17,7 +17,7 @@ changelog: "v29: Require a one-line ticket-start announcement after ticket selec
 - Silent-by-default is mandatory. Do not print progress while reading, searching, patching, moving phases, or verifying.
 - Silent-by-default overrides habitual status narration. Do not emit commentary progress updates unless the user explicitly asked for live narration or a blocker/user decision must be surfaced.
 - Screen output is allowed only for final answers, user decisions, blockers, destructive-risk confirmation, or command results the user explicitly asked to see.
-- Exception: after selecting, resuming, or creating the active ticket, print exactly one concise ticket-start line before further work: `Ticket: <id> — <title or summary>`. This identifies the work item; it is not a progress log.
+- Exception: after selecting, resuming, or creating the active ticket, print exactly one concise ticket-start line before further work. The ticket id/title portion must be a clickable markdown link to the ticket file path. If the user asked to move to the next ticket, show only the clickable ticket file link or clickable ticket-start line and wait for approval; do not add explanation.
 - Do not print status beacons such as `phase=<n> action=<verb> reason=<short>` during normal work.
 - If a rule requires a lifecycle record, write the minimum durable record to the ticket/CLI state; do not also narrate it on screen.
 - If higher-level collaboration guidance requests frequent updates, treat it as subordinate to this silent-by-default rule unless the user explicitly requests progress commentary.
@@ -35,7 +35,7 @@ changelog: "v29: Require a one-line ticket-start announcement after ticket selec
 
 1. Read this file (AGENTS.md) → internally note the version number and exact file path read. Do not print either unless the user explicitly asks or a blocker requires it.
 2. Read `PROJECT_RULE.md` in workspace root → internally identify applicable DC-* rules. Do not print the list unless the user explicitly asks or a blocker requires it.
-3. Find or create active ticket (1-CALL RULE below) → call `set_workflow_context(project, ticket_id, phase)` → print the mandatory one-line ticket-start announcement.
+3. Find or create active ticket (1-CALL RULE below) → call `set_workflow_context(project, ticket_id, phase)` → print the mandatory one-line ticket-start announcement as a clickable markdown link to the ticket file. If approval is still pending, stop after the link/announcement.
 
 ### Ticket Discovery (1-CALL RULE)
 
@@ -83,6 +83,7 @@ WRITE tools requiring active ticket: `write_to_file`, `replace_file_content`, `m
 
 Phase 1 document boundary rule:
 - The main ticket is the default SSoT for scope, APC, compact planning, linked issues, and verification outcomes.
+- Sub tickets infer their relationship to the main ticket from the numbered ticket ID. Do not add inline master links just to identify the parent; keep the main ticket as the planning SSoT.
 - Once a ticket's compact plan and APC are complete and linted, do not keep rewriting ticket prose to mirror phase progress or lifecycle state.
 - Phase transitions, archive, and close actions are lifecycle events, not permission to reopen document boundaries.
 - If the work scope changes materially after Phase 1, create/link a child ticket instead of mutating the old ticket into a new contract.
