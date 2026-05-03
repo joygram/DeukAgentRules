@@ -52,8 +52,8 @@ Numbered halt conditions (H1, H2...) are scannable and referenceable.
 
 ```
 BAD:
-- Plans go in `.deuk-agent/docs/plans/`
-- Reports go in `.deuk-agent/docs/walkthroughs/`
+- Plans go in `.deuk-agent/docs/plan/`
+- Reports go in `.deuk-agent/docs/archive/` (archived by month)
 
 GOOD:
 | Type | Path |
