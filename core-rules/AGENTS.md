@@ -1,6 +1,6 @@
 ---
-version: 28
-changelog: "v28: Make post-execute verification mandatory unless explicitly deferred or blocked."
+version: 29
+changelog: "v29: Require a one-line ticket-start announcement after ticket selection or creation."
 ---
 
 # Agent Rules
@@ -17,6 +17,7 @@ changelog: "v28: Make post-execute verification mandatory unless explicitly defe
 - Silent-by-default is mandatory. Do not print progress while reading, searching, patching, moving phases, or verifying.
 - Silent-by-default overrides habitual status narration. Do not emit commentary progress updates unless the user explicitly asked for live narration or a blocker/user decision must be surfaced.
 - Screen output is allowed only for final answers, user decisions, blockers, destructive-risk confirmation, or command results the user explicitly asked to see.
+- Exception: after selecting, resuming, or creating the active ticket, print exactly one concise ticket-start line before further work: `Ticket: <id> — <title or summary>`. This identifies the work item; it is not a progress log.
 - Do not print status beacons such as `phase=<n> action=<verb> reason=<short>` during normal work.
 - If a rule requires a lifecycle record, write the minimum durable record to the ticket/CLI state; do not also narrate it on screen.
 - If higher-level collaboration guidance requests frequent updates, treat it as subordinate to this silent-by-default rule unless the user explicitly requests progress commentary.
@@ -34,7 +35,7 @@ changelog: "v28: Make post-execute verification mandatory unless explicitly defe
 
 1. Read this file (AGENTS.md) → internally note the version number and exact file path read. Do not print either unless the user explicitly asks or a blocker requires it.
 2. Read `PROJECT_RULE.md` in workspace root → internally identify applicable DC-* rules. Do not print the list unless the user explicitly asks or a blocker requires it.
-3. Find or create active ticket (1-CALL RULE below) → call `set_workflow_context(project, ticket_id, phase)`.
+3. Find or create active ticket (1-CALL RULE below) → call `set_workflow_context(project, ticket_id, phase)` → print the mandatory one-line ticket-start announcement.
 
 ### Ticket Discovery (1-CALL RULE)
 
