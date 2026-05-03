@@ -3,10 +3,8 @@
 ---
 # <%= meta.title %>
 
-> Restrict changes to **Target Module**. Read **Context Files** before code generation.
-> Do not narrate progress. If the workflow requires a ticket-start line, that is the only allowed pre-work commentary.
-> Keep planning compact but substantive in this ticket. The main ticket owns design and analysis, plus investigation, RAG evidence, and verification; chat stays short and points here.
-> For issue/regression reports, stop after Phase 1 for user review. Do not execute before post-ticket approval.
+> This ticket inherits output, review-gate, and lifecycle policy from `core-rules/AGENTS.md`.
+> Restrict changes to **Target Module**. Keep scope, APC, investigation evidence, and verification outcome here.
 
 ## Scope & Constraints
 

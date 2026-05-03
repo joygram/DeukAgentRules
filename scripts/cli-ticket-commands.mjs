@@ -29,7 +29,7 @@ async function ensurePhase0Validation(opts) {
 
   if (opts.skipPhase0) {
     try {
-      if (await isMcpActive(opts.cwd)) {
+      if (!isCompactTicketOutput(opts) && await isMcpActive(opts.cwd)) {
         console.warn("[WARNING] Phase 0 RAG evidence is recommended when the MCP server is active. Proceeding without evidence as requested.");
       }
     } catch (err) {
@@ -130,7 +130,7 @@ function buildApcDraft(summary) {
     patchPlan: [
       "- Compact planning lives in this ticket.",
       "- Use CLI-linked subissues for related work instead of expanding this ticket.",
-      "- Do not duplicate screen progress here."
+      "- Ticket content owns scope/APC/evidence; core rules own screen-output policy."
     ].join("\n")
   };
 }

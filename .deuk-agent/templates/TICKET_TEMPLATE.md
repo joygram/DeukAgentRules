@@ -3,11 +3,8 @@
 ---
 # <%= meta.title %>
 
-> Restrict changes to **Target Module**. Read **Context Files** before code generation.
-> Do not narrate progress. If the workflow requires a ticket-start line, that is the only allowed pre-work commentary.
-> Keep planning compact in this ticket. The main ticket owns design and analysis; do not mirror screen progress here.
-> If an optional planLink exists, it is Phase 1 planning-only. Never append execution logs or verification results to it.
-> For issue/regression reports, stop after Phase 1 for user review. Do not execute before post-ticket approval.
+> This ticket inherits output, review-gate, and lifecycle policy from `core-rules/AGENTS.md`.
+> Restrict changes to **Target Module**. Keep scope, APC, investigation evidence, and verification outcome here.
 
 ## Scope & Constraints
 
@@ -33,16 +30,38 @@
 
 ## Compact Plan
 
-- **Problem:** Record the stable issue once in this main ticket. Do not duplicate design or analysis in follow-up tickets.
-- **Approach:** Capture the selected design and analysis path here, including root cause, constraints, and the implementation direction. Split related follow-up work into sub tickets instead of expanding this record.
-- **Verification:** List the smallest relevant commands or checks and the expected result.
+- **Finding:** Record the concrete symptom, risk, or requested change this ticket owns. State what is broken, what is missing, and who or what is affected.
+- **Root cause / hypothesis:** Capture the current best explanation and cite affected files, symbols, commands, or rules. If the cause is uncertain, say what evidence would separate the plausible causes.
+- **RAG evidence:** Record MCP tool/query quality when used: hit, weak-hit, miss, stale, and whether it changed the plan. If RAG is not used, say that local evidence was sufficient.
+- **Approach:** Capture the selected design path and implementation direction. Explain why this path is preferred over at least one alternative. Split material new scope into sub tickets instead of expanding this record.
+- **Verification:** List the smallest relevant commands/checks, expected result, and the pass/fail signal that must be recorded after execution. Prefer the narrowest gate that proves the fix.
 - **Ticket Numbering:** infer the master/sub ticket from the numbered ticket ID; do not add inline child-ticket links.
+
+## Problem Analysis
+
+For investigation, regression, quality, or root-cause tickets, record the current analysis here before asking the user for clarification. Chat should point back to this ticket after the analysis is recorded.
+
+## Source Observations
+
+- Record confirmed local, RAG, code, command, or document evidence.
+
+## Cause Hypotheses
+
+- Record the current best explanation and competing plausible causes.
+
+## Improvement Direction
+
+- Record the proposed fix direction or follow-up design path.
+
+## Open Questions
+
+- Record only the unresolved questions that require user clarification.
 
 ## Tasks
 
 - [ ] Complete compact plan and APC.
 - [ ] Execute changes inside APC boundary.
-- [ ] Record verification outcome.
+- [ ] Record durable verification outcome in this ticket.
 
 ## Done When
 

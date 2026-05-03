@@ -1143,29 +1143,29 @@ function migrateMissingFrontmatter(cwd, dryRun) {
   }
 }
 
-function syncGlobalCodexInstructions(dryRun) {
-  const codexDir = join(homedir(), ".codex");
-  if (!existsSync(codexDir)) return;
-
-  const target = join(codexDir, "AGENTS.md");
-  const content = `---
+export function buildGlobalCodexInstructions() {
+  return `---
 
 ## DeukAgentRules
 
 > Managed by DeukAgentRules. Remove this section if not installed.
 
-# Global DeukAgentRules Pointer
+# Global DeukAgentRules Locator
 
-This environment is configured to use DeukAgentRules.
-When working in a repository, always look for a local \`AGENTS.md\` or \`.deuk-agent/\` directory for project-specific rules.
+This file is a locator, not a behavior contract.
 
-## Core Directives
-- Follow TDW (Ticket-Driven Workflow).
-- Use \`npx deuk-agent-rule ticket create\` for new tasks.
-- Prioritize RAG search via \`mcp_deuk_agent_context_search_*\` tools.
-- Never refactor without a ticket or explicit instruction.
-- Stay silent while working. Do not print progress updates or interim summaries unless the user explicitly asks for live narration; after ticket selection/creation, only one concise ticket-start line is allowed before the final answer.
+- In a repository, load the local \`AGENTS.md\` or \`.deuk-agent/\` pointer first.
+- After the local pointer loads \`core-rules/AGENTS.md\`, the core hub owns TDW, RAG, silence, scope, and verification policy.
+- Do not summarize this locator or treat it as a second rule file.
 `;
+}
+
+function syncGlobalCodexInstructions(dryRun) {
+  const codexDir = join(homedir(), ".codex");
+  if (!existsSync(codexDir)) return;
+
+  const target = join(codexDir, "AGENTS.md");
+  const content = buildGlobalCodexInstructions();
 
   if (!dryRun) {
     writeFileSync(target, content, "utf8");
@@ -1173,28 +1173,20 @@ When working in a repository, always look for a local \`AGENTS.md\` or \`.deuk-a
   }
 }
 
-
-
 export function generateSpokeContent(spoke, bundleRoot) {
   const globalRulesPath = join(bundleRoot, "core-rules", "AGENTS.md");
-  
-    const content = `# Deuk Agent Rules
+
+  const content = `# Deuk Agent Rules
 
 **[MANDATORY — TOOL CALL REQUIRED]** Core rules are at: [AGENTS.md](file://${globalRulesPath})
 
-> **This file is a pointer, not the rules themselves. You have NOT read the rules yet.**
->
-> **Your FIRST tool call MUST be \`read_file\` (or equivalent) on the path above.**
-> Do NOT respond, acknowledge the user's request, plan, or execute ANY action before opening that file and internally noting its version number.
-> Proceeding without this call is a **HARD VIOLATION** — halt immediately and read the file first.
->
-> After that read, remain silent-by-default. Do NOT print progress commentary, interim summaries, or "what I will do next" messages. Only the single required ticket-start line may appear before the final answer unless the user explicitly asks for live narration or a blocker/user decision must be surfaced.
+This pointer is a thin bootstrap, not a second workflow contract.
 
-After reading, you must:
-1. Internally note the version number from the frontmatter.
-2. Internally identify which DC-* rules from PROJECT_RULE.md apply to your current task.
+1. FIRST tool call: read the core rules file above and internally note its frontmatter version.
+2. Then read local \`PROJECT_RULE.md\` and internally identify applicable DC-* rules.
+3. After the core hub is loaded, \`core-rules/AGENTS.md\` is the DeukAgentRules SSoT for TDW, RAG, silence, scope, and verification.
 
-Do not print the version number or DC-* list unless the user explicitly asks for rule details or a blocker requires it.
+Do not print pointer/core metadata, version, DC-* lists, progress commentary, or interim summaries. Only the single required ticket-start line may appear before the final answer unless the user explicitly asks for live narration or a blocker/user decision must be surfaced.
 `;
 
   if (spoke.format === "mdc") {

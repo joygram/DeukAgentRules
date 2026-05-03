@@ -3,7 +3,7 @@ import assert from "node:assert";
 import { existsSync, mkdtempSync, mkdirSync, readFileSync, rmSync, writeFileSync } from "node:fs";
 import { tmpdir } from "node:os";
 import { join } from "node:path";
-import { canonicalizeDocsArchiveBuckets, enforceCanonicalAgentLayout, generateSpokeContent, migrateLegacyStructure, runInit } from "../cli-init-commands.mjs";
+import { buildGlobalCodexInstructions, canonicalizeDocsArchiveBuckets, enforceCanonicalAgentLayout, generateSpokeContent, migrateLegacyStructure, runInit } from "../cli-init-commands.mjs";
 
 test("init migration moves legacy reports and prunes empty legacy ticket dirs", () => {
   const cwd = mkdtempSync(join(tmpdir(), "deuk-init-migrate-"));
@@ -68,14 +68,27 @@ test("init migration moves legacy reports and prunes empty legacy ticket dirs", 
   }
 });
 
-test("generated agent spoke forbids progress commentary before final answer", () => {
+test("generated agent spoke is a thin bootstrap with clear precedence", () => {
   const content = generateSpokeContent({ format: "markdown" }, "/repo/deuk-rules");
 
-  assert.match(content, /internally noting its version number/);
+  assert.match(content, /thin bootstrap, not a second workflow contract/);
+  assert.match(content, /internally note its frontmatter version/);
   assert.doesNotMatch(content, /confirming its version number/);
-  assert.match(content, /remain silent-by-default/);
-  assert.match(content, /Do NOT print progress commentary/);
+  assert.match(content, /core-rules\/AGENTS\.md` is the DeukAgentRules SSoT/);
+  assert.match(content, /Do not print pointer\/core metadata/);
   assert.match(content, /Only the single required ticket-start line may appear before the final answer/);
+});
+
+test("global codex instructions stay locator-only", () => {
+  const content = buildGlobalCodexInstructions();
+
+  assert.match(content, /Global DeukAgentRules Locator/);
+  assert.match(content, /locator, not a behavior contract/);
+  assert.match(content, /load the local `AGENTS\.md` or `\.deuk-agent\/` pointer first/);
+  assert.match(content, /core hub owns TDW, RAG, silence, scope, and verification policy/);
+  assert.doesNotMatch(content, /## Core Directives/);
+  assert.doesNotMatch(content, /Follow TDW/);
+  assert.doesNotMatch(content, /Stay silent while working/);
 });
 
 test("init migration removes duplicate scratch reports and moves legacy archive ticket shards", () => {

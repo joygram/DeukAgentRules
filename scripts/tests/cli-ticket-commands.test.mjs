@@ -1908,9 +1908,9 @@ test("runTicketCreate generates main-ticket compact plan by default", async () =
 
     const ticketText = readFileSync(ticketFile, "utf8");
     assert.doesNotMatch(ticketText, /Read relevant architecture and target module files/);
-    assert.match(ticketText, /main ticket owns design and analysis/i);
-    assert.match(ticketText, /issue\/regression reports/i);
-    assert.match(ticketText, /Do not execute before post-ticket approval/i);
+    assert.match(ticketText, /inherits output, review-gate, and lifecycle policy/i);
+    assert.match(ticketText, /Keep scope, APC, investigation evidence, and verification outcome here/i);
+    assert.doesNotMatch(ticketText, /Do not execute before post-ticket approval/i);
     assert.match(ticketText, /## Compact Plan/);
     assert.match(ticketText, /## Problem Analysis/);
     assert.match(ticketText, /## Source Observations/);

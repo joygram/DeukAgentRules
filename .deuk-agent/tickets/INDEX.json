@@ -1,7 +1,20 @@
 {
   "version": 1,
-  "updatedAt": "2026-05-03T22:59:08.460Z",
+  "updatedAt": "2026-05-03T23:28:19.363Z",
   "entries": [
+    {
+      "id": "257-득팩-처리-수준-개선-joy-nucb",
+      "title": "득팩 처리 수준 개선",
+      "topic": "257-득팩-처리-수준-개선-joy-nucb",
+      "group": "sub",
+      "fileName": "257-득팩-처리-수준-개선-joy-nucb.md",
+      "project": "global",
+      "submodule": "",
+      "createdAt": "2026-05-03 23:10:04",
+      "updatedAt": "2026-05-03T23:11:03.436Z",
+      "source": "ticket-sync",
+      "status": "open"
+    },
     {
       "id": "254-ssot-rule-violation-revert-joy-nucb",
       "title": "ssot-rule-violation-revert",
@@ -120,5 +133,5 @@
       "status": "open"
     }
   ],
-  "activeTicketId": "254-ssot-rule-violation-revert-joy-nucb"
+  "activeTicketId": "257-득팩-처리-수준-개선-joy-nucb"
 }

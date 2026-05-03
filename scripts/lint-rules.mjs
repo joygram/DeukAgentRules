@@ -32,10 +32,27 @@ const RULE_CHECKS = [
   },
   {
     code: "DR-TOKEN-06",
-    message: "Silent-by-default must override routine progress commentary from higher-level collaboration guidance.",
-    test: (rules) => /higher-level collaboration guidance requests frequent updates/i.test(rules)
-      && /subordinate to this silent-by-default rule/i.test(rules)
-      && /unless the user explicitly requests live narration/i.test(rules)
+    message: "Silent-by-default must route routine progress conflicts through Instruction Priority.",
+    test: (rules) => /another instruction requests routine progress updates/i.test(rules)
+      && /use Instruction Priority/i.test(rules)
+      && /shortest required update/i.test(rules)
+      && /record the conflict in the ticket/i.test(rules)
+  },
+  {
+    code: "DR-TOKEN-07",
+    message: "Duplicate output directives must be applied once, not echoed per layer.",
+    test: (rules) => /Duplicate directive rule/i.test(rules)
+      && /apply the strictest instruction once/i.test(rules)
+      && /Do not emit multiple acknowledgements, summaries, or ticket-start variants/i.test(rules)
+  },
+  {
+    code: "DR-PRIORITY-01",
+    message: "Rules must define pointer/core/project instruction precedence.",
+    test: (rules) => /Instruction Priority/i.test(rules)
+      && /Global DeukAgentRules pointer/i.test(rules)
+      && /Locator only/i.test(rules)
+      && /Local generated pointer\/spoke/i.test(rules)
+      && /core-rules\/AGENTS\.md/i.test(rules)
   },
   {
     code: "DR-TICKET-01",
