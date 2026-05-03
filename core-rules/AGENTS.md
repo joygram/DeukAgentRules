@@ -1,6 +1,6 @@
 ---
-version: 27
-changelog: "v27: Enforce silent-by-default operation and add CLI-auditable rule violation returns."
+version: 28
+changelog: "v28: Make post-execute verification mandatory unless explicitly deferred or blocked."
 ---
 
 # Agent Rules
@@ -56,6 +56,7 @@ changelog: "v27: Enforce silent-by-default operation and add CLI-auditable rule 
 | G1 | No active ticket + about to WRITE? | **HARD BLOCK.** Create ticket first. Read-only tools are allowed. |
 | G1.1 | About to edit product/source/config files while active ticket phase is < 2? | **HARD BLOCK.** Complete Phase 1, then move to Phase 2. Explicit user execution intent counts as approval unless G6-G8/F3/F5 applies. |
 | G1.2 | About to execute code writes but ticket planning evidence or APC is missing/placeholder-only? | **HARD BLOCK.** Fill the main ticket plan/APC, then lint before execute writes. |
+| G1.3 | About to finish after Phase 2 code/config/product writes without Phase 3 verification recorded? | **HARD BLOCK.** Run the smallest relevant build/test/lint gate and record the result. Only skip if the user explicitly deferred verification, the task was plan/exploration-only, or an environment blocker is recorded. |
 | G2 | `set_workflow_context` not called? | Call now. |
 | G3 | Target file has `@generated` / `DO NOT EDIT` / is in `dist/ Generated/ gen/ deukpack_out/`? | **DO NOT EDIT.** Modify the source. If unsure, check PROJECT_RULE.md mapping. 3 failed lookups → HALT. Applies to shell mutation too. |
 | G4 | 3+ external files modified outside ticket's Target Module? | **STOP.** Create new ticket. |
@@ -75,8 +76,8 @@ WRITE tools requiring active ticket: `write_to_file`, `replace_file_content`, `m
 |-------|-----------|----------------|
 | 0: Research | Skip if context sufficient. IF search needed: MAX 2 MCP calls, prefer local reads, specific terms only. Treat placeholder/duplicate/stale-low-signal MCP results as a miss. | 2 searches or low-quality hits → stop searching and inspect local files. |
 | 1: Ticket + Plan | Create or select the ticket → read arch rules → fill ticket-owned scope/APC and compact plan sections in the user's prompt language. Use an external `planLink` only for large/multi-module design that cannot fit compactly in the main ticket. | If the user asked only to plan, stop. If execution intent is explicit and Phase 1 is complete/linted, move to Phase 2. |
-| 2: Execute | Implement per approved or explicit user-requested plan. Update checkboxes `[x]`. | — |
-| 3: Verify | Run build/tests. Record issues. | — |
+| 2: Execute | Implement per approved or explicit user-requested plan. Update checkboxes `[x]`. | Do not stop after writes; continue to Phase 3 unless verification is explicitly deferred or blocked. |
+| 3: Verify | Run the smallest relevant build/tests/lint gate for the changed surface. Record pass/fail/blocker evidence in the ticket. User did not explicitly ask for tests is **not** a valid skip reason after execute writes. | Verification may stop only on pass, recorded failure, explicit user deferral, or recorded environment blocker. |
 | 4: Close | Close ticket and file follow-ups if needed. Do not immediately archive a just-closed ticket; leave archiving to lazy cleanup or explicit archive work. | **NEVER skip close.** |
 
 Phase 1 document boundary rule:
@@ -179,5 +180,5 @@ NEVER manually edit `INDEX.json` or ticket files via `sed`/`awk`/`echo`.
 ## 8. Auditable Rule Returns
 
 - Rule violations must be machine-returnable. Prefer CLI guards that exit non-zero with stable codes over prose-only reminders.
-- `rules audit` MUST fail if core rules reintroduce progress beacons, default `planLink` requirements, non-`rg` search defaults, or verbose duplicate-output policies.
+- `rules audit` MUST fail if core rules reintroduce progress beacons, default `planLink` requirements, non-`rg` search defaults, post-execute verification optionality, or verbose duplicate-output policies.
 - In compact mode, rule audits print only `rules:audit ok` or `rules:audit failed <count>`.

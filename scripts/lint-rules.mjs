@@ -38,6 +38,11 @@ const RULE_CHECKS = [
     test: (rules) => /use `rg`\/`rg --files` first/i.test(rules)
   },
   {
+    code: "DR-VERIFY-01",
+    message: "Post-execute verification must be mandatory unless explicitly deferred or blocked.",
+    test: (rules) => /without Phase 3 verification recorded/i.test(rules) && /User did not explicitly ask for tests is \*\*not\*\* a valid skip reason/i.test(rules)
+  },
+  {
     code: "DR-RETURN-01",
     message: "Rule violations must be machine-returnable through CLI audits.",
     test: (rules) => /Rule violations must be machine-returnable/i.test(rules) && /rules audit/i.test(rules)
@@ -83,4 +88,3 @@ export function runRulesAudit(opts = {}) {
 
   return result;
 }
-
