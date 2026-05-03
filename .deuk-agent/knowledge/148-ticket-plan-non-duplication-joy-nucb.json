@@ -1,0 +1,11 @@
+{
+  "id": "148-ticket-plan-non-duplication-joy-nucb",
+  "title": "ticket-plan-non-duplication",
+  "project": "DeukAgentRules",
+  "createdAt": "2026-05-01 13:14:10",
+  "archivedAt": "2026-05-01T13:18:44.501Z",
+  "sections": {
+    "Tasks": "- [x] Update core rule wording for non-overlap.\n- [x] Update ticket template and generated plan draft shape.\n- [x] Update docs that describe planLink/APC roles.\n- [x] Run markdown lint and node tests.",
+    "Done When": "- Ticket and planLink have distinct responsibilities.\n- Generated ticket/plan drafts avoid repeating the same summary/steps.\n- Markdown lint and relevant node tests pass."
+  }
+}

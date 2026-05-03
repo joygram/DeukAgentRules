@@ -1,0 +1,11 @@
+{
+  "id": "134-deukpack-bmt-master-meaning-repa-joy-nucb",
+  "title": "deukpack-bmt-master-meaning-repair",
+  "project": "global",
+  "createdAt": "2026-05-01 05:55:09",
+  "archivedAt": "2026-05-01T21:49:42.396Z",
+  "sections": {
+    "Tasks": "- [x] 신규 티켓/APC 정비 및 실행 범위 고정\n- [x] Master 보고서에 핵심 의사결정 메시지를 복구(요약/체크포인트/우선순위)\n- [x] `.NET` raw 숫자와 Python dump는 Master에서 제외 규칙으로만 유지\n- [x] Protocol/Test 매트릭스 역할 경계를 재확인\n- [x] 사용자 핵심 메시지(레거시 유지, 경쟁사 대비 경쟁력, 기존 내용 수정 없는 도입 가능성)를 Master 결론으로 반영\n- [x] 각 핵심 메시지에 Matrix 근거 수치와 한계 조건을 붙여 주장문이 아니라 판단 근거로 재작성",
+    "Done When": "- Master가 결론(레거시 유지 가능성, 경쟁력, 도입 부담 낮음)을 Matrix 근거와 함께 전달하고, raw 중심 데이터는 Protocol/Test 매트릭스에서만 확인되면 완료."
+  }
+}

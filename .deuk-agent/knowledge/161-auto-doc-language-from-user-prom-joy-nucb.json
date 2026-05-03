@@ -1,0 +1,11 @@
+{
+  "id": "161-auto-doc-language-from-user-prom-joy-nucb",
+  "title": "auto-doc-language-from-user-prompt",
+  "project": "global",
+  "createdAt": "2026-05-01 21:51:19",
+  "archivedAt": "2026-05-01T22:04:08.424Z",
+  "sections": {
+    "Tasks": "- [x] Complete non-duplicative `planLink` evidence/steps/verification.\n- [x] Execute changes inside APC boundary.\n- [x] Record verification outcome in the linked report or planLink.",
+    "Done When": "- APC is complete and non-placeholder.\n- Target changes are implemented inside the declared boundary.\n- Markdown lint/tests relevant to this ticket pass or failures are recorded."
+  }
+}

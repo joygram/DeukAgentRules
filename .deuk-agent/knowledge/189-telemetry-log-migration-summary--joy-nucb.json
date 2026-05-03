@@ -1,0 +1,24 @@
+{
+  "id": "189-telemetry-log-migration-summary--joy-nucb",
+  "title": "telemetry-log-migration-summary-separation",
+  "project": "global",
+  "createdAt": "2026-05-02 11:53:18",
+  "archivedAt": "2026-05-02T21:32:07.277Z",
+  "summary": "기존 telemetry 로그 마이그레이션, summary 품질 지표 추가, event/action 분리 정리",
+  "sourceTicketPath": ".deuk-agent/tickets/sub/189-telemetry-log-migration-summary--joy-nucb.md",
+  "planLink": ".deuk-agent/docs/plans/189-telemetry-log-migration-summary--joy-nucb-plan.md",
+  "sections": {
+    "Scope & Constraints": "- **Target:** module/submodule paths directly required by `telemetry-log-migration-summary-separation`\n- **Context Files:** `PROJECT_RULE.md`, relevant architecture docs, and target source files\n- **PlanLink:** `.deuk-agent/docs/plans/189-telemetry-log-migration-summary--joy-nucb-plan.md` owns evidence, decisions, detailed steps, and verification notes.\n- **Constraints:** No generated output edits, no unrelated refactors, no broad regeneration without approval.\n- **Lifecycle Guard:** ticket lifecycle commands auto-run markdown lint on touched files and fail fast on broken markdown or missing linked artifacts.",
+    "Agent Permission Contract (APC)": "### [BOUNDARY]\n- Editable modules: ticket target modules directly related to \"기존 telemetry 로그 마이그레이션, summary 품질 지표 추가, event/action 분리 정리\"\n- Forbidden modules: generated artifacts, unrelated shared infrastructure, external module roots\n- Rule citation: PROJECT_RULE.md + core-rules/AGENTS.md\n\n### [CONTRACT]\n- Input: existing code/context required to implement \"기존 telemetry 로그 마이그레이션, summary 품질 지표 추가, event/action 분리 정리\"\n- Output: minimal implementation and tests that satisfy \"기존 telemetry 로그 마이그레이션, summary 품질 지표 추가, event/action 분리 정리\"\n- Side effects: ticket + plan docs updates, scoped code changes only\n\n### [PATCH PLAN]\n- Problem analysis, cause hypotheses, rationale, execution strategy, and verification design live in planLink.\n- Ticket records only the allowed patch boundary and contract.\n- Do not duplicate planLink content here; reference it when detail is needed.",
+    "Tasks": "- [x] Complete non-duplicative `planLink` evidence/steps/verification.\n- [x] Execute changes inside APC boundary.\n- [x] Record verification outcome in the linked report or planLink.",
+    "Done When": "- APC is complete and non-placeholder.\n- Target changes are implemented inside the declared boundary.\n- Markdown lint/tests relevant to this ticket pass or failures are recorded.\n- Lifecycle commands can persist the ticket and planLink without manual lint intervention."
+  },
+  "analysis": {
+    "Problem Analysis": "Legacy telemetry rows were carrying missing or weak `event` values, while newer writes still allowed `event` to drift toward `action` for work logs. That made the telemetry stream harder to analyze and left the summary view unable to quantify event coverage gaps.",
+    "Source Observations": "- `scripts/cli-telemetry-commands.mjs` now writes `event` from a stricter resolver, reports `missingEventCount`, and supports `telemetry migrate`.\n- `scripts/tests/cli-telemetry-commands.test.mjs` now covers event coverage, migration, and the stricter default event behavior.\n- `scripts/cli.mjs` help text advertises the new telemetry subcommand.",
+    "Cause Hypotheses": "- Existing logs predate the stricter telemetry event shape.\n- Summary logic only reported TDW and RAG quality, so event coverage gaps were invisible.\n- The write path conflated `event` with `action` for some work logs.",
+    "Decision Rationale": "We normalized the write path, added a one-shot migration for historical rows, and surfaced coverage metrics in summary output. That preserves backward compatibility for old data without keeping the old ambiguity in new writes.",
+    "Execution Strategy": "1. Add a telemetry event resolver that prefers explicit `event`, then uses workflow action names for internal workflow rows, then falls back to `kind` or `work`.\n2. Add `telemetry migrate` to rewrite legacy rows in place and clear stale sync state.\n3. Extend summary output with `missingEventCount` and `eventCoverageRate`.\n4. Add regression coverage for the strict write path, migration, and summary metrics.",
+    "Verification Design": "Run `node --test scripts/tests/cli-telemetry-commands.test.mjs`, `node --test scripts/tests/*.test.mjs`, and `npx deuk-agent-rule lint:md .deuk-agent/tickets/sub/189-telemetry-log-migration-summary--joy-nucb.md .deuk-agent/docs/plans/189-telemetry-log-migration-summary--joy-nucb-plan.md`.\n\nExpected outcome:\n- Telemetry tests pass with the new strict `event` semantics.\n- Markdown lint passes for the ticket and plan.\n- Historical telemetry rows are normalized in place.\n\nVerification Outcome:\n- Implemented and verified. The telemetry command suite and full test suite pass, markdown lint passes, and the repo telemetry file was migrated in place."
+  }
+}

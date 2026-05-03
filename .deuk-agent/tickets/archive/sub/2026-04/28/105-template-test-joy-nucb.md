@@ -1,0 +1,55 @@
+---
+createdAt: 2026-04-28 20:30:54
+docsLanguage: ko
+id: 105-template-test-joy-nucb
+planLink: .deuk-agent/docs/plans/105-template-test-joy-nucb-plan.md
+priority: P2
+status: closed
+summary: 미작성 티켓 — 실질적 내용 없음. 좀비/placeholder 티켓으로 분류.
+tags: architecture, testing
+title: Template Test
+---
+
+# Template Test
+
+> **[CAUTION FOR AI AGENTS]**
+> 1. Restrict all analysis, file creation, and modifications to the declared **Target Module** below.
+> 2. Read the files listed in **Context Files** before doing ANY code generation.
+> 3. DO NOT leak configuration, logic, or dependencies from other modules.
+
+## Target Module
+- **Target:** [Fill in the target module/submodule path]
+- **Context Files:** [List architecture docs or key files to read first]
+
+## Analysis & Constraints (Deep Review)
+> [WARNING: Do not skip deep analysis. Shallow logic leads to cascaded bugs.]
+> [1. Root Cause & Architecture constraint:]
+> [2. Risk & Edge Cases (What could go wrong?):]
+
+## Agent Permission Contract (APC)
+
+> ⚠️ [MANDATORY] Do NOT write or modify any code until this 4-block contract is completely filled out.
+
+### [BOUNDARY]
+- **변경 가능한 모듈:** 
+- **변경 금지 모듈:** 
+
+### [CONTRACT]
+- **input:** 
+- **output:** 
+- **side effects:** 
+- **Rule Citation (프로젝트 룰 인용):** [프로젝트 룰 문서(예: ARCHITECTURE.md)에서 이 변경을 규제하는 조항을 찾아 원문 그대로 복사할 것. 없으면 "N/A"]
+
+### [PATCH PLAN]
+- **file:** 
+- **function:** 
+- **change:** 
+
+### [TEST IMPACT]
+- **affected tests:** 
+
+## Tasks
+- [ ] [Task 1]
+
+## Done When
+> [Define verification steps and completion criteria]

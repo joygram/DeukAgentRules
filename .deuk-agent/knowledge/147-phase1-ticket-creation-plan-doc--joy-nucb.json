@@ -1,0 +1,11 @@
+{
+  "id": "147-phase1-ticket-creation-plan-doc--joy-nucb",
+  "title": "phase1-ticket-creation-plan-doc-semantics",
+  "project": "DeukAgentRules",
+  "createdAt": "2026-05-01 13:03:58",
+  "archivedAt": "2026-05-01T13:08:20.201Z",
+  "sections": {
+    "Tasks": "- [x] Read context files and confirm scope.\n- [x] Update core TDW phase/guard wording.\n- [x] Update focused Korean user docs to match the new semantics.\n- [x] Run markdown lint and record results.",
+    "Done When": "- Phase 1 is defined as ticket creation plus structured planning evidence, not duplicate-ticket production.\n- Explicit execution intent can progress from completed Phase 1 to Phase 2 without an extra approval round, except for high-risk guard cases.\n- Markdown lint passes for changed docs."
+  }
+}

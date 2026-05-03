@@ -1,0 +1,11 @@
+{
+  "id": "127-cleanup-stale-generated-namespac-joy-nucb",
+  "title": "cleanup-stale-generated-namespace",
+  "project": "global",
+  "createdAt": "2026-05-01 01:46:01",
+  "archivedAt": "2026-05-01T01:49:05.979Z",
+  "sections": {
+    "Tasks": "- [x] 계획에 구 generated 잔존물 정리를 명시한다.\n- [x] 삭제 전 참조 검색 결과를 확인한다.\n- [x] `src/mcp/generated/` 잔존 생성물을 삭제한다.\n- [x] DeukAgentContext smoke/test를 실행한다.",
+    "Done When": "> `src.mcp.generated`가 파일 시스템과 import 참조에서 사라지고, `rag`, `workflow`, `metrics` import 기반 smoke/test가 통과한다."
+  }
+}

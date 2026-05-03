@@ -1,0 +1,11 @@
+{
+  "id": "145-deukpack-missing-implementation-joy-nucb",
+  "title": "DeukPack-missing-implementation",
+  "project": "global",
+  "createdAt": "2026-05-01 09:25:29",
+  "archivedAt": "2026-05-01T13:13:15.357Z",
+  "sections": {
+    "Tasks": "- [x] Implement scoped ticket-entry filtering for `project` and `submodule`.\n- [x] Wire the filter into `pickTicketEntry` and `runTicketNext`.\n- [x] Add regression tests for DeukPack-scoped next-ticket selection.\n- [x] Run markdown lint and node tests.",
+    "Done When": "- `npx deuk-agent-rule ticket next --submodule DeukPack --path-only` selects the first active/open DeukPack ticket instead of an unrelated global ticket.\n- Existing unfiltered `ticket next` behavior is preserved.\n- `node --test scripts/tests/*.test.mjs` passes.\n- `npx deuk-agent-rule lint:md .deuk-agent/tickets/sub/145-deukpack-missing-implementation-joy-nucb.md .deuk-agent/docs/plans/145-deukpack-missing-implementation-joy-nucb-plan.md` passes."
+  }
+}

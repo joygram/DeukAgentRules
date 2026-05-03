@@ -1,0 +1,25 @@
+{
+  "id": "186-validation-data-doc-quality-gap--joy-nucb",
+  "title": "validation-data-doc-quality-gap-analysis",
+  "project": "global",
+  "createdAt": "2026-05-02 11:36:35",
+  "archivedAt": "2026-05-02T11:40:15.112Z",
+  "summary": "검증 데이터 기반 문서 품질 통계 분석과 누락 문장 원인 조사",
+  "sourceTicketPath": ".deuk-agent/tickets/sub/186-validation-data-doc-quality-gap--joy-nucb.md",
+  "planLink": ".deuk-agent/docs/plans/186-validation-data-doc-quality-gap--joy-nucb-plan.md",
+  "sections": {
+    "Scope & Constraints": "- **Target:** module/submodule paths directly required by `validation-data-doc-quality-gap-analysis`\n- **Context Files:** `PROJECT_RULE.md`, relevant architecture docs, and target source files\n- **PlanLink:** `.deuk-agent/docs/plans/186-validation-data-doc-quality-gap--joy-nucb-plan.md` owns evidence, decisions, detailed steps, and verification notes.\n- **Constraints:** No generated output edits, no unrelated refactors, no broad regeneration without approval.\n- **Lifecycle Guard:** ticket lifecycle commands auto-run markdown lint on touched files and fail fast on broken markdown or missing linked artifacts.",
+    "Agent Permission Contract (APC)": "### [BOUNDARY]\n- Editable modules: ticket target modules directly related to \"검증 데이터 기반 문서 품질 통계 분석과 누락 문장 원인 조사\"\n- Forbidden modules: generated artifacts, unrelated shared infrastructure, external module roots\n- Rule citation: PROJECT_RULE.md + core-rules/AGENTS.md\n\n### [CONTRACT]\n- Input: existing code/context required to implement \"검증 데이터 기반 문서 품질 통계 분석과 누락 문장 원인 조사\"\n- Output: minimal implementation and tests that satisfy \"검증 데이터 기반 문서 품질 통계 분석과 누락 문장 원인 조사\"\n- Side effects: ticket + plan docs updates, scoped code changes only\n\n### [PATCH PLAN]\n- Problem analysis, cause hypotheses, rationale, execution strategy, and verification design live in planLink.\n- Ticket records only the allowed patch boundary and contract.\n- Do not duplicate planLink content here; reference it when detail is needed.",
+    "Tasks": "- [x] Complete non-duplicative `planLink` evidence/steps/verification.\n- [x] Execute changes inside APC boundary.\n- [x] Record verification outcome in the linked report or planLink.",
+    "Done When": "- APC is complete and non-placeholder.\n- Target changes are implemented inside the declared boundary.\n- Markdown lint/tests relevant to this ticket pass or failures are recorded.\n- Lifecycle commands can persist the ticket and planLink without manual lint intervention."
+  },
+  "analysis": {
+    "Problem Analysis": "- 검증 데이터가 충분히 쌓였는지 먼저 확인해야 문서 품질을 신뢰할 수 있다.\n- 현재 telemetry와 walkthrough 보고서에는 필드 누락, 섹션 누락, 헤딩 혼용이 함께 보인다.\n- 그래서 누락 문장을 단순 실수로 보기보다, 데이터 수집 상태와 템플릿 성숙도 문제로 분리해 봐야 한다.",
+    "Source Observations": "- `.deuk-agent/telemetry.jsonl`에는 29개 로그가 있고, 그중 15개는 `event`가 없다.\n- 같은 로그에서 10개는 `ragResult`, `knowledgeAction`, `tokenQuality`가 없다.\n- `.deuk-agent/docs/walkthroughs` 보고서 49개 중 명시적 outcome 섹션이 있는 것은 12개뿐이다.\n- 33개 보고서는 `Verification Outcome` 또는 `검증 결과` 같은 명시적 결과 섹션이 없다.\n- 보고서 본문에는 `Summary`, `Verification`, `Notes` 같은 영어 헤딩과 `요약`, `검증`, `결론` 같은 한국어 헤딩이 혼재한다.",
+    "Cause Hypotheses": "- 초기 로그는 스키마가 안정화되기 전에 쌓여서 필드가 비어 있을 가능성이 높다.\n- 오래된 보고서는 템플릿이 느슨해서 검증 결과를 별도 섹션으로 강제하지 않았을 가능성이 높다.\n- 영어/한국어 헤딩 혼용은 섹션 탐지 기준을 약화시키고, 결과적으로 누락처럼 보이게 만든다.\n- 짧은 요약형 보고서는 실험 결과가 적어서 서술이 부족해 보인다.",
+    "Decision Rationale": "- 정확한 원인 분석을 위해 telemetry와 문서 구조를 함께 본다.\n- 누락을 하나의 결함으로 뭉치지 않고, `데이터 없음`, `템플릿 약함`, `헤딩 불일치`, `검증 미기록`으로 나눈다.\n- 이렇게 나눠야 후속 개선이 수집 파이프라인 수정인지, 문서 템플릿 보강인지 판단할 수 있다.",
+    "Execution Strategy": "- telemetry JSONL을 읽어 필드 존재 여부와 이벤트 분포를 집계한다.\n- walkthrough 보고서의 섹션 헤딩을 검사해 outcome 섹션 존재 비율을 구한다.\n- 누락 원인을 유형별로 분류하고, 각 유형의 대표 파일을 확인한다.\n- 결과를 보고서와 planLink에 각각 남긴다.",
+    "Verification Design": "- `node` 스크립트로 telemetry 필드 누락 수를 집계한다.\n- `node` 스크립트로 walkthrough 보고서의 헤딩 존재 비율을 집계한다.\n- `npx deuk-agent-rule lint:md`로 문서 형식을 검증한다.",
+    "Verification Outcome": "- telemetry 29행 기준으로 `event` 미존재 15, `ragResult` 미존재 10, `knowledgeAction` 미존재 10, `tokenQuality` 미존재 10을 확인했다.\n- walkthrough 보고서 49개 기준으로 outcome 섹션이 12개뿐임을 확인했다.\n- 누락 원인은 주로 legacy template drift, mixed headings, terse summary reports, pre-schema telemetry로 수렴한다."
+  }
+}

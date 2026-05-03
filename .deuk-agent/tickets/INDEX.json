@@ -1,7 +1,18 @@
 {
   "version": 1,
-  "updatedAt": "2026-05-03T04:00:28.602Z",
+  "updatedAt": "2026-05-03T06:11:31.914Z",
   "entries": [
+    {
+      "id": "205-codex-token-output-and-ticket-fa-joy-nucb",
+      "title": "codex-token-output-and-ticket-fastpath",
+      "topic": "codex-token-output-and-ticket-fastpath",
+      "group": "sub",
+      "project": "global",
+      "createdAt": "2026-05-03T06:08:44.140Z",
+      "source": "ticket-create",
+      "status": "active",
+      "updatedAt": "2026-05-03T06:11:31.911Z"
+    },
     {
       "id": "202-fix-legacy-ticket-layout-sync-joy-nucb",
       "title": "fix-legacy-ticket-layout-sync",
@@ -16,5 +27,5 @@
       "status": "active"
     }
   ],
-  "activeTicketId": "202-fix-legacy-ticket-layout-sync-joy-nucb"
+  "activeTicketId": "205-codex-token-output-and-ticket-fa-joy-nucb"
 }

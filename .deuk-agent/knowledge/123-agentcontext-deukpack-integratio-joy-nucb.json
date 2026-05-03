@@ -1,0 +1,11 @@
+{
+  "id": "123-agentcontext-deukpack-integratio-joy-nucb",
+  "title": "agentcontext-deukpack-integration-review",
+  "project": "global",
+  "createdAt": "2026-05-01 00:04:39",
+  "archivedAt": "2026-05-01T12:13:08.503Z",
+  "sections": {
+    "Tasks": "- [x] Inspect local/RAG context for AgentContext-DeukPack integration references.\n- [x] Create concrete review plan and APC.\n- [x] Run markdown lint for ticket and plan.\n- [x] Write review report and handoff to follow-up execution ticket.",
+    "Done When": "The ticket and plan describe the integration review boundary, identify the concrete DeukAgentContext/DeukPack files to inspect in a follow-up, and pass markdown lint without modifying product code or generated artifacts."
+  }
+}

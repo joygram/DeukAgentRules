@@ -1,0 +1,24 @@
+{
+  "id": "180-index-json-분리-및-경량화-joy-nucb",
+  "title": "INDEX.json 분리 및 경량화",
+  "project": "global",
+  "createdAt": "2026-05-02 10:21:19",
+  "archivedAt": "2026-05-02T10:26:29.576Z",
+  "summary": "INDEX.json을 active/archive 중심으로 분리하고 경량화해 파일시스템 DB 안정성을 높인다",
+  "sourceTicketPath": ".deuk-agent/tickets/sub/180-index-json-분리-및-경량화-joy-nucb.md",
+  "planLink": ".deuk-agent/docs/plans/180-index-json-분리-및-경량화-joy-nucb-plan.md",
+  "sections": {
+    "Scope & Constraints": "- **Target:** module/submodule paths directly required by `INDEX.json 분리 및 경량화`\n- **Context Files:** `PROJECT_RULE.md`, relevant architecture docs, and target source files\n- **PlanLink:** `.deuk-agent/docs/plans/180-index-json-분리-및-경량화-joy-nucb-plan.md` owns evidence, decisions, detailed steps, and verification notes.\n- **Constraints:** No generated output edits, no unrelated refactors, no broad regeneration without approval.\n- **Lifecycle Guard:** ticket lifecycle commands auto-run markdown lint on touched files and fail fast on broken markdown or missing linked artifacts.",
+    "Agent Permission Contract (APC)": "### [BOUNDARY]\n- Editable modules: ticket target modules directly related to \"INDEX.json을 active/archive 중심으로 분리하고 경량화해 파일시스템 DB 안정성을 높인다\"\n- Forbidden modules: generated artifacts, unrelated shared infrastructure, external module roots\n- Rule citation: PROJECT_RULE.md + core-rules/AGENTS.md\n\n### [CONTRACT]\n- Input: existing code/context required to implement \"INDEX.json을 active/archive 중심으로 분리하고 경량화해 파일시스템 DB 안정성을 높인다\"\n- Output: minimal implementation and tests that satisfy \"INDEX.json을 active/archive 중심으로 분리하고 경량화해 파일시스템 DB 안정성을 높인다\"\n- Side effects: ticket + plan docs updates, scoped code changes only\n\n### [PATCH PLAN]\n- Problem analysis, cause hypotheses, rationale, execution strategy, and verification design live in planLink.\n- Ticket records only the allowed patch boundary and contract.\n- Do not duplicate planLink content here; reference it when detail is needed.",
+    "Tasks": "- [x] Complete non-duplicative `planLink` evidence/steps/verification.\n- [x] Execute changes inside APC boundary.\n- [x] Record verification outcome in the linked report or planLink.",
+    "Done When": "- APC is complete and non-placeholder.\n- Target changes are implemented inside the declared boundary.\n- Markdown lint/tests relevant to this ticket pass or failures are recorded.\n- Lifecycle commands can persist the ticket and planLink without manual lint intervention."
+  },
+  "analysis": {
+    "Problem Analysis": "현재 `INDEX.json`은 티켓 탐색, active 포인터, status 전이, archive 추적을 모두 한 파일에 담고 있습니다. 엔트리 수가 늘어날수록 파일은 커지고, 생성/아카이브/리빌드/복구가 모두 같은 장부를 건드립니다. 이 구조는 동작은 하지만, IDE 종료나 중간 쓰기 실패, 자동 아카이브 연쇄 처리 같은 상황에서 쉽게 흔들릴 수 있습니다.",
+    "Source Observations": "- [scripts/cli-ticket-index.mjs](../../../scripts/cli-ticket-index.mjs) 는 `readTicketIndexJson()`과 `writeTicketIndexJson()`로 인덱스를 통째로 읽고 다시 씁니다.\n- 같은 파일에서 `syncActiveTicketId()`가 active ticket와 pointer 파일 정리를 함께 맡고 있어, 상태와 포인터 책임이 한 곳에 몰려 있습니다.\n- [scripts/cli-ticket-commands.mjs](../../../scripts/cli-ticket-commands.mjs) 는 create, close, move, archive, next, use, list, rebuild에서 모두 동일한 `INDEX.json`을 기준으로 상태를 계산합니다.\n- `readTicketIndexJson()`는 path를 다시 계산해 drift를 줄이지만, entries 자체는 계속 누적되어 파일 크기와 갱신 비용이 증가합니다.\n- 현재 `INDEX.json` 크기는 약 62KB, 130개 엔트리 수준이라 당장 비정상은 아니지만, 구조적으로는 성장 비용이 계속 붙는 형태입니다.",
+    "Cause Hypotheses": "- `INDEX.json`이 사실상 hot index, archive catalog, state cache 역할을 동시에 하고 있습니다.\n- archive된 항목이 계속 같은 파일 구조에 남아 있어 active lookup과 cold history가 분리되지 않습니다.\n- rebuild와 rollback이 전체 인덱스를 자주 만지므로, 파일이 커질수록 실패 복구 범위가 넓어집니다.\n- 현재 구조에는 active-only fast path가 없어서, 자주 쓰는 상태와 오래된 상태가 같은 비용으로 취급됩니다.",
+    "Decision Rationale": "- active, archive, meta 역할을 분리하는 방향이 가장 먼저 필요합니다.\n- `INDEX.json` 하나를 무조건 유지하기보다, `INDEX.active.json` 같은 작은 hot index와 archive 파티션/스냅샷으로 나누는 것이 안전합니다.\n- direct lock보다 재생 가능한 journal/snapshot 모델이 더 적합합니다.\n- 모든 기록을 한 번에 재작성하는 방식은 단순하지만, 여기서는 지연 싱크와 파티션이 더 낫습니다.",
+    "Execution Strategy": "- 1차로 현재 `INDEX.json`의 사용처를 분류하고, 읽기 경로와 쓰기 경로를 active/archive로 나눌 수 있는 최소 인터페이스를 정의합니다.\n- 2차로 active index에는 open/active/current pointer만 남기고, archived entries는 별도 파티션 파일이나 snapshot으로 보냅니다.\n- 3차로 `readTicketIndexJson()`과 `writeTicketIndexJson()`의 내부 구현을 분리해, CLI는 같은 API를 쓰되 저장소 레이아웃만 바꾸게 합니다.\n- 4차로 rebuild와 rollback은 전체 재작성보다 partition 단위 재생성에 가깝게 바꿉니다.\n- 5차로 journal 또는 snapshot을 도입해 IDE 종료나 중간 실패 후에도 재구성할 수 있게 합니다.",
+    "Verification Design": "- `ticket list`, `ticket status`, `ticket meta`, `ticket use`, `ticket next`, `ticket close`, `ticket move`, `ticket archive`가 기존과 동일하게 동작해야 합니다.\n- active index와 archive 파티션을 나눠도 open/active 탐색 결과가 바뀌지 않아야 합니다.\n- 인덱스가 부분적으로 손상된 경우 rebuild 경로로 복구할 수 있어야 합니다.\n- CLI가 `INDEX.json`을 직접 대량 재작성하는 횟수가 줄어들어야 합니다.\n- 남은 리스크는 파티션 파일이 늘어나면서 관리 대상이 증가하는 점이므로, partition 기준과 GC 규칙을 같이 정의해야 합니다."
+  }
+}

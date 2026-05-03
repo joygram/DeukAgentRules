@@ -1,0 +1,12 @@
+{
+  "id": "111-fix-arch-guard-exceptions-joy-nucb",
+  "title": "fix-arch-guard-exceptions",
+  "project": "global",
+  "createdAt": "2026-04-29 12:02:54",
+  "archivedAt": "2026-05-01T21:49:42.384Z",
+  "sections": {
+    "Analysis & Constraints": "(Deep Review)\n> 1. DR-04/DR-05는 정당한 예외(config.yaml 파싱, hostname slug)가 예외 목록에 누락된 것\n> 2. PROJECT_RULE.md §1 문구가 core-workflow 인라인 병합 후 부분적으로 부정확",
+    "Tasks": "- [ ] DR-04 예외 등록\n- [ ] DR-05 예외 등록\n- [ ] PROJECT_RULE.md 문구 보정\n- [ ] 테스트 6/6 PASS 확인",
+    "Done When": "> `node --test scripts/tests/ArchitectureGuard.test.mjs` 6/6 PASS"
+  }
+}

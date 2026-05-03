@@ -1,0 +1,11 @@
+{
+  "id": "130-mcp-server-connection-issue-joy-nucb",
+  "title": "mcp-server-connection-issue",
+  "project": "global",
+  "createdAt": "2026-05-01 02:23:21",
+  "archivedAt": "2026-05-01T12:20:47.781Z",
+  "sections": {
+    "Tasks": "- [x] Inspect MCP setup docs, `.mcp.json`, current detection code, and 079 stability report.\n- [x] Create concrete plan/APC and planLink file.\n- [x] Move to Phase 2 after approval, then implement only if a concrete detection/doc gap is confirmed.\n- [x] Verify with lint/tests and close/archive.",
+    "Done When": "MCP connection issue scope is concrete, Phase 2 can proceed without guessing, and any implementation stays limited to DeukAgentRules CLI detection/docs/tests."
+  }
+}

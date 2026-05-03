@@ -1,0 +1,10 @@
+{
+  "id": "001-044-deukagentrules-hardening-joy-nucb",
+  "title": "044-deukagentrules-hardening",
+  "project": "global",
+  "createdAt": "2026-04-21 23:55:21",
+  "archivedAt": "2026-05-01T11:15:03.807Z",
+  "sections": {
+    "Design Decisions": "- 기존 인덱스는 path 스냅샷을 저장하지 않고 상태에서 동적으로 경로를 재계산한다.\n- 루트 티켓(`.deuk-agent/tickets/*.md`)은 과거 데이터로 존재하므로, 신규 `sub/` 그룹 티켓과 함께 계속 읽을 수 있어야 한다.\n- `ticket next --path-only`는 존재하는 티켓 파일 경로를 출력해야 하며, `.deuk-agent/tickets/tickets/...` 형태를 만들면 안 된다."
+  }
+}

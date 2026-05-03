@@ -1,0 +1,11 @@
+{
+  "id": "126-normalize-deuk-agent-context-gen-joy-nucb",
+  "title": "normalize-deuk-agent-context-generated-namespace",
+  "project": "global",
+  "createdAt": "2026-05-01 01:14:42",
+  "archivedAt": "2026-05-01T01:44:41.988Z",
+  "sections": {
+    "Tasks": "- [x] Fix IDL domain namespaces.\n- [x] Regenerate DeukPack Python outputs.\n- [x] Replace awkward generated namespace imports.\n- [x] Run DeukAgentContext import smoke test and architecture guard.\n- [x] Record DeukPack follow-up ticket.\n- [ ] Record and close ticket.",
+    "Done When": "> MCP application code imports generated structs by domain namespace only, generated files are regenerated instead of edited, and tests pass."
+  }
+}

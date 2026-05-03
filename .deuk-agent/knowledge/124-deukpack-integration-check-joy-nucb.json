@@ -1,0 +1,11 @@
+{
+  "id": "124-deukpack-integration-check-joy-nucb",
+  "title": "deukpack-integration-check",
+  "project": "global",
+  "createdAt": "2026-05-01 01:05:49",
+  "archivedAt": "2026-05-01T01:13:58.356Z",
+  "sections": {
+    "Tasks": "- [x] Inspect DeukPack/DeukContext pipeline and current manual-link surfaces.\n- [x] Identify source-of-truth file(s) responsible for rule link generation.\n- [x] Patch source templates/generator/config only if integration is incomplete.\n- [x] Run DeukPack codegen/build and DeukAgentRules tests/lint.\n- [x] Record final state and any follow-up tickets.",
+    "Done When": "> No required manual links remain in source flow; generated rule surfaces are produced by the DeukPack/init pipeline; build/tests pass or blockers are documented."
+  }
+}

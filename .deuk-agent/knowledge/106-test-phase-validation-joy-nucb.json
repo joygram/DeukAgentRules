@@ -1,0 +1,12 @@
+{
+  "id": "106-test-phase-validation-joy-nucb",
+  "title": "test-phase-validation",
+  "project": "global",
+  "createdAt": "2026-04-28 21:34:34",
+  "archivedAt": "2026-05-01T21:49:42.377Z",
+  "sections": {
+    "Analysis & Constraints": "(Deep Review)\n> [WARNING: Do not skip deep analysis. Shallow logic leads to cascaded bugs.]\n> [1. Root Cause & Architecture constraint:]\n> [2. Risk & Edge Cases (What could go wrong?):]",
+    "Tasks": "- [ ] [Task 1]",
+    "Done When": "> [Define verification steps and completion criteria]"
+  }
+}

@@ -1,0 +1,25 @@
+{
+  "id": "185-internal-agent-rules-context-tes-joy-nucb",
+  "title": "internal-agent-rules-context-test",
+  "project": "global",
+  "createdAt": "2026-05-02 11:29:11",
+  "archivedAt": "2026-05-02T11:36:35.349Z",
+  "summary": "내부 에이전트룰 개선 사항과 컨텍스트 연결을 검증하는 테스트 작업",
+  "sourceTicketPath": ".deuk-agent/tickets/sub/185-internal-agent-rules-context-tes-joy-nucb.md",
+  "planLink": ".deuk-agent/docs/plans/185-internal-agent-rules-context-tes-joy-nucb-plan.md",
+  "sections": {
+    "Scope & Constraints": "- **Target:** module/submodule paths directly required by `internal-agent-rules-context-test`\n- **Context Files:** `PROJECT_RULE.md`, relevant architecture docs, and target source files\n- **PlanLink:** `.deuk-agent/docs/plans/185-internal-agent-rules-context-tes-joy-nucb-plan.md` owns evidence, decisions, detailed steps, and verification notes.\n- **Constraints:** No generated output edits, no unrelated refactors, no broad regeneration without approval.\n- **Lifecycle Guard:** ticket lifecycle commands auto-run markdown lint on touched files and fail fast on broken markdown or missing linked artifacts.",
+    "Agent Permission Contract (APC)": "### [BOUNDARY]\n- Editable modules: ticket target modules directly related to \"내부 에이전트룰 개선 사항과 컨텍스트 연결을 검증하는 테스트 작업\"\n- Forbidden modules: generated artifacts, unrelated shared infrastructure, external module roots\n- Rule citation: PROJECT_RULE.md + core-rules/AGENTS.md\n\n### [CONTRACT]\n- Input: existing code/context required to implement \"내부 에이전트룰 개선 사항과 컨텍스트 연결을 검증하는 테스트 작업\"\n- Output: minimal implementation and tests that satisfy \"내부 에이전트룰 개선 사항과 컨텍스트 연결을 검증하는 테스트 작업\"\n- Side effects: ticket + plan docs updates, scoped code changes only\n\n### [PATCH PLAN]\n- Problem analysis, cause hypotheses, rationale, execution strategy, and verification design live in planLink.\n- Ticket records only the allowed patch boundary and contract.\n- Do not duplicate planLink content here; reference it when detail is needed.",
+    "Tasks": "- [x] Add a regression test for strict ticket create placeholder rejection and rollback.\n- [x] Verify the current MCP/context connection path and keep reusable facts in DeukAgentContext.\n- [x] Run markdown lint and the targeted test command, then record the result.",
+    "Done When": "- APC is complete and non-placeholder.\n- Target changes are implemented inside the declared boundary.\n- Markdown lint/tests relevant to this ticket pass or failures are recorded.\n- Lifecycle commands can persist the ticket and planLink without manual lint intervention."
+  },
+  "analysis": {
+    "Problem Analysis": "- 현재 CLI는 `--require-filled`와 `--from-plan` 조합에서 Phase 1 완성도 검사를 수행할 수 있다.\n- 다만 이 동작을 보증하는 회귀 테스트가 부족해서, 규칙 개선 이후에도 placeholder 상태가 다시 허용될 위험이 있다.\n- MCP 검색은 이번 질문에 대해 빈 결과를 반환했지만, 로컬 코드 분석에서 현재 동작이 이미 구현되어 있음을 확인했다.",
+    "Source Observations": "- `scripts/cli-ticket-commands.mjs`의 `runTicketCreate`는 strict create 경로에서 Phase 1 incomplete 상태를 감지하고 실패시 롤백한다.\n- `scripts/cli-args.mjs`는 `--require-filled`와 `--from-plan` 인자를 이미 파싱한다.\n- `scripts/tests/cli-ticket-commands.test.mjs`에는 `requireFilled` 인자와 dry-run 경로는 있지만, strict create 실패/롤백 경로를 직접 검증하는 테스트가 없다.\n- `templates/rules.d/deukcontext-mcp.md`는 RAG miss 시 로컬 검색과 `add_knowledge`로 전환하라는 프로토콜을 정의한다.",
+    "Cause Hypotheses": "- 기능 자체의 결함보다, strict create 실패 경로에 대한 테스트 부재가 규칙 회귀의 원인일 가능성이 높다.\n- 현재 규칙 문서는 MCP 사용과 로컬 진실 소스를 구분하지만, 이를 실제 코드 회귀 테스트와 연결하는 증거가 약하다.",
+    "Decision Rationale": "- CLI 로직을 다시 구현하는 대신, 현재 구현을 고정하는 회귀 테스트를 추가한다.\n- 규칙 개선의 효과는 문서가 아니라 실제 동작 검증으로 확인하는 편이 더 안정적이다.\n- MCP miss 후 로컬 분석을 신뢰하고, 그 사실을 DeukAgentContext에 한 번만 증류하는 절차를 유지한다.",
+    "Execution Strategy": "- `scripts/tests/cli-ticket-commands.test.mjs`에 strict create 실패 케이스를 추가한다.\n- 테스트는 placeholder summary 또는 incomplete APC 상태가 strict create에서 거부되고, 생성된 티켓/plan/index가 롤백되는지 확인한다.\n- 필요하면 문서 쪽의 설명도 현재 구현 상태에 맞게 최소한으로 보정한다.",
+    "Verification Design": "- `node --test scripts/tests/cli-ticket-commands.test.mjs`로 관련 회귀를 확인한다.\n- `npx deuk-agent-rule lint:md`로 티켓과 planLink 마크다운을 함께 검증한다.\n- 실패 시 남는 파일이 없는지 `ticketDir`와 plan 디렉터리를 점검한다.",
+    "Verification Outcome": "- `node --test scripts/tests/cli-ticket-commands.test.mjs` 통과.\n- `npx deuk-agent-rule lint:md` 통과.\n- strict create 롤백 테스트는 placeholder summary 입력 시 티켓과 plan 파일을 남기지 않는 것을 확인했다."
+  }
+}

@@ -1,0 +1,12 @@
+{
+  "id": "110-agent-degradation-remediation-joy-nucb",
+  "title": "agent-degradation-remediation",
+  "project": "global",
+  "createdAt": "2026-04-29 09:52:34",
+  "archivedAt": "2026-05-01T21:49:42.383Z",
+  "sections": {
+    "Analysis & Constraints": "(Deep Review)\n> 1. Root Cause: Agent 퇴화 분석에서 3가지 구조적 결함 발견 — planLink 누락(계획-실행 추적 불가), core-workflow.md 분리 배치(에이전트 도달 실패), 가드레일 조건부 분기(안전장치 미적용)\n> 2. Risk: AGENTS.md 크기 증가로 토큰 비용 상승 가능 (허용 범위 내), core-workflow.md 삭제 시 기존 init으로 배포된 프로젝트에 영향 없음 (rules.d 스캔은 조건부)",
+    "Tasks": "- [ ] Task 1: TICKET_TEMPLATE.md — planLink 필드 복원 + CAUTION/Target Module 가드레일 무조건 포함\n- [ ] Task 2: core-workflow.md 내용을 AGENTS.md에 인라인 병합\n- [ ] Task 3: templates/rules.d/core-workflow.md 삭제\n- [ ] Task 4: cli-ticket-commands.mjs — rawMeta에 planLink 필드 추가\n- [ ] Task 5: 스모크 테스트 (ticket create + init)",
+    "Done When": "> 1. `ticket create` 생성 티켓에 `planLink` 필드 존재\n> 2. 생성된 티켓 본문에 `[CAUTION FOR AI AGENTS]` 블록 항상 존재\n> 3. `core-rules/AGENTS.md`에 TDW 섹션이 인라인\n> 4. `rules.d/core-workflow.md` 삭제됨\n> 5. `init` / `ticket create` 정상 동작"
+  }
+}

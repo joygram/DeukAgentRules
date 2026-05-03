@@ -1,0 +1,25 @@
+{
+  "id": "200-docs-knowledge-boundary-joy-nucb",
+  "title": "docs-knowledge-boundary",
+  "project": "global",
+  "createdAt": "2026-05-02 22:53:53",
+  "archivedAt": "2026-05-02T23:06:41.360Z",
+  "summary": "docs와 knowledge 경계를 명확히 하고 잘못된 JSON 분류를 방지",
+  "sourceTicketPath": ".deuk-agent/tickets/sub/200-docs-knowledge-boundary-joy-nucb.md",
+  "planLink": ".deuk-agent/docs/archive/plans/2026-05/200-docs-knowledge-boundary-joy-nucb-plan.md",
+  "sections": {
+    "Scope & Constraints": "- **Target:** module/submodule paths directly required by `docs-knowledge-boundary`\n- **Context Files:** `PROJECT_RULE.md`, relevant architecture docs, and target source files\n- **PlanLink:** `.deuk-agent/docs/archive/plans/2026-05/200-docs-knowledge-boundary-joy-nucb-plan.md` owns evidence, decisions, detailed steps, and verification notes.\n- **Constraints:** No generated output edits, no unrelated refactors, no broad regeneration without approval.\n- **Lifecycle Guard:** ticket lifecycle commands auto-run markdown lint on touched files and fail fast on broken markdown or missing linked artifacts.",
+    "Agent Permission Contract (APC)": "### [BOUNDARY]\n- Editable modules: ticket target modules directly related to \"docs와 knowledge 경계를 명확히 하고 잘못된 JSON 분류를 방지\"\n- Forbidden modules: generated artifacts, unrelated shared infrastructure, external module roots\n- Rule citation: PROJECT_RULE.md + core-rules/AGENTS.md\n\n### [CONTRACT]\n- Input: existing code/context required to implement \"docs와 knowledge 경계를 명확히 하고 잘못된 JSON 분류를 방지\"\n- Output: minimal implementation and tests that satisfy \"docs와 knowledge 경계를 명확히 하고 잘못된 JSON 분류를 방지\"\n- Side effects: ticket + plan docs updates, scoped code changes only\n\n### [PATCH PLAN]\n- Problem analysis, cause hypotheses, rationale, execution strategy, and verification design live in planLink.\n- Ticket records only the allowed patch boundary and contract.\n- Do not duplicate planLink content here; reference it when detail is needed.",
+    "Tasks": "- [x] Complete non-duplicative `planLink` evidence/steps/verification.\n- [x] Execute changes inside APC boundary.\n- [x] Record verification outcome in the linked report or planLink.",
+    "Done When": "- APC is complete and non-placeholder.\n- Target changes are implemented inside the declared boundary.\n- Markdown lint/tests relevant to this ticket pass or failures are recorded.\n- Lifecycle commands can persist the ticket and planLink without manual lint intervention."
+  },
+  "analysis": {
+    "Problem Analysis": "`.deuk-agent/docs`와 `.deuk-agent/knowledge`가 모두 과거 작업 보존처럼 보이면서 역할 경계가 흐립니다. 특히 init 정리 로직이 `.json` 파일을 모두 knowledge로 보내고 있어 임의 JSON 산출물도 검색용 지식처럼 보일 수 있습니다. 이는 knowledge를 \"distilled retrieval artifact\"로 쓰려는 정책과 충돌합니다.",
+    "Source Observations": "- `scripts/cli-ticket-commands.mjs`의 `distillKnowledge()`는 티켓 archive 시 `id`, `title`, `summary`, `sourceTicketPath`, `sections`, `analysis`를 가진 JSON을 `.deuk-agent/knowledge/<ticket-id>.json`에 생성합니다.\n- `scripts/cli-init-commands.mjs`의 `classifyAgentFileTarget()`은 현재 모든 `.json`을 `.deuk-agent/knowledge/`로 이동합니다.\n- `core-rules/AGENTS.md`는 plans/reports/scratch의 문서 위치는 정의하지만 docs와 knowledge의 차이는 명시하지 않습니다.",
+    "Cause Hypotheses": "- 역할 정의가 문서화되지 않아 \"archive 문서\"와 \"검색용 요약 JSON\"이 같은 보존층처럼 인식됩니다.\n- init의 자동 분류가 파일 확장자만 보고 JSON을 knowledge로 보내며, knowledge JSON의 최소 구조를 확인하지 않습니다.",
+    "Decision Rationale": "`docs`는 사람이 읽는 원문/계획/리포트/스키마/임시노트로 정의하고, `knowledge`는 archive에서 추출된 기계 검색용 요약 JSON으로 정의합니다. 따라서 임의 JSON은 knowledge가 아니라 `docs/scratch`로 이동해야 합니다. 이 기준을 core rule, template rule, init classifier, regression test에 함께 반영합니다.",
+    "Execution Strategy": "`classifyAgentFileTarget()`에 knowledge JSON shape check를 추가합니다. `id`, `summary`, `sourceTicketPath`, `sections`, `analysis`가 있는 JSON만 knowledge로 유지하고, 그 외 JSON은 `docs/scratch`로 분류합니다. `core-rules/AGENTS.md`와 `templates/rules.d/deukcontext-mcp.md`에 docs/knowledge 경계를 짧게 명시합니다. 기존 test fixture도 임의 JSON은 scratch로 가고, distilled knowledge shape만 knowledge로 가도록 바꿉니다.",
+    "Verification Design": "`node --check scripts/cli-init-commands.mjs`, `node --test scripts/tests/cli-init-commands.test.mjs`, `node --test scripts/tests/*.test.mjs`, 관련 markdown lint를 실행합니다. 기대 결과는 임의 JSON 오분류가 방지되고, 기존 archive knowledge distillation 테스트는 유지되는 것입니다.",
+    "Verification Outcome": "- `classifyAgentFileTarget()` now sends only distilled knowledge JSON to `.deuk-agent/knowledge/`.\n- Arbitrary JSON files are routed to `.deuk-agent/docs/scratch/` as human/source artifacts.\n- `core-rules/AGENTS.md` and `templates/rules.d/deukcontext-mcp.md` now define the docs/knowledge boundary.\n- `npx deuk-agent-rule lint:md core-rules/AGENTS.md templates/rules.d/deukcontext-mcp.md .deuk-agent/tickets/sub/200-docs-knowledge-boundary-joy-nucb.md .deuk-agent/docs/plans/200-docs-knowledge-boundary-joy-nucb-plan.md` passed.\n- `node --test scripts/tests/*.test.mjs` passed.\n- `npx deuk-agent-rule init --dry-run` found no additional cleanup target in the current workspace."
+  }
+}

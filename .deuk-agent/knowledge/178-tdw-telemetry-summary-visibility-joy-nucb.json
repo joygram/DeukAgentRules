@@ -1,0 +1,24 @@
+{
+  "id": "178-tdw-telemetry-summary-visibility-joy-nucb",
+  "title": "tdw-telemetry-summary-visibility",
+  "project": "global",
+  "createdAt": "2026-05-02 09:45:43",
+  "archivedAt": "2026-05-02T09:52:13.424Z",
+  "summary": "telemetry summary에 TDW 집계와 가시성을 추가해 TDW 사용 여부를 바로 확인할 수 있게 한다",
+  "sourceTicketPath": ".deuk-agent/tickets/sub/178-tdw-telemetry-summary-visibility-joy-nucb.md",
+  "planLink": ".deuk-agent/docs/plans/178-tdw-telemetry-summary-visibility-joy-nucb-plan.md",
+  "sections": {
+    "Scope & Constraints": "- **Target:** module/submodule paths directly required by `tdw-telemetry-summary-visibility`\n- **Context Files:** `PROJECT_RULE.md`, relevant architecture docs, and target source files\n- **PlanLink:** `.deuk-agent/docs/plans/178-tdw-telemetry-summary-visibility-joy-nucb-plan.md` owns evidence, decisions, detailed steps, and verification notes.\n- **Constraints:** No generated output edits, no unrelated refactors, no broad regeneration without approval.",
+    "Agent Permission Contract (APC)": "### [BOUNDARY]\n- Editable modules: ticket target modules directly related to \"telemetry summary에 TDW 집계와 가시성을 추가해 TDW 사용 여부를 바로 확인할 수 있게 한다\"\n- Forbidden modules: generated artifacts, unrelated shared infrastructure, external module roots\n- Rule citation: PROJECT_RULE.md + core-rules/AGENTS.md\n\n### [CONTRACT]\n- Input: existing code/context required to implement \"telemetry summary에 TDW 집계와 가시성을 추가해 TDW 사용 여부를 바로 확인할 수 있게 한다\"\n- Output: minimal implementation and tests that satisfy \"telemetry summary에 TDW 집계와 가시성을 추가해 TDW 사용 여부를 바로 확인할 수 있게 한다\"\n- Side effects: ticket + plan docs updates, scoped code changes only\n\n### [PATCH PLAN]\n- Problem analysis, cause hypotheses, rationale, execution strategy, and verification design live in planLink.\n- Ticket records only the allowed patch boundary and contract.\n- Do not duplicate planLink content here; reference it when detail is needed.",
+    "Tasks": "- [x] Complete non-duplicative `planLink` evidence/steps/verification.\n- [x] Execute changes inside APC boundary.\n- [x] Record verification outcome in the linked report or planLink.",
+    "Done When": "- APC is complete and non-placeholder.\n- Target changes are implemented inside the declared boundary.\n- Markdown lint/tests relevant to this ticket pass or failures are recorded."
+  },
+  "analysis": {
+    "Source Observations": "- `scripts/cli-telemetry-commands.mjs`는 `tdw` 값을 log entry에 저장하지만 summary에서는 합산하지 않는다.\n- `scripts/tests/cli-utils.test.mjs`는 `parseTelemetryArgs`가 `--tdw`를 파싱하는지 확인하지만, summary 출력 검증은 없다.\n- `docs/plans/132-rag-metrics-agent-loop-spec.md`는 TDW compliance score와 관련 지표를 이미 구상하고 있다.",
+    "Cause Hypotheses": "- TDW 값은 저장되지만 집계되지 않아, 사용량과 준수도를 읽을 수 없다.\n- RAG 요약이 먼저 들어간 뒤 TDW 요약이 빠져서, 운영자가 TDW를 부차적 신호로만 오해한다.\n- JSON 출력에도 TDW 정보가 없어서 외부 리포트/자동화가 활용할 수 없다.",
+    "Decision Rationale": "TDW를 별도 섹션으로 요약에 노출하면, 로그 수집 구조를 바꾸지 않고도 현재 상태의 TDW 사용량을 확인할 수 있다. 이를 통해 나중에 compliance scorer나 더 정교한 TDW score를 얹기 전에 최소한의 가시성을 확보한다.",
+    "Execution Strategy": "1. `telemetry summary`에 TDW 총량과 엔트리 수를 추가한다.\n2. TDW 커버리지율과 총 토큰 대비 비율을 보여준다.\n3. JSON summary에도 같은 필드를 넣어 리포트 자동화를 가능하게 한다.\n4. TDW 출력이 실제로 보이는지 테스트를 추가한다.",
+    "Verification Design": "`node --test scripts/tests/cli-telemetry-commands.test.mjs`로 TDW summary 출력과 JSON 필드를 검증한다. `npx deuk-agent-rule lint:md`로 티켓, plan, report 문서 형식을 확인한다.",
+    "Verification Outcome": "- TDW summary는 `TDW Tokens`, `Entries`, `Coverage Rate`, `Token Share`, `Average Tokens/Entry`를 출력한다.\n- JSON summary는 `totalTdwTokens`, `tdwEntryCount`, `tdwCoverageRate`, `tdwTokenShare`, `tdwAverageTokensPerEntry`를 노출한다.\n- `node --test scripts/tests/cli-telemetry-commands.test.mjs`: passed, 2 tests.\n- `npx deuk-agent-rule lint:md .deuk-agent/tickets/sub/178-tdw-telemetry-summary-visibility-joy-nucb.md .deuk-agent/docs/plans/178-tdw-telemetry-summary-visibility-joy-nucb-plan.md .deuk-agent/docs/walkthroughs/178-tdw-telemetry-summary-visibility-joy-nucb-report.md`: passed."
+  }
+}

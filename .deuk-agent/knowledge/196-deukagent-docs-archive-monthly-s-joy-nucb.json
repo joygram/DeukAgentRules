@@ -1,0 +1,24 @@
+{
+  "id": "196-deukagent-docs-archive-monthly-s-joy-nucb",
+  "title": "deukagent-docs-archive-monthly-structure-hard",
+  "project": "global",
+  "createdAt": "2026-05-02 22:24:08",
+  "archivedAt": "2026-05-02T22:27:28.742Z",
+  "summary": ".deuk-agent docs/아카이브 문서를 연월 단위로 정리하고 분석 문서 경로를 정형화",
+  "sourceTicketPath": ".deuk-agent/tickets/sub/196-deukagent-docs-archive-monthly-s-joy-nucb.md",
+  "planLink": ".deuk-agent/docs/plans/196-deukagent-docs-archive-monthly-s-joy-nucb-plan.md",
+  "sections": {
+    "Scope & Constraints": "- **Target:** module/submodule paths directly required by `deukagent-docs-archive-monthly-structure-hard`\n- **Context Files:** `PROJECT_RULE.md`, relevant architecture docs, and target source files\n- **PlanLink:** `.deuk-agent/docs/plans/196-deukagent-docs-archive-monthly-s-joy-nucb-plan.md` owns evidence, decisions, detailed steps, and verification notes.\n- **Constraints:** No generated output edits, no unrelated refactors, no broad regeneration without approval.\n- **Lifecycle Guard:** ticket lifecycle commands auto-run markdown lint on touched files and fail fast on broken markdown or missing linked artifacts.",
+    "Agent Permission Contract (APC)": "### [BOUNDARY]\n- Editable modules: ticket target modules directly related to \".deuk-agent docs/아카이브 문서를 연월 단위로 정리하고 분석 문서 경로를 정형화\"\n- Forbidden modules: generated artifacts, unrelated shared infrastructure, external module roots\n- Rule citation: PROJECT_RULE.md + core-rules/AGENTS.md\n\n### [CONTRACT]\n- Input: existing code/context required to implement \".deuk-agent docs/아카이브 문서를 연월 단위로 정리하고 분석 문서 경로를 정형화\"\n- Output: minimal implementation and tests that satisfy \".deuk-agent docs/아카이브 문서를 연월 단위로 정리하고 분석 문서 경로를 정형화\"\n- Side effects: ticket + plan docs updates, scoped code changes only\n\n### [PATCH PLAN]\n- Problem analysis, cause hypotheses, rationale, execution strategy, and verification design live in planLink.\n- Ticket records only the allowed patch boundary and contract.\n- Do not duplicate planLink content here; reference it when detail is needed.",
+    "Tasks": "- [ ] Complete non-duplicative `planLink` evidence/steps/verification.\n- [ ] Execute changes inside APC boundary.\n- [ ] Record verification outcome in the linked report or planLink.",
+    "Done When": "- APC is complete and non-placeholder.\n- Target changes are implemented inside the declared boundary.\n- Markdown lint/tests relevant to this ticket pass or failures are recorded.\n- Lifecycle commands can persist the ticket and planLink without manual lint intervention."
+  },
+  "analysis": {
+    "Problem Analysis": "- 현재 `.deuk-agent/docs`는 `plans`, `walkthroughs`, `schemas`, `scratch`로만 구성되어 있고, archive가 없어 정렬 기준이 없어 보입니다.\n- 아카이브 대상 문서(대부분 과거 티켓 기반 계획/보고서)가 다수 평탄한 상태라 탐색과 보존 정책이 일관되지 않습니다.\n- 사용자 요청은 `archive` 하위에 연월(`YYYY-MM`) 단위로 정리해야 한다는 것이므로, 문서 위치를 티켓 상태(활성/비활성)와 무관하게 일괄 규격화할 필요가 있습니다.",
+    "Source Observations": "- `AGENTS.md`/`core-rules/AGENTS.md`에서 티켓 기반 거버넌스와 문서 위치 규칙을 확인했습니다.\n- `.deuk-agent/docs`는 현재 `walkthroughs`와 `plans`가 월별 디렉터리 없이 평탄하게 존재합니다.\n- 티켓 레포지토리는 이미 `.deuk-agent/tickets/archive/<group>/<YYYY-MM>/<DD>/` 구조를 사용 중이며, 이를 문서 보존 분할 규칙의 기준으로 재사용할 수 있습니다.",
+    "Cause Hypotheses": "- 초기 정합성 이동은 문서 템플릿 기준(`init`)에 맞춘 기본 정리만 수행했고, 기존 누적 문서는 후속 작업으로 분류되지 않아 정리가 멈췄을 가능성이 큽니다.\n- `walkthroughs`/`plans` 경로의 과거 아카이브 유무를 구분하지 못해 하나의 덩어리로 남아 있을 가능성이 큽니다.",
+    "Decision Rationale": "- 문서 파일명 선두의 티켓 ID를 기준으로 티켓 상태를 조회해, 현재 열려 있는 티켓 문서는 그대로 두고 나머지를 월별 archive로 이동하는 방식을 택합니다.\n- 이동 대상 월은 해당 티켓의 실제 티켓 `archiveYearMonth`(또는 생성일 기준 fallback)으로 정하고, plan/report를 각각 `archive/plans/<YYYY-MM>/` 및 `archive/walkthroughs/<YYYY-MM>/`로 분리합니다.\n- `scratch`는 임시 작업 산출물로 남겨 두고, `schemas`는 규격 문서이므로 이동하지 않습니다.",
+    "Execution Strategy": "1. 현재 `docs` 구조를 확인해 대상 파일 목록을 생성합니다.\n2. 이동할 각 문서에서 티켓 ID를 파싱하고, 티켓 상태와 연월 정보를 읽어 `YYYY-MM` 경로를 계산합니다.\n3. 비정상 매칭(ID 없음/티켓 파일 부재)은 fallback로 생성월 기준 월별 archive로 옮기되, 이동 실패 위험이 큰 파일은 로그에 남기고 건너뜁니다.\n4. `archive` 신규 디렉터리 생성 후 `plans`/`walkthroughs` 파일을 이동합니다.\n5. 이동 완료 후 남은 문서 목록을 점검해 중복/누락 여부를 확인하고, 변경 파일만 간단 점검합니다.",
+    "Verification Design": "- 실행 후 `rg --files .deuk-agent/docs/archive`로 월별 폴더가 생성되었는지 확인합니다.\n- 이동 후에도 `rg --files .deuk-agent/docs/plans | wc` 및 `walkthroughs` 수량이 동일한지 점검합니다.\n- `npx deuk-agent-rule lint:md .deuk-agent/docs/plans/196...-plan.md .deuk-agent/tickets/sub/196...md` 를 통해 핵심 문서 lint 통과를 확인합니다."
+  }
+}

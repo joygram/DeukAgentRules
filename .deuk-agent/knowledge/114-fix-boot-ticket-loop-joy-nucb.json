@@ -1,0 +1,12 @@
+{
+  "id": "114-fix-boot-ticket-loop-joy-nucb",
+  "title": "fix-boot-ticket-loop",
+  "project": "global",
+  "createdAt": "2026-04-29 19:12:25",
+  "archivedAt": "2026-04-29T19:13:37.515Z",
+  "sections": {
+    "Analysis & Constraints": "(Deep Review)\n> [WARNING: Do not skip deep analysis. Shallow logic leads to cascaded bugs.]\n> [1. Root Cause & Architecture constraint:]\n> [2. Risk & Edge Cases (What could go wrong?):]",
+    "Tasks": "- [x] Boot Sequence에 1-CALL ticket discovery 규칙 추가\n- [x] CLI Reference에 Max calls 컬럼 추가\n- [x] ticket list를 boot 시 0회로 제한",
+    "Done When": "- [x] AGENTS.md에 FORBIDDEN 루프 패턴이 명시됨"
+  }
+}

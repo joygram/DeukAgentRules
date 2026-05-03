@@ -1,0 +1,11 @@
+{
+  "id": "154-deukpack-bmt-run-and-report-joy-nucb",
+  "title": "deukpack-bmt-run-and-report",
+  "project": "global",
+  "createdAt": "2026-05-01 14:56:13",
+  "archivedAt": "2026-05-01T15:00:23.943Z",
+  "sections": {
+    "Tasks": "- [x] Complete non-duplicative `planLink` evidence/steps/verification.\n- [x] Execute changes inside APC boundary.\n- [x] Record verification outcome in the linked report or planLink.",
+    "Done When": "- APC is complete and non-placeholder.\n- Target changes are implemented inside the declared boundary.\n- Markdown lint/tests relevant to this ticket pass or failures are recorded."
+  }
+}

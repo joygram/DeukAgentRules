@@ -1,0 +1,11 @@
+{
+  "id": "152-settle-v23-no-ticket-fallback-joy-nucb",
+  "title": "settle-v23-no-ticket-fallback",
+  "project": "global",
+  "createdAt": "2026-05-01 14:43:09",
+  "archivedAt": "2026-05-01T21:49:42.397Z",
+  "sections": {
+    "Tasks": "- [x] Complete non-duplicative `planLink` evidence/steps/verification.\n- [x] Classify current dirty worktree into v23 fallback changes, ticket archive metadata, and pre-existing unrelated changes.\n- [x] Recommend the next commit or cleanup action without staging/committing unless explicitly requested.",
+    "Done When": "- APC is complete and non-placeholder.\n- Target changes are implemented inside the declared boundary.\n- Markdown lint/tests relevant to this ticket pass or failures are recorded."
+  }
+}

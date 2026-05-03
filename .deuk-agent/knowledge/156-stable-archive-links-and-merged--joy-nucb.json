@@ -1,0 +1,11 @@
+{
+  "id": "156-stable-archive-links-and-merged--joy-nucb",
+  "title": "stable-archive-links-and-merged-bmt-report",
+  "project": "global",
+  "createdAt": "2026-05-01 15:07:46",
+  "archivedAt": "2026-05-01T15:13:24.058Z",
+  "sections": {
+    "Tasks": "- [x] Complete non-duplicative `planLink` evidence/steps/verification.\n- [x] Update archive command so stored/output ticket path follows the archived file.\n- [x] Add regression coverage for archive path/index update.\n- [x] Merge BMT 153/154/155 report evidence into one canonical current report.\n- [x] Run markdown lint and relevant node tests.",
+    "Done When": "- APC is complete and non-placeholder.\n- Target changes are implemented inside the declared boundary.\n- Markdown lint/tests relevant to this ticket pass or failures are recorded."
+  }
+}

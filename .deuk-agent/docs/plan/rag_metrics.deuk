@@ -1,0 +1,39 @@
+namespace deuk_agent_rules.rag
+
+enum RagMetricClient {
+    Unknown = 0
+    Codex = 1
+    ClaudeCode = 2
+    Cursor = 3
+    Antigravity = 4
+    Gemini = 5
+    Copilot = 6
+}
+
+struct RagMetricRecord {
+    1> int32 schema_version = 1
+    2> string ticket_id = ""
+    3> int32 phase = 0
+    4> string timestamp = ""
+    5> RagMetricClient client = Unknown
+    6> string model = ""
+    7> int64 input_tokens = 0
+    8> int64 output_tokens = 0
+    9> int64 total_tokens = 0
+    10> bool rag_hits_top1_hit = false
+    11> bool rag_hits_top3_hit = false
+    12> int64 context_retrieval_latency_ms = 0
+    13> int32 loop_count = 0
+    14> int32 revision_count = 0
+    15> double first_pass_pass_rate = 0
+    16> int32 defect_reopen_count = 0
+    17> double tdw_compliance_score = 0
+    18> int32 agent_override_count = 0
+    19> list<string> notes
+}
+
+struct RagMetricBatch {
+    1> int32 schema_version = 1
+    2> string generated_at = ""
+    3> list<RagMetricRecord> records
+}

@@ -1,0 +1,11 @@
+{
+  "id": "136-deukpack-bmt-language-korean-joy-nucb",
+  "title": "deukpack-bmt-language-korean",
+  "project": "global",
+  "createdAt": "2026-05-01 06:13:16",
+  "archivedAt": "2026-05-01T09:02:55.590Z",
+  "sections": {
+    "Tasks": "- [x] Kotlin Compression 회귀 불일치 항목 분리\n- [x] streaming 검증 누락 항목을 구현 상태와 테스트 근거로 분리\n- [x] evidence metadata 필수 확인 포인트 고정\n- [x] 티켓/plan markdown lint 통과",
+    "Done When": "> Kotlin BMT 보강 기준이 지원성/구현성/검증성 3층으로 분리되고, 공식 근거 없는 항목이 implemented/passing으로 승격되지 않으며, 티켓과 plan이 `lint:md`를 통과한다."
+  }
+}

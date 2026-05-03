@@ -1,0 +1,11 @@
+{
+  "id": "143-deukpack-joy-nucb",
+  "title": "DeukPack",
+  "project": "global",
+  "createdAt": "2026-05-01 06:44:34",
+  "archivedAt": "2026-05-01T12:34:09.182Z",
+  "sections": {
+    "Tasks": "- [x] DeukPack project rules and current DeukPack queue context reviewed.\n- [x] DeukPack continuation plan restored.\n- [x] Markdown lint passes for ticket, plan, and report.\n- [ ] Close/archive after report.",
+    "Done When": "DeukPack 작업의 다음 실행 후보가 명확해지고, this ticket/plan/report가 lint를 통과하며, 실제 DeukPack implementation은 별도 ticket에서만 진행된다."
+  }
+}

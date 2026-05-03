@@ -1,0 +1,12 @@
+{
+  "id": "112-fix-missing-summary-in-frontmatt-joy-nucb",
+  "title": "fix-missing-summary-in-frontmatter",
+  "project": "global",
+  "createdAt": "2026-04-29 18:58:11",
+  "archivedAt": "2026-04-29T19:00:19.701Z",
+  "sections": {
+    "Analysis & Constraints": "(Deep Review)\n> [WARNING: Do not skip deep analysis. Shallow logic leads to cascaded bugs.]\n> [1. Root Cause & Architecture constraint:]\n> [2. Risk & Edge Cases (What could go wrong?):]",
+    "Tasks": "- [x] `scripts/cli-ticket-commands.mjs`에 `summary` 필수 검증 로직 추가\n- [x] `core-rules/AGENTS.md`에 `summary` 필수 규칙 명시 (v9)\n- [x] CLI 테스트를 통한 검증 (누락 시 에러, 포함 시 성공)",
+    "Done When": "- [x] 서머리 없이 티켓 생성 시 `[VALIDATION FAILED]` 에러와 함께 종료됨\n- [x] 서머리 포함 시 정상적으로 티켓이 생성됨"
+  }
+}

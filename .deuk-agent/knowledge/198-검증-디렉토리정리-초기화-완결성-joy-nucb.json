@@ -1,0 +1,24 @@
+{
+  "id": "198-검증-디렉토리정리-초기화-완결성-joy-nucb",
+  "title": "검증-디렉토리정리-초기화-완결성",
+  "project": "global",
+  "createdAt": "2026-05-02 22:33:04",
+  "archivedAt": "2026-05-02T22:39:29.772Z",
+  "summary": "init 실행 후 .deuk-agent 구조 정리 및 레거시 잔재 제거가 완결되었는지 검증한다.",
+  "sourceTicketPath": ".deuk-agent/tickets/sub/198-검증-디렉토리정리-초기화-완결성-joy-nucb.md",
+  "planLink": ".deuk-agent/docs/archive/plans/2026-05/198-검증-디렉토리정리-초기화-완결성-joy-nucb-plan.md",
+  "sections": {
+    "Scope & Constraints": "- **Target:** module/submodule paths directly required by `검증-디렉토리정리-초기화-완결성`\n- **Context Files:** `PROJECT_RULE.md`, relevant architecture docs, and target source files\n- **PlanLink:** `.deuk-agent/docs/plans/198-검증-디렉토리정리-초기화-완결성-joy-nucb-plan.md` owns evidence, decisions, detailed steps, and verification notes.\n- **Constraints:** No generated output edits, no unrelated refactors, no broad regeneration without approval.\n- **Lifecycle Guard:** ticket lifecycle commands auto-run markdown lint on touched files and fail fast on broken markdown or missing linked artifacts.",
+    "Agent Permission Contract (APC)": "### [BOUNDARY]\n- Editable modules: ticket target modules directly related to \"init 실행 후 .deuk-agent 구조 정리 및 레거시 잔재 제거가 완결되었는지 검증한다.\"\n- Forbidden modules: generated artifacts, unrelated shared infrastructure, external module roots\n- Rule citation: PROJECT_RULE.md + core-rules/AGENTS.md\n\n### [CONTRACT]\n- Input: existing code/context required to implement \"init 실행 후 .deuk-agent 구조 정리 및 레거시 잔재 제거가 완결되었는지 검증한다.\"\n- Output: minimal implementation and tests that satisfy \"init 실행 후 .deuk-agent 구조 정리 및 레거시 잔재 제거가 완결되었는지 검증한다.\"\n- Side effects: ticket + plan docs updates, scoped code changes only\n\n### [PATCH PLAN]\n- Problem analysis, cause hypotheses, rationale, execution strategy, and verification design live in planLink.\n- Ticket records only the allowed patch boundary and contract.\n- Do not duplicate planLink content here; reference it when detail is needed.",
+    "Tasks": "- [x] Complete non-duplicative `planLink` evidence/steps/verification.\n- [x] Execute changes inside APC boundary.\n- [x] Record verification outcome in the linked report or planLink.",
+    "Done When": "- APC is complete and non-placeholder.\n- Target changes are implemented inside the declared boundary.\n- Markdown lint/tests relevant to this ticket pass or failures are recorded.\n- Lifecycle commands can persist the ticket and planLink without manual lint intervention."
+  },
+  "analysis": {
+    "Problem Analysis": "핵심 질문은 “`init` 마이그레이션 정규화가 끝난 뒤에도 `.deuk-agent`에 레거시 디렉토리와 문서 위치가 잔존하는지”였다.\n과거 정리 과정에서 대량 이동이 발생했고, 현재 트리는 일부가 정리되지 않은 채 남아 있거나 월별 보관 규칙을 벗어난 경로가 있을 가능성이 있어 회귀 점검이 필요했다.",
+    "Source Observations": "### 실행 명령\n- `find .deuk-agent -maxdepth 3 -type d`\n- `find .deuk-agent/tickets -maxdepth 2 -type d`\n- `find .deuk-agent/docs/archive -maxdepth 3 -type f`\n- `npx deuk-agent-rule init --workflow execute --dry-run`\n\n### 핵심 관찰\n- `.deuk-agent` 최상위는 현재 `config.json`, `telemetry.jsonl`, `docs`, `knowledge`, `tickets`만 보유한다.\n- `tickets`는 `archive/sub`, `sub`만 보유한다.\n- `docs`의 archive는 `plans/2026-04`, `plans/2026-05`, `walkthroughs/2026-04`, `walkthroughs/2026-05`로만 존재한다.\n- 레거시 후보 경로(`tickets/core`, `tickets/main`, `tickets/global`, `tickets/reports`, `tickets/archive/core`, `tickets/archive/main`, `tickets/archive/global`)는 모두 존재하지 않는다.\n- `init --dry-run` 실행 결과는 spoke sync 로그 외에 추가 마이그레이션 이동 로그를 출력하지 않았다.\n- 활성 `sub` 티켓은 총 2건(과거 잔여 179, 이번 검증 198)이며, 목표 범위(디렉토리 정합성)와 무관한 잔여 작업은 별도 티켓에서 지속 추적 필요.",
+    "Cause Hypotheses": "1. 과거 이행 중 `init` 결과가 부분 반영되어 일부 파일만 새 스키마로 이동된 상태일 수 있다.\n2. 월별 archive 이동은 과거 경로와 섞여 공존했을 가능성이 있으므로 `init` 기준점에서 다시 정규화가 필요한 시점이 있을 수 있다.\n3. dry-run에서만 정합하고 실제 실행에서는 정책/조건이 달라져 잔재가 남을 수 있다.",
+    "Decision Rationale": "실행 계획은 `init` dry-run 중심 검증을 채택했다.\n\n이유는 두 가지다.\n1) 실제 변경 없이 정합성만 판별할 수 있어 회귀에 안전하다.\n2) 레거시 탐지 지표가 명확한 상태(예: 경로 존재 여부, month-bucket 규칙 충족, 문서 이동 로그 미발생) 기반으로 재현 가능하다.\n\n대안인 강제 재실행은 현재 상태에서 불필요한 추가 변경 리스크가 커 우선순위가 낮다.",
+    "Execution Strategy": "1. 현재 트리 기준으로 레거시/월별 bucket 규칙의 구조 정합성만 판별한다.\n2. `init --workflow execute --dry-run`으로 이동 정책 충돌 여부를 확인한다.\n3. 결과를 `archive`/`tickets`/`knowledge` 계열로 분리해 검증 보고한다.\n4. 실패 항목이 발견되면 관련 스크립트 테스트(특히 `scripts/cli-init-logic.mjs`의 정규화 함수)로 증거를 얻는다.",
+    "Verification Design": "- `find .deuk-agent -maxdepth 3 -type d`\n  - 기대: `.deuk-agent/{docs,tickets,knowledge}` 하위 레이어가 정규화 스키마를 만족하고 레거시 top-level dir가 없어야 함\n- `find .deuk-agent/tickets/archive/sub -type d`\n  - 기대: 월별 아카이브 구조(예: `YYYY-MM`) 보장\n- `find .deuk-agent/docs/archive -maxdepth 3 -type f`\n  - 기대: `archive/plans`, `archive/walkthroughs` 하위 월별 디렉토리만 존재\n- `npx deuk-agent-rule init --workflow execute --dry-run`\n  - 기대: 추가 병합/삭제 로그가 과도하게 없고 구조 위반이 없어야 함"
+  }
+}

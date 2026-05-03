@@ -1,0 +1,11 @@
+{
+  "id": "122-deuk-agentrules-lite-visioning-joy-nucb",
+  "title": "deuk-agentrules-lite-visioning",
+  "project": "global",
+  "createdAt": "2026-04-30 23:55:36",
+  "archivedAt": "2026-05-01T11:57:40.420Z",
+  "sections": {
+    "Tasks": "- [x] Lite 접근성 배포 비전 문서를 작성한다.\n- [x] 스킬, 플러그인, CLI의 역할 분리 원칙을 문서화한다.\n- [x] ticket과 plan 문서에 대해 markdown lint를 통과시킨다.",
+    "Done When": "내부 비전 문서가 `.deuk-agent/docs/plans/122-deuk-agentrules-lite-visioning-joy-nucb-plan.md`에 존재하고, Lite/Full 분리 전략과 도입 단계가 명시되며, ticket + plan markdown lint가 통과한다."
+  }
+}

@@ -1,0 +1,25 @@
+{
+  "id": "183-agent-rule-boundary-hardening-joy-nucb",
+  "title": "agent-rule-boundary-hardening",
+  "project": "global",
+  "createdAt": "2026-05-02 11:06:51",
+  "archivedAt": "2026-05-02T11:13:33.943Z",
+  "summary": "에이전트룰에서 문서 경계 반복 수정과 상태 전환 혼선을 막는 규칙 보강",
+  "sourceTicketPath": ".deuk-agent/tickets/sub/183-agent-rule-boundary-hardening-joy-nucb.md",
+  "planLink": ".deuk-agent/docs/plans/183-agent-rule-boundary-hardening-joy-nucb-plan.md",
+  "sections": {
+    "Scope & Constraints": "- **Target:** module/submodule paths directly required by `agent-rule-boundary-hardening`\n- **Context Files:** `PROJECT_RULE.md`, relevant architecture docs, and target source files\n- **PlanLink:** `.deuk-agent/docs/plans/183-agent-rule-boundary-hardening-joy-nucb-plan.md` owns evidence, decisions, detailed steps, and verification notes.\n- **Constraints:** No generated output edits, no unrelated refactors, no broad regeneration without approval.\n- **Lifecycle Guard:** ticket lifecycle commands auto-run markdown lint on touched files and fail fast on broken markdown or missing linked artifacts.",
+    "Agent Permission Contract (APC)": "### [BOUNDARY]\n- Editable modules: ticket target modules directly related to \"에이전트룰에서 문서 경계 반복 수정과 상태 전환 혼선을 막는 규칙 보강\"\n- Forbidden modules: generated artifacts, unrelated shared infrastructure, external module roots\n- Rule citation: PROJECT_RULE.md + core-rules/AGENTS.md\n\n### [CONTRACT]\n- Input: existing code/context required to implement \"에이전트룰에서 문서 경계 반복 수정과 상태 전환 혼선을 막는 규칙 보강\"\n- Output: minimal implementation and tests that satisfy \"에이전트룰에서 문서 경계 반복 수정과 상태 전환 혼선을 막는 규칙 보강\"\n- Side effects: ticket + plan docs updates, scoped code changes only\n\n### [PATCH PLAN]\n- Problem analysis, cause hypotheses, rationale, execution strategy, and verification design live in planLink.\n- Ticket records only the allowed patch boundary and contract.\n- Do not duplicate planLink content here; reference it when detail is needed.",
+    "Tasks": "- [x] Complete non-duplicative `planLink` evidence/steps/verification.\n- [x] Execute changes inside APC boundary.\n- [x] Record verification outcome in the linked report or planLink.",
+    "Done When": "- APC is complete and non-placeholder.\n- Target changes are implemented inside the declared boundary.\n- Markdown lint/tests relevant to this ticket pass or failures are recorded.\n- Lifecycle commands can persist the ticket and planLink without manual lint intervention."
+  },
+  "analysis": {
+    "Problem Analysis": "최근 작업에서 티켓/plan 문서를 반복 수정하게 된 근본 원인은 규칙이 \"문서는 계획 기록\"이라는 점과 \"workflow 상태 정합성\"을 너무 가깝게 묶어 놓았기 때문입니다. 그 결과 문서 경계가 한 번 정해진 뒤에도, phase 전환이나 archive 과정에서 다시 손대야 할 것처럼 느껴졌습니다.\n\n이 티켓의 목표는 코드 수정이 아니라 에이전트룰 보강입니다. 특히 다음 혼선을 줄여야 합니다.\n- Phase 1 이후에도 planLink/ticket 본문을 반복 갱신하는 습관\n- 상태 전환이나 archive가 문서 경계 재수정으로 이어지는 관성\n- 내부 workflow event 수집과 문서 기록을 같은 축으로 취급하는 해석\n\n핵심은 \"문서 경계는 한 번 정하고, 상태는 별도 이벤트로 기록\"하는 분리입니다.",
+    "Source Observations": "- [core-rules/AGENTS.md](../../../core-rules/AGENTS.md) 는 Phase 1에서 티켓과 planLink를 채우고, Phase 2에서 실행하라고 요구합니다.\n- 같은 문서는 `planLink`에 진행 체크박스를 두지 말고, 티켓만 상태를 가진다고 명시합니다.\n- [PROJECT_RULE.md](../../../PROJECT_RULE.md) 는 `scripts/`가 CLI business logic의 소유지라고만 정리하고 있어, 문서 경계의 반복 수정 금지 규칙은 아직 명시되지 않았습니다.\n- [scripts/cli.mjs](../../../scripts/cli.mjs) 와 ticket lifecycle 명령은 상태 전환을 수행하지만, 문서 경계를 다시 써야 한다는 규칙은 없습니다.",
+    "Cause Hypotheses": "- 규칙이 \"Phase 전환 = 문서 업데이트\"처럼 오해되기 쉽습니다.\n- 상태 전환과 문서 기록의 책임 경계가 분리되어 있지 않습니다.\n- 티켓/plan이 같이 움직여야 한다는 압박 때문에, 문서가 작업 로그처럼 반복 수정됩니다.",
+    "Decision Rationale": "- 티켓은 identity, scope, contract, lifecycle만 갖고, planLink는 한 번 완성되면 사실상 고정되는 기록으로 다룹니다.\n- 상태 변화는 ticket lifecycle event로만 남기고, 문서 내용 재작성은 예외로만 허용합니다.\n- 문서 경계가 바뀌어야 하면 기존 티켓을 계속 덧칠하지 말고 새 티켓을 여는 쪽이 더 안전합니다.",
+    "Execution Strategy": "- core rules에 \"Phase 1 이후 티켓/planLink 반복 수정 금지\" 조항을 추가합니다.\n- `ticket close`, `ticket archive`, `ticket move`는 상태 전환 기록이지만, 문서 경계를 다시 여는 면허가 아니라는 점을 명시합니다.\n- 문서 수정이 필요한 경우를 \"planLink의 사실 오류 수정\"과 \"새 요구사항\"으로 나누고, 후자는 새 티켓으로 강제합니다.\n- 내부 workflow event 수집은 문서 경계 보강과 별개로 두어, 상태 추적과 문서 수정이 뒤섞이지 않게 합니다.",
+    "Verification Design": "- `npx deuk-agent-rule lint:md .deuk-agent/tickets/sub/183-agent-rule-boundary-hardening-joy-nucb.md .deuk-agent/docs/plans/183-agent-rule-boundary-hardening-joy-nucb-plan.md` 로 Phase 1 문서 검증을 통과시킵니다.\n- 규칙 수정 후에는 ticket/plan 반복 수정 금지와 새 티켓 분리 규칙이 문서에 명확히 드러나는지 확인합니다.\n- 후속 구현이 있다면 `core-rules/AGENTS.md`와 `PROJECT_RULE.md`에 동일한 의미의 조항이 맞물리게 적용합니다.",
+    "Verification Outcome": "- `npx deuk-agent-rule lint:md core-rules/AGENTS.md PROJECT_RULE.md`: passed."
+  }
+}

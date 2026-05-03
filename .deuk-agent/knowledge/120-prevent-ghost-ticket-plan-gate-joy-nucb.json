@@ -1,0 +1,11 @@
+{
+  "id": "120-prevent-ghost-ticket-plan-gate-joy-nucb",
+  "title": "prevent-ghost-ticket-plan-gate",
+  "project": "global",
+  "createdAt": "2026-04-30 10:03:44",
+  "archivedAt": "2026-05-01T21:49:42.394Z",
+  "sections": {
+    "Tasks": "- [x] AGENTS.md에 고스트 티켓 방지 가드(G1.2) 추가\n- [x] Phase 1 완료 조건에 planLink 실행문서 존재/완성 기준 추가\n- [x] 문서 검증 절차에 ticket+plan 동시 lint 규칙 추가",
+    "Done When": "> AGENTS.md에 고스트 티켓 방지 규칙이 반영되고, 새 티켓 생성 시 \"ticket + plan 문서 + lint 통과\"가 최소 완료 기준으로 명시되면 완료."
+  }
+}

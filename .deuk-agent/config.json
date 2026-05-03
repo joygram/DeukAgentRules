@@ -13,7 +13,6 @@
   "ignoreDirs": [
     "node_modules",
     ".git",
-    ".deuk-agent",
     "tmp",
     "temp",
     ".tmp",

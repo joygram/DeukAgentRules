@@ -1,0 +1,11 @@
+{
+  "id": "131-legacy-rag-compat-vision-joy-nucb",
+  "title": "legacy-rag-compat-vision",
+  "project": "global",
+  "createdAt": "2026-05-01 04:18:01",
+  "archivedAt": "2026-05-01T12:24:31.272Z",
+  "sections": {
+    "Tasks": "- [x] 레거시 티켓 정규화 스키마 및 상태 머신 설계\n- [ ] candidate/approved 전환 규칙 구현\n- [ ] RAG 검색 재랭크에 2티어 상태 반영\n- [ ] 토큰·품질 A/B 측정 스크립트 + 대시보드 집계 구현\n- [ ] 2주 파일럿 실행 및 개선안 반영",
+    "Done When": "> 정규화 후보 수집 정확도, A/B 비용/품질 지표 기준치 달성(예: 토큰 12%↓, 재작업률 8%↓), Phase 2 테스트 통과, planLink와 ticket 연계 완료 후 실행/보관."
+  }
+}

@@ -1,0 +1,11 @@
+{
+  "id": "162-readme-related-ideas-seo-joy-nucb",
+  "title": "readme-related-ideas-seo",
+  "project": "global",
+  "createdAt": "2026-05-01 22:01:27",
+  "archivedAt": "2026-05-01T22:04:31.661Z",
+  "sections": {
+    "Tasks": "- [x] Complete non-duplicative `planLink` evidence/steps/verification.\n- [x] Execute changes inside APC boundary.\n- [x] Record verification outcome in the linked report or planLink.",
+    "Done When": "- APC is complete and non-placeholder.\n- Target changes are implemented inside the declared boundary.\n- Markdown lint/tests relevant to this ticket pass or failures are recorded."
+  }
+}

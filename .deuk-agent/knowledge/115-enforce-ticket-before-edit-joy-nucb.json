@@ -1,0 +1,12 @@
+{
+  "id": "115-enforce-ticket-before-edit-joy-nucb",
+  "title": "enforce-ticket-before-edit",
+  "project": "global",
+  "createdAt": "2026-04-29 19:14:27",
+  "archivedAt": "2026-05-01T21:49:42.386Z",
+  "sections": {
+    "Analysis & Constraints": "(Deep Review)\n> [WARNING: Do not skip deep analysis. Shallow logic leads to cascaded bugs.]\n> [1. Root Cause & Architecture constraint:]\n> [2. Risk & Edge Cases (What could go wrong?):]",
+    "Tasks": "- [ ] [Task 1]",
+    "Done When": "> [Define verification steps and completion criteria]"
+  }
+}

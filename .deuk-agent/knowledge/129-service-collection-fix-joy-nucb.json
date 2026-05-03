@@ -1,0 +1,11 @@
+{
+  "id": "129-service-collection-fix-joy-nucb",
+  "title": "service-collection-fix",
+  "project": "global",
+  "createdAt": "2026-05-01 02:19:06",
+  "archivedAt": "2026-05-01T02:22:35.426Z",
+  "sections": {
+    "Tasks": "- [x] MCP/SSE 서비스 감지 실패 경로 재현 및 수정\n- [x] 텔레메트리 자료 수집/동기화 실패 처리 보강\n- [x] 관련 테스트 추가 및 전체 테스트 실행",
+    "Done When": "> `node --test scripts/tests/`가 통과하고, MCP/SSE 감지와 텔레메트리 수집/동기화 실패 처리 동작이 테스트로 검증된다."
+  }
+}

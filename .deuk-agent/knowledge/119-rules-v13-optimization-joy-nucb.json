@@ -1,0 +1,12 @@
+{
+  "id": "119-rules-v13-optimization-joy-nucb",
+  "title": "rules-v13-optimization",
+  "project": "global",
+  "createdAt": "2026-04-29 20:02:55",
+  "archivedAt": "2026-05-01T11:27:30.513Z",
+  "sections": {
+    "Analysis & Constraints": "(Deep Review)\n\n1. Root Cause & Architecture constraint:\n   - 이 티켓은 오래된 “v12→v13 최적화” 목표를 담고 있지만 현재 정본은 v17이다.\n   - v17에는 TDW, generated/report guard, baseline expansion guard 등 최신 안전 규칙이 포함되어 있어 단순 압축 삭제는 회귀 위험이 크다.\n2. Risk & Edge Cases:\n   - `core-rules/AGENTS.md`를 과도하게 축약하면 boot sequence, phase gate, generated artifact guard가 약화될 수 있다.\n   - `templates/TICKET_TEMPLATE.md`를 바꾸면 이후 모든 신규 티켓 품질에 영향을 준다.\n   - `init` 실행은 broad output regeneration이므로 실행 단계에서 별도 승인 없이는 금지한다.",
+    "Tasks": "- [x] Phase 0: 현재 v17 정본과 관련 과거 계획 확인.\n- [x] Phase 1: 최신 상태 기준으로 APC와 실행 계획 재작성.\n- [x] Phase 2: 승인 후 정본/템플릿 최적화 후보 적용.\n  - `core-rules/AGENTS.md` version을 18로 올리고 v17 guard 의미를 유지한 채 문구를 압축했다.\n  - `templates/TICKET_TEMPLATE.md`의 빈 placeholder를 실행 가능한 기본 문구로 교체했다.\n- [x] Phase 3: lint/test 및 생성 산출물 dry-run 검증.\n  - `core-rules/AGENTS.md`: 10,320 bytes → 8,847 bytes.\n  - `templates/TICKET_TEMPLATE.md`: 1,214 bytes → 1,627 bytes. placeholder 감소를 위해 구조 설명은 늘어났다.\n  - `npx deuk-agent-rule lint:md core-rules/AGENTS.md templates/TICKET_TEMPLATE.md .deuk-agent/tickets/sub/119-rules-v13-optimization-joy-nucb.md .deuk-agent/docs/plans/119-rules-v13-optimization-joy-nucb-plan.md`: 통과.\n  - `node --test scripts/tests/*.test.mjs`: 22개 통과.\n- [x] Phase 4: 보고서 작성 후 close/archive.\n  - `.deuk-agent/docs/walkthroughs/119-rules-v13-optimization-joy-nucb-report.md` 작성.",
+    "Done When": "- `core-rules/AGENTS.md`의 최신 v17 안전 규칙이 손상되지 않는다.\n- 변경 전후 크기와 주요 guard 보존 여부가 기록된다.\n- `templates/TICKET_TEMPLATE.md`가 placeholder 티켓 생성을 줄이는 방향으로 개선된다.\n- markdown lint와 관련 테스트가 통과한다."
+  }
+}

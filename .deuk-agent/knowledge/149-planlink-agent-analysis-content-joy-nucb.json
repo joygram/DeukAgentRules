@@ -1,0 +1,11 @@
+{
+  "id": "149-planlink-agent-analysis-content-joy-nucb",
+  "title": "planlink-agent-analysis-content",
+  "project": "DeukAgentRules",
+  "createdAt": "2026-05-01 13:22:18",
+  "archivedAt": "2026-05-01T13:26:24.657Z",
+  "sections": {
+    "Tasks": "- [x] Complete analysis-focused `planLink`.\n- [x] Update rule/generator/docs inside APC boundary.\n- [x] Record verification outcome.",
+    "Done When": "- planLink is defined as agent analysis, not a second ticket.\n- Generated planLink draft prompts problem analysis, hypotheses, rationale, strategy, and verification design.\n- Markdown lint/tests pass."
+  }
+}

@@ -1,0 +1,11 @@
+{
+  "id": "150-remove-planlink-checkbox-progres-joy-nucb",
+  "title": "remove-planlink-checkbox-progress",
+  "project": "DeukAgentRules",
+  "createdAt": "2026-05-01 13:27:50",
+  "archivedAt": "2026-05-01T13:31:04.628Z",
+  "sections": {
+    "Tasks": "- [x] Update rule/docs to separate ticket progress from planLink analysis.\n- [x] Remove generated planLink checkbox prompts.\n- [x] Add regression coverage and run verification.",
+    "Done When": "- Generated planLink drafts contain no `[ ]` or `[x]` checkbox syntax.\n- Ticket remains the progress checklist owner.\n- Markdown lint/tests pass."
+  }
+}

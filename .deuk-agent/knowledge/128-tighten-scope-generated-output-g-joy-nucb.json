@@ -1,0 +1,11 @@
+{
+  "id": "128-tighten-scope-generated-output-g-joy-nucb",
+  "title": "tighten-scope-generated-output-guard",
+  "project": "global",
+  "createdAt": "2026-05-01 02:10:57",
+  "archivedAt": "2026-05-01T02:12:38.716Z",
+  "sections": {
+    "Tasks": "- [x] 사고 유형을 막는 룰 문구 추가\n- [x] version/changelog 갱신\n- [x] markdown lint 검증",
+    "Done When": "> `npx deuk-agent-rule lint:md core-rules/AGENTS.md .deuk-agent/tickets/sub/128-tighten-scope-generated-output-g-joy-nucb.md .deuk-agent/docs/plans/128-tighten-scope-generated-output-g-joy-nucb-plan.md`가 통과한다."
+  }
+}
