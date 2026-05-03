@@ -1,8 +1,23 @@
 {
   "version": 1,
-  "updatedAt": "2026-05-03T07:06:49.489Z",
+  "updatedAt": "2026-05-03T07:41:03.643Z",
   "activeTicketId": null,
   "entries": [
+    {
+      "id": "202-fix-legacy-ticket-layout-sync-joy-nucb",
+      "title": "fix-legacy-ticket-layout-sync",
+      "topic": "202-fix-legacy-ticket-layout-sync-joy-nucb",
+      "group": "sub",
+      "fileName": "202-fix-legacy-ticket-layout-sync-joy-nucb.md",
+      "project": "global",
+      "submodule": "",
+      "createdAt": "2026-05-02 23:31:29",
+      "updatedAt": "2026-05-03T07:41:03.655Z",
+      "source": "ticket-sync",
+      "status": "archived",
+      "archiveYearMonth": "2026-05",
+      "archiveDay": "02"
+    },
     {
       "id": "204-agentrule-cli-further-sync-joy-nucb",
       "title": "agentrule-cli-further-sync",

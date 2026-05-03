@@ -1,8 +1,18 @@
 {
   "version": 1,
-  "updatedAt": "2026-05-03T07:06:49.489Z",
-  "activeTicketId": "202-fix-legacy-ticket-layout-sync-joy-nucb",
+  "updatedAt": "2026-05-03T07:41:03.643Z",
+  "activeTicketId": "205-codex-token-output-and-ticket-fa-joy-nucb",
   "entries": [
+    {
+      "id": "207-verify-after-execute-rule-harden-joy-nucb",
+      "title": "verify-after-execute-rule-hardening",
+      "topic": "verify-after-execute-rule-hardening",
+      "group": "sub",
+      "project": "global",
+      "createdAt": "2026-05-03T07:41:03.640Z",
+      "source": "ticket-create",
+      "status": "open"
+    },
     {
       "id": "206-remove-analysisDoc-from-tickets-joy-nucb",
       "title": "remove-analysisDoc-from-tickets",
@@ -23,19 +33,6 @@
       "source": "ticket-create",
       "status": "active",
       "updatedAt": "2026-05-03T06:11:31.911Z"
-    },
-    {
-      "id": "202-fix-legacy-ticket-layout-sync-joy-nucb",
-      "title": "fix-legacy-ticket-layout-sync",
-      "topic": "202-fix-legacy-ticket-layout-sync-joy-nucb",
-      "group": "sub",
-      "fileName": "202-fix-legacy-ticket-layout-sync-joy-nucb.md",
-      "project": "global",
-      "submodule": "",
-      "createdAt": "2026-05-02 23:31:29",
-      "updatedAt": "2026-05-03T03:22:15.643Z",
-      "source": "ticket-sync",
-      "status": "active"
     }
   ]
 }
