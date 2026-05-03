@@ -49,12 +49,13 @@ createdAt: 2026-05-03 08:16:21
 
 - [x] Complete compact plan and APC.
 - [x] Execute changes inside APC boundary.
-- [ ] Record verification outcome.
+- [x] Record verification outcome.
 
 ## Done When
 
 - APC is complete and non-placeholder.
 - Compact plan is complete and non-placeholder.
 - Target changes are implemented inside the declared boundary.
+- Verification passed: `npx deuk-agent-rule lint:md core-rules/AGENTS.md templates/TICKET_TEMPLATE.md .deuk-agent/tickets/sub/213-legacy-planfile-main-sub-ticket--joy-nucb.md` and `node --test scripts/tests/cli-init-commands.test.mjs scripts/tests/cli-ticket-commands.test.mjs`.
 - Markdown lint/tests relevant to this ticket pass or failures are recorded.
 - Lifecycle commands can persist the ticket without manual lint intervention.

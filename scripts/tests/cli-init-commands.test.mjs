@@ -3,7 +3,7 @@ import assert from "node:assert";
 import { existsSync, mkdtempSync, mkdirSync, readFileSync, rmSync, writeFileSync } from "node:fs";
 import { tmpdir } from "node:os";
 import { join } from "node:path";
-import { canonicalizeDocsArchiveBuckets, enforceCanonicalAgentLayout, migrateLegacyStructure } from "../cli-init-commands.mjs";
+import { canonicalizeDocsArchiveBuckets, enforceCanonicalAgentLayout, migrateLegacyStructure, runInit } from "../cli-init-commands.mjs";
 
 test("init migration moves legacy reports and prunes empty legacy ticket dirs", () => {
   const cwd = mkdtempSync(join(tmpdir(), "deuk-init-migrate-"));
@@ -126,7 +126,7 @@ test("init migration removes duplicate scratch reports and moves legacy archive 
   }
 });
 
-test("init migration skips empty legacy docs instead of creating placeholder tickets", () => {
+test("init migration skips empty legacy docs instead of creating placeholder tickets", async () => {
   const cwd = mkdtempSync(join(tmpdir(), "deuk-init-empty-legacy-doc-"));
   try {
     const docsRoot = join(cwd, ".deuk-agent", "docs", "plan");
@@ -148,6 +148,7 @@ test("init migration skips empty legacy docs instead of creating placeholder tic
       "summary: nonempty legacy doc",
       "status: draft",
       "priority: P3",
+      "createdAt: 2026-05-03 10:00:00",
       "tags:",
       "  - legacy",
       "---",
@@ -158,11 +159,27 @@ test("init migration skips empty legacy docs instead of creating placeholder tic
       ""
     ].join("\n"), "utf8");
 
-    migrateLegacyStructure(cwd, false);
+    writeFileSync(join(cwd, ".deuk-agent", "config.json"), JSON.stringify({
+      version: 1,
+      agentsMode: "inject",
+      workflowMode: "execute",
+      approvalState: "approved",
+      docsLanguage: "en",
+      shareTickets: false,
+      remoteSync: false,
+      updatedAt: "2026-05-03T00:00:00.000Z"
+    }, null, 2), "utf8");
 
-    const ticketRoot = join(cwd, ".deuk-agent", "tickets", "archive", "sub", "legacy-docs");
-    assert.ok(!existsSync(join(ticketRoot, "123.md")), "empty legacy doc should not become a ticket");
-    assert.ok(existsSync(join(ticketRoot, "124.md")), "non-empty legacy doc should still be merged");
+    await runInit({
+      cwd,
+      dryRun: false,
+      nonInteractive: true
+    }, "/home/joy/workspace/DeukAgentRules");
+
+    const emptyTicketPath = join(cwd, ".deuk-agent", "tickets", "archive", "sub", "legacy-docs", "123.md");
+    const nonEmptyTicketPath = join(cwd, ".deuk-agent", "tickets", "archive", "sub", "legacy-docs", "124.md");
+    assert.ok(!existsSync(emptyTicketPath), "empty legacy doc should not become a ticket");
+    assert.ok(existsSync(nonEmptyTicketPath), "non-empty legacy doc should still be merged");
   } finally {
     rmSync(cwd, { recursive: true, force: true });
   }
