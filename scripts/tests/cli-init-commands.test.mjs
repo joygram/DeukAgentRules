@@ -3,7 +3,7 @@ import assert from "node:assert";
 import { existsSync, mkdtempSync, mkdirSync, readFileSync, rmSync, writeFileSync } from "node:fs";
 import { tmpdir } from "node:os";
 import { join } from "node:path";
-import { canonicalizeDocsArchiveBuckets, enforceCanonicalAgentLayout, migrateLegacyStructure } from "../cli-init-commands.mjs";
+import { canonicalizeDocsArchiveBuckets, enforceCanonicalAgentLayout, migrateLegacyStructure, migratePlanLinksIntoTickets } from "../cli-init-commands.mjs";
 
 test("init migration moves legacy reports and prunes empty legacy ticket dirs", () => {
   const cwd = mkdtempSync(join(tmpdir(), "deuk-init-migrate-"));
@@ -204,6 +204,68 @@ test("docs archive cleanup updates ticket planLink references", () => {
     assert.ok(existsSync(join(cwd, newPlanLink)), "closed plan should move to archive");
     assert.match(ticketBody, new RegExp(newPlanLink.replace(/[.*+?^${}()|[\]\\]/g, "\\$&")));
     assert.ok(!ticketBody.includes(oldPlanLink), "ticket should not keep stale planLink");
+  } finally {
+    rmSync(cwd, { recursive: true, force: true });
+  }
+});
+
+test("init migration consolidates planLink into main ticket compact plan", () => {
+  const cwd = mkdtempSync(join(tmpdir(), "deuk-init-planlink-consolidate-"));
+  try {
+    const ticketDir = join(cwd, ".deuk-agent", "tickets", "sub");
+    const planDir = join(cwd, ".deuk-agent", "docs", "plan");
+    mkdirSync(ticketDir, { recursive: true });
+    mkdirSync(planDir, { recursive: true });
+
+    const ticketPath = join(ticketDir, "205-token-host.md");
+    const planPath = join(planDir, "205-token-host-plan.md");
+    writeFileSync(ticketPath, [
+      "---",
+      "id: 205-token-host",
+      "title: token host",
+      "phase: 1",
+      "status: open",
+      "summary: reduce duplicate token output",
+      "planLink: .deuk-agent/docs/plan/205-token-host-plan.md",
+      "---",
+      "",
+      "# token host",
+      "",
+      "## Tasks",
+      "",
+      "- [ ] Execute"
+    ].join("\n"), "utf8");
+    writeFileSync(planPath, [
+      "---",
+      "summary: plan summary",
+      "status: ready",
+      "priority: P2",
+      "tags:",
+      "  - plan",
+      "---",
+      "",
+      "## Problem Analysis",
+      "Screen output and planLink duplicate stable planning facts.",
+      "",
+      "## Execution Strategy",
+      "Keep the main ticket as the planning SSoT.",
+      "",
+      "## Verification Design",
+      "Run init migration tests."
+    ].join("\n"), "utf8");
+
+    const migrated = migratePlanLinksIntoTickets(cwd, false);
+    assert.strictEqual(migrated, 1);
+
+    const ticketBody = readFileSync(ticketPath, "utf8");
+    assert.doesNotMatch(ticketBody, /planLink:/);
+    assert.match(ticketBody, /## Compact Plan/);
+    assert.match(ticketBody, /Screen output and planLink duplicate stable planning facts/);
+    assert.match(ticketBody, /Keep the main ticket as the planning SSoT/);
+
+    const archivedPlan = join(cwd, ".deuk-agent", "docs", "archive", "planlink-migrated", "205-token-host-plan.md");
+    assert.ok(existsSync(archivedPlan), "linked plan should move to docs archive");
+    assert.ok(!existsSync(planPath), "original planLink file should be removed from active docs/plan");
   } finally {
     rmSync(cwd, { recursive: true, force: true });
   }

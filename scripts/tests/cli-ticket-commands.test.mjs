@@ -1230,7 +1230,7 @@ test("runTicketCreate rolls back when strict create rejects placeholder summary"
   }
 });
 
-test("runTicketCreate strict mode rejects scaffold-only plan drafts", async () => {
+test("runTicketCreate strict mode rejects scaffold-only compact plan drafts", async () => {
   const { cwd, ticketDir } = makeTemplateWorkspace();
   const srcDir = join(ticketDir, "sub");
   mkdirSync(srcDir, { recursive: true });
@@ -1253,7 +1253,7 @@ test("runTicketCreate strict mode rejects scaffold-only plan drafts", async () =
       }),
       err => {
         assert.match(err.message, /strict mode rejected placeholder\/incomplete phase1 state/);
-        assert.match(err.message, /planLink_placeholder_or_incomplete/);
+        assert.match(err.message, /compact_plan_placeholder_or_incomplete/);
         return true;
       }
     );
@@ -1287,7 +1287,6 @@ test("runTicketStatus compact mode emits one-line phase summary", async () => {
     "phase: 1",
     "status: open",
     "summary: compact status test",
-    "planLink: .deuk-agent/docs/plan/001-compact-status-host-plan.md",
     "---",
     "",
     "# compact status host",
@@ -1299,6 +1298,11 @@ test("runTicketStatus compact mode emits one-line phase summary", async () => {
     "- output",
     "### [PATCH PLAN]",
     "- plan",
+    "## Compact Plan",
+    "- **Problem:** compact status needs one-line output",
+    "- **Approach:** keep status output terse",
+    "- **Verification:** run compact status command",
+    "- **Linked Issues:** none",
     ""
   ].join("\n"), "utf8");
   writeFileSync(join(cwd, ".deuk-agent", "docs", "plan", "001-compact-status-host-plan.md"), [
@@ -1612,7 +1616,7 @@ test("runTicketCreate repairs closed index entry when ticket file is already arc
   }
 });
 
-test("runTicketCreate generates non-duplicative ticket and planLink drafts", async () => {
+test("runTicketCreate generates main-ticket compact plan by default", async () => {
   const cwd = mkdtempSync(join(tmpdir(), "deuk-ticket-plan-draft-"));
   const summary = "unique duplicated summary phrase must stay ticket-owned";
   const originalLog = console.log;
@@ -1636,21 +1640,18 @@ test("runTicketCreate generates non-duplicative ticket and planLink drafts", asy
 
     const ticketText = readFileSync(ticketFile, "utf8");
     const planLink = ticketText.match(/planLink:\s*(.+)/)?.[1]?.trim();
-    assert.ok(planLink, "ticket should record planLink");
-    assert.match(ticketText, /PlanLink:/);
+    assert.ok(!planLink, "ticket should not record planLink by default");
+    assert.doesNotMatch(ticketText, /PlanLink:/);
     assert.doesNotMatch(ticketText, /Read relevant architecture and target module files/);
+    assert.match(ticketText, /## Compact Plan/);
+    assert.match(ticketText, /Linked Issues/);
+    assert.match(ticketText, new RegExp(summary));
 
-    const planText = readFileSync(join(cwd, planLink), "utf8");
-    assert.doesNotMatch(planText, new RegExp(summary));
-    assert.doesNotMatch(planText, /## Goal/);
-    assert.doesNotMatch(planText, /\[[ xX]\]/);
-    assert.match(planText, /## Ticket Contract Pointer/);
-    assert.match(planText, /## Problem Analysis/);
-    assert.match(planText, /## Source Observations/);
-    assert.match(planText, /## Cause Hypotheses/);
-    assert.match(planText, /## Decision Rationale/);
-    assert.match(planText, /## Execution Strategy/);
-    assert.match(planText, /## Verification Design/);
+    const planDir = join(cwd, ".deuk-agent", "docs", "plan");
+    const planFiles = existsSync(planDir)
+      ? readdirSync(planDir).filter(name => name.endsWith(".md"))
+      : [];
+    assert.strictEqual(planFiles.length, 0);
   } finally {
     console.log = originalLog;
     console.warn = originalWarn;

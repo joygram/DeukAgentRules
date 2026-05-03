@@ -72,6 +72,19 @@ async function main() {
     return;
   }
 
+  if (sub === "rules") {
+    const action = rest[0];
+    const opts = parseArgs(rest.slice(1));
+    if (action === "audit") {
+      const { runRulesAudit } = await import("./lint-rules.mjs");
+      runRulesAudit(opts);
+      return;
+    }
+    console.error("Unknown rules action: " + action);
+    printHelp();
+    return;
+  }
+
   if (sub === "init" || sub === "merge") {
     const opts = parseArgs(rest);
     if (opts.help) {
@@ -136,6 +149,7 @@ Usage:
   npx deuk-agent-rule init   [options]
   npx deuk-agent-rule merge  [options]
   npx deuk-agent-rule lint:md [--cwd <path>] [files...]
+  npx deuk-agent-rule rules audit [--compact|--json]
   npx deuk-agent-rule ticket <create|list|status|use|close|archive|reports|migrate|upgrade|meta|connect|move> [options]
   npx deuk-agent-rule telemetry <log|sync|summary|migrate> [options]
 
@@ -163,7 +177,8 @@ Ticket Options:
   --evidence <text>     Provide Phase 0 RAG evidence summary
   --skip-phase0         Bypass Phase 0 RAG validation
   --from-plan <path>    Create ticket from an existing plan markdown file
-  --require-filled      Enforce non-placeholder APC and substantive planLink content before create succeeds
+  --with-plan           Create an optional external planLink file (default: main ticket only)
+  --require-filled      Enforce non-placeholder APC and compact plan content before create succeeds
   --allow-placeholder   Opt out of strict create guard (legacy behavior)
   --compact             Prefer one-line ticket outputs in automation flows
   --status-detail       Include detailed reasons in ticket status output

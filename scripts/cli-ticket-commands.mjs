@@ -99,11 +99,11 @@ function buildApcDraft(summary) {
     boundaryRule: "- Rule citation: PROJECT_RULE.md + core-rules/AGENTS.md",
     contractInput: `- Input: existing code/context required to implement \"${s}\"`,
     contractOutput: `- Output: minimal implementation and tests that satisfy \"${s}\"`,
-    contractSideEffects: "- Side effects: ticket + plan docs updates, scoped code changes only",
+    contractSideEffects: "- Side effects: ticket updates, scoped code changes only",
     patchPlan: [
-      "- Problem analysis, cause hypotheses, rationale, execution strategy, and verification design live in planLink.",
-      "- Ticket records only the allowed patch boundary and contract.",
-      "- Do not duplicate planLink content here; reference it when detail is needed."
+      "- Compact planning lives in this ticket.",
+      "- Use CLI-linked subissues for related work instead of expanding this ticket.",
+      "- Do not duplicate screen progress here."
     ].join("\n")
   };
 }
@@ -232,8 +232,7 @@ function getPhase1IncompleteReasons(cwd, absPath) {
 
   const reasons = [];
   if (!meta.summary || hasPlaceholderTokens(meta.summary)) reasons.push("summary_missing_or_placeholder");
-  if (!meta.planLink) reasons.push("planLink_missing");
-  else {
+  if (meta.planLink) {
     const planAbs = resolve(cwd, meta.planLink);
     if (!existsSync(planAbs)) reasons.push("planLink_file_missing");
     else {
@@ -247,6 +246,9 @@ function getPhase1IncompleteReasons(cwd, absPath) {
         reasons.push("planLink_unreadable");
       }
     }
+  }
+  if (!/## Compact Plan/i.test(content) || !hasSubstantivePlanContent(content.split(/## Compact Plan/i)[1] || "")) {
+    reasons.push("compact_plan_placeholder_or_incomplete");
   }
 
   reasons.push(...evaluateApcCompleteness(content));
@@ -724,7 +726,7 @@ export async function runTicketCreate(opts) {
         : [],
       createdAt: new Date().toISOString().replace('T', ' ').split('.')[0],
       prevTicket: prevTicketEntry ? prevTicketEntry.id : undefined,
-      planLink: `${PLAN_LINKS_DIR}/${ticketId}-plan.md`,
+      planLink: opts.withPlan ? `${PLAN_LINKS_DIR}/${ticketId}-plan.md` : undefined,
     };
 
     const meta = Object.fromEntries(Object.entries(rawMeta).filter(([k, v]) => {
@@ -740,8 +742,8 @@ export async function runTicketCreate(opts) {
       finalContent = ejs.render(tplText, { meta, frontmatter, apcDraft });
     }
 
-    const planAbs = ensurePlanDraftFile(opts.cwd, meta.planLink, summary, opts);
-    const lifecycleTargets = [abs, planAbs];
+    const planAbs = meta.planLink ? ensurePlanDraftFile(opts.cwd, meta.planLink, summary, opts) : null;
+    const lifecycleTargets = [abs, planAbs].filter(Boolean);
     let rollbackIndexJson = indexJson;
 
     if (!opts.dryRun) writeFileSync(abs, finalContent, "utf8");

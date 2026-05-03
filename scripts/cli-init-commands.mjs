@@ -729,6 +729,106 @@ function rewritePlanLinkReferences(cwd, sourceAbs, targetAbs, dryRun) {
   }
 }
 
+function extractMarkdownSection(content, heading) {
+  const escaped = heading.replace(/[.*+?^${}()|[\]\\]/g, "\\$&");
+  const match = String(content || "").match(new RegExp(`^## ${escaped}\\s*\\n([\\s\\S]*?)(?=^##\\s+|$)`, "im"));
+  return match?.[1]?.trim() || "";
+}
+
+function compactPlanLine(text, fallback) {
+  const cleaned = String(text || "")
+    .replace(/^[-*]\s+/gm, "")
+    .replace(/^#+\s+/gm, "")
+    .replace(/\s+/g, " ")
+    .trim();
+  if (!cleaned) return fallback;
+  return cleaned.length > 300 ? `${cleaned.slice(0, 297)}...` : cleaned;
+}
+
+function buildCompactPlanFromLinkedPlan(ticketMeta, planRaw) {
+  let parsed;
+  try {
+    parsed = parseFrontMatter(planRaw);
+  } catch {
+    parsed = { meta: {}, content: planRaw };
+  }
+
+  const content = parsed.content || "";
+  const problem = compactPlanLine(
+    extractMarkdownSection(content, "Problem Analysis") || parsed.meta.summary || ticketMeta.summary,
+    "migrated from linked plan"
+  );
+  const approach = compactPlanLine(
+    extractMarkdownSection(content, "Execution Strategy") || extractMarkdownSection(content, "Decision Rationale"),
+    "preserve existing ticket scope"
+  );
+  const verification = compactPlanLine(
+    extractMarkdownSection(content, "Verification Design"),
+    "run relevant ticket checks"
+  );
+
+  return [
+    "## Compact Plan",
+    "",
+    `- **Problem:** ${problem}`,
+    `- **Approach:** ${approach}`,
+    `- **Verification:** ${verification}`,
+    "- **Linked Issues:** none",
+    ""
+  ].join("\n");
+}
+
+function insertCompactPlan(content, compactPlan) {
+  if (/^## Compact Plan\s*$/im.test(content)) return content;
+  if (/^## Tasks\s*$/im.test(content)) {
+    return content.replace(/^## Tasks\s*$/im, `${compactPlan}\n## Tasks`);
+  }
+  return `${String(content || "").trimEnd()}\n\n${compactPlan}`;
+}
+
+export function migratePlanLinksIntoTickets(cwd, dryRun) {
+  const ticketDir = join(cwd, AGENT_ROOT_DIR, TICKET_SUBDIR);
+  if (!existsSync(ticketDir)) return 0;
+
+  let migrated = 0;
+  for (const ticketAbs of collectMarkdownFilesRecursively(ticketDir)) {
+    const raw = safeReadText(ticketAbs);
+    if (!raw.includes("planLink:")) continue;
+
+    let parsed;
+    try {
+      parsed = parseFrontMatter(raw);
+    } catch {
+      continue;
+    }
+
+    const planLink = parsed.meta.planLink;
+    if (!planLink) continue;
+
+    const planAbs = join(cwd, planLink);
+    const nextMeta = { ...parsed.meta };
+    delete nextMeta.planLink;
+
+    let nextContent = parsed.content;
+    if (existsSync(planAbs)) {
+      nextContent = insertCompactPlan(nextContent, buildCompactPlanFromLinkedPlan(parsed.meta, safeReadText(planAbs)));
+    }
+
+    const nextRaw = stringifyFrontMatter(nextMeta, nextContent);
+    if (!dryRun && nextRaw !== raw) writeFileSync(ticketAbs, nextRaw, "utf8");
+
+    if (existsSync(planAbs)) {
+      const archiveAbs = join(cwd, AGENT_ROOT_DIR, "docs", "archive", "planlink-migrated", basename(planAbs));
+      moveOrMergeFile(planAbs, archiveAbs, cwd, dryRun, "planLink consolidation");
+    }
+
+    migrated++;
+    console.log(`[MIGRATE] Consolidated planLink into ticket: ${toRepoRelativePath(cwd, ticketAbs)}`);
+  }
+
+  return migrated;
+}
+
 export function canonicalizeDocsArchiveBuckets(cwd, dryRun) {
   const docsRoot = join(cwd, AGENT_ROOT_DIR, "docs");
   const archiveDir = join(docsRoot, "archive");
@@ -1143,6 +1243,7 @@ async function initSingleWorkspace(subCwd, opts, bundleRoot, selectedTools) {
   canonicalizeTicketArchivePath(subCwd, opts.dryRun);
   canonicalizeDocsArchiveBuckets(subCwd, opts.dryRun);
   enforceCanonicalAgentLayout(subCwd, opts.dryRun);
+  migratePlanLinksIntoTickets(subCwd, opts.dryRun);
 
   // 3. Spoke Pointers (e.g. .cursor/rules/deuk-agent.mdc)
   removeDuplicateRuleCopies(subCwd, opts.dryRun);

@@ -18,6 +18,7 @@ export function parseTicketArgs(argv) {
         out.fromPlan = true;
       }
     }
+    else if (a === "--with-plan" || a === "--plan-link") out.withPlan = true;
     else if (a === "--ref") out.ref = argv[++i];
     else if (a === "--limit") out.limit = Number(argv[++i]);
     else if (a === "--submodule") out.submodule = argv[++i];
@@ -74,6 +75,7 @@ export function parseArgs(argv) {
     else if (a === "--sync") out.sync = true;
     else if (a === "--no-sync") out.sync = false;
     else if (a === "--docs-language") out.docsLanguage = argv[++i];
+    else if (a === "--compact") out.compact = true;
     else if (a === "-h" || a === "--help") out.help = true;
   }
   return out;

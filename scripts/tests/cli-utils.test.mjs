@@ -11,7 +11,7 @@ import {
   normalizeDocsLanguage, inferDocsLanguageFromText, resolveDocsLanguage, AGENT_ROOT_DIR, TICKET_SUBDIR, isMcpActive
 } from "../cli-utils.mjs";
 import { generateTicketId, computeNextTicketNumber } from "../cli-ticket-index.mjs";
-import { parseTelemetryArgs, parseTicketArgs } from "../cli-args.mjs";
+import { parseArgs, parseTelemetryArgs, parseTicketArgs } from "../cli-args.mjs";
 
 test("cli-utils.mjs - normalizeWorkflowMode", (t) => {
   assert.strictEqual(normalizeWorkflowMode(undefined), WORKFLOW_MODE_PLAN, "default is plan");
@@ -285,4 +285,10 @@ test("cli-args.mjs - parseTicketArgs supports compact ticket output", () => {
 test("cli-args.mjs - parseTicketArgs supports bare --from-plan flag", () => {
   const opts = parseTicketArgs(["--topic", "demo", "--summary", "x", "--from-plan"]);
   assert.strictEqual(opts.fromPlan, true);
+});
+
+test("cli-args.mjs - parseArgs supports compact rule audit output", () => {
+  const opts = parseArgs(["--cwd", "/tmp/demo", "--compact"]);
+  assert.strictEqual(opts.cwd, "/tmp/demo");
+  assert.strictEqual(opts.compact, true);
 });

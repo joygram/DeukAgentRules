@@ -4,15 +4,14 @@
 # <%= meta.title %>
 
 > Restrict changes to **Target Module**. Read **Context Files** before code generation.
-> Keep execution evidence and detailed steps in `planLink`; do not duplicate them here.
+> Keep planning compact in this ticket. Do not mirror screen progress here.
 
 ## Scope & Constraints
 
 - **Target:** module/submodule paths directly required by `<%= meta.title %>`
 - **Context Files:** `PROJECT_RULE.md`, relevant architecture docs, and target source files
-- **PlanLink:** `<%= meta.planLink %>` owns evidence, decisions, detailed steps, and verification notes.
 - **Constraints:** No generated output edits, no unrelated refactors, no broad regeneration without approval.
-- **Lifecycle Guard:** ticket lifecycle commands auto-run markdown lint on touched files and fail fast on broken markdown or missing linked artifacts.
+- **Lifecycle Guard:** ticket lifecycle commands auto-run markdown lint on touched files and fail fast on broken markdown.
 
 ## Agent Permission Contract (APC)
 
@@ -27,17 +26,25 @@
 <%- apcDraft?.contractSideEffects || "- Side effects: scoped changes and docs updates" %>
 
 ### [PATCH PLAN]
-<%- apcDraft?.patchPlan || "- Execution steps live in planLink; ticket records only the permitted patch boundary." %>
+<%- apcDraft?.patchPlan || "- Compact planning lives in this ticket; create/link subissues for related work instead of expanding scope." %>
+
+## Compact Plan
+
+- **Problem:** [Fill only the stable problem statement.]
+- **Approach:** [Fill the selected strategy. Keep alternatives out unless they affect risk.]
+- **Verification:** [Fill the smallest relevant commands/checks.]
+- **Linked Issues:** Use CLI relationship commands for related issues; do not paste child-ticket bodies here.
 
 ## Tasks
 
-- [ ] Complete non-duplicative `planLink` evidence/steps/verification.
+- [ ] Complete compact plan and APC.
 - [ ] Execute changes inside APC boundary.
-- [ ] Record verification outcome in the linked report or planLink.
+- [ ] Record verification outcome.
 
 ## Done When
 
 - APC is complete and non-placeholder.
+- Compact plan is complete and non-placeholder.
 - Target changes are implemented inside the declared boundary.
 - Markdown lint/tests relevant to this ticket pass or failures are recorded.
-- Lifecycle commands can persist the ticket and planLink without manual lint intervention.
+- Lifecycle commands can persist the ticket without manual lint intervention.

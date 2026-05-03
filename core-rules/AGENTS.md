@@ -1,6 +1,6 @@
 ---
-version: 25
-changelog: "v25: Add MCP knowledge quality gate and require reusable local findings to be promoted into DeukAgentContext."
+version: 27
+changelog: "v27: Enforce silent-by-default operation and add CLI-auditable rule violation returns."
 ---
 
 # Agent Rules
@@ -14,10 +14,17 @@ changelog: "v25: Add MCP knowledge quality gate and require reusable local findi
 
 ## 0. Low-Token Operating Mode
 
-- Keep commentary short: 1-2 sentences, focused on the immediate next action and any newly discovered constraint.
+- Silent-by-default is mandatory. Do not print progress while reading, searching, patching, moving phases, or verifying.
+- Screen output is allowed only for final answers, user decisions, blockers, destructive-risk confirmation, or command results the user explicitly asked to see.
+- Do not print status beacons such as `phase=<n> action=<verb> reason=<short>` during normal work.
+- If a rule requires a lifecycle record, write the minimum durable record to the ticket/CLI state; do not also narrate it on screen.
 - Do not restate already-read files, ticket bodies, or plan prose unless a factual correction is needed.
-- Update ticket and plan prose only at phase transitions, verification outcomes, or scope corrections.
-- Prefer a single-ticket fast path when the ticket boundary is one module, `planLink` and APC are complete, and the user explicitly asked to proceed.
+- Do not duplicate plan/ticket content in commentary. Say the artifact path only if the user needs to open it.
+- Update ticket and plan prose only at phase transitions, verification outcomes, or scope corrections; do not mirror those updates in screen output.
+- Prefer targeted reads: use `rg` to locate symbols first, then read the smallest function or section needed. Avoid broad file reads unless file structure is unknown.
+- Treat tool output as input-token cost. Large command output is not free just because the assistant did not write it.
+- GPT-5.5 cost heuristic: output tokens are about 6x standard input token cost. Avoid any non-essential assistant output, because it also becomes future input context.
+- Prefer a single-ticket fast path when the ticket boundary is one module, ticket planning evidence and APC are complete, and the user explicitly asked to proceed.
 - If the work would touch multiple modules or tickets, split early instead of narrating a combined flow.
 - When a shorter path is safe, choose the shortest valid path that still preserves boot, phase, lint, verify, and close requirements.
 
@@ -36,7 +43,7 @@ changelog: "v25: Add MCP knowledge quality gate and require reusable local findi
 | Resuming previous work | Ticket ID already known. No search. |
 | New work | Create ticket immediately. No search. |
 | Truly unknown | `npx deuk-agent-rule ticket next --path-only` → `view_file`. Done. |
-| `ticket next` finds no active/open ticket | Read-only fallback: inspect recent git history (`git log --oneline -n 20`, then targeted `git show --stat`/docs as needed) and identify likely follow-up work. Create a new ticket only after that analysis, using the git-history evidence in `planLink`. |
+| `ticket next` finds no active/open ticket | Read-only fallback: inspect recent git history (`git log --oneline -n 20`, then targeted `git show --stat`/docs as needed) and identify likely follow-up work. Create a new ticket only after that analysis, using the git-history evidence in the ticket plan section. |
 
 **FORBIDDEN**: Multiple CLI calls to discover a ticket. `ticket list` during boot. `find`/`ls`/`grep` for ticket files.
 
@@ -46,7 +53,7 @@ changelog: "v25: Add MCP knowledge quality gate and require reusable local findi
 |---|-------|-----------------|
 | G1 | No active ticket + about to WRITE? | **HARD BLOCK.** Create ticket first. Read-only tools are allowed. |
 | G1.1 | About to edit product/source/config files while active ticket phase is < 2? | **HARD BLOCK.** Complete Phase 1, then move to Phase 2. Explicit user execution intent counts as approval unless G6-G8/F3/F5 applies. |
-| G1.2 | About to execute code writes but `planLink` is missing, absent, or placeholder-only? | **HARD BLOCK.** Fill ticket + plan, then lint both before execute writes. |
+| G1.2 | About to execute code writes but ticket planning evidence or APC is missing/placeholder-only? | **HARD BLOCK.** Fill the main ticket plan/APC, then lint before execute writes. |
 | G2 | `set_workflow_context` not called? | Call now. |
 | G3 | Target file has `@generated` / `DO NOT EDIT` / is in `dist/ Generated/ gen/ deukpack_out/`? | **DO NOT EDIT.** Modify the source. If unsure, check PROJECT_RULE.md mapping. 3 failed lookups → HALT. Applies to shell mutation too. |
 | G4 | 3+ external files modified outside ticket's Target Module? | **STOP.** Create new ticket. |
@@ -57,23 +64,25 @@ changelog: "v25: Add MCP knowledge quality gate and require reusable local findi
 
 WRITE tools requiring active ticket: `write_to_file`, `replace_file_content`, `multi_replace_file_content`, `run_command`.
 
-> **`run_command` File-Mutation Clause**: shell mutations (`sed`, `awk`, `cp`, `mv`, `rm`, `echo >>`, `patch`, `tee`, `install`) obey all guards. Read-only commands (`cat`, `ls`, `grep`, `find`, `head`, `diff`) are exempt.
+> **`run_command` File-Mutation Clause**: shell mutations (`sed`, `awk`, `cp`, `mv`, `rm`, `echo >>`, `patch`, `tee`, `install`) obey all guards. Do not use shell text mutation when `apply_patch` is available.
+> **Search Clause**: use `rg`/`rg --files` first for repository search. Do not use `grep`/`find` unless `rg` is unavailable; if unavailable and installation is possible, ask the user to install `ripgrep` or install it through the approved package path.
 
 ## 3. Ticket Lifecycle (never skip phases)
 
 | Phase | What to do | STOP condition |
 |-------|-----------|----------------|
 | 0: Research | Skip if context sufficient. IF search needed: MAX 2 MCP calls, prefer local reads, specific terms only. Treat placeholder/duplicate/stale-low-signal MCP results as a miss. | 2 searches or low-quality hits → stop searching and inspect local files. |
-| 1: Ticket + Plan | Create or select the ticket → read arch rules → fill ticket-owned scope/APC in the user's prompt language → create/update distinct prose `planLink` problem analysis, hypotheses, rationale, strategy, and verification design with frontmatter, also in the prompt language. Ticket/plan docs are planning records, not code writes. | If the user asked only to plan, stop. If execution intent is explicit and Phase 1 is complete/linted, move to Phase 2. |
+| 1: Ticket + Plan | Create or select the ticket → read arch rules → fill ticket-owned scope/APC and compact plan sections in the user's prompt language. Use an external `planLink` only for large/multi-module design that cannot fit compactly in the main ticket. | If the user asked only to plan, stop. If execution intent is explicit and Phase 1 is complete/linted, move to Phase 2. |
 | 2: Execute | Implement per approved or explicit user-requested plan. Update checkboxes `[x]`. | — |
 | 3: Verify | Run build/tests. Record issues. | — |
 | 4: Close | Close ticket and file follow-ups if needed. Do not immediately archive a just-closed ticket; leave archiving to lazy cleanup or explicit archive work. | **NEVER skip close.** |
 
 Phase 1 document boundary rule:
-- Once a ticket's `planLink` and APC are complete and linted, do not keep rewriting ticket/plan prose to mirror phase progress or lifecycle state.
+- The main ticket is the default SSoT for scope, APC, compact planning, linked issues, and verification outcomes.
+- Once a ticket's compact plan and APC are complete and linted, do not keep rewriting ticket prose to mirror phase progress or lifecycle state.
 - Phase transitions, archive, and close actions are lifecycle events, not permission to reopen document boundaries.
-- If the work scope changes materially after Phase 1, create a new ticket instead of mutating the old ticket/plan into a new contract.
-- Corrections to factual mistakes in `planLink` are allowed only when they preserve the original scope; new requirements belong in a new ticket.
+- If the work scope changes materially after Phase 1, create/link a child ticket instead of mutating the old ticket into a new contract.
+- Corrections to factual mistakes in the ticket plan are allowed only when they preserve the original scope; new requirements belong in a linked ticket.
 
 Plan-only mode: Do Phases 0–1 only. Defer code/config writes as text in plan. On transition to Execute → run deferred commands → Phase 2.
 
@@ -93,7 +102,7 @@ Treat it as online-only advisory memory; do not rely on offline mirrors or cache
 - Search narrowly. One query should name the project plus the concrete symbol, file, command, or failure mode.
 - Stop after 2 MCP calls for the same question. Do not broaden repeatedly.
 - Treat these as `[RAG-MISS]`: placeholder summaries, duplicated ticket/report chunks, stale archive-only hits, unrelated projects, or results that only say to `view_file` without a useful summary.
-- After a miss or weak hit, switch to local code reads (`rg`, `sed`, tests, git history) and use the code as the source of truth.
+- After a miss or weak hit, switch to local code reads (`rg`, focused file views, tests, git history) and use the code as the source of truth.
 - If local analysis produces reusable knowledge, call `add_knowledge` once with a concise fact that includes project, source path, current code status, and the condition under which it applies.
 - If an existing indexed doc is wrong or stale, call `refresh_document` instead of adding a competing fragment.
 - Do not use MCP for ticket navigation. Ticket lookup is CLI state, not semantic search.
@@ -109,10 +118,10 @@ Treat it as online-only advisory memory; do not rely on offline mirrors or cache
 | H5 | 2+ different modules modified | Stop → split into separate tickets. |
 | F1 | Generated file edited directly (DC-CODEGEN) | **Major violation.** Edit source, then build to propagate. Never edit both. Emergency: `ticket hotfix`. |
 | F1.1 | Generated/report artifacts would change only because a generator ran | Do not commit or leave them unless user requested regeneration. Use `/tmp/` for verification. |
-| F2 | Delete without proof of non-use | Run `git blame`/`grep`/tests first. "Seems unnecessary" ≠ valid. |
+| F2 | Delete without proof of non-use | Run `git blame`/`rg`/tests first. "Seems unnecessary" ≠ valid. |
 | F3 | Infra code (bootstrap/transport/DB/routing) | Separate ticket + approval required. |
 | F4 | 10+ lines deleted | Document each block's purpose in commit. |
-| F5 | Shared interface changed | `grep` ALL references → update ALL in same ticket. Partial = **major violation**. |
+| F5 | Shared interface changed | `rg` ALL references → update ALL in same ticket. Partial = **major violation**. |
 | F6 | No tests for the feature | Do not refactor it. |
 
 ## 5. Emergency & Urgency Protocols
@@ -134,21 +143,18 @@ Treat it as online-only advisory memory; do not rely on offline mirrors or cache
 - ALL artifacts MUST be under `.deuk-agent/docs/` for RAG indexing.
 - `docs` is for human-readable source artifacts: plans/reports (all in `docs/plan`) and archived originals (`docs/archive`).
 - `knowledge` is only for distilled machine-readable retrieval JSON generated from archived tickets/plans. Do not place arbitrary JSON, notes, plans, or reports there.
-- ALL plan/report files MUST have frontmatter (`summary`, `status`, `priority`, `tags`). Run `enrich_frontmatter` after creation.
+- ALL optional plan/report files MUST have frontmatter (`summary`, `status`, `priority`, `tags`). Run `enrich_frontmatter` after creation.
 - Ticket lifecycle commands (`ticket create`, `move`, `close`, `archive`) must auto-run `lint:md` against touched markdown artifacts before they exit successfully. If lint fails, roll back the lifecycle mutation and keep ticket/index state consistent.
 - Manual `npx deuk-agent-rule lint:md` remains an audit command, not the primary enforcement path.
-- Phase 1 is **ticket creation plus indexed planning evidence**. Do not create duplicate tickets just to restate the same plan; update the existing ticket/`planLink`.
-- Ticket and `planLink` MUST NOT duplicate content:
-  - Ticket owns identity, scope, constraints, APC boundary/contract, and lifecycle checklist.
-  - `planLink` owns the agent's prose problem analysis, source observations, cause hypotheses, decision rationale, execution strategy, and verification design.
-  - `planLink` MUST NOT contain progress checkboxes (`[ ]` or `[x]`). Progress checkboxes belong only in the ticket.
-  - If a section would repeat the other artifact, replace it with a pointer instead of copying text.
-- Ticket in Phase 1 is **not complete** unless its `planLink` file exists and contains substantive, non-placeholder analysis sections.
-- `ticket create` seeds a draft plan, but draft scaffolds are not complete. Use `npx deuk-agent-rule ticket create --require-filled` when you need creation to fail unless both ticket APC and `planLink` content are already substantive.
-- Ticket/plan document edits after Phase 1 should be limited to factual corrections, verification outcomes, or lifecycle-finalization notes; they must not be used as a running worklog.
+- Phase 1 is **ticket creation plus indexed planning evidence in the main ticket**. Do not create duplicate tickets just to restate the same plan; update the existing ticket's compact plan.
+- Optional `planLink` is opt-in only. Use it for large design records, not routine work.
+- Main ticket MUST NOT duplicate screen progress. It owns identity, scope, constraints, APC, compact plan, linked issues, lifecycle checklist, and verification outcome.
+- Ticket in Phase 1 is **not complete** unless its APC and compact plan sections contain substantive, non-placeholder content.
+- `ticket create` seeds a compact draft plan, but draft scaffolds are not complete. Use `npx deuk-agent-rule ticket create --require-filled` when you need creation to fail unless ticket APC and compact plan content are already substantive.
+- Ticket document edits after Phase 1 should be limited to factual corrections, linked issue records, verification outcomes, or lifecycle-finalization notes; they must not be used as a running worklog.
 - Platform native paths (`brain/`, `.cursor/plans/`) are NOT indexed → copy to `.deuk-agent/docs/`.
 - Platform features (planning, artifacts, KI) co-exist. NEVER disable them. Always call `set_workflow_context`.
-- Run `npx deuk-agent-rule lint:md` after markdown edits. For Phase 1 completion, lint **both** ticket and `planLink` in one run.
+- Run `npx deuk-agent-rule lint:md` after markdown edits. For Phase 1 completion, lint the ticket and any optional linked plan/report in one run.
 
 ## 7. CLI Reference
 
@@ -163,6 +169,13 @@ Treat it as online-only advisory memory; do not rely on offline mirrors or cache
 | List | `npx deuk-agent-rule ticket list --non-interactive --json` | **0 during boot** |
 | Telemetry | `npx deuk-agent-rule telemetry log --tokens <N> --model <M> --ticket <ID>` | 1 per phase |
 | Tele sync | `npx deuk-agent-rule telemetry sync` | periodic |
+| Rule audit | `npx deuk-agent-rule rules audit --compact` | before release / init sync |
 
 NEVER manually edit `INDEX.json` or ticket files via `sed`/`awk`/`echo`.
 `ticket list` is for user-requested audits only, NOT for agent boot/discovery.
+
+## 8. Auditable Rule Returns
+
+- Rule violations must be machine-returnable. Prefer CLI guards that exit non-zero with stable codes over prose-only reminders.
+- `rules audit` MUST fail if core rules reintroduce progress beacons, default `planLink` requirements, non-`rg` search defaults, or verbose duplicate-output policies.
+- In compact mode, rule audits print only `rules:audit ok` or `rules:audit failed <count>`.

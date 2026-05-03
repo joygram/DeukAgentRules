@@ -1,7 +1,7 @@
 import { existsSync, mkdirSync, readFileSync, writeFileSync, unlinkSync, copyFileSync, statSync } from "fs";
 import { basename, dirname, join, relative } from "path";
-import { 
-  toRepoRelativePath, AGENT_ROOT_DIR, TICKET_SUBDIR, TICKET_LIST_FILENAME, TICKET_LIST_TEMPLATE_FILENAME, PLAN_LINKS_DIR,
+import {
+  toRepoRelativePath, AGENT_ROOT_DIR, TICKET_SUBDIR, TICKET_LIST_FILENAME, TICKET_LIST_TEMPLATE_FILENAME,
   parseFrontMatter, stringifyFrontMatter, findFileRecursively, detectConsumerTicketDir
 } from "./cli-utils.mjs";
 import { readTicketIndexJson, writeTicketIndexJson, syncActiveTicketId } from "./cli-ticket-index.mjs";
@@ -108,18 +108,6 @@ export function extractSummary(meta, content) {
   return summary || null;
 }
 
-// ─── PlanLink Injection ─────────────────────────────────────────────────────
-
-/**
- * Ensures planLink exists in frontmatter. Returns true if modified.
- */
-export function ensurePlanLink(meta) {
-  if (meta.planLink) return false;
-  if (!meta.id) return false;
-  meta.planLink = `${PLAN_LINKS_DIR}/${meta.id}-plan.md`;
-  return true;
-}
-
 // ─── CAUTION Block / Target Module Injection ─────────────────────────────────
 
 const CAUTION_BLOCK = `> **[CAUTION FOR AI AGENTS]**
@@ -171,7 +159,6 @@ export function performUpgradeMigration(cwd, opts = {}) {
 
   let upgraded = 0;
   let summaryAdded = 0;
-  let planLinkAdded = 0;
   let cautionAdded = 0;
 
   for (const abs of files) {
@@ -193,13 +180,7 @@ export function performUpgradeMigration(cwd, opts = {}) {
       }
     }
 
-    // 2. PlanLink injection
-    if (ensurePlanLink(meta)) {
-      dirty = true;
-      planLinkAdded++;
-    }
-
-    // 3. CAUTION / Target Module injection
+    // 2. CAUTION / Target Module injection
     const cautionResult = ensureCautionBlock(modifiedContent);
     if (cautionResult !== null) {
       modifiedContent = cautionResult;
@@ -207,7 +188,7 @@ export function performUpgradeMigration(cwd, opts = {}) {
       cautionAdded++;
     }
 
-    // 4. Archive placement fix (existing logic)
+    // 3. Archive placement fix (existing logic)
     if (meta.status === "archived" && !isAlreadyInArchive && !opts.dryRun) {
       const finalAbs = moveFileToArchive(cwd, abs, meta.group || basename(dirname(abs)));
       const migratedBody = stringifyFrontMatter(meta, modifiedContent);
@@ -221,7 +202,6 @@ export function performUpgradeMigration(cwd, opts = {}) {
       if (opts.dryRun) {
         const changes = [];
         if (!parseFrontMatter(body).meta.summary && meta.summary) changes.push("summary");
-        if (!parseFrontMatter(body).meta.planLink && meta.planLink) changes.push("planLink");
         if (cautionResult !== null) changes.push("caution+targetModule");
         console.log(`[DRY-RUN] Would upgrade: ${rel} (+${changes.join(", ")})`);
       } else {
@@ -232,7 +212,7 @@ export function performUpgradeMigration(cwd, opts = {}) {
     }
   }
 
-  console.log(`[UPGRADE] Results: ${upgraded} upgraded, ${summaryAdded} summaries added, ${planLinkAdded} planLinks added, ${cautionAdded} caution blocks added`);
+  console.log(`[UPGRADE] Results: ${upgraded} upgraded, ${summaryAdded} summaries added, ${cautionAdded} caution blocks added`);
 
   if (!opts.dryRun) {
     rebuildTicketIndexFromTopicFilesIfNeeded(cwd, { ...opts, force: true });
