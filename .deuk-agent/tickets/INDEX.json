@@ -1,7 +1,20 @@
 {
   "version": 1,
-  "updatedAt": "2026-05-03T08:35:16.190Z",
+  "updatedAt": "2026-05-03T09:13:26.883Z",
   "entries": [
+    {
+      "id": "221-remove-planlink-residual-fixture-joy-nucb",
+      "title": "remove-planlink-residual-fixtures",
+      "topic": "221-remove-planlink-residual-fixture-joy-nucb",
+      "group": "sub",
+      "fileName": "221-remove-planlink-residual-fixture-joy-nucb.md",
+      "project": "global",
+      "submodule": "",
+      "createdAt": "2026-05-03 09:11:22",
+      "updatedAt": "2026-05-03T09:11:22.540Z",
+      "source": "ticket-sync",
+      "status": "open"
+    },
     {
       "id": "210-apt-guard-node-reset-otp-port-ma-joy-nucb",
       "title": "apt-guard-node-reset-otp-port-macmini",
@@ -16,5 +29,5 @@
       "status": "open"
     }
   ],
-  "activeTicketId": "210-apt-guard-node-reset-otp-port-ma-joy-nucb"
+  "activeTicketId": "221-remove-planlink-residual-fixture-joy-nucb"
 }

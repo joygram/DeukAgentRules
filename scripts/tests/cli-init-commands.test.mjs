@@ -3,7 +3,7 @@ import assert from "node:assert";
 import { existsSync, mkdtempSync, mkdirSync, readFileSync, rmSync, writeFileSync } from "node:fs";
 import { tmpdir } from "node:os";
 import { join } from "node:path";
-import { canonicalizeDocsArchiveBuckets, enforceCanonicalAgentLayout, migrateLegacyStructure, runInit } from "../cli-init-commands.mjs";
+import { canonicalizeDocsArchiveBuckets, enforceCanonicalAgentLayout, generateSpokeContent, migrateLegacyStructure, runInit } from "../cli-init-commands.mjs";
 
 test("init migration moves legacy reports and prunes empty legacy ticket dirs", () => {
   const cwd = mkdtempSync(join(tmpdir(), "deuk-init-migrate-"));
@@ -66,6 +66,16 @@ test("init migration moves legacy reports and prunes empty legacy ticket dirs", 
   } finally {
     rmSync(cwd, { recursive: true, force: true });
   }
+});
+
+test("generated agent spoke forbids progress commentary before final answer", () => {
+  const content = generateSpokeContent({ format: "markdown" }, "/repo/deuk-rules");
+
+  assert.match(content, /internally noting its version number/);
+  assert.doesNotMatch(content, /confirming its version number/);
+  assert.match(content, /remain silent-by-default/);
+  assert.match(content, /Do NOT print progress commentary/);
+  assert.match(content, /Only the single required ticket-start line may appear before the final answer/);
 });
 
 test("init migration removes duplicate scratch reports and moves legacy archive ticket shards", () => {

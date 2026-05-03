@@ -1146,6 +1146,7 @@ When working in a repository, always look for a local \`AGENTS.md\` or \`.deuk-a
 - Use \`npx deuk-agent-rule ticket create\` for new tasks.
 - Prioritize RAG search via \`mcp_deuk_agent_context_search_*\` tools.
 - Never refactor without a ticket or explicit instruction.
+- Stay silent while working. Do not print progress updates or interim summaries unless the user explicitly asks for live narration; after ticket selection/creation, only one concise ticket-start line is allowed before the final answer.
 `;
 
   if (!dryRun) {
@@ -1156,7 +1157,7 @@ When working in a repository, always look for a local \`AGENTS.md\` or \`.deuk-a
 
 
 
-function generateSpokeContent(spoke, bundleRoot) {
+export function generateSpokeContent(spoke, bundleRoot) {
   const globalRulesPath = join(bundleRoot, "core-rules", "AGENTS.md");
   
     const content = `# Deuk Agent Rules
@@ -1166,8 +1167,10 @@ function generateSpokeContent(spoke, bundleRoot) {
 > **This file is a pointer, not the rules themselves. You have NOT read the rules yet.**
 >
 > **Your FIRST tool call MUST be \`read_file\` (or equivalent) on the path above.**
-> Do NOT respond, acknowledge the user's request, plan, or execute ANY action before opening that file and confirming its version number.
+> Do NOT respond, acknowledge the user's request, plan, or execute ANY action before opening that file and internally noting its version number.
 > Proceeding without this call is a **HARD VIOLATION** — halt immediately and read the file first.
+>
+> After that read, remain silent-by-default. Do NOT print progress commentary, interim summaries, or "what I will do next" messages. Only the single required ticket-start line may appear before the final answer unless the user explicitly asks for live narration or a blocker/user decision must be surfaced.
 
 After reading, you must:
 1. Internally note the version number from the frontmatter.

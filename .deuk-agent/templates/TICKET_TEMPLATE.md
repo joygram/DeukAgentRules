@@ -4,7 +4,10 @@
 # <%= meta.title %>
 
 > Restrict changes to **Target Module**. Read **Context Files** before code generation.
-> Keep planning compact in this ticket. Do not mirror screen progress here.
+> Do not narrate progress. If the workflow requires a ticket-start line, that is the only allowed pre-work commentary.
+> Keep planning compact in this ticket. The main ticket owns design and analysis; do not mirror screen progress here.
+> If an optional planLink exists, it is Phase 1 planning-only. Never append execution logs or verification results to it.
+> For issue/regression reports, stop after Phase 1 for user review. Do not execute before post-ticket approval.
 
 ## Scope & Constraints
 
@@ -30,10 +33,10 @@
 
 ## Compact Plan
 
-- **Problem:** [Fill only the stable problem statement.]
-- **Approach:** [Fill the selected strategy. Keep alternatives out unless they affect risk.]
-- **Verification:** [Fill the smallest relevant commands/checks.]
-- **Linked Issues:** Use CLI relationship commands for related issues; do not paste child-ticket bodies here.
+- **Problem:** Record the stable issue once in this main ticket. Do not duplicate design or analysis in follow-up tickets.
+- **Approach:** Capture the selected design and analysis path here, including root cause, constraints, and the implementation direction. Split related follow-up work into sub tickets instead of expanding this record.
+- **Verification:** List the smallest relevant commands or checks and the expected result.
+- **Ticket Numbering:** infer the master/sub ticket from the numbered ticket ID; do not add inline child-ticket links.
 
 ## Tasks
 
