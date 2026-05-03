@@ -13,7 +13,6 @@ tags:
   - tdw
   - phase1
 createdAt: 2026-05-01 13:03:58
-planLink: .deuk-agent/docs/plans/147-phase1-ticket-creation-plan-doc--joy-nucb-plan.md
 ---
 
 

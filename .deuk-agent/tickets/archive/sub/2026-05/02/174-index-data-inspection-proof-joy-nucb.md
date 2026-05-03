@@ -12,7 +12,6 @@ tags:
   - proof
   - report
 createdAt: 2026-05-02 09:24:13
-planLink: .deuk-agent/docs/plans/174-index-data-inspection-proof-joy-nucb-plan.md
 ---
 
 

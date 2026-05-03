@@ -7,7 +7,6 @@ docsLanguage: ko
 parentTicket: 135-deukpack-bmt-missing-tests-joy-nucb
 summary: "DeukPack BMT 누락 복구: Rust 언어 단위 테스트 보강"
 createdAt: 2026-05-01 06:13:25
-planLink: .deuk-agent/docs/plans/141-deukpack-bmt-language-rust-joy-nucb-plan.md
 priority: high
 tags:
   - deukpack

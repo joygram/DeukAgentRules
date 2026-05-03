@@ -3,13 +3,13 @@ createdAt: 2026-04-29 12:02:54
 docsLanguage: ko
 id: 111-fix-arch-guard-exceptions-joy-nucb
 phase: 2
-planLink: .deuk-agent/docs/plans/111-fix-arch-guard-exceptions-joy-nucb-plan.md
 priority: P2
 status: closed
-summary: 'Target: scripts/tests/, PROJECTRULE.md'
+summary: "Target: scripts/tests/, PROJECTRULE.md"
 tags: tickets, architecture, testing
 title: fix-arch-guard-exceptions
 ---
+
 
 # fix-arch-guard-exceptions
 

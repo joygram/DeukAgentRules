@@ -2,13 +2,13 @@
 createdAt: 2026-04-28 20:30:54
 docsLanguage: ko
 id: 105-template-test-joy-nucb
-planLink: .deuk-agent/docs/plans/105-template-test-joy-nucb-plan.md
 priority: P2
 status: closed
 summary: 미작성 티켓 — 실질적 내용 없음. 좀비/placeholder 티켓으로 분류.
 tags: architecture, testing
 title: Template Test
 ---
+
 
 # Template Test
 

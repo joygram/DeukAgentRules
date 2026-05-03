@@ -1,15 +1,16 @@
 ---
 createdAt: 2026-04-22 01:18:48
 id: 046-advanced-condition-eval-joy-nucb
-planLink: .deuk-agent/docs/plans/046-advanced-condition-eval-joy-nucb-plan.md
 priority: P3
 project: DeukAgentRules
 status: closed
-summary: 'Target Submodule: [e.g., DeukUI | DeukPack | DeukNavigation] - [e.g., DeukAgentRules/templates/MODULERULETEMPLATE.md]
-  - [e.g., path/to/your/specific/rules.md]'
+summary: "Target Submodule: [e.g., DeukUI | DeukPack | DeukNavigation] - [e.g.,
+  DeukAgentRules/templates/MODULERULETEMPLATE.md] - [e.g.,
+  path/to/your/specific/rules.md]"
 tags: rag, mcp, tickets, architecture, performance
 title: 046-advanced-condition-eval
 ---
+
 
 # [Execution] Task: 046-advanced-condition-eval | ID: 046-advanced-condition-eval-joy-nucb
 

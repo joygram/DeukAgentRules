@@ -6,7 +6,6 @@ status: closed
 docsLanguage: ko
 summary: DeukPack BMT 테스트 누락 항목 모두 구현
 createdAt: 2026-05-01 06:07:39
-planLink: .deuk-agent/docs/plans/135-deukpack-bmt-missing-tests-joy-nucb-plan.md
 priority: high
 tags:
   - deukpack

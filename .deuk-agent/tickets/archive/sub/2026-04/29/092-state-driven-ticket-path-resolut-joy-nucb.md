@@ -1,12 +1,12 @@
 ---
 id: 092-state-driven-ticket-path-resolut-joy-nucb
-planLink: .deuk-agent/docs/plans/092-state-driven-ticket-path-resolut-joy-nucb-plan.md
 priority: P2
 status: open
 summary: 미작성 티켓 — 실질적 내용 없음. 좀비/placeholder 티켓으로 분류.
 tags: tickets, architecture
 title: state-driven-ticket-path-resolution
 ---
+
 
 # state-driven-ticket-path-resolution
 

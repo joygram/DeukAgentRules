@@ -11,7 +11,6 @@ tags:
   - ticket-lifecycle
   - governance
 createdAt: 2026-04-30 10:03:44
-planLink: .deuk-agent/docs/plans/120-prevent-ghost-ticket-plan-gate-joy-nucb-plan.md
 ---
 
 

@@ -1,14 +1,15 @@
 ---
 createdAt: 2026-04-24 00:57:40
 id: 062-user-language-doc-localization-joy-nucb
-planLink: .deuk-agent/docs/plans/062-user-language-doc-localization-joy-nucb-plan.md
 priority: P0
 status: open
-summary: 'Target Submodule: [e.g., DeukUI | DeukPack | DeukNavigation] - [e.g., DeukAgentRules/templates/MODULERULETEMPLATE.md]
-  - [e.g., path/to/your/specific/rules.md]'
+summary: "Target Submodule: [e.g., DeukUI | DeukPack | DeukNavigation] - [e.g.,
+  DeukAgentRules/templates/MODULERULETEMPLATE.md] - [e.g.,
+  path/to/your/specific/rules.md]"
 tags: rag, mcp, tickets, performance, testing
 title: user-language-doc-localization
 ---
+
 
 # [Execution] Task: user-language-doc-localization | ID: 062-user-language-doc-localization-joy-nucb
 

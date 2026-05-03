@@ -2,7 +2,6 @@
 createdAt: 2026-04-21 23:55:21
 id: 001-044-deukagentrules-hardening-joy-nucb
 phase: 4
-planLink: .deuk-agent/docs/plans/001-044-deukagentrules-hardening-joy-nucb-plan.md
 priority: P2
 status: closed
 summary: ticket next가 레거시 루트 티켓 경로를 .deuk-agent/tickets/tickets/...로 잘못 계산하는 문제를 수정한다.

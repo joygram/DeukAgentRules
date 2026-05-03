@@ -10,7 +10,6 @@ tags:
   - ticket-discovery
   - workflow
 createdAt: 2026-05-01 13:34:22
-planLink: .deuk-agent/docs/plans/151-next-ticket-check-joy-nucb-plan.md
 ---
 
 

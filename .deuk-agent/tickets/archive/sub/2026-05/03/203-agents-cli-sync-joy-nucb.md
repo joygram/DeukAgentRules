@@ -8,7 +8,6 @@ summary: Align core AGENTS.md guidance with ticket-create lint and plan template
 priority: P2
 tags: []
 createdAt: 2026-05-03 03:48:32
-planLink: .deuk-agent/docs/archive/2026-05/203-agents-cli-sync-joy-nucb-plan.md
 ---
 
 
@@ -42,8 +41,14 @@ planLink: .deuk-agent/docs/archive/2026-05/203-agents-cli-sync-joy-nucb-plan.md
 - Ticket records only the allowed patch boundary and contract.
 - Do not duplicate planLink content here; reference it when detail is needed.
 
-## Tasks
+## Compact Plan
 
+- **Problem:** `ticket create` already auto-seeds a ticket and plan draft, but the phase-1 gate only verified that the linked plan file existed. That let placeholder plan scaffolds look "complete" even when the plan still contained generic template prose.
+- **Approach:** Add a small plan-content helper in `scripts/cli-ticket-commands.mjs`.
+- **Verification:** `node scripts/cli.mjs ticket create --topic ... --summary ... --require-filled --skip-phase0 --non-interactive` should fail when the generated plan is still scaffold text.
+- **Linked Issues:** none
+
+## Tasks
 - [x] Complete non-duplicative `planLink` evidence/steps/verification.
 - [x] Execute changes inside APC boundary.
 - [x] Record verification outcome in the linked report or planLink.

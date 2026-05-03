@@ -1,15 +1,15 @@
 ---
 createdAt: 2026-04-24 09:51:39
 id: 066-canonical-rule-normalization-joy-nucb
-planLink: .deuk-agent/docs/plans/066-canonical-rule-normalization-joy-nucb-plan.md
 priority: P2
 status: open
-summary: 'Target: [Fill in the target module/submodule path] - Context Files: [List
-  architecture docs or key files to read first] - Target Submodule: DeukAgentRules
-  (Main)'
+summary: "Target: [Fill in the target module/submodule path] - Context Files:
+  [List architecture docs or key files to read first] - Target Submodule:
+  DeukAgentRules (Main)"
 tags: rag, mcp, tickets, normalization, architecture
 title: 066-canonical-rule-normalization
 ---
+
 
 # [실행] 작업: 066-canonical-rule-normalization | ID: 066-canonical-rule-normalization-joy-nucb
 

@@ -1,15 +1,16 @@
 ---
 createdAt: 2026-04-23 00:07:38
 id: 056-ticket-chaining-feature-joy-nucb
-planLink: .deuk-agent/docs/plans/056-ticket-chaining-feature-joy-nucb-plan.md
 priority: P0
 project: DeukAgentRules
 status: open
-summary: 'Target Submodule: [e.g., DeukUI | DeukPack | DeukNavigation] - [e.g., DeukAgentRules/templates/MODULERULETEMPLATE.md]
-  - [e.g., path/to/your/specific/rules.md]'
+summary: "Target Submodule: [e.g., DeukUI | DeukPack | DeukNavigation] - [e.g.,
+  DeukAgentRules/templates/MODULERULETEMPLATE.md] - [e.g.,
+  path/to/your/specific/rules.md]"
 tags: rag, mcp, tickets, performance, testing
 title: ticket-chaining-feature
 ---
+
 
 # [Execution] Task: ticket-chaining-feature | ID: 056-ticket-chaining-feature-joy-nucb
 

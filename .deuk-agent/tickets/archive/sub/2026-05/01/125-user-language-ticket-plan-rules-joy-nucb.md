@@ -8,7 +8,6 @@ summary: Require generated tickets and plans to use the user's prompt language
 priority: P2
 tags: rules, tickets, plans, language
 createdAt: 2026-05-01 01:08:41
-planLink: .deuk-agent/docs/plans/125-user-language-ticket-plan-rules-joy-nucb-plan.md
 ---
 
 

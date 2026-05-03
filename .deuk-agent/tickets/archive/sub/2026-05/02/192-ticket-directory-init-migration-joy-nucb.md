@@ -11,7 +11,6 @@ tags:
   - migration
   - phase1
 createdAt: 2026-05-02 21:54:48
-planLink: .deuk-agent/docs/plans/192-ticket-directory-init-migration-joy-nucb-plan.md
 ---
 
 

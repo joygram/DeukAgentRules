@@ -1,15 +1,16 @@
 ---
 createdAt: 2026-04-24 01:17:01
 id: 063-force-rule-approval-gate-joy-nucb
-planLink: .deuk-agent/docs/plans/063-force-rule-approval-gate-joy-nucb-plan.md
 priority: P2
 project: DeukAgentRules
 status: open
 submodule: DeukAgentRules
-summary: 'Target Submodule: DeukAgentRules - DeukAgentRules/gemini.md - DeukAgentRules/AGENTS.md'
+summary: "Target Submodule: DeukAgentRules - DeukAgentRules/gemini.md -
+  DeukAgentRules/AGENTS.md"
 tags: rag, mcp, tickets, testing
 title: force-rule-approval-gate
 ---
+
 
 # [Execution] Task: force-rule-approval-gate | ID: 063-force-rule-approval-gate-joy-nucb
 

@@ -12,7 +12,6 @@ tags:
   - truth-gate
   - continuation
 createdAt: 2026-05-02 02:44:08
-planLink: .deuk-agent/docs/plans/168-deukpack-bmt-issue-continuation--joy-nucb-plan.md
 ---
 
 

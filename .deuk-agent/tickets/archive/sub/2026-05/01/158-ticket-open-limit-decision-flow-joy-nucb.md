@@ -10,7 +10,6 @@ tags:
   - ticket
   - archive
 createdAt: 2026-05-01 21:36:19
-planLink: .deuk-agent/docs/plans/158-ticket-open-limit-decision-flow-joy-nucb-plan.md
 ---
 
 

@@ -11,8 +11,9 @@ tags:
   - protocol
   - phase4
 createdAt: 2026-05-02 04:44:14
-planLink: .deuk-agent/docs/plans/171-deukpack-cross-language-protocol-joy-nucb-plan.md
 ---
+
+
 # deukpack-cross-language-protocol-runtime-consistency
 
 > Restrict changes to **Target Module**. Read **Context Files** before code generation.

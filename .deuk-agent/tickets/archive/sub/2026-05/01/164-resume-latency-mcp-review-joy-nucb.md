@@ -11,7 +11,6 @@ tags:
   - latency
   - mcp
 createdAt: 2026-05-01 22:05:52
-planLink: .deuk-agent/docs/plans/164-resume-latency-mcp-review-joy-nucb-plan.md
 ---
 
 

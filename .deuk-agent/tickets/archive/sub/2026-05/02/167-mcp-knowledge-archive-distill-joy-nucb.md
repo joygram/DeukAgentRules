@@ -12,7 +12,6 @@ tags:
   - knowledge
   - archive
 createdAt: 2026-05-02 01:12:18
-planLink: .deuk-agent/docs/plans/167-mcp-knowledge-archive-distill-joy-nucb-plan.md
 ---
 
 

@@ -1,15 +1,15 @@
 ---
 createdAt: 2026-04-25 09:31:37
 id: 078-test-final-evidence-joy-nucb
-planLink: .deuk-agent/docs/plans/078-test-final-evidence-joy-nucb-plan.md
 priority: P2
 status: open
-summary: 'Target: [Fill in the target module/submodule path] - Context Files: [List
-  architecture docs or key files to read first] - Target Submodule: [예: DeukUI | DeukPack
-  | DeukNavigation]'
+summary: "Target: [Fill in the target module/submodule path] - Context Files:
+  [List architecture docs or key files to read first] - Target Submodule: [예:
+  DeukUI | DeukPack | DeukNavigation]"
 tags: rag, mcp, tickets, architecture, performance
 title: test-final-evidence
 ---
+
 
 # [실행] 작업: test-final-evidence | ID: 078-test-final-evidence-joy-nucb
 

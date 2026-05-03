@@ -1,15 +1,15 @@
 ---
 createdAt: 2026-04-25 13:28:35
 id: 080-agents-md-full-refactor-joy-nucb
-planLink: .deuk-agent/docs/plans/080-agents-md-full-refactor-joy-nucb-plan.md
 priority: P2
 status: open
-summary: 'Target: [Fill in the target module/submodule path] - Context Files: [List
-  architecture docs or key files to read first] - Target Submodule: [예: DeukUI | DeukPack
-  | DeukNavigation]'
+summary: "Target: [Fill in the target module/submodule path] - Context Files:
+  [List architecture docs or key files to read first] - Target Submodule: [예:
+  DeukUI | DeukPack | DeukNavigation]"
 tags: rag, mcp, tickets, architecture, performance
 title: agents-md-full-refactor
 ---
+
 
 # [실행] 작업: agents-md-full-refactor | ID: 080-agents-md-full-refactor-joy-nucb
 

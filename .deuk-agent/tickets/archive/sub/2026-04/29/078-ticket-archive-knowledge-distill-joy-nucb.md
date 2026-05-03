@@ -1,15 +1,15 @@
 ---
 id: 078-ticket-archive-knowledge-distill-joy-nucb
-planLink: .deuk-agent/docs/plans/078-ticket-archive-knowledge-distill-joy-nucb-plan.md
 priority: P1
 status: open
-summary: 'Target: [Fill in the target module/submodule path] - Context Files: [List
-  architecture docs or key files to read first] - Root Cause: ticket archive 명령어가
-  단순히 파일을 archive/ 디렉토리로 이동시키기만 하여, 티켓 본문에 포함된 핵심 의사결정(Design Decisions)이나 분석 결과가
-  구조화된 지식으로 남지 않음.'
+summary: "Target: [Fill in the target module/submodule path] - Context Files:
+  [List architecture docs or key files to read first] - Root Cause: ticket
+  archive 명령어가 단순히 파일을 archive/ 디렉토리로 이동시키기만 하여, 티켓 본문에 포함된 핵심 의사결정(Design
+  Decisions)이나 분석 결과가 구조화된 지식으로 남지 않음."
 tags: rag, tickets, architecture, testing
 title: 078-ticket-archive-knowledge-distillation
 ---
+
 
 # 078-ticket-archive-knowledge-distillation
 

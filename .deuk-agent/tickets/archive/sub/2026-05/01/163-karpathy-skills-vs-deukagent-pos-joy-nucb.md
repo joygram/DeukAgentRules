@@ -13,7 +13,6 @@ tags:
   - deukagent-context
   - agent-skills
 createdAt: 2026-05-01 22:05:45
-planLink: .deuk-agent/docs/plans/163-karpathy-skills-vs-deukagent-pos-joy-nucb-plan.md
 ---
 
 

@@ -8,7 +8,6 @@ summary: context RAG+파이프라인 적합성 진단 및 통계·에이전트 �
 priority: high
 tags: rag, pipeline, metrics, agent-loop
 createdAt: 2026-05-01 04:20:11
-planLink: .deuk-agent/docs/plans/132-rag-context-pipeline-improvement-joy-nucb-plan.md
 ---
 
 

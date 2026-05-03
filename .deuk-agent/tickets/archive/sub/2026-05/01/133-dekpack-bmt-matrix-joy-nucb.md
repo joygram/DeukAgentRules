@@ -8,7 +8,6 @@ summary: BMT Master/Protocol/Test 문서 역할 분리 및 raw 성능표 정리
 priority: high
 tags: deukpack, bmt, matrix, compatibility
 createdAt: 2026-05-01 05:04:09
-planLink: .deuk-agent/docs/plans/133-deukpack-bmt-matrix-joy-nucb-plan.md
 ---
 
 

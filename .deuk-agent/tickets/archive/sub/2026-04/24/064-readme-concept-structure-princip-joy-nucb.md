@@ -1,17 +1,17 @@
 ---
 createdAt: 2026-04-24 01:36:33
 id: 064-readme-concept-structure-princip-joy-nucb
-planLink: .deuk-agent/docs/plans/064-readme-concept-structure-princip-joy-nucb-plan.md
 priority: P2
 project: DeukAgentRules
 status: open
 submodule: DeukAgentRules
-summary: 'Target Submodule: DeukAgentRules - publish/templates/TICKETTEMPLATE.md -
-  README.md: add concept expansion, document map, and direct links to the detailed
-  docs.'
+summary: "Target Submodule: DeukAgentRules - publish/templates/TICKETTEMPLATE.md
+  - README.md: add concept expansion, document map, and direct links to the
+  detailed docs."
 tags: rag, mcp, tickets, testing
 title: readme-concept-structure-principles-docs
 ---
+
 
 # [Execution] Task: readme-concept-structure-principles-docs | ID: 064-readme-concept-structure-princip-joy-nucb
 

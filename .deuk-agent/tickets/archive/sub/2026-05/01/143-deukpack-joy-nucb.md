@@ -6,7 +6,6 @@ status: closed
 docsLanguage: ko
 summary: DeukPack 작업을 이어서 진행하기 위한 티켓 컨텍스트를 복원하고 실행 계획을 정리합니다.
 createdAt: 2026-05-01 06:44:34
-planLink: .deuk-agent/docs/plans/143-deukpack-joy-nucb-plan.md
 priority: P2
 tags:
   - deukpack

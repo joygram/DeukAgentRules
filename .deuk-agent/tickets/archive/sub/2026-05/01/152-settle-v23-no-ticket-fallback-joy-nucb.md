@@ -11,7 +11,6 @@ tags:
   - git-history
   - release-hygiene
 createdAt: 2026-05-01 14:43:09
-planLink: .deuk-agent/docs/plans/152-settle-v23-no-ticket-fallback-joy-nucb-plan.md
 ---
 
 

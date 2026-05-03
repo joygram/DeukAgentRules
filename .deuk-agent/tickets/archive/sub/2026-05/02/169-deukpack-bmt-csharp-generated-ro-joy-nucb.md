@@ -11,7 +11,6 @@ tags:
   - csharp
   - roundtrip
 createdAt: 2026-05-02 04:00:34
-planLink: .deuk-agent/docs/plans/169-deukpack-bmt-csharp-generated-ro-joy-nucb-plan.md
 ---
 
 

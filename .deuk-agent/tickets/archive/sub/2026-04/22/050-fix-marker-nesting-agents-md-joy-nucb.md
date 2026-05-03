@@ -1,15 +1,15 @@
 ---
 createdAt: 2026-04-22 04:09:24
 id: 050-fix-marker-nesting-agents-md-joy-nucb
-planLink: .deuk-agent/docs/plans/050-fix-marker-nesting-agents-md-joy-nucb-plan.md
 priority: P2
 status: closed
 submodule: DeukAgentRules
-summary: 'Target Submodule: DeukAgentRules - scripts/merge-logic.mjs — findMarkerRegion,
-  handleAgentInject, applyAgents - bundle/AGENTS.md — 번들 소스'
+summary: "Target Submodule: DeukAgentRules - scripts/merge-logic.mjs —
+  findMarkerRegion, handleAgentInject, applyAgents - bundle/AGENTS.md — 번들 소스"
 tags: rag, deukpack
 title: Fix AGENTS.md marker nesting/stacking bug
 ---
+
 
 # [Execution] Task: Fix AGENTS.md marker nesting | ID: 050
 

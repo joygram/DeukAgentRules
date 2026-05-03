@@ -3,13 +3,13 @@ createdAt: 2026-04-29 19:17:36
 docsLanguage: ko
 id: 116-auto-close-before-next-joy-nucb
 phase: 1
-planLink: .deuk-agent/docs/plans/116-auto-close-before-next-joy-nucb-plan.md
 priority: P2
 status: closed
 summary: 미작성 티켓 — 실질적 내용 없음. 좀비/placeholder 티켓으로 분류.
 tags: architecture, testing
 title: auto-close-before-next
 ---
+
 
 # auto-close-before-next
 

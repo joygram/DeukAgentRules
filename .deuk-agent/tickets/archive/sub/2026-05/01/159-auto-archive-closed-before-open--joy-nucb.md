@@ -10,7 +10,6 @@ tags:
   - ticket
   - archive
 createdAt: 2026-05-01 21:39:29
-planLink: .deuk-agent/docs/plans/159-auto-archive-closed-before-open--joy-nucb-plan.md
 ---
 
 

@@ -13,7 +13,6 @@ tags:
   - archive
   - phase1
 createdAt: 2026-05-02 21:57:58
-planLink: .deuk-agent/docs/plans/193-ticket-folder-canonicalization-joy-nucb-plan.md
 ---
 
 

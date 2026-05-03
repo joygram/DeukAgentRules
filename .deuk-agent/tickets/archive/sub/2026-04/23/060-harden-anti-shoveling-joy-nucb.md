@@ -1,15 +1,16 @@
 ---
 createdAt: 2026-04-23 13:05:42
 id: 060-harden-anti-shoveling-joy-nucb
-planLink: .deuk-agent/docs/plans/060-harden-anti-shoveling-joy-nucb-plan.md
 priority: P0
 project: DeukAgentRules
 status: open
-summary: 'Target Submodule: [e.g., DeukUI | DeukPack | DeukNavigation] - [e.g., DeukAgentRules/templates/MODULERULETEMPLATE.md]
-  - [e.g., path/to/your/specific/rules.md]'
+summary: "Target Submodule: [e.g., DeukUI | DeukPack | DeukNavigation] - [e.g.,
+  DeukAgentRules/templates/MODULERULETEMPLATE.md] - [e.g.,
+  path/to/your/specific/rules.md]"
 tags: rag, mcp, tickets, performance, testing
 title: harden-anti-shoveling
 ---
+
 
 # [Execution] Task: harden-anti-shoveling | ID: 060-harden-anti-shoveling-joy-nucb
 

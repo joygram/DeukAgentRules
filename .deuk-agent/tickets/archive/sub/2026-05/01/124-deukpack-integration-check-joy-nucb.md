@@ -9,7 +9,6 @@ summary: Verify DeukPack codegen build removes manual links and completes
 priority: P2
 tags: deukpack, codegen, init, integration
 createdAt: 2026-05-01 01:05:49
-planLink: .deuk-agent/docs/plans/124-deukpack-integration-check-joy-nucb-plan.md
 ---
 
 

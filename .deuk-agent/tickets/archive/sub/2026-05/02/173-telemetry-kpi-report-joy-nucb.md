@@ -13,7 +13,6 @@ tags:
   - token-kpi
   - report
 createdAt: 2026-05-02 09:05:15
-planLink: .deuk-agent/docs/plans/173-telemetry-kpi-report-joy-nucb-plan.md
 ---
 
 

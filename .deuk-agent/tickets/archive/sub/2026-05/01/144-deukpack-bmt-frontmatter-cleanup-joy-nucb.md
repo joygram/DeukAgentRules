@@ -6,7 +6,6 @@ status: closed
 docsLanguage: ko
 summary: DeukPack BMT 하위 티켓의 parentTicket frontmatter 중복 경고를 정리합니다.
 createdAt: 2026-05-01 08:03:14
-planLink: .deuk-agent/docs/plans/144-deukpack-bmt-frontmatter-cleanup-joy-nucb-plan.md
 priority: high
 tags:
   - deukpack

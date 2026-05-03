@@ -1,12 +1,12 @@
 ---
 id: 086-decouple-ticket-list-from-full-s-joy-nucb
-planLink: .deuk-agent/docs/plans/086-decouple-ticket-list-from-full-s-joy-nucb-plan.md
 priority: P2
 status: open
 summary: 미작성 티켓 — 실질적 내용 없음. 좀비/placeholder 티켓으로 분류.
 tags: tickets, architecture
 title: decouple-ticket-list-from-full-scan
 ---
+
 
 # decouple-ticket-list-from-full-scan
 

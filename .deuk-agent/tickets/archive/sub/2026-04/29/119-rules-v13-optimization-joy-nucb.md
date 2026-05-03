@@ -7,7 +7,6 @@ docsLanguage: ko
 summary: "AGENTS.md v12→v13 최적화: 8.7KB→6KB 압축, TICKET_TEMPLATE modernize, dead
   file cleanup"
 createdAt: 2026-04-29 20:02:55
-planLink: .deuk-agent/docs/plans/119-rules-v13-optimization-joy-nucb-plan.md
 priority: P3
 tags:
   - rules

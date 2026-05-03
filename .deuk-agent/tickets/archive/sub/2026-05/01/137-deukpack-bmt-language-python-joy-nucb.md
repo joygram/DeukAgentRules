@@ -7,7 +7,6 @@ docsLanguage: ko
 parentTicket: 135-deukpack-bmt-missing-tests-joy-nucb
 summary: "DeukPack BMT 누락 복구: Python 언어 단위 테스트 보강"
 createdAt: 2026-05-01 06:13:18
-planLink: .deuk-agent/docs/plans/137-deukpack-bmt-language-python-joy-nucb-plan.md
 priority: high
 tags:
   - deukpack

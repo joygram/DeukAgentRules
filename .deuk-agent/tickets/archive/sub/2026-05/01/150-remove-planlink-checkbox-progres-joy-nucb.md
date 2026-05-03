@@ -13,7 +13,6 @@ tags:
   - planlink
   - progress
 createdAt: 2026-05-01 13:27:50
-planLink: .deuk-agent/docs/plans/150-remove-planlink-checkbox-progres-joy-nucb-plan.md
 ---
 
 

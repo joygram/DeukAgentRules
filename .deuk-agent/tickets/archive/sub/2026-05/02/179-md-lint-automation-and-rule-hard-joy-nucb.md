@@ -10,7 +10,6 @@ createdAt: 2026-05-02 09:52:13
 tags:
   - automation
   - lint
-planLink: .deuk-agent/docs/archive/plans/2026-05/179-md-lint-automation-and-rule-hard-joy-nucb-plan.md
 ---
 
 

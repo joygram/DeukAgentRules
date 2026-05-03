@@ -9,7 +9,6 @@ summary: DeukPack/DeukAgentRules/DeukAgentContext .deuk-agent 디렉토리(문�
 priority: P2
 tags: []
 createdAt: 2026-05-02 22:27:28
-planLink: .deuk-agent/docs/archive/plans/2026-05/197-global-deukagentroot-directory-u-joy-nucb-plan.md
 ---
 
 

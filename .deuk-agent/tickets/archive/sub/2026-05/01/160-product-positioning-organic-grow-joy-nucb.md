@@ -11,7 +11,6 @@ tags:
   - product
   - growth
 createdAt: 2026-05-01 21:49:42
-planLink: .deuk-agent/docs/plans/160-product-positioning-organic-grow-joy-nucb-plan.md
 ---
 
 

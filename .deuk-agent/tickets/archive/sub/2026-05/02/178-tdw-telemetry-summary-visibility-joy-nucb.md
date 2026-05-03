@@ -12,7 +12,6 @@ tags:
   - summary
   - metrics
 createdAt: 2026-05-02 09:45:43
-planLink: .deuk-agent/docs/plans/178-tdw-telemetry-summary-visibility-joy-nucb-plan.md
 ---
 
 

@@ -13,7 +13,6 @@ tags:
   - validation
   - truth-gate
 createdAt: 2026-05-01 15:02:38
-planLink: .deuk-agent/docs/plans/155-deukpack-bmt-validation-truth-ga-joy-nucb-plan.md
 ---
 
 

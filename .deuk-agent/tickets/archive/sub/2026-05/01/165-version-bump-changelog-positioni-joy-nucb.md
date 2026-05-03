@@ -11,7 +11,6 @@ tags:
   - changelog
   - version
 createdAt: 2026-05-01 22:09:47
-planLink: .deuk-agent/docs/plans/165-version-bump-changelog-positioni-joy-nucb-plan.md
 ---
 
 

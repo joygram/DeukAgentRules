@@ -1,15 +1,15 @@
 ---
 id: 102-global-joy-nucb
-planLink: .deuk-agent/docs/plans/102-global-joy-nucb-plan.md
 priority: P2
 status: open
-summary: 'Target: [Fill in the target module/submodule path] - Context Files: [List
-  architecture docs or key files to read first] core-workflow.md의 frontmatter에 injecttarget:
-  ["AGENTS.md", "GEMINI.md"]가 선언되어 있으나, cli-init-commands.mjs의 syncGeminiRules 함수는
-  c...'
+summary: 'Target: [Fill in the target module/submodule path] - Context Files:
+  [List architecture docs or key files to read first] core-workflow.md의
+  frontmatter에 injecttarget: ["AGENTS.md", "GEMINI.md"]가 선언되어 있으나,
+  cli-init-commands.mjs의 syncGeminiRules 함수는 c...'
 tags: frontmatter, architecture, deukpack
 title: enforce unidirectional AGENTS.md single source of truth
 ---
+
 
 # enforce unidirectional AGENTS.md single source of truth
 

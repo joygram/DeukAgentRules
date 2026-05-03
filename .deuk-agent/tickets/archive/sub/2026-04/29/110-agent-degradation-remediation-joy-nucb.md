@@ -3,14 +3,14 @@ createdAt: 2026-04-29 09:52:34
 docsLanguage: ko
 id: 110-agent-degradation-remediation-joy-nucb
 phase: 3
-planLink: .deuk-agent/docs/plans/110-agent-degradation-remediation-joy-nucb-plan.md
 priority: P2
 status: closed
-summary: 'Target: [Fill in the target module/submodule path] - Context Files: [List
-  architecture docs or key files to read first]'
+summary: "Target: [Fill in the target module/submodule path] - Context Files:
+  [List architecture docs or key files to read first]"
 tags: frontmatter, protocol, tickets, architecture, testing
 title: agent-degradation-remediation
 ---
+
 
 # agent-degradation-remediation
 

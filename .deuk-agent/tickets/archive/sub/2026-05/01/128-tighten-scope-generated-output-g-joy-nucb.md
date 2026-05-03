@@ -12,7 +12,6 @@ tags:
   - generated-output
   - guardrail
 createdAt: 2026-05-01 02:10:57
-planLink: .deuk-agent/docs/plans/128-tighten-scope-generated-output-g-joy-nucb-plan.md
 ---
 
 

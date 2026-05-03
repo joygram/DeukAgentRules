@@ -6,7 +6,6 @@ status: closed
 docsLanguage: ko
 summary: AgentContext DeukPack init/src install/DpJson schema integration review
 createdAt: 2026-05-01 00:04:39
-planLink: .deuk-agent/docs/plans/123-agentcontext-deukpack-integratio-joy-nucb-plan.md
 priority: P2
 tags:
   - review

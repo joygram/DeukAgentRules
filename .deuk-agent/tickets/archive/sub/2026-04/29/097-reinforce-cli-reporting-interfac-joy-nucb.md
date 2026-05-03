@@ -1,15 +1,15 @@
 ---
 id: 097-reinforce-cli-reporting-interfac-joy-nucb
-planLink: .deuk-agent/docs/plans/097-reinforce-cli-reporting-interfac-joy-nucb-plan.md
 priority: P2
 status: closed
-summary: 'Target: [Fill in the target module/submodule path] - Context Files: [List
-  architecture docs or key files to read first] - Root Cause & Architecture constraint:
-  현재 리포트(walkthrough)는 ticket archive 시점에 수동으로 연결되거나 파일 시스템에서 직접 관리됨. 사용자는 리포트 생성,
-  수정, 조회...'
+summary: "Target: [Fill in the target module/submodule path] - Context Files:
+  [List architecture docs or key files to read first] - Root Cause &
+  Architecture constraint: 현재 리포트(walkthrough)는 ticket archive 시점에 수동으로 연결되거나 파일
+  시스템에서 직접 관리됨. 사용자는 리포트 생성, 수정, 조회..."
 tags: tickets, architecture
 title: reinforce-cli-reporting-interface
 ---
+
 
 # reinforce-cli-reporting-interface
 

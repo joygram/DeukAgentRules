@@ -1,14 +1,15 @@
 ---
 createdAt: 2026-04-22 08:44:03
 id: 055-cli-recursive-deduplication-joy-nucb
-planLink: .deuk-agent/docs/plans/055-cli-recursive-deduplication-joy-nucb-plan.md
 priority: P0
 status: open
-summary: 'Target Submodule: [e.g., DeukUI | DeukPack | DeukNavigation] - [e.g., DeukAgentRules/templates/MODULERULETEMPLATE.md]
-  - [e.g., path/to/your/specific/rules.md]'
+summary: "Target Submodule: [e.g., DeukUI | DeukPack | DeukNavigation] - [e.g.,
+  DeukAgentRules/templates/MODULERULETEMPLATE.md] - [e.g.,
+  path/to/your/specific/rules.md]"
 tags: rag, mcp, tickets, performance, testing
 title: cli-recursive-deduplication
 ---
+
 
 # [Execution] Task: cli-recursive-deduplication | ID: 055-cli-recursive-deduplication-joy-nucb
 

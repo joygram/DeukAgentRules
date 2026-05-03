@@ -1,15 +1,15 @@
 ---
 createdAt: 2026-04-25 09:30:40
 id: 077-test-evidence-gate-joy-nucb
-planLink: .deuk-agent/docs/plans/077-test-evidence-gate-joy-nucb-plan.md
 priority: P2
 status: open
-summary: 'Target: [Fill in the target module/submodule path] - Context Files: [List
-  architecture docs or key files to read first] - Target Submodule: [예: DeukUI | DeukPack
-  | DeukNavigation]'
+summary: "Target: [Fill in the target module/submodule path] - Context Files:
+  [List architecture docs or key files to read first] - Target Submodule: [예:
+  DeukUI | DeukPack | DeukNavigation]"
 tags: rag, mcp, tickets, architecture, performance
 title: test-evidence-gate
 ---
+
 
 # [실행] 작업: test-evidence-gate | ID: 077-test-evidence-gate-joy-nucb
 

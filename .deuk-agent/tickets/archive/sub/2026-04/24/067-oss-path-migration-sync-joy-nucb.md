@@ -1,15 +1,15 @@
 ---
 createdAt: 2026-04-24 21:26:33
 id: 067-oss-path-migration-sync-joy-nucb
-planLink: .deuk-agent/docs/plans/067-oss-path-migration-sync-joy-nucb-plan.md
 priority: P2
 status: open
-summary: 'Target: [Fill in the target module/submodule path] - Context Files: [List
-  architecture docs or key files to read first] - Target Submodule: DeukPack, DeukAgentRules
-  (OSS mirror 경로 정합성)'
+summary: "Target: [Fill in the target module/submodule path] - Context Files:
+  [List architecture docs or key files to read first] - Target Submodule:
+  DeukPack, DeukAgentRules (OSS mirror 경로 정합성)"
 tags: rag, mcp, tickets, architecture, migration
 title: oss-path-migration-sync
 ---
+
 
 # [실행] 작업: oss-path-migration-sync | ID: 067-oss-path-migration-sync-joy-nucb
 

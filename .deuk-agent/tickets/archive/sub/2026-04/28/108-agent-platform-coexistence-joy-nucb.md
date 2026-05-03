@@ -4,13 +4,13 @@ docsLanguage: ko
 evidence: 에이전트 플랫폼별(Claude/Copilot/Codex/Cursor) 에이전트 모드 심층 분석 및 공존 프로토콜 구현
 id: 108-agent-platform-coexistence-joy-nucb
 phase: 1
-planLink: .deuk-agent/docs/plans/108-agent-platform-coexistence-joy-nucb-plan.md
 priority: P2
 status: open
 summary: 미작성 티켓 — 실질적 내용 없음. 좀비/placeholder 티켓으로 분류.
 tags: architecture, testing
 title: agent-platform-coexistence
 ---
+
 
 # agent-platform-coexistence
 

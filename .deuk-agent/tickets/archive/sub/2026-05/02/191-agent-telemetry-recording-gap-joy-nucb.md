@@ -11,7 +11,6 @@ tags:
   - workflow
   - phase1
 createdAt: 2026-05-02 21:51:01
-planLink: .deuk-agent/docs/plans/191-agent-telemetry-recording-gap-joy-nucb-plan.md
 ---
 
 

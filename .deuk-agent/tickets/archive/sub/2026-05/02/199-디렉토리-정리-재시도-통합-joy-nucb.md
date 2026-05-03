@@ -8,7 +8,6 @@ summary: 레거시 산재 파일을 월별 아카이브 구조로 정리
 priority: P2
 tags: []
 createdAt: 2026-05-02 22:39:29
-planLink: .deuk-agent/docs/archive/plans/2026-05/199-디렉토리-정리-재시도-통합-joy-nucb-plan.md
 ---
 
 

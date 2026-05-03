@@ -8,7 +8,6 @@ summary: 검증 데이터 기반 문서 품질 누락 결함을 템플릿과 출
 priority: P2
 tags: []
 createdAt: 2026-05-02 11:40:15
-planLink: .deuk-agent/docs/plans/187-missing-defect-remediation-doc-q-joy-nucb-plan.md
 ---
 
 

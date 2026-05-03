@@ -1,12 +1,12 @@
 ---
 id: 103-architectureguard-인라인-yaml파싱-slu-joy-nucb
-planLink: .deuk-agent/docs/plans/103-architectureguard-인라인-yaml파싱-slu-joy-nucb-plan.md
 priority: P2
 status: closed
 summary: 미작성 티켓 — 실질적 내용 없음. 좀비/placeholder 티켓으로 분류.
 tags: architecture
-title: 'ArchitectureGuard: 인라인 YAML파싱 slug생성 중복 제거'
+title: "ArchitectureGuard: 인라인 YAML파싱 slug생성 중복 제거"
 ---
+
 
 # ArchitectureGuard: 인라인 YAML파싱 slug생성 중복 제거
 

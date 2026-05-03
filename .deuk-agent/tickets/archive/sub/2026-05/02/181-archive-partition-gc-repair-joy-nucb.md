@@ -9,7 +9,6 @@ summary: 월별 INDEX.archive.json 파티셔닝, 오래된 archive GC, rebuild/r
 priority: P2
 tags: []
 createdAt: 2026-05-02 10:26:29
-planLink: .deuk-agent/docs/plans/181-archive-partition-gc-repair-joy-nucb-plan.md
 ---
 
 

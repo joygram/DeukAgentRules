@@ -3,13 +3,13 @@ createdAt: 2026-04-29 19:52:22
 docsLanguage: ko
 id: 118-agent-rule-frontmatter-enforceme-joy-nucb
 phase: 1
-planLink: .deuk-agent/docs/plans/118-agent-rule-frontmatter-enforceme-joy-nucb-plan.md
 priority: P2
 status: closed
 summary: 미작성 티켓 — 실질적 내용 없음. 좀비/placeholder 티켓으로 분류.
 tags: frontmatter, architecture, testing
 title: agent-rule-frontmatter-enforcement
 ---
+
 
 # agent-rule-frontmatter-enforcement
 

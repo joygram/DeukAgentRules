@@ -1,16 +1,16 @@
 ---
 createdAt: 2026-04-25 09:24:43
 id: 076-enforce-phase0-rag-validation-joy-nucb
-planLink: .deuk-agent/docs/plans/076-enforce-phase0-rag-validation-joy-nucb-plan.md
 priority: P2
 project: DeukAgentRules
 status: open
-summary: 'Target: [Fill in the target module/submodule path] - Context Files: [List
-  architecture docs or key files to read first] - Target Submodule: DeukAgentRules
-  (CLI and Templates)'
+summary: "Target: [Fill in the target module/submodule path] - Context Files:
+  [List architecture docs or key files to read first] - Target Submodule:
+  DeukAgentRules (CLI and Templates)"
 tags: rag, mcp, tickets, architecture
 title: 076-enforce-phase0-rag-validation
 ---
+
 
 # [실행] 작업: 076-enforce-phase0-rag-validation | ID: 076-enforce-phase0-rag-validation-joy-nucb
 

@@ -1,15 +1,15 @@
 ---
 id: 095-apply-init-to-workspace-joy-nucb
-planLink: .deuk-agent/docs/plans/095-apply-init-to-workspace-joy-nucb-plan.md
 priority: P2
 status: closed
-summary: 'Target: [Fill in the target module/submodule path] - Context Files: [List
-  architecture docs or key files to read first] - Root Cause & Architecture constraint:
-  Workspace rules and structure need to be synchronized with the latest CLI logic
-  to ensu...'
+summary: "Target: [Fill in the target module/submodule path] - Context Files:
+  [List architecture docs or key files to read first] - Root Cause &
+  Architecture constraint: Workspace rules and structure need to be synchronized
+  with the latest CLI logic to ensu..."
 tags: telemetry, tickets, architecture, testing
 title: apply-init-to-workspace
 ---
+
 
 # apply-init-to-workspace
 

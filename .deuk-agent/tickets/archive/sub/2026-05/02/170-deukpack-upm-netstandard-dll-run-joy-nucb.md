@@ -6,7 +6,6 @@ status: closed
 docsLanguage: ko
 summary: DeukPack UPM runtime을 소스 복사본이 아닌 netstandard2.0 DLL 참조 구조로 정리
 createdAt: 2026-05-02 04:23:42
-planLink: .deuk-agent/docs/plans/170-deukpack-upm-netstandard-dll-run-joy-nucb-plan.md
 ---
 
 

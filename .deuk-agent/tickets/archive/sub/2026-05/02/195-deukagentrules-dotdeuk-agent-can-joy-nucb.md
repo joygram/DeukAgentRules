@@ -13,7 +13,6 @@ tags:
   - archive
   - scratch
 createdAt: 2026-05-02 22:11:32
-planLink: .deuk-agent/docs/plans/195-deukagentrules-dotdeuk-agent-can-joy-nucb-plan.md
 ---
 
 

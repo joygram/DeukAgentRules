@@ -2,17 +2,17 @@
 createdAt: 2026-04-26 07:11:00
 group: main
 id: 082-refactor-cli-technical-debt-joy-nucb
-planLink: .deuk-agent/docs/plans/082-refactor-cli-technical-debt-joy-nucb-plan.md
 priority: P2
 project: DeukAgentRules
 status: closed
-summary: 'Target: [Fill in the target module/submodule path] - Context Files: [List
-  architecture docs or key files to read first] - Root Cause: The CLI implementation
-  accumulated fragile heuristics (regex-based parsing, hardcoded project names, ps
-  aux sniff...'
+summary: "Target: [Fill in the target module/submodule path] - Context Files:
+  [List architecture docs or key files to read first] - Root Cause: The CLI
+  implementation accumulated fragile heuristics (regex-based parsing, hardcoded
+  project names, ps aux sniff..."
 tags: rag, frontmatter, mcp, tickets, architecture
 title: refactor-cli-technical-debt
 ---
+
 
 # refactor-cli-technical-debt
 

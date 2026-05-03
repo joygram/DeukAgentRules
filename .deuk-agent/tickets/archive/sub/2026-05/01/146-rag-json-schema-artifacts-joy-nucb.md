@@ -6,7 +6,6 @@ status: closed
 docsLanguage: ko
 summary: RAG candidate와 metrics 산출물에 대해 실제 JSON Schema 파일을 추가한다.
 createdAt: 2026-05-01 12:34:42
-planLink: .deuk-agent/docs/plans/146-rag-json-schema-artifacts-joy-nucb-plan.md
 priority: P2
 tags:
   - deukpack

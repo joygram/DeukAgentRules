@@ -11,7 +11,6 @@ tags:
   - storage
   - partition
 createdAt: 2026-05-02 10:21:19
-planLink: .deuk-agent/docs/plans/180-index-json-분리-및-경량화-joy-nucb-plan.md
 ---
 
 

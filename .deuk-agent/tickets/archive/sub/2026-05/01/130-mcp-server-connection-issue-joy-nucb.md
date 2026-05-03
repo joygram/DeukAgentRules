@@ -6,7 +6,6 @@ status: closed
 docsLanguage: ko
 summary: 현재 MCP 서버 연결 이슈를 조사하고 필요한 연결 안정화 수정을 수행한다.
 createdAt: 2026-05-01 02:23:21
-planLink: .deuk-agent/docs/plans/130-mcp-server-connection-issue-joy-nucb-plan.md
 priority: P2
 tags:
   - mcp

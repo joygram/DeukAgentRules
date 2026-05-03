@@ -13,7 +13,6 @@ tags:
   - archive
   - ssot
 createdAt: 2026-05-02 22:06:02
-planLink: .deuk-agent/docs/plans/194-deukpack-context-truth-archive-d-joy-nucb-plan.md
 ---
 
 

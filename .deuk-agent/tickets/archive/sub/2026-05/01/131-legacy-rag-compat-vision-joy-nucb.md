@@ -8,7 +8,6 @@ summary: "래거시 티켓/RAG 정합성 개선: 토큰비용 감소·생산 품
 priority: high
 tags: legacy-rag, plan-gate
 createdAt: 2026-05-01 04:18:01
-planLink: .deuk-agent/docs/plans/131-legacy-rag-compat-vision-joy-nucb-plan.md
 ---
 
 

@@ -3,13 +3,13 @@ createdAt: 2026-04-29 18:58:11
 docsLanguage: ko
 id: 112-fix-missing-summary-in-frontmatt-joy-nucb
 phase: 4
-planLink: .deuk-agent/docs/plans/112-fix-missing-summary-in-frontmatt-joy-nucb-plan.md
 priority: P2
 status: closed
 summary: 미작성 티켓 — 실질적 내용 없음. 좀비/placeholder 티켓으로 분류.
 tags: frontmatter, tickets, architecture, testing
 title: fix-missing-summary-in-frontmatter
 ---
+
 
 # fix-missing-summary-in-frontmatter
 

@@ -14,7 +14,6 @@ tags:
   - skill
   - distribution
 createdAt: 2026-04-30 23:55:36
-planLink: .deuk-agent/docs/plans/122-deuk-agentrules-lite-visioning-joy-nucb-plan.md
 ---
 
 

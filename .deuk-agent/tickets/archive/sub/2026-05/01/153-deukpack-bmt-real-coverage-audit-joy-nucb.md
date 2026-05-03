@@ -12,7 +12,6 @@ tags:
   - test-coverage
   - audit
 createdAt: 2026-05-01 14:45:47
-planLink: .deuk-agent/docs/plans/153-deukpack-bmt-real-coverage-audit-joy-nucb-plan.md
 ---
 
 

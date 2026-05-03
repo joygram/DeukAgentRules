@@ -8,7 +8,6 @@ summary: i 및 workspace 전체 .deuk-agent 디렉토리 구조 정합화
 priority: P2
 tags: []
 createdAt: 2026-05-02 23:06:41
-planLink: .deuk-agent/docs/archive/plans/2026-05/201-deukagent-workspace-layout-unifi-joy-nucb-plan.md
 ---
 
 

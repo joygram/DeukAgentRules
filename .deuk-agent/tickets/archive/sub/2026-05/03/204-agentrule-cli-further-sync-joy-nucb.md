@@ -9,7 +9,6 @@ summary: Further reduce repetitive ticket/plan CLI flow and improve phase/status
 priority: P2
 tags: []
 createdAt: 2026-05-03 03:56:57
-planLink: .deuk-agent/docs/archive/2026-05/204-agentrule-cli-further-sync-joy-nucb-plan.md
 ---
 
 
@@ -43,8 +42,14 @@ planLink: .deuk-agent/docs/archive/2026-05/204-agentrule-cli-further-sync-joy-nu
 - Ticket records only the allowed patch boundary and contract.
 - Do not duplicate planLink content here; reference it when detail is needed.
 
-## Tasks
+## Compact Plan
 
+- **Problem:** The ticket flow now works, but the default CLI output still produces too many repeated lines for agent-driven use. The main friction points are:
+- **Approach:** Add a `--compact` flag to ticket argument parsing and document it in the CLI help.
+- **Verification:** `node --test scripts/tests/cli-ticket-commands.test.mjs scripts/tests/cli-utils.test.mjs` should pass.
+- **Linked Issues:** none
+
+## Tasks
 - [x] Complete non-duplicative `planLink` evidence/steps/verification.
 - [x] Execute changes inside APC boundary.
 - [x] Record verification outcome in the linked report or planLink.

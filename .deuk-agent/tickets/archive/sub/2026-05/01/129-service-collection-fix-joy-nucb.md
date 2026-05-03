@@ -11,7 +11,6 @@ tags:
 docsLanguage: ko
 summary: 서비스 서버와 자료 수집이 제대로 이루어지지 않는 문제를 조사하고 수정한다.
 createdAt: 2026-05-01 02:19:06
-planLink: .deuk-agent/docs/plans/129-service-collection-fix-joy-nucb-plan.md
 ---
 
 

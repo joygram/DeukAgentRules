@@ -1,12 +1,12 @@
 ---
 id: 101-deukpack-doc-consolidation-and-t-joy-nucb
-planLink: .deuk-agent/docs/plans/101-deukpack-doc-consolidation-and-t-joy-nucb-plan.md
 priority: P2
 status: closed
 summary: 미작성 티켓 — 실질적 내용 없음. 좀비/placeholder 티켓으로 분류.
 tags: rag, vectordb, protocol, tickets, architecture
 title: DeukPack_Doc_Consolidation_and_TDD_Rename
 ---
+
 
 # DeukPack_Doc_Consolidation_and_TDD_Rename
 

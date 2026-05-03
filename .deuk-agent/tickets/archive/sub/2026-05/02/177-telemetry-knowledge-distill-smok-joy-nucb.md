@@ -13,7 +13,6 @@ tags:
   - smoke
   - archive
 createdAt: 2026-05-02 09:41:17
-planLink: .deuk-agent/docs/plans/177-telemetry-knowledge-distill-smok-joy-nucb-plan.md
 ---
 
 

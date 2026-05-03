@@ -12,7 +12,6 @@ tags:
   - rag
   - workflow
 createdAt: 2026-05-01 22:23:10
-planLink: .deuk-agent/docs/plans/166-mcp-knowledge-quality-natural-re-joy-nucb-plan.md
 ---
 
 

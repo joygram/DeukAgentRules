@@ -10,7 +10,6 @@ tags:
   - ticket
   - docs-language
 createdAt: 2026-05-01 21:51:19
-planLink: .deuk-agent/docs/plans/161-auto-doc-language-from-user-prom-joy-nucb-plan.md
 ---
 
 

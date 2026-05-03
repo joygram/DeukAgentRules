@@ -11,7 +11,6 @@ tags:
   - phase1
   - deukpack
 createdAt: 2026-05-01 09:25:29
-planLink: .deuk-agent/docs/plans/145-deukpack-missing-implementation-joy-nucb-plan.md
 ---
 
 

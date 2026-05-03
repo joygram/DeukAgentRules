@@ -1,15 +1,15 @@
 ---
 createdAt: 2026-04-25 02:50:34
 id: 069-rebranding-deukrag-to-deuk-agent-joy-nucb
-planLink: .deuk-agent/docs/plans/069-rebranding-deukrag-to-deuk-agent-joy-nucb-plan.md
 priority: P2
 status: open
-summary: 'Target: [Fill in the target module/submodule path] - Context Files: [List
-  architecture docs or key files to read first] - Target Submodule: [예: DeukUI | DeukPack
-  | DeukNavigation]'
+summary: "Target: [Fill in the target module/submodule path] - Context Files:
+  [List architecture docs or key files to read first] - Target Submodule: [예:
+  DeukUI | DeukPack | DeukNavigation]"
 tags: rag, mcp, tickets, architecture, performance
 title: rebranding-deukrag-to-deuk-agent-context
 ---
+
 
 # [실행] 작업: rebranding-deukrag-to-deuk-agent-context | ID: 069-rebranding-deukrag-to-deuk-agent-joy-nucb
 

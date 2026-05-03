@@ -13,7 +13,6 @@ tags:
   - apc
   - cli
 createdAt: 2026-04-30 20:57:02
-planLink: .deuk-agent/docs/plans/121-ticket-template-apc-section-form-joy-nucb-plan.md
 ---
 
 

@@ -1,15 +1,16 @@
 ---
 createdAt: 2026-04-22 02:02:57
 id: 049-workspace-wide-agent-link-joy-nucb
-planLink: .deuk-agent/docs/plans/049-workspace-wide-agent-link-joy-nucb-plan.md
 priority: P0
 project: DeukAgentRules
 status: closed
-summary: 'Target Submodule: [e.g., DeukUI | DeukPack | DeukNavigation] - [e.g., DeukAgentRules/templates/MODULERULETEMPLATE.md]
-  - [e.g., path/to/your/specific/rules.md]'
+summary: "Target Submodule: [e.g., DeukUI | DeukPack | DeukNavigation] - [e.g.,
+  DeukAgentRules/templates/MODULERULETEMPLATE.md] - [e.g.,
+  path/to/your/specific/rules.md]"
 tags: rag, mcp, tickets, performance, testing
 title: 049-workspace-wide-agent-link
 ---
+
 
 # [Execution] Task: 049-workspace-wide-agent-link | ID: 049-workspace-wide-agent-link-joy-nucb
 

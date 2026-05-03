@@ -10,7 +10,6 @@ tags:
   - ticket
   - archive
 createdAt: 2026-05-01 21:30:46
-planLink: .deuk-agent/docs/plans/157-ticket-repository-open-limit-joy-nucb-plan.md
 ---
 
 

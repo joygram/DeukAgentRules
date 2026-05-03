@@ -12,7 +12,6 @@ tags:
   - rag-quality
   - token-kpi
 createdAt: 2026-05-02 06:19:36
-planLink: .deuk-agent/docs/plans/172-agent-context-token-kpi-evaluati-joy-nucb-plan.md
 ---
 
 

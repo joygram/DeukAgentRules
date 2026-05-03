@@ -8,7 +8,6 @@ summary: Codex 출력 토큰 소비를 줄이고 다음 티켓 탐색을 CLI 원
 priority: P2
 tags: []
 createdAt: 2026-05-03 06:08:44
-planLink: .deuk-agent/docs/plan/205-codex-token-output-and-ticket-fa-joy-nucb-plan.md
 ---
 
 

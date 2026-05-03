@@ -1,15 +1,16 @@
 ---
 createdAt: 2026-04-22 01:42:03
 id: 048-dual-mode-and-workflow-joy-nucb
-planLink: .deuk-agent/docs/plans/048-dual-mode-and-workflow-joy-nucb-plan.md
 priority: P0
 project: DeukAgentRules
 status: closed
-summary: 'Target Submodule: [e.g., DeukUI | DeukPack | DeukNavigation] - [e.g., DeukAgentRules/templates/MODULERULETEMPLATE.md]
-  - [e.g., path/to/your/specific/rules.md]'
+summary: "Target Submodule: [e.g., DeukUI | DeukPack | DeukNavigation] - [e.g.,
+  DeukAgentRules/templates/MODULERULETEMPLATE.md] - [e.g.,
+  path/to/your/specific/rules.md]"
 tags: rag, mcp, tickets, performance, testing
 title: 048-dual-mode-and-workflow
 ---
+
 
 # [Execution] Task: 048-dual-mode-and-workflow | ID: 048-dual-mode-and-workflow-joy-nucb
 

@@ -13,7 +13,6 @@ tags:
   - ticket
   - planlink
 createdAt: 2026-05-01 13:14:10
-planLink: .deuk-agent/docs/plans/148-ticket-plan-non-duplication-joy-nucb-plan.md
 ---
 
 

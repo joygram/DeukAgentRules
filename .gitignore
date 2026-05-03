@@ -2,3 +2,6 @@ bundle/
 node_modules/
 
 
+
+# deuk-agent-rule: agent hub directory (local, not committed by default)
+.deuk-agent/

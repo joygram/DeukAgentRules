@@ -1,14 +1,14 @@
 ---
 id: 098-fix-ticket-workflow-integrity-joy-nucb
-planLink: .deuk-agent/docs/plans/098-fix-ticket-workflow-integrity-joy-nucb-plan.md
 priority: P2
 status: open
-summary: 'Target: [Fill in the target module/submodule path] - Context Files: [List
-  architecture docs or key files to read first] 심층분석 결과, 티켓 시스템의 핵심인 상태 관리와 인덱스 무결성
-  보장 로직이 결여되어 있음.'
+summary: "Target: [Fill in the target module/submodule path] - Context Files:
+  [List architecture docs or key files to read first] 심층분석 결과, 티켓 시스템의 핵심인 상태
+  관리와 인덱스 무결성 보장 로직이 결여되어 있음."
 tags: rag, frontmatter, protocol, tickets, architecture
 title: fix-ticket-workflow-integrity
 ---
+
 
 # fix-ticket-workflow-integrity
 

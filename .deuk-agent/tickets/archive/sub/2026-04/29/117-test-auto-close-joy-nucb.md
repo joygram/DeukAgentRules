@@ -3,13 +3,13 @@ createdAt: 2026-04-29 19:18:29
 docsLanguage: ko
 id: 117-test-auto-close-joy-nucb
 phase: 1
-planLink: .deuk-agent/docs/plans/117-test-auto-close-joy-nucb-plan.md
 priority: P2
 status: closed
 summary: 미작성 티켓 — 실질적 내용 없음. 좀비/placeholder 티켓으로 분류.
 tags: architecture, testing
 title: test-auto-close
 ---
+
 
 # test-auto-close
 

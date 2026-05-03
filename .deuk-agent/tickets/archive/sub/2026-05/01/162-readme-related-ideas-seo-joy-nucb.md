@@ -11,7 +11,6 @@ tags:
   - seo
   - growth
 createdAt: 2026-05-01 22:01:27
-planLink: .deuk-agent/docs/plans/162-readme-related-ideas-seo-joy-nucb-plan.md
 ---
 
 

@@ -12,7 +12,6 @@ tags:
   - verification
   - report
 createdAt: 2026-05-01 14:56:13
-planLink: .deuk-agent/docs/plans/154-deukpack-bmt-run-and-report-joy-nucb-plan.md
 ---
 
 

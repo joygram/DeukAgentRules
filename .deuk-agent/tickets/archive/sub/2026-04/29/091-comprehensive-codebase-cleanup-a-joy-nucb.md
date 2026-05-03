@@ -1,12 +1,12 @@
 ---
 id: 091-comprehensive-codebase-cleanup-a-joy-nucb
-planLink: .deuk-agent/docs/plans/091-comprehensive-codebase-cleanup-a-joy-nucb-plan.md
 priority: P3
 status: open
 summary: 미작성 티켓 — 실질적 내용 없음. 좀비/placeholder 티켓으로 분류.
 tags: architecture, testing
 title: comprehensive-codebase-cleanup-and-testing
 ---
+
 
 # comprehensive-codebase-cleanup-and-testing
 

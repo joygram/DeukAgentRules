@@ -1,15 +1,16 @@
 ---
 createdAt: 2026-04-22 00:29:03
 id: 045-frontmatter-rule-assembly-joy-nucb
-planLink: .deuk-agent/docs/plans/045-frontmatter-rule-assembly-joy-nucb-plan.md
 priority: P3
 project: DeukAgentRules
 status: closed
-summary: 'Target Submodule: [e.g., DeukUI | DeukPack | DeukNavigation] - [e.g., DeukAgentRules/templates/MODULERULETEMPLATE.md]
-  - [e.g., path/to/your/specific/rules.md]'
+summary: "Target Submodule: [e.g., DeukUI | DeukPack | DeukNavigation] - [e.g.,
+  DeukAgentRules/templates/MODULERULETEMPLATE.md] - [e.g.,
+  path/to/your/specific/rules.md]"
 tags: rag, frontmatter, mcp, tickets, architecture
 title: 045-frontmatter-rule-assembly
 ---
+
 
 # [Execution] Task: 045-frontmatter-rule-assembly | ID: 045-frontmatter-rule-assembly-joy-nucb
 

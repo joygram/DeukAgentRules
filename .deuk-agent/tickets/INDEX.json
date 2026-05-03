@@ -1,6 +1,7 @@
 {
   "version": 1,
   "updatedAt": "2026-05-03T06:11:31.914Z",
+  "activeTicketId": "205-codex-token-output-and-ticket-fa-joy-nucb",
   "entries": [
     {
       "id": "205-codex-token-output-and-ticket-fa-joy-nucb",
@@ -26,6 +27,5 @@
       "source": "ticket-sync",
       "status": "active"
     }
-  ],
-  "activeTicketId": "205-codex-token-output-and-ticket-fa-joy-nucb"
+  ]
 }

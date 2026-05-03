@@ -1,12 +1,12 @@
 ---
 id: 093-comprehensive-audit-and-refactor-joy-nucb
-planLink: .deuk-agent/docs/plans/093-comprehensive-audit-and-refactor-joy-nucb-plan.md
 priority: P2
 status: open
 summary: 미작성 티켓 — 실질적 내용 없음. 좀비/placeholder 티켓으로 분류.
 tags: architecture
 title: comprehensive-audit-and-refactoring
 ---
+
 
 # comprehensive-audit-and-refactoring
 

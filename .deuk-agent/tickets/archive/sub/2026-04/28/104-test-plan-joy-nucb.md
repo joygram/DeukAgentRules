@@ -2,14 +2,15 @@
 createdAt: 2026-04-28 20:30:43
 docsLanguage: ko
 id: 104-test-plan-joy-nucb
-planLink: .deuk-agent/docs/plans/104-test-plan-joy-nucb-plan.md
 priority: P2
 status: closed
-summary: 'Target: [Fill in the target module/submodule path] - Context Files: [List
-  architecture docs or key files to read first] 이전 세션 이후 프레임워크 전반에 걸친 대규모 리팩토링이 수행되었습니다.'
+summary: "Target: [Fill in the target module/submodule path] - Context Files:
+  [List architecture docs or key files to read first] 이전 세션 이후 프레임워크 전반에 걸친 대규모
+  리팩토링이 수행되었습니다."
 tags: tickets, architecture, testing
 title: Test Plan
 ---
+
 
 # Plan-to-Ticket 구현 계획 (v2 아키텍처 반영)
 

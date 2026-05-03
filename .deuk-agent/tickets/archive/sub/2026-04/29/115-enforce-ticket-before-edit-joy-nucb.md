@@ -3,13 +3,13 @@ createdAt: 2026-04-29 19:14:27
 docsLanguage: ko
 id: 115-enforce-ticket-before-edit-joy-nucb
 phase: 1
-planLink: .deuk-agent/docs/plans/115-enforce-ticket-before-edit-joy-nucb-plan.md
 priority: P2
 status: closed
 summary: 미작성 티켓 — 실질적 내용 없음. 좀비/placeholder 티켓으로 분류.
 tags: tickets, architecture, testing
 title: enforce-ticket-before-edit
 ---
+
 
 # enforce-ticket-before-edit
 

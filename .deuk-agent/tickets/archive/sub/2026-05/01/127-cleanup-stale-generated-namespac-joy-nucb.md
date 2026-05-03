@@ -12,7 +12,6 @@ tags:
   - namespace
   - cleanup
 createdAt: 2026-05-01 01:46:01
-planLink: .deuk-agent/docs/plans/127-cleanup-stale-generated-namespac-joy-nucb-plan.md
 ---
 
 

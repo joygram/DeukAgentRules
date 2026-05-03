@@ -12,7 +12,6 @@ tags:
   - usage
   - proof
 createdAt: 2026-05-02 09:28:38
-planLink: .deuk-agent/docs/plans/175-rag-usage-verification-joy-nucb-plan.md
 ---
 
 

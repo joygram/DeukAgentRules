@@ -1,14 +1,15 @@
 ---
 createdAt: 2026-04-23 22:55:29
 id: 061-codex-copilot-first-class-suppor-joy-nucb
-planLink: .deuk-agent/docs/plans/061-codex-copilot-first-class-suppor-joy-nucb-plan.md
 priority: P2
 project: DeukAgentRules
 status: open
-summary: 'Target Submodule: DeukAgentRules - scripts/cli-utils.mjs - scripts/cli-init-commands.mjs'
+summary: "Target Submodule: DeukAgentRules - scripts/cli-utils.mjs -
+  scripts/cli-init-commands.mjs"
 tags: rag, mcp, tickets, testing
 title: codex-copilot-first-class-support
 ---
+
 
 # [Execution] Task: codex-copilot-first-class-support | ID: 061-codex-copilot-first-class-suppor-joy-nucb
 

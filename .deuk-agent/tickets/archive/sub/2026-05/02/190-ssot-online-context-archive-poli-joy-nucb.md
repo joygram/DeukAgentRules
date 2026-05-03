@@ -8,7 +8,6 @@ summary: SSOT는 로컬 규칙의 단일 진실, context는 온라인 RAG 보조
 priority: P2
 tags: []
 createdAt: 2026-05-02 21:32:07
-planLink: .deuk-agent/docs/plans/190-ssot-online-context-archive-poli-joy-nucb-plan.md
 ---
 
 

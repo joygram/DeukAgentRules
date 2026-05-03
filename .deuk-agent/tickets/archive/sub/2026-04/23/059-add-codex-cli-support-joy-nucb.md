@@ -1,15 +1,16 @@
 ---
 createdAt: 2026-04-23 00:22:02
 id: 059-add-codex-cli-support-joy-nucb
-planLink: .deuk-agent/docs/plans/059-add-codex-cli-support-joy-nucb-plan.md
 prevTicket: 058-second-chain-link-joy-nucb
 priority: P0
 status: open
-summary: 'Target Submodule: [e.g., DeukUI | DeukPack | DeukNavigation] - [e.g., DeukAgentRules/templates/MODULERULETEMPLATE.md]
-  - [e.g., path/to/your/specific/rules.md]'
+summary: "Target Submodule: [e.g., DeukUI | DeukPack | DeukNavigation] - [e.g.,
+  DeukAgentRules/templates/MODULERULETEMPLATE.md] - [e.g.,
+  path/to/your/specific/rules.md]"
 tags: rag, mcp, tickets, performance, testing
 title: add-codex-cli-support
 ---
+
 
 # [Execution] Task: add-codex-cli-support | ID: 059-add-codex-cli-support-joy-nucb
 

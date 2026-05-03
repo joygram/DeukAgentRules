@@ -7,7 +7,6 @@ docsLanguage: ko
 parentTicket: 135-deukpack-bmt-missing-tests-joy-nucb
 summary: DeukPack 135 누락 테스트 보강 본 작업(총괄 조정)
 createdAt: 2026-05-01 06:17:29
-planLink: .deuk-agent/docs/plans/142-deukpack-135-joy-nucb-plan.md
 priority: high
 tags:
   - deukpack

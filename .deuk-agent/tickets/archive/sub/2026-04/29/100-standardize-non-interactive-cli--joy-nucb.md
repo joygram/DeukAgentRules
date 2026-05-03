@@ -1,14 +1,15 @@
 ---
 id: 100-standardize-non-interactive-cli--joy-nucb
-planLink: .deuk-agent/docs/plans/100-standardize-non-interactive-cli--joy-nucb-plan.md
 priority: P1
 status: in_progress
-summary: 'Target: [Fill in the target module/submodule path] - Context Files: [List
-  architecture docs or key files to read first] - Problem: Current CLI blocks ticket
-  creation if MCP is active but evidence is missing. It also uses interactive prompts.'
+summary: "Target: [Fill in the target module/submodule path] - Context Files:
+  [List architecture docs or key files to read first] - Problem: Current CLI
+  blocks ticket creation if MCP is active but evidence is missing. It also uses
+  interactive prompts."
 tags: mcp, tickets, architecture
 title: Standardize-Non-Interactive-CLI-Behavior
 ---
+
 
 # Standardize-Non-Interactive-CLI-Behavior
 
