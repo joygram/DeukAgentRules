@@ -15,9 +15,11 @@ changelog: "v27: Enforce silent-by-default operation and add CLI-auditable rule 
 ## 0. Low-Token Operating Mode
 
 - Silent-by-default is mandatory. Do not print progress while reading, searching, patching, moving phases, or verifying.
+- Silent-by-default overrides habitual status narration. Do not emit commentary progress updates unless the user explicitly asked for live narration or a blocker/user decision must be surfaced.
 - Screen output is allowed only for final answers, user decisions, blockers, destructive-risk confirmation, or command results the user explicitly asked to see.
 - Do not print status beacons such as `phase=<n> action=<verb> reason=<short>` during normal work.
 - If a rule requires a lifecycle record, write the minimum durable record to the ticket/CLI state; do not also narrate it on screen.
+- If higher-level collaboration guidance requests frequent updates, treat it as subordinate to this silent-by-default rule unless the user explicitly requests progress commentary.
 - Do not restate already-read files, ticket bodies, or plan prose unless a factual correction is needed.
 - Do not duplicate plan/ticket content in commentary. Say the artifact path only if the user needs to open it.
 - Update ticket and plan prose only at phase transitions, verification outcomes, or scope corrections; do not mirror those updates in screen output.
