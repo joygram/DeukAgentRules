@@ -1,8 +1,10 @@
 import { existsSync, readdirSync, readFileSync, statSync, mkdirSync, writeFileSync } from "fs";
 import { basename, dirname, join } from "path";
+import YAML from "yaml";
 import {
   AGENT_ROOT_DIR, TICKET_SUBDIR, TICKET_INDEX_FILENAME, TICKET_LIST_FILENAME, TICKET_LIST_TEMPLATE_FILENAME,
   toPosixPath, toRepoRelativePath, makeEntryId, detectProjectFromBody, deriveTopicFromBaseName, normalizeTicketGroup,
+  computeTicketPath,
   parseFrontMatter, stringifyFrontMatter, discoverAllWorkspaces, detectConsumerTicketDir,
   ARCHIVE_YEAR_MONTH_RE, ARCHIVE_DAY_RE
 } from "./cli-utils.mjs";
@@ -155,12 +157,23 @@ export function renderTicketListMarkdown(cwd, entries) {
 
   const ticketDir = detectConsumerTicketDir(cwd, { createIfMissing: true });
   const template = readFileSync(resolveTicketListTemplatePath(cwd), "utf8");
+  const generatedAt = new Date().toISOString().replace("T", " ").split(".")[0];
+  const frontmatter = YAML.stringify({
+    summary: "ticket list index",
+    status: "open",
+    priority: "P3",
+    tags: ["migrated", "index"],
+    id: "TICKET_LIST",
+    title: "Ticket List",
+    createdAt: generatedAt
+  }).trim();
 
   const sourceIndex = `${toRepoRelativePath(cwd, ticketDir)}/${TICKET_INDEX_FILENAME}`;
   
   let latestContext = null;
+  let latestLine = "- No active ticket entries yet.";
   if (latest) {
-    const absPath = join(cwd, latest.path);
+    const absPath = join(cwd, latest.path || computeTicketPath(latest));
     latestContext = {
       safeTitle: String(latest.title || "").replace(/\[|\]/g, '').replace(/\n/g, ' '),
       fileUri: `file://${toPosixPath(absPath)}`,
@@ -168,14 +181,17 @@ export function renderTicketListMarkdown(cwd, entries) {
       group: latest.group,
       project: latest.project
     };
+    latestLine = `- [${latestContext.safeTitle}](${latestContext.fileUri})\n- status: \`${latestContext.status}\` / group: \`${latestContext.group}\` / project: \`${latestContext.project}\``;
   }
 
   const activeRows = sorted.filter(e => e.status !== "archived").map((e, i) => renderLine(e, i, ticketDir, cwd));
   const archivedRows = sorted.filter(e => e.status === "archived").slice(0, 50).map((e, i) => renderLine(e, i, ticketDir, cwd));
 
   return ejs.render(template, {
+    frontmatter,
     sourceIndex,
     latest: latestContext,
+    latestLine,
     activeRows,
     archivedRows,
     cmdList: "npx deuk-agent-rule ticket list",
@@ -184,7 +200,7 @@ export function renderTicketListMarkdown(cwd, entries) {
 }
 
 function renderLine(e, i, ticketDir, cwd) {
-  const absPath = join(cwd, e.path);
+  const absPath = join(cwd, e.path || computeTicketPath(e));
   const fileUri = `file://${toPosixPath(absPath)}`;
   const statusIcon = e.status === "active" ? "🔥 " : (e.status === "archived" ? "📦 " : "[ ] ");
   const safeTitle = String(e.title || "").replace(/\|/g, '&#124;').replace(/(\n|\\n)+/g, ' ');

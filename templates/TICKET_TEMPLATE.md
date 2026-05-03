@@ -30,10 +30,10 @@
 
 ## Compact Plan
 
-- **Problem:** [Fill only the stable problem statement.]
+- **Problem:** [Fill only the stable problem statement for the main ticket.]
 - **Approach:** [Fill the selected strategy. Keep alternatives out unless they affect risk.]
 - **Verification:** [Fill the smallest relevant commands/checks.]
-- **Linked Issues:** Use CLI relationship commands for related issues; do not paste child-ticket bodies here.
+- **Ticket Numbering:** infer the master/sub ticket from the numbered ticket ID; do not add inline child-ticket links.
 
 ## Tasks
 

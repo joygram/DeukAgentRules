@@ -6,6 +6,7 @@ import { tmpdir } from "node:os";
 import { join } from "node:path";
 import { pickTicketEntry, runTicketArchive, runTicketCreate, runTicketClose, runTicketMove, runTicketNext, runTicketStatus, runTicketUse, runTicketHandoff } from "../cli-ticket-commands.mjs";
 import { readTicketIndexJson } from "../cli-ticket-index.mjs";
+import { lintMarkdownPaths } from "../lint-md.mjs";
 import { TICKET_INDEX_FILENAME } from "../cli-utils.mjs";
 
 function makeIndex(entries) {
@@ -1325,7 +1326,7 @@ test("runTicketStatus compact mode emits one-line phase summary", async () => {
     "- **Problem:** compact status needs one-line output",
     "- **Approach:** keep status output terse",
     "- **Verification:** run compact status command",
-    "- **Linked Issues:** none",
+    "- **Ticket Numbering:** infer the master/sub ticket from the numbered ticket ID; do not add inline child-ticket links.",
     ""
   ].join("\n"), "utf8");
   writeFileSync(join(cwd, ".deuk-agent", "docs", "plan", "001-compact-status-host-plan.md"), [
@@ -1716,7 +1717,7 @@ test("runTicketCreate generates main-ticket compact plan by default", async () =
     assert.doesNotMatch(ticketText, /PlanLink:/);
     assert.doesNotMatch(ticketText, /Read relevant architecture and target module files/);
     assert.match(ticketText, /## Compact Plan/);
-    assert.match(ticketText, /Linked Issues/);
+    assert.match(ticketText, /Ticket Numbering/);
     assert.match(ticketText, new RegExp(summary));
 
     const planDir = join(cwd, ".deuk-agent", "docs", "plan");
@@ -1724,6 +1725,41 @@ test("runTicketCreate generates main-ticket compact plan by default", async () =
       ? readdirSync(planDir).filter(name => name.endsWith(".md"))
       : [];
     assert.strictEqual(planFiles.length, 0);
+  } finally {
+    console.log = originalLog;
+    console.warn = originalWarn;
+    rmSync(cwd, { recursive: true, force: true });
+  }
+});
+
+test("runTicketCreate renders ticket list with required frontmatter", async () => {
+  const cwd = mkdtempSync(join(tmpdir(), "deuk-ticket-list-frontmatter-"));
+  const originalLog = console.log;
+  const originalWarn = console.warn;
+  console.log = () => {};
+  console.warn = () => {};
+
+  try {
+    await runTicketCreate({
+      cwd,
+      topic: "ticket-list-frontmatter",
+      summary: "render the ticket list index with valid frontmatter",
+      nonInteractive: true,
+      docsLanguage: "en",
+      skipPhase0: true,
+      render: true
+    });
+
+    const ticketListPath = join(cwd, ".deuk-agent", "tickets", "TICKET_LIST.md");
+    const ticketListText = readFileSync(ticketListPath, "utf8");
+    assert.match(ticketListText, /^---\n/);
+    assert.match(ticketListText, /summary:\s*ticket list index/);
+    assert.match(ticketListText, /status:\s*open/);
+    assert.match(ticketListText, /priority:\s*P3/);
+    assert.match(ticketListText, /tags:/);
+
+    const lint = lintMarkdownPaths([ticketListPath], cwd);
+    assert.deepStrictEqual(lint.errors, []);
   } finally {
     console.log = originalLog;
     console.warn = originalWarn;

@@ -1,15 +1,13 @@
+---
+<%- frontmatter %>
+---
 # Ticket List
 
 > Source index: `<%= sourceIndex %>`
 
 ## Latest
 
-<% if (latest) { %>
-- [<%= latest.safeTitle %>](<%= latest.fileUri %>)
-- status: `<%= latest.status %>` / group: `<%= latest.group %>` / project: `<%= latest.project %>`
-<% } else { %>
-- No active ticket entries yet.
-<% } %>
+<%- latestLine %>
 
 ## Entries
 
