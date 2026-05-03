@@ -62,7 +62,14 @@ GOOD:
 | Archived docs | `.deuk-agent/docs/archive/<YYYY-MM>/<...>.md` |
 ```
 
-### 5. No Ambiguity Words
+### 5. Why `docs/plan` Is Required
+
+- It is the deterministic active-document root for CLI workflows (`init`, `ticket`, tests).
+- It separates active plans/reports from historical docs.
+- It prevents mixed-state writes that break rollback and archive rotation.
+- It makes cleanup rules (monthly archive migration) predictable and automated.
+
+### 6. No Ambiguity Words
 
 Avoid: "such as", "etc.", "things like", "generally", "might", "should consider".
 Use: exact file paths, exact conditions, exact actions.
@@ -72,7 +79,7 @@ BAD:  "Generated directories like dist/, gen/, etc."
 GOOD: "Files in dist/ Generated/ gen/ deukpack_out/ = always generated."
 ```
 
-### 6. Required Fields = CLI Enforcement
+### 7. Required Fields = CLI Enforcement
 
 Rules that say "MUST include X" are meaningless without enforcement.
 Back every required field with a CLI-level validation that **blocks execution** on violation:
