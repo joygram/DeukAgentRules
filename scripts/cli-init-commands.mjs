@@ -869,6 +869,9 @@ function mergeSeparatedDocsIntoTickets(cwd, dryRun) {
   let merged = 0;
   let created = 0;
   for (const docAbs of collectFilesRecursively(docsRoot)) {
+    const body = buildLegacyDocBody(docAbs).trim();
+    if (!body) continue;
+
     const id = docTicketIdFromFile(docAbs);
     let ticketAbs = null;
     if (id && ticketsById.has(id)) {

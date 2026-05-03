@@ -1,6 +1,6 @@
 {
   "version": 1,
-  "updatedAt": "2026-05-03T08:11:02.432Z",
+  "updatedAt": "2026-05-03T08:17:42.591Z",
   "activeTicketId": null,
   "entries": [
     {
@@ -11,11 +11,12 @@
       "project": "global",
       "createdAt": "2026-05-03T08:10:13.539Z",
       "source": "ticket-create",
-      "status": "closed",
+      "status": "archived",
       "phase": 4,
-      "updatedAt": "2026-05-03T08:11:02.414Z",
+      "updatedAt": "2026-05-03T08:16:22.053Z",
       "archiveYearMonth": "2026-05",
-      "archiveDay": "03"
+      "archiveDay": "03",
+      "fileName": "212-clickable-next-ticket-link-joy-nucb.md"
     },
     {
       "id": "211-ticket-start-announcement-rule-joy-nucb",

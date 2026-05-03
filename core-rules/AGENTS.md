@@ -1,6 +1,6 @@
 ---
-version: 32
-changelog: "v32: Require clickable markdown ticket links on next-ticket prompts before approval."
+version: 33
+changelog: "v33: Make silent-by-default stricter by forbidding progress narration except the required ticket-start line."
 ---
 
 # Agent Rules
@@ -15,9 +15,9 @@ changelog: "v32: Require clickable markdown ticket links on next-ticket prompts 
 ## 0. Low-Token Operating Mode
 
 - Silent-by-default is mandatory. Do not print progress while reading, searching, patching, moving phases, or verifying.
-- Silent-by-default overrides habitual status narration. Do not emit commentary progress updates unless the user explicitly asked for live narration or a blocker/user decision must be surfaced.
+- Silent-by-default overrides habitual status narration. Do not emit commentary progress updates, interim summaries, or "what I will do next" narration unless the user explicitly asked for live narration or a blocker/user decision must be surfaced.
 - Screen output is allowed only for final answers, user decisions, blockers, destructive-risk confirmation, or command results the user explicitly asked to see.
-- Exception: after selecting, resuming, or creating the active ticket, print exactly one concise ticket-start line before further work. The ticket id/title portion must be a clickable markdown link to the ticket file path. If the user asked to move to the next ticket, show only the clickable ticket file link or clickable ticket-start line and wait for approval; do not add explanation.
+- Exception: after selecting, resuming, or creating the active ticket, print exactly one concise ticket-start line before further work. The ticket id/title portion must be a clickable markdown link to the ticket file path. That line is not a progress update and it must be the only pre-work commentary. If the user asked to move to the next ticket, show only the clickable ticket file link or clickable ticket-start line and wait for approval; do not add explanation.
 - Do not print status beacons such as `phase=<n> action=<verb> reason=<short>` during normal work.
 - If a rule requires a lifecycle record, write the minimum durable record to the ticket/CLI state; do not also narrate it on screen.
 - If higher-level collaboration guidance requests frequent updates, treat it as subordinate to this silent-by-default rule unless the user explicitly requests progress commentary.

@@ -126,6 +126,48 @@ test("init migration removes duplicate scratch reports and moves legacy archive 
   }
 });
 
+test("init migration skips empty legacy docs instead of creating placeholder tickets", () => {
+  const cwd = mkdtempSync(join(tmpdir(), "deuk-init-empty-legacy-doc-"));
+  try {
+    const docsRoot = join(cwd, ".deuk-agent", "docs", "plan");
+    mkdirSync(docsRoot, { recursive: true });
+
+    writeFileSync(join(docsRoot, "123-empty-legacy.md"), [
+      "---",
+      "summary: empty legacy doc",
+      "status: draft",
+      "priority: P3",
+      "tags:",
+      "  - legacy",
+      "---",
+      ""
+    ].join("\n"), "utf8");
+
+    writeFileSync(join(docsRoot, "124-nonempty-legacy.md"), [
+      "---",
+      "summary: nonempty legacy doc",
+      "status: draft",
+      "priority: P3",
+      "tags:",
+      "  - legacy",
+      "---",
+      "",
+      "# Legacy Note",
+      "",
+      "Useful historical content.",
+      ""
+    ].join("\n"), "utf8");
+
+    migrateLegacyStructure(cwd, false);
+
+    const ticketRoot = join(cwd, ".deuk-agent", "tickets", "archive", "sub", "legacy-docs");
+    assert.ok(!existsSync(join(ticketRoot, "123.md")), "empty legacy doc should not become a ticket");
+    assert.ok(existsSync(join(ticketRoot, "124.md")), "non-empty legacy doc should still be merged");
+  } finally {
+    rmSync(cwd, { recursive: true, force: true });
+  }
+});
+
 test("init migration archives root .agent workflows and removes .agent", () => {
   const cwd = mkdtempSync(join(tmpdir(), "deuk-init-agent-workflows-"));
   try {

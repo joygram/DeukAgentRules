@@ -36,6 +36,7 @@ architecture_docs: "docs/architecture.md"
 |-------|------|
 | DC-LEGACY | No v1/v2 HTML markers (`<!-- deuk-agent-rule:begin -->`). Templates use copy-only distribution. |
 | DC-OSS | `scripts/sync-oss.mjs` controls public distribution. `.internal.` files and `ticket/` dir are auto-excluded. |
+| DC-SILENT-OUTPUT | While working, do not emit progress commentary or interim summaries; only the required ticket-start line, blockers, user decisions, and final answers are allowed. |
 
 ## Workflow Boundary
 
