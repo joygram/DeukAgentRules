@@ -169,7 +169,24 @@ function classifyDocTarget(cwd, sourceAbs, fallbackDir = "plan") {
 function isDistilledKnowledgeJson(sourceAbs) {
   try {
     const data = JSON.parse(safeReadText(sourceAbs));
-    return Boolean(
+    const hasModernMetadata = Boolean(
+      data
+      && typeof data === "object"
+      && typeof data.id === "string"
+      && typeof data.summary === "string"
+      && data.sourceKind === "ticket"
+      && data.ingestionCategory === "archived_ticket"
+      && data.corpus === "tickets"
+      && data.originTool === "ticket-archive"
+      && data.freshness === "archived"
+      && data.refreshPolicy === "refresh-on-stale"
+      && typeof data.sourceTicketPath === "string"
+      && data.sections
+      && typeof data.sections === "object"
+      && data.analysis
+      && typeof data.analysis === "object"
+    );
+    const hasLegacyKnowledgeShape = Boolean(
       data
       && typeof data === "object"
       && typeof data.id === "string"
@@ -180,6 +197,7 @@ function isDistilledKnowledgeJson(sourceAbs) {
       && data.analysis
       && typeof data.analysis === "object"
     );
+    return hasModernMetadata || hasLegacyKnowledgeShape;
   } catch {
     return false;
   }

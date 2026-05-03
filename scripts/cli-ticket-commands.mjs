@@ -1217,6 +1217,12 @@ function distillKnowledge(absPath, ticketId, cwd, sourceBody = null) {
       createdAt: meta.createdAt,
       archivedAt: new Date().toISOString(),
       summary: meta.summary || "",
+      sourceKind: "ticket",
+      ingestionCategory: "archived_ticket",
+      corpus: "tickets",
+      originTool: "ticket-archive",
+      freshness: "archived",
+      refreshPolicy: "refresh-on-stale",
       sourceTicketPath: toRepoRelativePath(cwd, absPath),
       sections: ticketSections,
       analysis: {}
@@ -1230,6 +1236,11 @@ function distillKnowledge(absPath, ticketId, cwd, sourceBody = null) {
       ticket: ticketId,
       file: toRepoRelativePath(cwd, absPath),
       knowledgeAction: "add_knowledge",
+      knowledgeSourceKind: data.sourceKind,
+      knowledgeIngestionCategory: data.ingestionCategory,
+      knowledgeCorpus: data.corpus,
+      knowledgeOriginTool: data.originTool,
+      knowledgeFreshness: data.freshness,
       tokenQuality: "saved"
     });
   } catch (err) {
@@ -1249,6 +1260,11 @@ function appendTelemetryEvent(cwd, entry) {
       ragResult: entry.ragResult || "",
       localFallback: Boolean(entry.localFallback),
       knowledgeAction: entry.knowledgeAction || "",
+      knowledgeSourceKind: entry.knowledgeSourceKind || "",
+      knowledgeIngestionCategory: entry.knowledgeIngestionCategory || "",
+      knowledgeCorpus: entry.knowledgeCorpus || "",
+      knowledgeOriginTool: entry.knowledgeOriginTool || "",
+      knowledgeFreshness: entry.knowledgeFreshness || "",
       tokenQuality: entry.tokenQuality || "",
       savedTokens: Number(entry.savedTokens || 0)
     });

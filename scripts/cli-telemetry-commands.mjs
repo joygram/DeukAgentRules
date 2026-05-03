@@ -155,6 +155,10 @@ async function summaryAction(opts) {
   const byRagResult = countBy(workLogs, "ragResult");
   const byTokenQuality = countBy(workLogs, "tokenQuality");
   const byKnowledgeAction = countBy(workLogs, "knowledgeAction");
+  const byKnowledgeSourceKind = countBy(workflowEvents, "knowledgeSourceKind");
+  const byKnowledgeIngestionCategory = countBy(workflowEvents, "knowledgeIngestionCategory");
+  const byKnowledgeCorpus = countBy(workflowEvents, "knowledgeCorpus");
+  const byKnowledgeOriginTool = countBy(workflowEvents, "knowledgeOriginTool");
   const localFallbackCount = workLogs.filter(l => l.localFallback).length;
   const ragCalls = Object.values(byRagResult).reduce((sum, n) => sum + n, 0);
   const ragHits = (byRagResult.hit || 0) + (byRagResult["weak-hit"] || 0);
@@ -185,6 +189,10 @@ async function summaryAction(opts) {
       byRagResult,
       byTokenQuality,
       byKnowledgeAction,
+      byKnowledgeSourceKind,
+      byKnowledgeIngestionCategory,
+      byKnowledgeCorpus,
+      byKnowledgeOriginTool,
       workflowEvents: workflowSummary
     }, null, 2));
     return;
@@ -217,6 +225,10 @@ async function summaryAction(opts) {
   printCounts("By RAG Result", byRagResult);
   printCounts("By Token Quality", byTokenQuality);
   printCounts("By Knowledge Action", byKnowledgeAction);
+  printCounts("By Knowledge Source Kind", byKnowledgeSourceKind);
+  printCounts("By Knowledge Ingestion Category", byKnowledgeIngestionCategory);
+  printCounts("By Knowledge Corpus", byKnowledgeCorpus);
+  printCounts("By Knowledge Origin Tool", byKnowledgeOriginTool);
   console.log(`Internal Workflow Events:`);
   console.log(`  - Events: ${workflowSummary.eventCount}`);
   console.log(`  - Tickets: ${workflowSummary.ticketCount}`);
@@ -271,6 +283,11 @@ export function appendTelemetryRecord(cwd, entry = {}) {
     ragResult: normalizeEnum(entry.ragResult, RAG_RESULTS),
     localFallback: Boolean(entry.localFallback),
     knowledgeAction: normalizeEnum(entry.knowledgeAction, KNOWLEDGE_ACTIONS) || "",
+    knowledgeSourceKind: normalizeText(entry.knowledgeSourceKind),
+    knowledgeIngestionCategory: normalizeText(entry.knowledgeIngestionCategory),
+    knowledgeCorpus: normalizeText(entry.knowledgeCorpus),
+    knowledgeOriginTool: normalizeText(entry.knowledgeOriginTool),
+    knowledgeFreshness: normalizeText(entry.knowledgeFreshness),
     tokenQuality: normalizeEnum(entry.tokenQuality, TOKEN_QUALITIES),
     savedTokens: Number(entry.savedTokens || 0),
     synced: false

@@ -644,6 +644,12 @@ test("runTicketArchive distills ticket body into knowledge json", async () => {
   assert.ok(existsSync(knowledgePath), "knowledge json should be written");
   const knowledge = JSON.parse(readFileSync(knowledgePath, "utf8"));
   assert.strictEqual(knowledge.summary, "archive knowledge test");
+  assert.strictEqual(knowledge.sourceKind, "ticket");
+  assert.strictEqual(knowledge.ingestionCategory, "archived_ticket");
+  assert.strictEqual(knowledge.corpus, "tickets");
+  assert.strictEqual(knowledge.originTool, "ticket-archive");
+  assert.strictEqual(knowledge.freshness, "archived");
+  assert.strictEqual(knowledge.refreshPolicy, "refresh-on-stale");
   assert.match(knowledge.sections["Scope & Constraints"], /Target: source module/);
   assert.match(knowledge.sections["Agent Permission Contract (APC)"], /Editable modules: source module/);
   assert.match(knowledge.sections["Compact Plan"], /archive knowledge test/);
@@ -662,6 +668,11 @@ test("runTicketArchive distills ticket body into knowledge json", async () => {
   assert.strictEqual(knowledgeTelemetry.action, "knowledge-distill");
   assert.strictEqual(knowledgeTelemetry.ticket, "006-default-host");
   assert.strictEqual(knowledgeTelemetry.knowledgeAction, "add_knowledge");
+  assert.strictEqual(knowledgeTelemetry.knowledgeSourceKind, "ticket");
+  assert.strictEqual(knowledgeTelemetry.knowledgeIngestionCategory, "archived_ticket");
+  assert.strictEqual(knowledgeTelemetry.knowledgeCorpus, "tickets");
+  assert.strictEqual(knowledgeTelemetry.knowledgeOriginTool, "ticket-archive");
+  assert.strictEqual(knowledgeTelemetry.knowledgeFreshness, "archived");
   assert.strictEqual(knowledgeTelemetry.tokenQuality, "saved");
   assert.strictEqual(archiveTelemetry.ticket, "006-default-host");
 

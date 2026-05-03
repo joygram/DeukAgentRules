@@ -293,7 +293,20 @@ test("init enforces canonical docs knowledge tickets layout", () => {
     writeFileSync(join(cwd, ".deuk-agent", "tmp-data", "distilled.json"), JSON.stringify({
       id: "distilled",
       summary: "distilled fact",
+      sourceKind: "ticket",
+      ingestionCategory: "archived_ticket",
+      corpus: "tickets",
+      originTool: "ticket-archive",
+      freshness: "archived",
+      refreshPolicy: "refresh-on-stale",
       sourceTicketPath: ".deuk-agent/tickets/sub/distilled.md",
+      sections: {},
+      analysis: {}
+    }, null, 2), "utf8");
+    writeFileSync(join(cwd, ".deuk-agent", "tmp-data", "legacy-distilled.json"), JSON.stringify({
+      id: "legacy-distilled",
+      summary: "legacy distilled fact",
+      sourceTicketPath: ".deuk-agent/tickets/sub/legacy-distilled.md",
       sections: {},
       analysis: {}
     }, null, 2), "utf8");
@@ -330,6 +343,7 @@ test("init enforces canonical docs knowledge tickets layout", () => {
     assert.ok(existsSync(join(cwd, ".deuk-agent", "docs", "plan", "misplaced-report.md")));
     assert.ok(existsSync(join(cwd, ".deuk-agent", "tickets", "archive", "sub", "2026-05", "01", "200-old.md")));
     assert.ok(existsSync(join(cwd, ".deuk-agent", "tickets", "sub", "201-open.md")));
+    assert.ok(existsSync(join(cwd, ".deuk-agent", "knowledge", "legacy-distilled.json")), "legacy distilled knowledge should remain knowledge");
     assert.ok(!existsSync(join(cwd, ".deuk-agent", "legacy")));
     assert.ok(!existsSync(join(cwd, ".deuk-agent", "notes")));
     assert.ok(!existsSync(join(cwd, ".deuk-agent", "tmp-data")));

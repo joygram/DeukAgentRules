@@ -244,3 +244,60 @@ test("telemetry migrate normalizes missing events in place", async () => {
     rmSync(cwd, { recursive: true, force: true });
   }
 });
+
+test("telemetry summary surfaces knowledge origin categories", async () => {
+  const cwd = mkdtempSync(join(tmpdir(), "deuk-telemetry-summary-knowledge-origin-"));
+  try {
+    const telemetryDir = join(cwd, ".deuk-agent");
+    mkdirSync(telemetryDir, { recursive: true });
+    writeFileSync(join(telemetryDir, "telemetry.jsonl"), [
+      JSON.stringify({
+        ts: 1,
+        occurredAt: "2026-05-03T00:00:00.000Z",
+        source: "internal",
+        kind: "workflow_event",
+        event: "knowledge_distilled",
+        tokens: 0,
+        tdw: 0,
+        model: "workflow",
+        client: "DeukAgentRules",
+        ticket: "a",
+        action: "knowledge-distill",
+        file: ".deuk-agent/tickets/sub/a.md",
+        synced: false,
+        knowledgeAction: "add_knowledge",
+        knowledgeSourceKind: "ticket",
+        knowledgeIngestionCategory: "archived_ticket",
+        knowledgeCorpus: "tickets",
+        knowledgeOriginTool: "ticket-archive",
+        knowledgeFreshness: "archived",
+        tokenQuality: "saved"
+      })
+    ].join("\n") + "\n", "utf8");
+
+    const originalArgv = process.argv;
+    const originalLog = console.log;
+    const lines = [];
+    process.argv = ["node", "test", "telemetry", "summary"];
+    console.log = (value) => lines.push(String(value));
+
+    try {
+      await runTelemetry({ cwd, json: false });
+    } finally {
+      process.argv = originalArgv;
+      console.log = originalLog;
+    }
+
+    const output = lines.join("\n");
+    assert.match(output, /By Knowledge Source Kind:/);
+    assert.match(output, /ticket: 1/);
+    assert.match(output, /By Knowledge Ingestion Category:/);
+    assert.match(output, /archived_ticket: 1/);
+    assert.match(output, /By Knowledge Corpus:/);
+    assert.match(output, /tickets: 1/);
+    assert.match(output, /By Knowledge Origin Tool:/);
+    assert.match(output, /ticket-archive: 1/);
+  } finally {
+    rmSync(cwd, { recursive: true, force: true });
+  }
+});
