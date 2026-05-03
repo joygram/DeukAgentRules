@@ -136,7 +136,40 @@ test("telemetry summary separates internal workflow events from work logs", asyn
     assert.strictEqual(payload.workflowEvents.ticketCount, 1);
     assert.strictEqual(payload.workflowEvents.byEvent.ticket_created, 1);
     assert.strictEqual(payload.workflowEvents.byEvent.ticket_closed, 1);
+    assert.strictEqual(payload.workflowEvents.averageTimeToPhaseMoveMs, 0);
     assert.strictEqual(payload.workflowEvents.averageTimeToCloseMs, 60000);
+  } finally {
+    rmSync(cwd, { recursive: true, force: true });
+  }
+});
+
+test("telemetry summary surfaces phase move progress timing", async () => {
+  const cwd = mkdtempSync(join(tmpdir(), "deuk-telemetry-phase-move-"));
+  try {
+    const telemetryDir = join(cwd, ".deuk-agent");
+    mkdirSync(telemetryDir, { recursive: true });
+    writeFileSync(join(telemetryDir, "telemetry.jsonl"), [
+      JSON.stringify({ ts: 1, occurredAt: "2026-05-02T00:00:00.000Z", source: "internal", kind: "workflow_event", event: "ticket_created", tokens: 0, tdw: 0, model: "workflow", client: "DeukAgentRules", ticket: "a", action: "ticket-create", file: "", synced: false }),
+      JSON.stringify({ ts: 2, occurredAt: "2026-05-02T00:00:30.000Z", source: "internal", kind: "workflow_event", event: "ticket_phase_moved", tokens: 0, tdw: 0, model: "workflow", client: "DeukAgentRules", ticket: "a", action: "ticket-phase-moved", file: "", synced: false }),
+      JSON.stringify({ ts: 3, occurredAt: "2026-05-02T00:01:00.000Z", source: "internal", kind: "workflow_event", event: "ticket_closed", tokens: 0, tdw: 0, model: "workflow", client: "DeukAgentRules", ticket: "a", action: "ticket-close", file: "", synced: false })
+    ].join("\n") + "\n", "utf8");
+
+    const originalArgv = process.argv;
+    const originalLog = console.log;
+    const lines = [];
+    process.argv = ["node", "test", "telemetry", "summary"];
+    console.log = (value) => lines.push(String(value));
+
+    try {
+      await runTelemetry({ cwd, json: true });
+    } finally {
+      process.argv = originalArgv;
+      console.log = originalLog;
+    }
+
+    const payload = JSON.parse(lines.at(-1));
+    assert.strictEqual(payload.workflowEvents.byEvent.ticket_phase_moved, 1);
+    assert.strictEqual(payload.workflowEvents.averageTimeToPhaseMoveMs, 30000);
   } finally {
     rmSync(cwd, { recursive: true, force: true });
   }

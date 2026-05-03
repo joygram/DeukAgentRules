@@ -7,19 +7,16 @@ tags:
   - index
 id: TICKET_LIST
 title: Ticket List
-createdAt: 2026-05-03 08:02:52
+createdAt: 2026-05-03 12:44:54
 ---
-
 # Ticket List
 
 > Source index: `.deuk-agent/tickets/INDEX.json`
 
 ## Latest
 
-
-- [ticket-start-announcement-rule](file:///home/joy/workspace/DeukAgentRules/.deuk-agent/tickets/sub/211-ticket-start-announcement-rule-joy-nucb.md)
-- status: `closed` / group: `sub` / project: `global`
-
+- [remove-planlink-residual-fixtures](file:///home/joy/workspace/DeukAgentRules/.deuk-agent/tickets/sub/221-remove-planlink-residual-fixture-joy-nucb.md)
+- status: `open` / group: `sub` / project: `global`
 
 ## Entries
 
@@ -29,7 +26,7 @@ createdAt: 2026-05-03 08:02:52
 |---|---|---|---|---|---|---|---|---|---|
 
 
-| 1 | 4 | [ ] closed | P2 | 211-ticket-start-announcement-rule-joy-nucb | ticket-start-announcement-rule | sub | global | 2026-05-03 08:01:01 | [open](file:///home/joy/workspace/DeukAgentRules/.deuk-agent/tickets/sub/211-ticket-start-announcement-rule-joy-nucb.md) |
+| 1 | - | [ ] open | P2 | 221-remove-planlink-residual-fixture-joy-nucb | remove-planlink-residual-fixtures | sub | global | 2026-05-03 09:11:22 | [open](file:///home/joy/workspace/DeukAgentRules/.deuk-agent/tickets/sub/221-remove-planlink-residual-fixture-joy-nucb.md) |
 
 | 2 | - | [ ] open | P2 | 210-apt-guard-node-reset-otp-port-ma-joy-nucb | apt-guard-node-reset-otp-port-macmini | sub | global | 2026-05-03 07:57:25 | [open](file:///home/joy/workspace/DeukAgentRules/.deuk-agent/tickets/sub/210-apt-guard-node-reset-otp-port-ma-joy-nucb.md) |
 

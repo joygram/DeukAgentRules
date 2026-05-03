@@ -153,7 +153,10 @@ function parseTicketStorage(rel, isArchived, abs) {
 
 export function renderTicketListMarkdown(cwd, entries) {
   const sorted = [...entries].sort((a, b) => String(b.createdAt || "").localeCompare(String(a.createdAt || "")));
-  const latest = sorted.find(e => e.status !== "archived") || sorted[0] || null;
+  const latest = sorted.find(e => e.status === "active" || e.status === "open")
+    || sorted.find(e => e.status === "archived")
+    || sorted[0]
+    || null;
 
   const ticketDir = detectConsumerTicketDir(cwd, { createIfMissing: true });
   const template = readFileSync(resolveTicketListTemplatePath(cwd), "utf8");
@@ -184,7 +187,7 @@ export function renderTicketListMarkdown(cwd, entries) {
     latestLine = `- [${latestContext.safeTitle}](${latestContext.fileUri})\n- status: \`${latestContext.status}\` / group: \`${latestContext.group}\` / project: \`${latestContext.project}\``;
   }
 
-  const activeRows = sorted.filter(e => e.status !== "archived").map((e, i) => renderLine(e, i, ticketDir, cwd));
+  const activeRows = sorted.filter(e => e.status === "active" || e.status === "open").map((e, i) => renderLine(e, i, ticketDir, cwd));
   const archivedRows = sorted.filter(e => e.status === "archived").slice(0, 50).map((e, i) => renderLine(e, i, ticketDir, cwd));
 
   return ejs.render(template, {

@@ -1641,6 +1641,85 @@ test("runTicketCreate auto-archives closed tickets before enforcing open ticket 
   }
 });
 
+test("runTicketCreate normalizes stale closed archive metadata without requiring a sub ticket file", async () => {
+  const { cwd, ticketDir } = makeTemplateWorkspace();
+  const srcDir = join(ticketDir, "sub");
+  mkdirSync(srcDir, { recursive: true });
+
+  const openId = "001-open-host";
+  writeFileSync(join(srcDir, `${openId}.md`), [
+    "---",
+    `id: ${openId}`,
+    "title: open ticket",
+    "phase: 1",
+    "status: open",
+    "createdAt: 2026-05-01 00:00:00",
+    "summary: open ticket",
+    "priority: P2",
+    "tags: [test]",
+    "---",
+    "# open ticket",
+    ""
+  ].join("\n"), "utf8");
+
+  const staleClosedId = "229-stale-closed-host";
+  const entries = [
+    makeEntry({
+      id: openId,
+      title: "open ticket",
+      topic: openId,
+      fileName: `${openId}.md`,
+      createdAt: "2026-05-01 00:00:00",
+      status: "open"
+    }),
+    makeEntry({
+      id: staleClosedId,
+      title: "stale closed ticket",
+      topic: staleClosedId,
+      fileName: `${staleClosedId}.md`,
+      createdAt: "2026-05-02 00:00:00",
+      status: "closed",
+      phase: 4,
+      archiveYearMonth: "2026-05",
+      archiveDay: "03"
+    })
+  ];
+  writeArchiveShard(ticketDir, "2026-05", [entries[1]]);
+  writeFileSync(join(ticketDir, TICKET_INDEX_FILENAME), JSON.stringify(makeIndex([entries[0]]), null, 2) + "\n", "utf8");
+
+  const originalLog = console.log;
+  const originalWarn = console.warn;
+  console.log = () => {};
+  console.warn = () => {};
+
+  try {
+    await runTicketCreate({
+      cwd,
+      topic: "new-after-stale-closed",
+      summary: "create after stale closed normalization",
+      nonInteractive: true,
+      docsLanguage: "en",
+      skipPhase0: true,
+      render: true
+    });
+
+    const index = readTicketIndexJson(cwd);
+    const staleClosed = index.entries.find(e => e.id === staleClosedId);
+    assert.ok(staleClosed);
+    assert.strictEqual(staleClosed.status, "archived");
+
+    const ticketListPath = join(ticketDir, "TICKET_LIST.md");
+    const ticketListText = readFileSync(ticketListPath, "utf8");
+    assert.match(ticketListText, /## Latest[\s\S]*new-after-stale-closed/i);
+    const activeSection = ticketListText.split("### 📦 Archived Tickets")[0];
+    assert.doesNotMatch(activeSection, /229-stale-closed-host/);
+  } finally {
+    console.log = originalLog;
+    console.warn = originalWarn;
+    rmSync(cwd, { recursive: true, force: true });
+  }
+});
+
 test("runTicketCreate preserves closed auto-archive when new ticket exceeds open limit", async () => {
   const { cwd, ticketDir } = makeTemplateWorkspace();
   const srcDir = join(ticketDir, "sub");

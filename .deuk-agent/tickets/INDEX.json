@@ -1,7 +1,59 @@
 {
   "version": 1,
-  "updatedAt": "2026-05-03T10:09:47.671Z",
+  "updatedAt": "2026-05-03T14:30:55.107Z",
   "entries": [
+    {
+      "id": "242-commit-after-other-project-ticke-joy-nucb",
+      "title": "commit-after-other-project-tickets-not-entering",
+      "topic": "242-commit-after-other-project-ticke-joy-nucb",
+      "group": "sub",
+      "fileName": "242-commit-after-other-project-ticke-joy-nucb.md",
+      "project": "global",
+      "submodule": "",
+      "createdAt": "2026-05-03 13:29:10",
+      "updatedAt": "2026-05-03T13:31:53.596Z",
+      "source": "ticket-sync",
+      "status": "open"
+    },
+    {
+      "id": "240-deukagentcontext-ingestion-backu-joy-nucb",
+      "title": "deukagentcontext-ingestion-backup-archive-purge",
+      "topic": "240-deukagentcontext-ingestion-backu-joy-nucb",
+      "group": "sub",
+      "fileName": "240-deukagentcontext-ingestion-backu-joy-nucb.md",
+      "project": "global",
+      "submodule": "",
+      "createdAt": "2026-05-03 12:34:14",
+      "updatedAt": "2026-05-03T12:34:35.477Z",
+      "source": "ticket-sync",
+      "status": "open"
+    },
+    {
+      "id": "231-validation-root-cause-joy-nucb",
+      "title": "validation-root-cause",
+      "topic": "231-validation-root-cause-joy-nucb",
+      "group": "sub",
+      "fileName": "231-validation-root-cause-joy-nucb.md",
+      "project": "global",
+      "submodule": "",
+      "createdAt": "2026-05-03 10:24:00",
+      "updatedAt": "2026-05-03T10:24:00.884Z",
+      "source": "ticket-sync",
+      "status": "open"
+    },
+    {
+      "id": "230-still-talking-root-cause-joy-nucb",
+      "title": "still-talking-root-cause",
+      "topic": "230-still-talking-root-cause-joy-nucb",
+      "group": "sub",
+      "fileName": "230-still-talking-root-cause-joy-nucb.md",
+      "project": "global",
+      "submodule": "",
+      "createdAt": "2026-05-03 10:14:30",
+      "updatedAt": "2026-05-03T10:18:54.283Z",
+      "source": "ticket-sync",
+      "status": "open"
+    },
     {
       "id": "221-remove-planlink-residual-fixture-joy-nucb",
       "title": "remove-planlink-residual-fixtures",
@@ -29,5 +81,5 @@
       "status": "open"
     }
   ],
-  "activeTicketId": "221-remove-planlink-residual-fixture-joy-nucb"
+  "activeTicketId": "242-commit-after-other-project-ticke-joy-nucb"
 }

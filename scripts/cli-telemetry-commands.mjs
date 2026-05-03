@@ -232,6 +232,7 @@ async function summaryAction(opts) {
   console.log(`Internal Workflow Events:`);
   console.log(`  - Events: ${workflowSummary.eventCount}`);
   console.log(`  - Tickets: ${workflowSummary.ticketCount}`);
+  console.log(`  - Average Time To Phase Move: ${formatDuration(workflowSummary.averageTimeToPhaseMoveMs)}`);
   console.log(`  - Average Time To Close: ${formatDuration(workflowSummary.averageTimeToCloseMs)}`);
   console.log(`  - Average Time To Archive: ${formatDuration(workflowSummary.averageTimeToArchiveMs)}`);
   printCounts("By Workflow Event", workflowSummary.byEvent);
@@ -371,12 +372,15 @@ function summarizeWorkflowEvents(events) {
 
   const closeDurations = [];
   const archiveDurations = [];
+  const phaseMoveDurations = [];
   for (const rows of byTicket.values()) {
     const created = rows.find(e => e.event === "ticket_created");
     const closed = rows.find(e => e.event === "ticket_closed");
     const archived = rows.find(e => e.event === "ticket_archived");
+    const firstPhaseMove = rows.find(e => e.event === "ticket_phase_moved");
     if (created && closed) closeDurations.push(eventTime(closed) - eventTime(created));
     if (created && archived) archiveDurations.push(eventTime(archived) - eventTime(created));
+    if (created && firstPhaseMove) phaseMoveDurations.push(eventTime(firstPhaseMove) - eventTime(created));
   }
 
   return {
@@ -384,7 +388,8 @@ function summarizeWorkflowEvents(events) {
     ticketCount: byTicket.size,
     byEvent: countBy(events, "event"),
     averageTimeToCloseMs: average(closeDurations),
-    averageTimeToArchiveMs: average(archiveDurations)
+    averageTimeToArchiveMs: average(archiveDurations),
+    averageTimeToPhaseMoveMs: average(phaseMoveDurations)
   };
 }
 

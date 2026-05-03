@@ -4,7 +4,7 @@ import { basename, join, dirname, relative, resolve } from "path";
 import { 
   toSlug, toRepoRelativePath, toFileUri, inferRefTitleAndTopic, resolveReferencedTicketPath, toPosixPath, stringifyFrontMatter,
   selectLocalizedTemplatePath, resolveDocsLanguage, inferDocsLanguageFromText, normalizeDocsLanguage, isMcpActive, withReadline, parseFrontMatter,
-  AGENT_ROOT_DIR, TICKET_SUBDIR, TEMPLATE_SUBDIR, TICKET_DIR_NAME, TICKET_INDEX_FILENAME, detectConsumerTicketDir, loadInitConfig
+  AGENT_ROOT_DIR, TICKET_SUBDIR, TEMPLATE_SUBDIR, TICKET_DIR_NAME, TICKET_INDEX_FILENAME, detectConsumerTicketDir, loadInitConfig, computeTicketPath
 } from "./cli-utils.mjs";
 import { readTicketIndexJson, writeTicketIndexJson, syncActiveTicketId, generateTicketId, syncToPipeline } from "./cli-ticket-index.mjs";
 import { appendTicketEntry, rebuildTicketIndexFromTopicFilesIfNeeded, writeTicketListFile, updateTicketEntryStatus } from "./cli-ticket-parser.mjs";
@@ -554,6 +554,23 @@ function archiveTicketEntry({ cwd, ticketDir, indexJson, found, opts = {}, repor
         console.warn("ticket archive: repaired already archived ticket " + archivedRelativePath);
       }
       return { id: found.id, path: archivedRelativePath, repaired: true };
+    }
+    if (String(found.status || "").toLowerCase() === "closed" && found.archiveYearMonth && found.archiveDay) {
+      const entryIdx = indexJson.entries.findIndex(e => e.id === found.id);
+      if (entryIdx >= 0) {
+        indexJson.entries[entryIdx].fileName = fileName;
+        indexJson.entries[entryIdx].status = "archived";
+        indexJson.entries[entryIdx].updatedAt = new Date().toISOString();
+      }
+      const archivedRelativePath = computeTicketPath({
+        ...found,
+        fileName,
+        status: "archived"
+      });
+      if (!isCompactTicketOutput(opts)) {
+        console.warn("ticket archive: normalized stale closed ticket metadata " + archivedRelativePath);
+      }
+      return { id: found.id, path: archivedRelativePath, normalized: true };
     }
     throw new Error("ticket archive: file not found " + found.path);
   }
