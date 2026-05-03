@@ -111,6 +111,7 @@ If G6 matches:
 
 Use DeukAgentContext as an advisory memory layer, not as a substitute for reading current code.
 Treat it as online-only advisory memory; do not rely on offline mirrors or cached snapshots as the source of truth.
+- First inspect local code, docs, tickets, and recent git history. If local evidence is still insufficient or ambiguous, request RAG analysis and record the gap; do not use RAG as a substitute for local source-of-truth reads.
 
 - Search narrowly. One query should name the project plus the concrete symbol, file, command, or failure mode.
 - Stop after 2 MCP calls for the same question. Do not broaden repeatedly.

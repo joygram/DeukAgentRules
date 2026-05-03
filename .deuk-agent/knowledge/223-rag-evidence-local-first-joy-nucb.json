@@ -1,0 +1,17 @@
+{
+  "id": "223-rag-evidence-local-first-joy-nucb",
+  "title": "rag-evidence-local-first",
+  "project": "global",
+  "createdAt": "2026-05-03 09:18:32",
+  "archivedAt": "2026-05-03T09:20:07.643Z",
+  "summary": "Clarify ticket workflow to check local knowledge first, then request RAG analysis when evidence is insufficient.",
+  "sourceTicketPath": ".deuk-agent/tickets/sub/223-rag-evidence-local-first-joy-nucb.md",
+  "sections": {
+    "Scope & Constraints": "- **Target:** `core-rules/AGENTS.md` and any project rule pointer that needs the same local-first / RAG-fallback guidance.\n- **Context Files:** `PROJECT_RULE.md`, `core-rules/AGENTS.md`, and the local workflow rules that govern ticket evidence collection.\n- **Constraints:** No unrelated refactors, no broad regeneration, and no change to non-rule source files unless they are needed to keep the rule set consistent.\n- **Lifecycle Guard:** ticket lifecycle commands auto-run markdown lint on touched files and fail fast on broken markdown.",
+    "Agent Permission Contract (APC)": "### [BOUNDARY]\n- Editable modules: rule text in `core-rules/AGENTS.md` and matching project rule pointers that describe evidence collection behavior.\n- Forbidden modules: generated artifacts, unrelated product code, external module roots\n- Rule citation: PROJECT_RULE.md + core-rules/AGENTS.md\n\n### [CONTRACT]\n- Input: the current workflow rules and ticketing guidance.\n- Output: a small rule update that states the local-first evidence check and RAG fallback explicitly.\n- Side effects: ticket updates and rule-doc edits only.\n\n### [PATCH PLAN]\n- Compact planning lives in this ticket.\n- Use CLI-linked subissues for related work instead of expanding this ticket.\n- Do not duplicate screen progress here.",
+    "Compact Plan": "- **Problem:** The workflow currently implies RAG quality checks, but the local-first requirement and explicit fallback behavior are not spelled out together in one place.\n- **Approach:** Add one concise rule line under the MCP knowledge guidance so the agent must check local code/docs/tickets/history first, then request RAG analysis only when the local evidence is still insufficient or ambiguous.\n- **Verification:** Re-read the edited rule text and run `npx deuk-agent-rule lint:md` for the touched markdown files.\n- **Ticket Numbering:** infer the master/sub ticket from the numbered ticket ID; do not add inline child-ticket links.",
+    "Tasks": "- [ ] Complete compact plan and APC.\n- [ ] Execute changes inside APC boundary.\n- [ ] Record verification outcome.",
+    "Done When": "- APC is complete and non-placeholder.\n- Compact plan is complete and non-placeholder.\n- Target changes are implemented inside the declared boundary.\n- Markdown lint/tests relevant to this ticket pass or failures are recorded.\n- Lifecycle commands can persist the ticket without manual lint intervention."
+  },
+  "analysis": {}
+}

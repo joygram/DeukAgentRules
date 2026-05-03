@@ -1,0 +1,17 @@
+{
+  "id": "219-review-before-execution-after-is-joy-nucb",
+  "title": "review-before-execution-after-issue",
+  "project": "global",
+  "createdAt": "2026-05-03 08:56:45",
+  "archivedAt": "2026-05-03T09:06:04.503Z",
+  "summary": "이슈 제기 후 티켓 생성 직후 검토 없이 실행으로 넘어가는 원인을 분석하고, 티켓 생성 후 진행 전 검토 절차를 강제하도록 규칙/문서/검증을 수정합니다.",
+  "sourceTicketPath": ".deuk-agent/tickets/sub/219-review-before-execution-after-is-joy-nucb.md",
+  "sections": {
+    "Scope & Constraints": "- **Target:** `core-rules/AGENTS.md`, `PROJECT_RULE.md`, ticket template, workflow docs, rule audit/tests\n- **Context Files:** `PROJECT_RULE.md`, `core-rules/AGENTS.md`, `templates/TICKET_TEMPLATE.md`, workflow docs, `scripts/lint-rules.mjs`\n- **Constraints:** No generated output edits, no unrelated refactors, no broad regeneration without approval.\n- **Lifecycle Guard:** ticket lifecycle commands auto-run markdown lint on touched files and fail fast on broken markdown.",
+    "Agent Permission Contract (APC)": "### [BOUNDARY]\n- Editable modules: canonical rules/docs/templates and focused audit/test code that define the issue-review gate.\n- Forbidden modules: unrelated runtime code, generated consumer outputs unless synced from source, external module roots.\n- Rule citation: PROJECT_RULE.md + core-rules/AGENTS.md\n\n### [CONTRACT]\n- Input: user complaint that issue reports are converted into tickets and immediately executed without review.\n- Output: rule/docs/template/test guard that issue reports are Phase 1 review-gated before Phase 2 execution.\n- Side effects: ticket updates, scoped rule/doc/template/test changes only.\n\n### [PATCH PLAN]\n- Compact planning lives in this ticket.\n- Use CLI-linked subissues for related work instead of expanding this ticket.\n- Do not duplicate screen progress here.",
+    "Compact Plan": "- **Problem:** Current rules let \"explicit execution intent\" count as approval after Phase 1, and the default agent posture says to implement unless the user only asks for a plan. Issue reports such as \"원인 분석 및 해결\" were therefore treated as permission to proceed directly after ticket creation.\n- **Approach:** Add an issue-review gate: create/fill/lint the ticket first, then stop for user review before Phase 2 unless the user explicitly approves execution after seeing the ticket plan.\n- **Verification:** Run rule audit, focused markdown lint, and tests asserting the review-gate rule exists.\n- **Ticket Numbering:** infer the master/sub ticket from the numbered ticket ID; do not add inline child-ticket links.",
+    "Tasks": "- [x] Complete compact plan and APC.\n- [x] Execute changes inside APC boundary.\n- [x] Record verification outcome.",
+    "Done When": "- APC is complete and non-placeholder.\n- Compact plan is complete and non-placeholder.\n- Target changes are implemented inside the declared boundary.\n- Markdown lint/tests relevant to this ticket pass or failures are recorded.\n- Lifecycle commands can persist the ticket without manual lint intervention."
+  },
+  "analysis": {}
+}

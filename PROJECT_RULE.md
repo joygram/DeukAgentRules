@@ -23,6 +23,10 @@ architecture_docs: "docs/architecture.md"
 - `bin/deuk-agent-rule.js` = global proxy. No business logic.
 - Real logic lives in `scripts/`. Proxy traces CWD upward to find local source.
 
+## Workflow Pointer
+
+- Follow `core-rules/AGENTS.md` for ticket flow, evidence handling, silent output, and MCP/RAG usage.
+
 ## DC-CODEGEN: Generated File Mapping
 
 | Generated | Source | Build |
@@ -36,14 +40,6 @@ architecture_docs: "docs/architecture.md"
 |-------|------|
 | DC-LEGACY | No v1/v2 HTML markers (`<!-- deuk-agent-rule:begin -->`). Templates use copy-only distribution. |
 | DC-OSS | `scripts/sync-oss.mjs` controls public distribution. `.internal.` files and `ticket/` dir are auto-excluded. |
-| DC-SILENT-OUTPUT | While working, do not emit progress commentary or interim summaries; only the required ticket-start line, blockers, user decisions, and final answers are allowed. |
-
-## Workflow Boundary
-
-- Issue/regression reports are review-gated. Create/fill the ticket first, then wait for user approval before Phase 2 execution; pre-ticket wording such as "원인 분석 및 해결" is not execution approval.
-- After Phase 1, the main ticket may receive lifecycle verification outcomes. Do not move execution logs, command transcripts, completion summaries, or verification results into planning text.
-- Lifecycle state changes (`move`, `close`, `archive`) should be captured as lifecycle events, not used as a reason to reopen document boundaries.
-- If the work scope changes materially, prefer a new ticket over repeated edits to the old ticket/plan pair.
 
 ## Build & Test
 

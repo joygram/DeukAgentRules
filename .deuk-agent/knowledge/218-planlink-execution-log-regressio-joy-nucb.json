@@ -1,0 +1,17 @@
+{
+  "id": "218-planlink-execution-log-regressio-joy-nucb",
+  "title": "planlink-execution-log-regression",
+  "project": "global",
+  "createdAt": "2026-05-03 08:50:29",
+  "archivedAt": "2026-05-03T08:56:45.561Z",
+  "summary": "planLink에 실행 기록을 남기는 잘못된 동작의 원인을 확인하고 규칙/템플릿/검증을 수정합니다.",
+  "sourceTicketPath": ".deuk-agent/tickets/sub/218-planlink-execution-log-regressio-joy-nucb.md",
+  "sections": {
+    "Scope & Constraints": "- **Target:** `core-rules/AGENTS.md`, `PROJECT_RULE.md`, `templates/TICKET_TEMPLATE.md`, workflow docs, rule audit/tests\n- **Context Files:** `PROJECT_RULE.md`, `core-rules/AGENTS.md`, ticket template, workflow docs, lint rule/tests\n- **Constraints:** No generated output edits, no unrelated refactors, no broad regeneration without approval.\n- **Lifecycle Guard:** ticket lifecycle commands auto-run markdown lint on touched files and fail fast on broken markdown.",
+    "Agent Permission Contract (APC)": "### [BOUNDARY]\n- Editable modules: canonical rules/docs/templates and focused audit/test code that define planLink boundaries.\n- Forbidden modules: generated consumer outputs unless regenerated from source, unrelated runtime code, external module roots.\n- Rule citation: PROJECT_RULE.md + core-rules/AGENTS.md\n\n### [CONTRACT]\n- Input: user screenshot showing final-answer claim that execution logs were written to planLink, current rules/docs mentioning planLink as analysis/verification-design storage.\n- Output: explicit rule/doc/test guard that planLink is planning-only and must never receive execution logs, command transcripts, completion summaries, or verification results.\n- Side effects: ticket updates, scoped rule/doc/template/test changes only.\n\n### [PATCH PLAN]\n- Compact planning lives in this ticket.\n- Use CLI-linked subissues for related work instead of expanding this ticket.\n- Do not duplicate screen progress here.",
+    "Compact Plan": "- **Problem:** Existing docs still described planLink as owning verification design and some guidance said to \"정리\" progress at completion, but did not explicitly forbid execution logs/results in planLink. That ambiguity let an agent treat planLink as a completion log target.\n- **Approach:** Strengthen the canonical rule, local project rule, template, and user docs so planLink is strictly Phase 1 planning/design only; execution logs and verification results must live in the main ticket lifecycle record, report, final answer, or telemetry.\n- **Verification:** Run rule audit, focused markdown lint, and tests that assert the new guard text is present.\n- **Ticket Numbering:** infer the master/sub ticket from the numbered ticket ID; do not add inline child-ticket links.",
+    "Tasks": "- [x] Complete compact plan and APC.\n- [x] Execute changes inside APC boundary.\n- [x] Record verification outcome.",
+    "Done When": "- APC is complete and non-placeholder.\n- Compact plan is complete and non-placeholder.\n- Target changes are implemented inside the declared boundary.\n- Markdown lint/tests relevant to this ticket pass or failures are recorded.\n- Lifecycle commands can persist the ticket without manual lint intervention."
+  },
+  "analysis": {}
+}

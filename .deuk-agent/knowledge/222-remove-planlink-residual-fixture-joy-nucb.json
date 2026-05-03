@@ -1,0 +1,17 @@
+{
+  "id": "222-remove-planlink-residual-fixture-joy-nucb",
+  "title": "remove-planlink-residual-fixtures",
+  "project": "global",
+  "createdAt": "2026-05-03 09:11:30",
+  "archivedAt": "2026-05-03T09:18:32.625Z",
+  "summary": "규칙 표면을 정리한 뒤에도 테스트 fixture와 동기화 파일에 남은 잔재를 정리하고, 검색 결과에서 더 이상 계획 링크가 반복적으로 노출되지 않도록 합니다.",
+  "sourceTicketPath": ".deuk-agent/tickets/sub/222-remove-planlink-residual-fixture-joy-nucb.md",
+  "sections": {
+    "Scope & Constraints": "- **Target:** `scripts/tests/cli-init-commands.test.mjs`, `scripts/tests/cli-ticket-commands.test.mjs`, synced templates/pointers\n- **Context Files:** `PROJECT_RULE.md`, `core-rules/AGENTS.md`, `templates/TICKET_TEMPLATE.md`, `scripts/tests/cli-init-commands.test.mjs`, `scripts/tests/cli-ticket-commands.test.mjs`\n- **Constraints:** No generated output edits, no unrelated refactors, no broad regeneration without approval.\n- **Lifecycle Guard:** ticket lifecycle commands auto-run markdown lint on touched files and fail fast on broken markdown.",
+    "Agent Permission Contract (APC)": "### [BOUNDARY]\n- Editable modules: residual test fixtures, synced templates/pointers, and focused tests that keep legacy planning links out of current guidance.\n- Forbidden modules: unrelated runtime logic, external module roots, broad regeneration without approval.\n- Rule citation: PROJECT_RULE.md + core-rules/AGENTS.md\n\n### [CONTRACT]\n- Input: remaining legacy planning-link fixture strings in tests and synced pointer files.\n- Output: tests and synced templates no longer advertise legacy planning links as part of current workflow guidance.\n- Side effects: ticket updates, scoped fixture/test/template changes only\n\n### [PATCH PLAN]\n- Compact planning lives in this ticket.\n- Use CLI-linked subissues for related work instead of expanding this ticket.\n- Do not duplicate screen progress here.",
+    "Compact Plan": "- **Problem:** Record the stable issue once in this main ticket. Do not duplicate design or analysis in follow-up tickets.\n- **Approach:** Capture the selected design and analysis path here, including root cause, constraints, and the implementation direction. Split related follow-up work into sub tickets instead of expanding this record.\n- **Verification:** List the smallest relevant commands or checks and the expected result.\n- **Ticket Numbering:** infer the master/sub ticket from the numbered ticket ID; do not add inline child-ticket links.",
+    "Tasks": "- [x] Complete compact plan and APC.\n- [x] Execute changes inside APC boundary.\n- [x] Record verification outcome.",
+    "Done When": "- APC is complete and non-placeholder.\n- Compact plan is complete and non-placeholder.\n- Target changes are implemented inside the declared boundary.\n- Markdown lint/tests relevant to this ticket pass or failures are recorded.\n- Lifecycle commands can persist the ticket without manual lint intervention."
+  },
+  "analysis": {}
+}

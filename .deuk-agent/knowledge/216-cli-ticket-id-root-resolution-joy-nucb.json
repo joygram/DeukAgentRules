@@ -1,0 +1,17 @@
+{
+  "id": "216-cli-ticket-id-root-resolution-joy-nucb",
+  "title": "cli-ticket-id-root-resolution",
+  "project": "global",
+  "createdAt": "2026-05-03 08:31:36",
+  "archivedAt": "2026-05-03T08:44:13.451Z",
+  "summary": "절대 티켓 경로 없이 티켓 ID로 소유 저장소를 찾아 lifecycle 명령을 실행",
+  "sourceTicketPath": ".deuk-agent/tickets/sub/216-cli-ticket-id-root-resolution-joy-nucb.md",
+  "sections": {
+    "Scope & Constraints": "- **Target:** `scripts/cli-ticket-commands.mjs`, `scripts/tests/cli-ticket-commands.test.mjs`\n- **Context Files:** `PROJECT_RULE.md`, `core-rules/AGENTS.md`, `scripts/cli-ticket-commands.mjs`, `scripts/tests/cli-ticket-commands.test.mjs`\n- **Constraints:** No generated output edits, no unrelated refactors, no broad regeneration without approval. Keep the fix focused on resolving ticket ownership from ticket id/topic, not requiring absolute paths.\n- **Lifecycle Guard:** ticket lifecycle commands auto-run markdown lint on touched files and fail fast on broken markdown.",
+    "Agent Permission Contract (APC)": "### [BOUNDARY]\n- Editable modules: ticket lifecycle context resolution and focused ticket CLI tests\n- Forbidden modules: generated artifacts, unrelated shared infrastructure, external module roots, unrelated CLI actions\n- Rule citation: PROJECT_RULE.md + core-rules/AGENTS.md\n\n### [CONTRACT]\n- Input: ticket id/topic supplied from any workspace under the same parent workspace\n- Output: lifecycle commands infer the owning repo root from indexed tickets when the current cwd has no match\n- Side effects: ticket docs updates, scoped CLI behavior change, focused test coverage\n\n### [PATCH PLAN]\n- Keep compact planning in this ticket and avoid a separate plan file.\n- Add topic-based repo discovery across nearby `.deuk-agent/tickets/INDEX.json` files.\n- Fail on ambiguous matches instead of guessing.",
+    "Compact Plan": "- **Problem:** The previous path-based fix still implies passing an absolute ticket path, but lifecycle commands should work from ticket id/topic without making the operator supply filesystem paths.\n- **Approach:** When a lifecycle command cannot find the topic in `opts.cwd`, scan nearby workspace roots for `.deuk-agent/tickets/INDEX.json`, match by topic/id, switch `opts.cwd` to the owning repo root, and continue. If multiple repos match, fail with an explicit ambiguous-ticket error.\n- **Verification:** Run focused `node --test scripts/tests/cli-ticket-commands.test.mjs` and markdown lint for touched docs.\n- **Linked Issues:** None.",
+    "Tasks": "- [x] Complete compact plan and APC.\n- [x] Execute changes inside APC boundary.\n- [x] Record verification outcome.",
+    "Done When": "- APC is complete and non-placeholder.\n- Compact plan is complete and non-placeholder.\n- Target changes are implemented inside the declared boundary.\n- Markdown lint/tests relevant to this ticket pass or failures are recorded.\n- Lifecycle commands can persist the ticket without manual lint intervention."
+  },
+  "analysis": {}
+}

@@ -1,0 +1,17 @@
+{
+  "id": "220-remove-planlink-and-enforce-revi-joy-nucb",
+  "title": "remove-planlink-and-enforce-review-gate",
+  "project": "global",
+  "createdAt": "2026-05-03 09:06:04",
+  "archivedAt": "2026-05-03T09:11:22.580Z",
+  "summary": "이슈/회귀 보고는 티켓 생성 후 승인 전에는 시작하지 않도록 규칙/문서/테스트를 정리합니다.",
+  "sourceTicketPath": ".deuk-agent/tickets/sub/220-remove-planlink-and-enforce-revi-joy-nucb.md",
+  "sections": {
+    "Scope & Constraints": "- **Target:** module/submodule paths directly required by `remove-planlink-and-enforce-review-gate`\n- **Context Files:** `PROJECT_RULE.md`, relevant architecture docs, and target source files\n- **Constraints:** No generated output edits, no unrelated refactors, no broad regeneration without approval.\n- **Lifecycle Guard:** ticket lifecycle commands auto-run markdown lint on touched files and fail fast on broken markdown.",
+    "Agent Permission Contract (APC)": "### [BOUNDARY]\n- Editable modules: ticket target modules directly related to \"이슈/회귀 보고는 티켓 생성 후 승인 전에는 시작하지 않도록 규칙/문서/테스트를 정리합니다.\"\n- Forbidden modules: generated artifacts, unrelated shared infrastructure, external module roots\n- Rule citation: PROJECT_RULE.md + core-rules/AGENTS.md\n\n### [CONTRACT]\n- Input: existing code/context required to implement \"이슈/회귀 보고는 티켓 생성 후 승인 전에는 시작하지 않도록 규칙/문서/테스트를 정리합니다.\"\n- Output: minimal implementation and tests that satisfy \"이슈/회귀 보고는 티켓 생성 후 승인 전에는 시작하지 않도록 규칙/문서/테스트를 정리합니다.\"\n- Side effects: ticket updates, scoped code changes only\n\n### [PATCH PLAN]\n- Compact planning lives in this ticket.\n- Use CLI-linked subissues for related work instead of expanding this ticket.\n- Do not duplicate screen progress here.",
+    "Compact Plan": "- **Problem:** Record the stable issue once in this main ticket. Do not duplicate design or analysis in follow-up tickets.\n- **Approach:** Capture the selected design and analysis path here, including root cause, constraints, and the implementation direction. Split related follow-up work into sub tickets instead of expanding this record.\n- **Verification:** List the smallest relevant commands or checks and the expected result.\n- **Ticket Numbering:** infer the master/sub ticket from the numbered ticket ID; do not add inline child-ticket links.",
+    "Tasks": "- [x] Complete compact plan and APC.\n- [x] Execute changes inside APC boundary.\n- [x] Record verification outcome.",
+    "Done When": "- APC is complete and non-placeholder.\n- Compact plan is complete and non-placeholder.\n- Target changes are implemented inside the declared boundary.\n- Markdown lint/tests relevant to this ticket pass or failures are recorded.\n- Lifecycle commands can persist the ticket without manual lint intervention."
+  },
+  "analysis": {}
+}
