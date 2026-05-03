@@ -1,8 +1,22 @@
 {
   "version": 1,
-  "updatedAt": "2026-05-03T20:49:23.744Z",
+  "updatedAt": "2026-05-03T21:16:41.025Z",
   "activeTicketId": null,
   "entries": [
+    {
+      "id": "251-consolidation-not-running-joy-nucb",
+      "title": "consolidation-not-running",
+      "topic": "consolidation-not-running",
+      "group": "sub",
+      "project": "global",
+      "createdAt": "2026-05-03T20:49:23.741Z",
+      "source": "ticket-create",
+      "status": "archived",
+      "updatedAt": "2026-05-03T21:16:41.059Z",
+      "archiveYearMonth": "2026-05",
+      "archiveDay": "03",
+      "fileName": "251-consolidation-not-running-joy-nucb.md"
+    },
     {
       "id": "249-pulse-graph-number-only-labels-joy-nucb",
       "title": "pulse-graph-number-only-labels",
