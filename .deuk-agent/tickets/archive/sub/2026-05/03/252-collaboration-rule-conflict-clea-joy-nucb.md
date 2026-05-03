@@ -1,8 +1,8 @@
 ---
 id: 252-collaboration-rule-conflict-clea-joy-nucb
 title: collaboration-rule-conflict-cleanup
-phase: 1
-status: open
+phase: 4
+status: closed
 docsLanguage: en
 summary: Clarify precedence between collaboration updates and DeukAgentRules
   silent-by-default behavior
@@ -10,6 +10,8 @@ priority: P2
 tags: []
 createdAt: 2026-05-03 21:16:41
 ---
+
+
 # collaboration-rule-conflict-cleanup
 
 > Restrict changes to **Target Module**. Read **Context Files** before code generation.

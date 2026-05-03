@@ -1,6 +1,6 @@
 ---
-version: 37
-changelog: "v37: Require ticket-first investigation analysis before clarification."
+version: 38
+changelog: "v38: Add anti-bypass, scope containment, ticket velocity, and current-state quarantine guards."
 ---
 
 # Agent Rules
@@ -65,6 +65,8 @@ changelog: "v37: Require ticket-first investigation analysis before clarificatio
 | G6 | User asks to inspect/list/map/compare/review candidates? | Exploration-only. Do not edit product code, official data, reports, templates, or config until user approves applying findings. |
 | G7 | About to regenerate broad outputs or timestamps (`bench`, `reporter`, `build`, `codegen`, `sync`, `init`, docs generator)? | **HARD BLOCK unless in ticket scope and user-approved.** Prefer dry-run or `/tmp/` output. |
 | G8 | About to expand an official baseline/catalog/expected list? | **HARD BLOCK.** Present draft first; require explicit approval before promotion. |
+| G9 | Proposed patch is a local workaround that skips a project rule, generated/source boundary, shared registry, parity surface, or required verification matrix? | **HARD BLOCK.** Record the suspected bypass, root cause hypothesis, affected contract, and non-bypass fix path in the ticket before execution. |
+| G10 | Agent cannot state the source-of-truth rule, affected module set, parity/interface surface, and verification command bundle for the intended scope? | **Scope Containment Guard.** Stop implementation; reduce to bounded diagnostics/single-module work or escalate to a stabilization ticket. |
 
 WRITE tools requiring active ticket: `write_to_file`, `replace_file_content`, `multi_replace_file_content`, `run_command`.
 
@@ -114,6 +116,28 @@ If G6 matches:
 - Label results as `draft`, `candidate`, or `not yet official`.
 - Do not convert findings into implementation in the same turn unless the user says to apply them.
 
+### Anti-Bypass Guard
+
+Local symptom fixes are suspect when they make one failing slice pass while ignoring the broader project contract. Before implementing a local workaround, the ticket must prove that the change does not bypass:
+
+- the active project rules and architecture source of truth;
+- generated/source ownership boundaries;
+- shared interfaces, registries, metadata, catalogs, or provider matrices;
+- cross-language/cross-runtime parity obligations;
+- required verification matrices or CI gates;
+- unsupported cases by relabeling, hiding rows, narrowing tests, or converting failures into passes/blocked states.
+
+If that proof is missing, do not patch. Convert the work to root-cause review or stabilization scope.
+
+### Scope Containment Guard
+
+Low-capability agents must not accept broad ownership they cannot verify end-to-end. If the agent is defending a visible symptom, cannot load the relevant rule set, cannot enumerate affected modules, or cannot run the required verification matrix, it must stop/split/escalate instead of continuing. The allowed next step is one of:
+
+- record confirmed facts and hypotheses in the active ticket;
+- reduce scope to a bounded diagnostic or single-module patch with explicit non-bypass proof;
+- create or switch to a project-level stabilization ticket;
+- ask for higher-capability review when parity, architecture, or current-state ownership is unclear.
+
 ### MCP RAG Decision Ladder
 
 Use DeukAgentContext as advisory memory for prior decisions and cross-session context. Current source code, local docs, tests, and CLI ticket state remain the source of truth.
@@ -137,6 +161,9 @@ Use DeukAgentContext as advisory memory for prior decisions and cross-session co
 | H3 | Infrastructure error | No bypass. Halt → root cause → report to user → re-plan. |
 | H4 | 50%+ tasks unregistered in ticket | Stop → update ticket or create new one. |
 | H5 | 2+ different modules modified | Stop → split into separate tickets. |
+| H6 | 3+ tickets created in one session or same area without closing the root cause | Stop → Ticket Velocity Guard. Create/continue one stabilization ticket; no more symptom tickets. |
+| H7 | Same module or failure family receives 2+ symptom-only patches | Stop → root-cause review and guard coverage plan before further code edits. |
+| H8 | Current project has dirty/in-flight baseline, transition-state reports, or active split tickets that affect the target | Stop → Current-State Quarantine. Snapshot state, read active ticket, classify rows/statuses, and avoid reverting/regenerating/normalizing unrelated work. |
 | F1 | Generated file edited directly (DC-CODEGEN) | **Major violation.** Edit source, then build to propagate. Never edit both. Emergency: `ticket hotfix`. |
 | F1.1 | Generated/report artifacts would change only because a generator ran | Do not commit or leave them unless user requested regeneration. Use `/tmp/` for verification. |
 | F2 | Delete without proof of non-use | Run `git blame`/`rg`/tests first. "Seems unnecessary" ≠ valid. |
@@ -144,6 +171,14 @@ Use DeukAgentContext as advisory memory for prior decisions and cross-session co
 | F4 | 10+ lines deleted | Document each block's purpose in commit. |
 | F5 | Shared interface changed | `rg` ALL references → update ALL in same ticket. Partial = **major violation**. |
 | F6 | No tests for the feature | Do not refactor it. |
+
+### Ticket Velocity Guard
+
+High ticket creation velocity is a failure signal, not progress. When H6/H7 triggers, the agent must stop creating narrow follow-up tickets and consolidate into a root-cause or stabilization ticket that owns: recurring symptom, shared cause hypothesis, affected modules/contracts, planned guard coverage, and the minimum verification bundle needed before local patching resumes.
+
+### Current-State Quarantine
+
+When a project is in a transition state, agents must preserve the baseline before changing it. Examples include dirty worktrees, active split tickets, generated/report artifacts in flux, partial protocol or language support matrices, and known `verify_failed`/`unimplemented`/`blocked` rows. The agent must not treat transition artifacts as stable truth, broad-regenerate official outputs, delete ticket/rule state, collapse distinct failure categories, or promote unsupported cases to pass. Record the current state in the ticket and patch only the approved lane.
 
 ## 5. Emergency & Urgency Protocols
 
@@ -199,5 +234,5 @@ NEVER manually edit `INDEX.json` or ticket files via `sed`/`awk`/`echo`.
 ## 8. Auditable Rule Returns
 
 - Rule violations must be machine-returnable. Prefer CLI guards that exit non-zero with stable codes over prose-only reminders.
-- `rules audit` MUST fail if core rules reintroduce progress beacons, non-`rg` search defaults, post-execute verification optionality, or verbose duplicate-output policies.
+- `rules audit` MUST fail if core rules reintroduce progress beacons, non-`rg` search defaults, post-execute verification optionality, verbose duplicate-output policies, or removes anti-bypass/scope-containment/ticket-velocity/current-state quarantine guards.
 - In compact mode, rule audits print only `rules:audit ok` or `rules:audit failed <count>`.

@@ -1,26 +1,44 @@
 {
   "version": 1,
-  "updatedAt": "2026-05-03T21:16:41.025Z",
-  "activeTicketId": "252-collaboration-rule-conflict-clea-joy-nucb",
+  "updatedAt": "2026-05-03T22:59:08.460Z",
   "entries": [
     {
-      "id": "252-collaboration-rule-conflict-clea-joy-nucb",
-      "title": "collaboration-rule-conflict-cleanup",
-      "topic": "collaboration-rule-conflict-cleanup",
+      "id": "254-ssot-rule-violation-revert-joy-nucb",
+      "title": "ssot-rule-violation-revert",
+      "topic": "254-ssot-rule-violation-revert-joy-nucb",
       "group": "sub",
+      "fileName": "254-ssot-rule-violation-revert-joy-nucb.md",
       "project": "global",
-      "createdAt": "2026-05-03T21:16:41.022Z",
-      "source": "ticket-create",
+      "submodule": "",
+      "createdAt": "2026-05-03 21:54:13",
+      "updatedAt": "2026-05-03T21:54:13.199Z",
+      "source": "ticket-sync",
+      "status": "open"
+    },
+    {
+      "id": "253-rule-conflict-cleanup-joy-nucb",
+      "title": "rule-conflict-cleanup",
+      "topic": "253-rule-conflict-cleanup-joy-nucb",
+      "group": "sub",
+      "fileName": "253-rule-conflict-cleanup-joy-nucb.md",
+      "project": "global",
+      "submodule": "",
+      "createdAt": "2026-05-03 21:52:17",
+      "updatedAt": "2026-05-03T21:52:17.752Z",
+      "source": "ticket-sync",
       "status": "open"
     },
     {
       "id": "250-source-chunk-usage-validation-joy-nucb",
       "title": "source-chunk-usage-validation",
-      "topic": "source-chunk-usage-validation",
+      "topic": "250-source-chunk-usage-validation-joy-nucb",
       "group": "sub",
+      "fileName": "250-source-chunk-usage-validation-joy-nucb.md",
       "project": "global",
-      "createdAt": "2026-05-03T14:39:01.784Z",
-      "source": "ticket-create",
+      "submodule": "",
+      "createdAt": "2026-05-03 14:39:01",
+      "updatedAt": "2026-05-03T14:39:01.781Z",
+      "source": "ticket-sync",
       "status": "open"
     },
     {
@@ -101,5 +119,6 @@
       "source": "ticket-sync",
       "status": "open"
     }
-  ]
+  ],
+  "activeTicketId": "254-ssot-rule-violation-revert-joy-nucb"
 }

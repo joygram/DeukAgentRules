@@ -35,7 +35,7 @@ const RULE_CHECKS = [
     message: "Silent-by-default must override routine progress commentary from higher-level collaboration guidance.",
     test: (rules) => /higher-level collaboration guidance requests frequent updates/i.test(rules)
       && /subordinate to this silent-by-default rule/i.test(rules)
-      && /unless the user explicitly requests progress commentary/i.test(rules)
+      && /unless the user explicitly requests live narration/i.test(rules)
   },
   {
     code: "DR-TICKET-01",
@@ -71,6 +71,36 @@ const RULE_CHECKS = [
     code: "DR-RETURN-01",
     message: "Rule violations must be machine-returnable through CLI audits.",
     test: (rules) => /Rule violations must be machine-returnable/i.test(rules) && /rules audit/i.test(rules)
+  },
+  {
+    code: "DR-BYPASS-01",
+    message: "Rules must block local workaround bypasses of project contracts.",
+    test: (rules) => /Anti-Bypass Guard/i.test(rules)
+      && /local workaround/i.test(rules)
+      && /generated\/source ownership boundaries/i.test(rules)
+      && /cross-language\/cross-runtime parity obligations/i.test(rules)
+  },
+  {
+    code: "DR-SCOPE-01",
+    message: "Rules must contain low-capability agents that cannot verify broad scope.",
+    test: (rules) => /Scope Containment Guard/i.test(rules)
+      && /Low-capability agents must not accept broad ownership/i.test(rules)
+      && /stop\/split\/escalate/i.test(rules)
+  },
+  {
+    code: "DR-VELOCITY-01",
+    message: "Rules must treat high ticket velocity as a stabilization trigger.",
+    test: (rules) => /Ticket Velocity Guard/i.test(rules)
+      && /High ticket creation velocity is a failure signal/i.test(rules)
+      && /no more symptom tickets/i.test(rules)
+  },
+  {
+    code: "DR-STATE-01",
+    message: "Rules must quarantine dirty or transition-state project baselines.",
+    test: (rules) => /Current-State Quarantine/i.test(rules)
+      && /dirty worktrees/i.test(rules)
+      && /verify_failed/i.test(rules)
+      && /unimplemented/i.test(rules)
   }
 ];
 

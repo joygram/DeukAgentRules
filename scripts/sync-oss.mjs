@@ -5,6 +5,7 @@
 import { cpSync, existsSync, mkdirSync, readFileSync, unlinkSync, writeFileSync, rmSync } from "fs";
 import { dirname, join } from "path";
 import { fileURLToPath } from "url";
+import { AGENT_ROOT_DIR } from "./cli-utils.mjs";
 
 const __dirname = dirname(fileURLToPath(import.meta.url));
 const pkgRoot = join(__dirname, "..");
@@ -80,8 +81,9 @@ mkdirSync(join(ossRoot, "scripts"), { recursive: true });
 mkdirSync(join(ossRoot, "templates"), { recursive: true });
 
 export function syncOssTree() {
-  if (existsSync(join(ossRoot, ".deuk-agent"))) {
-    rmSync(join(ossRoot, ".deuk-agent"), { recursive: true, force: true });
+  const agentRoot = join(ossRoot, AGENT_ROOT_DIR);
+  if (existsSync(agentRoot)) {
+    rmSync(agentRoot, { recursive: true, force: true });
   }
   if (existsSync(join(ossRoot, "TICKET_LIST.md"))) {
     unlinkSync(join(ossRoot, "TICKET_LIST.md"));
