@@ -1,20 +1,6 @@
 {
   "version": 1,
-  "updatedAt": "2026-05-03T07:48:04.119Z",
-  "entries": [
-    {
-      "id": "206-remove-legacy split reference-from-tickets-joy-nucb",
-      "title": "206-remove-legacy split reference-from-tickets-joy-nucb",
-      "topic": "206-remove-planlink-from-tickets-joy-nucb",
-      "group": "sub",
-      "fileName": "206-remove-planlink-from-tickets-joy-nucb.md",
-      "project": "global",
-      "submodule": "",
-      "createdAt": "2026-05-03 07:16:33",
-      "updatedAt": "2026-05-03T07:32:56.881Z",
-      "source": "ticket-sync",
-      "status": "open"
-    }
-  ],
-  "activeTicketId": "206-remove-legacy split reference-from-tickets-joy-nucb"
+  "updatedAt": "2026-05-03T07:51:20.909Z",
+  "entries": [],
+  "activeTicketId": null
 }

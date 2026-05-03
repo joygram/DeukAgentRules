@@ -7,7 +7,7 @@ import { AGENT_ROOT_DIR } from "./cli-utils.mjs";
 
 const ignoredDirs = new Set([".git", "node_modules"]);
 
-function collectChangedMarkdownFiles(repoRoot) {
+export function collectChangedMarkdownFiles(repoRoot) {
   const changed = new Set();
 
   const gitArgs = ["-C", repoRoot, "diff", "--name-only", "--diff-filter=ACMRTUXB"];

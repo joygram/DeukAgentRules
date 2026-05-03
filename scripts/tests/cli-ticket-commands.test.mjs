@@ -1,5 +1,6 @@
 import test from "node:test";
 import assert from "node:assert";
+import { spawnSync } from "node:child_process";
 import { existsSync, mkdtempSync, mkdirSync, readFileSync, readdirSync, rmSync, writeFileSync } from "node:fs";
 import { tmpdir } from "node:os";
 import { join } from "node:path";
@@ -781,6 +782,74 @@ test("runTicketMove ignores linked plan markdown and still moves ticket", async 
 
     const index = JSON.parse(readFileSync(join(ticketDir, TICKET_INDEX_FILENAME), "utf8"));
     assert.strictEqual(index.entries[0].status, "active");
+  } finally {
+    rmSync(cwd, { recursive: true, force: true });
+  }
+});
+
+test("runTicketMove lints changed markdown outside the ticket", async () => {
+  const ticketPath = ".deuk-agent/tickets/sub/003-default-host.md";
+  const { cwd, ticketDir } = makeTicketWorkspace([
+    makeEntry({
+      id: "003-default-host",
+      title: "changed-md-guard",
+      topic: "003-default-host",
+      fileName: "003-default-host.md",
+      path: ticketPath,
+      status: "open",
+      phase: 1
+    })
+  ]);
+
+  mkdirSync(join(ticketDir, "sub"), { recursive: true });
+  writeFileSync(join(cwd, ticketPath), [
+    "---",
+    "id: 003-default-host",
+    "title: changed-md-guard",
+    "phase: 1",
+    "status: open",
+    "summary: changed markdown guard",
+    "priority: P2",
+    "tags: [test]",
+    "---",
+    "# changed-md-guard",
+    "",
+    "## Scope & Constraints",
+    "- Target: source module",
+    "",
+    "## Agent Permission Contract (APC)",
+    "### [BOUNDARY]",
+    "- Editable modules: source module",
+    "",
+    "### [CONTRACT]",
+    "- Input: source context",
+    "- Output: minimal implementation",
+    "- Side effects: docs only",
+    "",
+    "### [PATCH PLAN]",
+    "- Plan pointer",
+    ""
+  ].join("\n"), "utf8");
+
+  try {
+    writeFileSync(join(cwd, "AGENTS.md"), "# Rules\n\nValid.\n", "utf8");
+    spawnSync("git", ["init"], { cwd, encoding: "utf8" });
+    spawnSync("git", ["add", "AGENTS.md"], { cwd, encoding: "utf8" });
+    spawnSync("git", ["-c", "user.email=test@example.com", "-c", "user.name=Test", "commit", "-m", "seed"], { cwd, encoding: "utf8" });
+    writeFileSync(join(cwd, "AGENTS.md"), "# Rules\n\nBroken [link](./missing.md)\n", "utf8");
+
+    await assert.rejects(
+      () => runTicketMove({ cwd, topic: "003", next: true, nonInteractive: true }),
+      err => {
+        assert.match(err.message, /markdown lint failed/);
+        assert.match(err.message, /AGENTS\.md: broken relative link/);
+        return true;
+      }
+    );
+
+    const body = readFileSync(join(cwd, ticketPath), "utf8");
+    assert.match(body, /phase: 1/);
+    assert.match(body, /status: open/);
   } finally {
     rmSync(cwd, { recursive: true, force: true });
   }

@@ -10,7 +10,7 @@ import { readTicketIndexJson, writeTicketIndexJson, syncActiveTicketId, generate
 import { appendTicketEntry, rebuildTicketIndexFromTopicFilesIfNeeded, writeTicketListFile, updateTicketEntryStatus } from "./cli-ticket-parser.mjs";
 import { appendInternalWorkflowEvent } from "./cli-telemetry-commands.mjs";
 import { parsePlan } from "./plan-parser.mjs";
-import { lintMarkdownPaths } from "./lint-md.mjs";
+import { collectChangedMarkdownFiles, lintMarkdownPaths } from "./lint-md.mjs";
 import ejs from "ejs";
 import YAML from "yaml";
 
@@ -147,6 +147,10 @@ function lintTicketLifecycleMarkdown(cwd, targets, context) {
 function collectTicketLifecycleMarkdownTargets(cwd, ticketAbsPath, extraTargets = []) {
   const targets = [];
   if (ticketAbsPath) targets.push(ticketAbsPath);
+
+  for (const relPath of collectChangedMarkdownFiles(cwd)) {
+    targets.push(join(cwd, relPath));
+  }
 
   for (const target of extraTargets || []) {
     if (!target) continue;
