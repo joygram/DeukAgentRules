@@ -58,8 +58,8 @@ BAD:
 GOOD:
 | Type | Path |
 |------|------|
-| Plans | `.deuk-agent/docs/plans/<ticket-id>-plan.md` |
-| Reports | `.deuk-agent/docs/walkthroughs/<ticket-id>-report.md` |
+| Plan docs | `.deuk-agent/docs/plan/<ticket-id>-plan.md` |
+| Archived docs | `.deuk-agent/docs/archive/<YYYY-MM>/<...>.md` |
 ```
 
 ### 5. No Ambiguity Words
