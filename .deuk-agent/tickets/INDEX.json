@@ -1,8 +1,18 @@
 {
   "version": 1,
-  "updatedAt": "2026-05-03T14:39:01.786Z",
-  "activeTicketId": "250-source-chunk-usage-validation-joy-nucb",
+  "updatedAt": "2026-05-03T20:49:23.744Z",
+  "activeTicketId": "251-consolidation-not-running-joy-nucb",
   "entries": [
+    {
+      "id": "251-consolidation-not-running-joy-nucb",
+      "title": "consolidation-not-running",
+      "topic": "consolidation-not-running",
+      "group": "sub",
+      "project": "global",
+      "createdAt": "2026-05-03T20:49:23.741Z",
+      "source": "ticket-create",
+      "status": "open"
+    },
     {
       "id": "250-source-chunk-usage-validation-joy-nucb",
       "title": "source-chunk-usage-validation",
