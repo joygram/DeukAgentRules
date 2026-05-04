@@ -1,8 +1,72 @@
 {
   "version": 1,
-  "updatedAt": "2026-05-03T23:53:15.130Z",
-  "activeTicketId": "257-득팩-처리-수준-개선-joy-nucb",
+  "updatedAt": "2026-05-04T12:54:17.184Z",
   "entries": [
+    {
+      "id": "268-deukpack-405-missing-analysis-re-joy-nucb",
+      "title": "deukpack-405-missing-analysis-record",
+      "topic": "268-deukpack-405-missing-analysis-re-joy-nucb",
+      "group": "sub",
+      "fileName": "268-deukpack-405-missing-analysis-re-joy-nucb.md",
+      "project": "global",
+      "submodule": "",
+      "createdAt": "2026-05-04 12:20:34",
+      "updatedAt": "2026-05-04T12:27:54.354Z",
+      "source": "ticket-sync",
+      "status": "open"
+    },
+    {
+      "id": "265-ticket-417-dummy-record-root-cau-joy-nucb",
+      "title": "ticket-417-dummy-record-root-cause",
+      "topic": "265-ticket-417-dummy-record-root-cau-joy-nucb",
+      "group": "sub",
+      "fileName": "265-ticket-417-dummy-record-root-cau-joy-nucb.md",
+      "project": "global",
+      "submodule": "",
+      "createdAt": "2026-05-04 11:20:37",
+      "updatedAt": "2026-05-04T11:21:58.797Z",
+      "source": "ticket-sync",
+      "status": "open"
+    },
+    {
+      "id": "263-review-antigravity-gitignore-joy-nucb",
+      "title": "review-antigravity-gitignore",
+      "topic": "263-review-antigravity-gitignore-joy-nucb",
+      "group": "sub",
+      "fileName": "263-review-antigravity-gitignore-joy-nucb.md",
+      "project": "global",
+      "submodule": "",
+      "createdAt": "2026-05-04 11:12:04",
+      "updatedAt": "2026-05-04T11:12:51.573Z",
+      "source": "ticket-sync",
+      "status": "open"
+    },
+    {
+      "id": "262-antigravity-customization-auto-a-joy-nucb",
+      "title": "antigravity-customization-auto-add-plan",
+      "topic": "262-antigravity-customization-auto-a-joy-nucb",
+      "group": "sub",
+      "fileName": "262-antigravity-customization-auto-a-joy-nucb.md",
+      "project": "global",
+      "submodule": "",
+      "createdAt": "2026-05-04 11:09:00",
+      "updatedAt": "2026-05-04T11:09:00.292Z",
+      "source": "ticket-sync",
+      "status": "open"
+    },
+    {
+      "id": "260-why-rule-compliance-audit-occurr-joy-nucb",
+      "title": "why-rule-compliance-audit-occurred",
+      "topic": "260-why-rule-compliance-audit-occurr-joy-nucb",
+      "group": "sub",
+      "fileName": "260-why-rule-compliance-audit-occurr-joy-nucb.md",
+      "project": "global",
+      "submodule": "",
+      "createdAt": "2026-05-04 10:54:34",
+      "updatedAt": "2026-05-04T10:55:14.076Z",
+      "source": "ticket-sync",
+      "status": "open"
+    },
     {
       "id": "257-득팩-처리-수준-개선-joy-nucb",
       "title": "득팩 처리 수준 개선",
@@ -133,5 +197,6 @@
       "source": "ticket-sync",
       "status": "open"
     }
-  ]
+  ],
+  "activeTicketId": "268-deukpack-405-missing-analysis-re-joy-nucb"
 }

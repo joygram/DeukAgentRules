@@ -4,7 +4,7 @@ import { spawnSync } from "node:child_process";
 import { existsSync, mkdtempSync, mkdirSync, readFileSync, readdirSync, rmSync, writeFileSync } from "node:fs";
 import { tmpdir } from "node:os";
 import { join } from "node:path";
-import { pickTicketEntry, runTicketArchive, runTicketCreate, runTicketClose, runTicketMove, runTicketNext, runTicketStatus, runTicketUse, runTicketHandoff } from "../cli-ticket-commands.mjs";
+import { pickTicketEntry, runTicketArchive, runTicketCreate, runTicketClose, runTicketMove, runTicketNext, runTicketStatus, runTicketUse, runTicketHandoff, runTicketEvidenceCheck, runTicketEvidenceReport } from "../cli-ticket-commands.mjs";
 import { readTicketIndexJson } from "../cli-ticket-index.mjs";
 import { lintMarkdownPaths } from "../lint-md.mjs";
 import { TICKET_INDEX_FILENAME } from "../cli-utils.mjs";
@@ -770,6 +770,21 @@ test("runTicketMove ignores linked plan markdown and still moves ticket", async 
     "### [PATCH PLAN]",
     "- Plan pointer",
     "",
+    "## Compact Plan",
+    "",
+    "- **Finding:** The move guard ticket owns a focused source-module update.",
+    "- **Root cause / hypothesis:** The ticket has complete local planning evidence.",
+    "- **Approach:** Move to execution after Phase 1 guards pass.",
+    "- **Verification:** Inspect phase and status after move.",
+    "",
+    "## Problem Analysis",
+    "",
+    "The lifecycle move path must ignore linked plan markdown while still validating the main ticket.",
+    "",
+    "## Improvement Direction",
+    "",
+    "Keep lifecycle lint scoped to changed markdown and main-ticket state.",
+    "",
     "## Tasks",
     "- [ ] placeholder",
     "",
@@ -802,6 +817,292 @@ test("runTicketMove ignores linked plan markdown and still moves ticket", async 
 
     const index = JSON.parse(readFileSync(join(ticketDir, TICKET_INDEX_FILENAME), "utf8"));
     assert.strictEqual(index.entries[0].status, "active");
+  } finally {
+    rmSync(cwd, { recursive: true, force: true });
+  }
+});
+
+test("runTicketMove rejects scaffold-only compact plan before Phase 2", async () => {
+  const ticketPath = ".deuk-agent/tickets/sub/001-plan-guard.md";
+  const { cwd, ticketDir } = makeTicketWorkspace([
+    makeEntry({
+      id: "001-plan-guard",
+      title: "plan-guard",
+      topic: "001-plan-guard",
+      fileName: "001-plan-guard.md",
+      path: ticketPath,
+      status: "open",
+      phase: 1
+    })
+  ]);
+
+  mkdirSync(join(ticketDir, "sub"), { recursive: true });
+  writeFileSync(join(cwd, ticketPath), [
+    "---",
+    "id: 001-plan-guard",
+    "title: plan-guard",
+    "phase: 1",
+    "status: open",
+    "summary: validate move compact plan guard",
+    "priority: P2",
+    "tags: [test]",
+    "---",
+    "# plan-guard",
+    "",
+    "## Agent Permission Contract (APC)",
+    "### [BOUNDARY]",
+    "- Editable modules: source module",
+    "",
+    "### [CONTRACT]",
+    "- Input: source context",
+    "- Output: minimal implementation",
+    "- Side effects: docs only",
+    "",
+    "### [PATCH PLAN]",
+    "- Implement the approved bounded change.",
+    "",
+    "## Compact Plan",
+    "",
+    "- **Finding:** Record the concrete symptom, risk, or requested change this ticket owns.",
+    "- **Root cause / hypothesis:** Capture the current best explanation.",
+    "- **Approach:** Capture the selected design path.",
+    "- **Verification:** List the smallest relevant commands/checks.",
+    ""
+  ].join("\n"), "utf8");
+
+  try {
+    await assert.rejects(
+      () => runTicketMove({ cwd, topic: "001", next: true, nonInteractive: true }),
+      err => {
+        assert.match(err.message, /incomplete Phase 1 planning evidence/);
+        assert.match(err.message, /compact_plan_placeholder_or_incomplete/);
+        return true;
+      }
+    );
+
+    const body = readFileSync(join(cwd, ticketPath), "utf8");
+    assert.match(body, /phase: 1/);
+    assert.match(body, /status: open/);
+  } finally {
+    rmSync(cwd, { recursive: true, force: true });
+  }
+});
+
+test("runTicketMove rejects ticket without substantive analysis and design sections", async () => {
+  const ticketPath = ".deuk-agent/tickets/sub/001-analysis-guard.md";
+  const { cwd, ticketDir } = makeTicketWorkspace([
+    makeEntry({
+      id: "001-analysis-guard",
+      title: "analysis guard",
+      topic: "analysis-guard",
+      fileName: "001-analysis-guard.md",
+      path: ticketPath,
+      status: "open",
+      phase: 1
+    })
+  ]);
+
+  mkdirSync(join(ticketDir, "sub"), { recursive: true });
+  writeFileSync(join(cwd, ticketPath), [
+    "---",
+    "id: 001-analysis-guard",
+    "title: analysis guard",
+    "phase: 1",
+    "status: open",
+    "summary: enforce analysis design content",
+    "priority: P2",
+    "tags: [test]",
+    "---",
+    "# analysis guard",
+    "",
+    "## Agent Permission Contract (APC)",
+    "### [BOUNDARY]",
+    "- Editable modules: source module",
+    "",
+    "### [CONTRACT]",
+    "- Input: source context",
+    "- Output: validated implementation",
+    "- Side effects: tests only",
+    "",
+    "### [PATCH PLAN]",
+    "- Implement the approved bounded change.",
+    "",
+    "## Compact Plan",
+    "",
+    "- **Finding:** The ticket needs analysis and design content.",
+    "- **Root cause / hypothesis:** The lifecycle guard should reject scaffold-only sections.",
+    "- **Approach:** Validate analysis and design sections before execution.",
+    "- **Verification:** Move should fail with analysis/design reasons.",
+    "",
+    "## Problem Analysis",
+    "",
+    "For investigation, regression, quality, or root-cause tickets, record the current analysis here before asking the user for clarification. Chat should point back to this ticket after the analysis is recorded.",
+    "",
+    "## Improvement Direction",
+    "",
+    "- Record the proposed fix direction or follow-up design path.",
+    ""
+  ].join("\n"), "utf8");
+
+  try {
+    await assert.rejects(
+      () => runTicketMove({ cwd, topic: "001", next: true, nonInteractive: true }),
+      err => {
+        assert.match(err.message, /problem_analysis_missing/);
+        assert.match(err.message, /improvement_direction_missing/);
+        return true;
+      }
+    );
+
+    const body = readFileSync(join(cwd, ticketPath), "utf8");
+    assert.match(body, /phase: 1/);
+    assert.match(body, /status: open/);
+  } finally {
+    rmSync(cwd, { recursive: true, force: true });
+  }
+});
+
+test("runTicketMove rejects audit ticket without main-ticket durable evidence", async () => {
+  const ticketPath = ".deuk-agent/tickets/sub/001-audit-guard.md";
+  const { cwd, ticketDir } = makeTicketWorkspace([
+    makeEntry({
+      id: "001-audit-guard",
+      title: "metadata audit",
+      topic: "metadata-audit",
+      fileName: "001-audit-guard.md",
+      path: ticketPath,
+      status: "open",
+      phase: 1
+    })
+  ]);
+
+  mkdirSync(join(ticketDir, "sub"), { recursive: true });
+  writeFileSync(join(cwd, ticketPath), [
+    "---",
+    "id: 001-audit-guard",
+    "title: metadata audit",
+    "phase: 1",
+    "status: open",
+    "summary: audit hardcoded metadata handling",
+    "priority: P2",
+    "tags: [test]",
+    "---",
+    "# metadata audit",
+    "",
+    "## Agent Permission Contract (APC)",
+    "### [BOUNDARY]",
+    "- Editable modules: source module",
+    "",
+    "### [CONTRACT]",
+    "- Input: source context",
+    "- Output: audit findings",
+    "- Side effects: ticket only",
+    "",
+    "### [PATCH PLAN]",
+    "- Perform a read-only audit.",
+    "",
+    "## Compact Plan",
+    "",
+    "- **Finding:** Metadata audit needs durable evidence.",
+    "- **Root cause / hypothesis:** Summary-only reports can lose file-level findings.",
+    "- **Approach:** Block execution until evidence is in the main ticket.",
+    "- **Verification:** Move should fail with audit evidence reason.",
+    "",
+    "## Verification Outcome",
+    "",
+    "- **Key findings:** Providers contain hardcoded mappings.",
+    ""
+  ].join("\n"), "utf8");
+
+  try {
+    await assert.rejects(
+      () => runTicketMove({ cwd, topic: "001", next: true, nonInteractive: true }),
+      err => {
+        assert.match(err.message, /incomplete Phase 1 planning evidence/);
+        assert.match(err.message, /audit_evidence_missing/);
+        return true;
+      }
+    );
+
+    const body = readFileSync(join(cwd, ticketPath), "utf8");
+    assert.match(body, /phase: 1/);
+    assert.match(body, /status: open/);
+  } finally {
+    rmSync(cwd, { recursive: true, force: true });
+  }
+});
+
+test("runTicketMove accepts audit ticket with main-ticket source observations", async () => {
+  const ticketPath = ".deuk-agent/tickets/sub/001-audit-evidence.md";
+  const { cwd, ticketDir } = makeTicketWorkspace([
+    makeEntry({
+      id: "001-audit-evidence",
+      title: "metadata audit",
+      topic: "metadata-audit",
+      fileName: "001-audit-evidence.md",
+      path: ticketPath,
+      status: "open",
+      phase: 1
+    })
+  ]);
+
+  mkdirSync(join(ticketDir, "sub"), { recursive: true });
+  writeFileSync(join(cwd, ticketPath), [
+    "---",
+    "id: 001-audit-evidence",
+    "title: metadata audit",
+    "phase: 1",
+    "status: open",
+    "summary: audit hardcoded metadata handling",
+    "priority: P2",
+    "tags: [test]",
+    "---",
+    "# metadata audit",
+    "",
+    "## Agent Permission Contract (APC)",
+    "### [BOUNDARY]",
+    "- Editable modules: source module",
+    "",
+    "### [CONTRACT]",
+    "- Input: source context",
+    "- Output: audit findings",
+    "- Side effects: ticket only",
+    "",
+    "### [PATCH PLAN]",
+    "- Perform a read-only audit.",
+    "",
+    "## Compact Plan",
+    "",
+    "- **Finding:** Metadata audit needs durable evidence.",
+    "- **Root cause / hypothesis:** Summary-only reports can lose file-level findings.",
+    "- **Approach:** Store file-level evidence in the main ticket.",
+    "- **Verification:** Move should pass when evidence exists.",
+    "",
+    "## Source Observations",
+    "",
+    "- `src/codegen/plugins/rust/src/RustSerializationProvider.ts:15` maps Binary to String locally.",
+    "- `scripts/bmt/reporter.js:111` keeps a local protocol display map.",
+    "",
+    "## Cause Hypotheses",
+    "",
+    "- Provider-local maps remain because metadata parity guards were incomplete.",
+    "",
+    "## Problem Analysis",
+    "",
+    "The audit ticket needs concrete source observations before it can move to execution.",
+    "",
+    "## Improvement Direction",
+    "",
+    "Use metadata-first provider parity as the follow-up design path.",
+    ""
+  ].join("\n"), "utf8");
+
+  try {
+    await runTicketMove({ cwd, topic: "001", next: true, nonInteractive: true });
+
+    const body = readFileSync(join(cwd, ticketPath), "utf8");
+    assert.match(body, /phase: 2/);
+    assert.match(body, /status: active/);
   } finally {
     rmSync(cwd, { recursive: true, force: true });
   }
@@ -850,6 +1151,21 @@ test("runTicketMove finds ticket owner repo by topic from sibling cwd", async ()
     "",
     "### [PATCH PLAN]",
     "- Plan pointer",
+    "",
+    "## Compact Plan",
+    "",
+    "- **Finding:** The sibling-owned ticket validates owner-repo discovery.",
+    "- **Root cause / hypothesis:** The command cwd can be a sibling repository.",
+    "- **Approach:** Resolve the ticket owner before mutating lifecycle state.",
+    "- **Verification:** Check the owner ticket moved and the sibling index stayed empty.",
+    "",
+    "## Problem Analysis",
+    "",
+    "Sibling cwd resolution can mutate the wrong repo unless the owner repo is resolved first.",
+    "",
+    "## Improvement Direction",
+    "",
+    "Resolve matching ticket owners before lifecycle mutation.",
     ""
   ].join("\n"), "utf8");
 
@@ -945,6 +1261,21 @@ test("runTicketMove lints changed markdown outside the ticket", async () => {
     "",
     "### [PATCH PLAN]",
     "- Plan pointer",
+    "",
+    "## Compact Plan",
+    "",
+    "- **Finding:** The changed markdown guard validates lifecycle linting.",
+    "- **Root cause / hypothesis:** Changed non-ticket markdown must still block lifecycle moves when lint fails.",
+    "- **Approach:** Move only after Phase 1 evidence passes, then expect lint to reject broken markdown.",
+    "- **Verification:** Confirm the move rolls back and reports the broken relative link.",
+    "",
+    "## Problem Analysis",
+    "",
+    "Lifecycle moves must not bypass markdown lint when non-ticket markdown is changed.",
+    "",
+    "## Improvement Direction",
+    "",
+    "Validate main-ticket planning first, then run changed-markdown lint.",
     ""
   ].join("\n"), "utf8");
 
@@ -1017,6 +1348,14 @@ test("runTicketClose ignores linked plan markdown and still closes ticket", asyn
     "",
     "### [PATCH PLAN]",
     "- Plan pointer",
+    "",
+    "## Problem Analysis",
+    "",
+    "The close command must ignore broken linked plan markdown when the main ticket is complete.",
+    "",
+    "## Improvement Direction",
+    "",
+    "Validate and close the main ticket without traversing linked plan markdown.",
     ""
   ].join("\n"), "utf8");
 
@@ -1040,6 +1379,119 @@ test("runTicketClose ignores linked plan markdown and still closes ticket", asyn
     const body = readFileSync(join(cwd, ticketPath), "utf8");
     assert.match(body, /phase: 4/);
     assert.match(body, /status: closed/);
+  } finally {
+    rmSync(cwd, { recursive: true, force: true });
+  }
+});
+
+test("runTicketClose defaults to latest instead of prompting when stdout is not a TTY", async () => {
+  const ticketPath = ".deuk-agent/tickets/sub/002-default-host.md";
+  const { cwd, ticketDir } = makeTicketWorkspace([
+    makeEntry({
+      id: "002-default-host",
+      title: "close-latest",
+      topic: "002-default-host",
+      fileName: "002-default-host.md",
+      path: ticketPath,
+      status: "open",
+      phase: 1,
+      createdAt: "2026-05-04 10:00:00"
+    })
+  ]);
+
+  mkdirSync(join(ticketDir, "sub"), { recursive: true });
+  writeFileSync(join(cwd, ticketPath), [
+    "---",
+    "id: 002-default-host",
+    "title: close-latest",
+    "phase: 1",
+    "status: open",
+    "summary: close latest",
+    "priority: P2",
+    "tags: [test]",
+    "createdAt: 2026-05-04 10:00:00",
+    "---",
+    "# close-latest",
+    "",
+    "## Problem Analysis",
+    "",
+    "The no-topic close command should use latest in non-TTY terminals.",
+    "",
+    "## Improvement Direction",
+    "",
+    "Default to latest while preserving lifecycle mutation behavior.",
+    ""
+  ].join("\n"), "utf8");
+
+  const originalDescriptor = Object.getOwnPropertyDescriptor(process.stdout, "isTTY");
+  Object.defineProperty(process.stdout, "isTTY", { value: false, configurable: true });
+
+  try {
+    await runTicketClose({ cwd });
+
+    const body = readFileSync(join(cwd, ticketPath), "utf8");
+    assert.match(body, /phase: 4/);
+    assert.match(body, /status: closed/);
+  } finally {
+    if (originalDescriptor) Object.defineProperty(process.stdout, "isTTY", originalDescriptor);
+    rmSync(cwd, { recursive: true, force: true });
+  }
+});
+
+test("runTicketClose rejects audit ticket without main-ticket durable evidence", async () => {
+  const ticketPath = ".deuk-agent/tickets/sub/002-audit-close.md";
+  const { cwd, ticketDir } = makeTicketWorkspace([
+    makeEntry({
+      id: "002-audit-close",
+      title: "metadata audit close",
+      topic: "metadata-audit-close",
+      fileName: "002-audit-close.md",
+      path: ticketPath,
+      status: "active",
+      phase: 2
+    })
+  ]);
+
+  mkdirSync(join(ticketDir, "sub"), { recursive: true });
+  writeFileSync(join(cwd, ticketPath), [
+    "---",
+    "id: 002-audit-close",
+    "title: metadata audit close",
+    "phase: 2",
+    "status: active",
+    "summary: audit hardcoded metadata handling before close",
+    "priority: P2",
+    "tags: [test]",
+    "---",
+    "# metadata audit close",
+    "",
+    "## Verification Outcome",
+    "",
+    "- **Key findings:** Providers contain hardcoded mappings.",
+    "",
+    "## Problem Analysis",
+    "",
+    "The close path must preserve detailed audit findings in the main ticket.",
+    "",
+    "## Improvement Direction",
+    "",
+    "Block close until file-level durable evidence has been recorded.",
+    ""
+  ].join("\n"), "utf8");
+
+  try {
+    await assert.rejects(
+      () => runTicketClose({ cwd, topic: "002", nonInteractive: true }),
+      err => {
+        assert.match(err.message, /cannot close without complete main-ticket analysis\/design evidence/);
+        assert.match(err.message, /audit_evidence_missing/);
+        return true;
+      }
+    );
+
+    const body = readFileSync(join(cwd, ticketPath), "utf8");
+    assert.match(body, /phase: 2/);
+    assert.match(body, /status: active/);
   } finally {
     rmSync(cwd, { recursive: true, force: true });
   }
@@ -1443,6 +1895,12 @@ test("runTicketStatus compact mode emits one-line phase summary", async () => {
     "- **Approach:** keep status output terse",
     "- **Verification:** run compact status command",
     "- **Ticket Numbering:** infer the master/sub ticket from the numbered ticket ID; do not add inline child-ticket links.",
+    "",
+    "## Problem Analysis",
+    "Compact status should report one concise lifecycle line for complete tickets.",
+    "",
+    "## Improvement Direction",
+    "Keep compact status output terse while surfacing incomplete planning reasons.",
     ""
   ].join("\n"), "utf8");
   writeFileSync(join(cwd, ".deuk-agent", "docs", "plan", "001-compact-status-host-plan.md"), [
@@ -1496,6 +1954,120 @@ test("runTicketStatus compact mode emits one-line phase summary", async () => {
 
   assert.strictEqual(lines.length, 1);
   assert.match(lines[0], /^001-compact-status-host \| phase=1 \| status=open \| ok$/);
+});
+
+test("runTicketEvidenceCheck rejects claim not covered by same-topic investigation sections", async () => {
+  const { cwd, ticketDir } = makeTicketWorkspace([]);
+  const srcDir = join(ticketDir, "sub");
+  mkdirSync(srcDir, { recursive: true });
+
+  const ticketId = "001-java-harness-claim";
+  writeFileSync(join(srcDir, `${ticketId}.md`), [
+    "---",
+    `id: ${ticketId}`,
+    "title: java harness claim",
+    "phase: 1",
+    "status: open",
+    "summary: Java harness generated source investigation",
+    "---",
+    "",
+    "# java harness claim",
+    "",
+    "## Problem Analysis",
+    "TypeScript documentation and RecordGenerator parity need review.",
+    "",
+    "## Source Observations",
+    "- docs/architecture/SERIALIZATION_MATRIX.md records TypeScript strategy drift.",
+    "",
+    "## Cause Hypotheses",
+    "- Language strategy labels evolved independently.",
+    "",
+    "## Improvement Direction",
+    "- Align TypeScript and JavaScript documentation wording.",
+    ""
+  ].join("\n"), "utf8");
+  writeFileSync(join(ticketDir, "INDEX.json"), JSON.stringify(makeIndex([makeEntry({
+    id: ticketId,
+    title: "java harness claim",
+    topic: ticketId,
+    fileName: `${ticketId}.md`,
+    path: `.deuk-agent/tickets/sub/${ticketId}.md`,
+    createdAt: "2026-05-03 00:00:00",
+    status: "open"
+  })]), null, 2) + "\n", "utf8");
+
+  try {
+    await assert.rejects(
+      () => runTicketEvidenceCheck({
+        cwd,
+        topic: ticketId,
+        claim: "Java generated source and java-codegen-evidence-adapter.js harness transform were separated",
+        nonInteractive: true
+      }),
+      /claim_coverage_missing/
+    );
+  } finally {
+    rmSync(cwd, { recursive: true, force: true });
+  }
+});
+
+test("runTicketEvidenceReport emits report only when claim is covered by ticket evidence", async () => {
+  const { cwd, ticketDir } = makeTicketWorkspace([]);
+  const srcDir = join(ticketDir, "sub");
+  mkdirSync(srcDir, { recursive: true });
+
+  const ticketId = "001-java-harness-report";
+  writeFileSync(join(srcDir, `${ticketId}.md`), [
+    "---",
+    `id: ${ticketId}`,
+    "title: java harness report",
+    "phase: 1",
+    "status: open",
+    "summary: Java harness generated source investigation",
+    "---",
+    "",
+    "# java harness report",
+    "",
+    "## Problem Analysis",
+    "Java generated source and java-codegen-evidence-adapter.js harness transform must be separated before reporting.",
+    "",
+    "## Source Observations",
+    "- scripts/bmt/java-codegen-evidence-adapter.js rewrites Java harness sources.",
+    "",
+    "## Cause Hypotheses",
+    "- Raw generated Java may fail, or harness transform may introduce the compile failure.",
+    "",
+    "## Improvement Direction",
+    "- Compile raw generated Java and transformed harness Java as separate evidence rows.",
+    ""
+  ].join("\n"), "utf8");
+  writeFileSync(join(ticketDir, "INDEX.json"), JSON.stringify(makeIndex([makeEntry({
+    id: ticketId,
+    title: "java harness report",
+    topic: ticketId,
+    fileName: `${ticketId}.md`,
+    path: `.deuk-agent/tickets/sub/${ticketId}.md`,
+    createdAt: "2026-05-03 00:00:00",
+    status: "open"
+  })]), null, 2) + "\n", "utf8");
+
+  const lines = [];
+  const originalLog = console.log;
+  console.log = (line = "") => lines.push(String(line));
+
+  try {
+    await runTicketEvidenceReport({
+      cwd,
+      topic: ticketId,
+      claim: "Java generated source and java-codegen-evidence-adapter.js harness transform were separated",
+      nonInteractive: true
+    });
+    assert.match(lines.join("\n"), /Claim-bound ticket report/);
+    assert.match(lines.join("\n"), /java-codegen-evidence-adapter\.js/);
+  } finally {
+    console.log = originalLog;
+    rmSync(cwd, { recursive: true, force: true });
+  }
 });
 
 test("runTicketHandoff compact mode emits current and next ticket summary", async () => {

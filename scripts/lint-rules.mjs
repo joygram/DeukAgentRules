@@ -65,7 +65,7 @@ const RULE_CHECKS = [
     test: (rules) => /Issue-Review Gate/i.test(rules)
       && /reports a bug, regression, policy violation, surprising behavior/i.test(rules)
       && /Stop after the ticket-start line or a concise review-request final answer/i.test(rules)
-      && /Approval must be after the ticket exists and the Phase 1 plan is reviewable/i.test(rules)
+      && /Approval must be post-ticket and post-plan/i.test(rules)
   },
   {
     code: "DR-TICKET-03",
@@ -73,6 +73,36 @@ const RULE_CHECKS = [
     test: (rules) => /Before asking a clarification during an investigation/i.test(rules)
       && /confirmed facts, hypotheses, improvement direction, and unresolved question/i.test(rules)
       && /point the user to that ticket/i.test(rules)
+  },
+  {
+    code: "DR-TICKET-04",
+    message: "Rules must define the first-turn boot/ticket/context invariant.",
+    test: (rules) => /First-Turn Invariant/i.test(rules)
+      && /minimum valid state/i.test(rules)
+      && /set_workflow_context\(project, ticket_id, phase\)/i.test(rules)
+      && /substantive APC and compact plan evidence/i.test(rules)
+      && /review-gated issue, regression, policy-violation/i.test(rules)
+  },
+  {
+    code: "DR-TICKET-05",
+    message: "Rules must define a recovery path for sessions that already drifted.",
+    test: (rules) => /session already drifted/i.test(rules)
+      && /recovery mode/i.test(rules)
+      && /record confirmed facts\/hypotheses\/improvement direction\/open questions/i.test(rules)
+      && /wait for approval before writes, phase moves, or close/i.test(rules)
+  },
+  {
+    code: "DR-TICKET-06",
+    message: "Rules must require compact-plan enforcement before Phase 2.",
+    test: (rules) => /Phase 1 ticket content has substantive APC and compact plan evidence/i.test(rules)
+      && /CLI lifecycle guards enforce markdown lint, Phase 1 completeness, move\/close evidence gates/i.test(rules)
+  },
+  {
+    code: "DR-TICKET-07",
+    message: "Recorded-in-ticket claims must require same-topic claim evidence.",
+    test: (rules) => /Recorded-Claim Integrity/i.test(rules)
+      && /same ticket contains same-topic investigation evidence/i.test(rules)
+      && /Prefer CLI claim checks\/reports over manual chat claims/i.test(rules)
   },
   {
     code: "DR-SEARCH-01",

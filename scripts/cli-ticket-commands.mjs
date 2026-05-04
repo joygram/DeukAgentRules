@@ -72,7 +72,13 @@ const PLAN_SCAFFOLD_PHRASES = [
   "List plausible causes or design gaps before choosing an approach.",
   "Explain the selected approach and why alternatives were not chosen.",
   "Describe the implementation strategy without using progress checkboxes.",
-  "List commands to run, expected outcomes, and residual risks."
+  "List commands to run, expected outcomes, and residual risks.",
+  "Record the concrete symptom, risk, or requested change this ticket owns.",
+  "State what is broken, what is missing, and who or what is affected.",
+  "Capture the current best explanation and cite affected files, symbols, commands, or rules.",
+  "Record MCP tool/query quality when used:",
+  "Capture the selected design path and implementation direction.",
+  "List the smallest relevant commands/checks, expected result, and the pass/fail signal"
 ];
 
 function hasSubstantivePlanContent(text) {
@@ -86,9 +92,12 @@ function looksLikeInvestigationTicket(summary, title, topic) {
   const haystack = [summary, title, topic].filter(Boolean).join(" ").toLowerCase();
   if (!haystack) return false;
   return [
+    "audit",
+    "review",
     "investigate",
     "investigation",
     "root cause",
+    "root-cause",
     "why ",
     " why",
     "issue",
@@ -101,6 +110,237 @@ function looksLikeInvestigationTicket(summary, title, topic) {
     "doesn't",
     "not working"
   ].some(token => haystack.includes(token));
+}
+
+const DURABLE_EVIDENCE_SECTION_NAMES = [
+  "Source Observations",
+  "Audit Findings",
+  "Findings",
+  "Verification Outcome"
+];
+
+const EVIDENCE_SCAFFOLD_PHRASES = [
+  "Record confirmed local, RAG, code, command, or document evidence.",
+  "Record the concrete symptom, risk, or requested change this ticket owns.",
+  "Root causes are documented and explained.",
+  "Report is delivered to the user."
+];
+
+const ANALYSIS_DESIGN_SECTION_REQUIREMENTS = [
+  {
+    section: "Problem Analysis",
+    reason: "problem_analysis_missing",
+    scaffolds: [
+      "For investigation, regression, quality, or root-cause tickets, record the current analysis here before asking the user for clarification.",
+      "Chat should point back to this ticket after the analysis is recorded."
+    ]
+  },
+  {
+    section: "Improvement Direction",
+    reason: "improvement_direction_missing",
+    scaffolds: [
+      "Record the proposed fix direction or follow-up design path."
+    ]
+  }
+];
+
+const INVESTIGATION_ANALYSIS_SECTION_REQUIREMENTS = [
+  {
+    section: "Source Observations",
+    reason: "source_observations_missing",
+    scaffolds: [
+      "Record confirmed local, RAG, code, command, or document evidence."
+    ]
+  },
+  {
+    section: "Cause Hypotheses",
+    reason: "cause_hypotheses_missing",
+    scaffolds: [
+      "Record the current best explanation and competing plausible causes."
+    ]
+  }
+];
+
+const CLAIM_STOP_WORDS = new Set([
+  "the",
+  "and",
+  "or",
+  "is",
+  "are",
+  "was",
+  "were",
+  "be",
+  "this",
+  "that",
+  "with",
+  "for",
+  "from",
+  "in",
+  "on",
+  "of",
+  "to",
+  "it",
+  "ticket",
+  "issue",
+  "problem",
+  "analysis",
+  "failed",
+  "failure",
+  "record",
+  "recorded",
+  "claim",
+  "claiming",
+  "result",
+  "resulted",
+  "caused",
+  "causing",
+  "this",
+  "그",
+  "이",
+  "이슈",
+  "문제",
+  "실패",
+  "원인",
+  "분석",
+  "기록",
+  "티켓"
+]);
+
+function tokenizeClaimText(text) {
+  const raw = String(text || "").toLowerCase();
+  const tokens = raw.match(/[0-9a-z가-힣_.-]+/g) || [];
+  const filtered = tokens
+    .filter(t => t.length > 2)
+    .filter(t => !CLAIM_STOP_WORDS.has(t));
+  return [...new Set(filtered)];
+}
+
+function collectClaimTargetSections(content) {
+  const targetSections = ["Problem Analysis", "Source Observations", "Cause Hypotheses", "Improvement Direction"];
+  return targetSections.map(name => extractMarkdownSection(content, name)).join(" ");
+}
+
+function buildClaimCoverageSummary(claimTerms, sectionText) {
+  const haystack = String(sectionText || "").toLowerCase();
+  const normalized = haystack.replace(/\s+/g, " ");
+  const matched = claimTerms.filter(term => normalized.includes(term));
+  const missRate = claimTerms.length === 0 ? 0 : 1 - matched.length / claimTerms.length;
+  return {
+    matched,
+    missRate,
+    total: claimTerms.length
+  };
+}
+
+function extractMarkdownSection(content, heading) {
+  const escaped = heading.replace(/[.*+?^${}()|[\]\\]/g, "\\$&");
+  const match = String(content || "").match(new RegExp(`^##\\s+${escaped}\\s*$([\\s\\S]*?)(?=^##\\s+|(?![\\s\\S]))`, "im"));
+  return match?.[1] || "";
+}
+
+function hasSubstantiveSectionContent(text, scaffolds = []) {
+  const src = String(text || "").trim();
+  if (!src || hasPlaceholderTokens(src)) return false;
+  const normalized = src.replace(/\s+/g, " ");
+  return !scaffolds.some(phrase => normalized.includes(phrase));
+}
+
+function getAnalysisDesignIncompleteReasons(meta, content) {
+  const reasons = [];
+  for (const requirement of ANALYSIS_DESIGN_SECTION_REQUIREMENTS) {
+    if (!hasSubstantiveSectionContent(extractMarkdownSection(content, requirement.section), requirement.scaffolds)) {
+      reasons.push(requirement.reason);
+    }
+  }
+
+  if (shouldRequireMainTicketEvidence(meta, content)) {
+    for (const requirement of INVESTIGATION_ANALYSIS_SECTION_REQUIREMENTS) {
+      if (!hasSubstantiveSectionContent(extractMarkdownSection(content, requirement.section), requirement.scaffolds)) {
+        reasons.push(requirement.reason);
+      }
+    }
+  }
+
+  return reasons;
+}
+
+function hasConcreteEvidenceSignals(text) {
+  const src = String(text || "").trim();
+  if (!src || hasPlaceholderTokens(src)) return false;
+  const normalized = src.replace(/\s+/g, " ");
+  if (EVIDENCE_SCAFFOLD_PHRASES.some(phrase => normalized.includes(phrase))) return false;
+  return [
+    /`[^`]+\.(?:[cm]?[jt]s|tsx?|jsx?|mjs|cjs|json|ya?ml|ejs|md|rs|py|java|cs|cpp|hpp|h|ex|exs|go|kt|swift|rb|php|sh)`/i,
+    /\b[\w./-]+\.(?:[cm]?[jt]s|tsx?|jsx?|mjs|cjs|json|ya?ml|ejs|md|rs|py|java|cs|cpp|hpp|h|ex|exs|go|kt|swift|rb|php|sh)(?::\d+)?\b/i,
+    /\b(?:rg|node|npm|npx|jest|pytest|cargo|dotnet|mvn|gradle|git)\b/i,
+    /\b(?:function|class|method|symbol|line|라인|파일|명령|검증|테스트|결과)\b/i,
+    /`[^`]+`/
+  ].some(pattern => pattern.test(src));
+}
+
+function hasMainTicketDurableEvidence(content) {
+  return DURABLE_EVIDENCE_SECTION_NAMES.some(sectionName => hasConcreteEvidenceSignals(extractMarkdownSection(content, sectionName)));
+}
+
+function shouldRequireMainTicketEvidence(meta, content) {
+  return looksLikeInvestigationTicket(meta.summary, meta.title, meta.id || meta.topic);
+}
+
+function getMainTicketEvidenceReasons(meta, content) {
+  if (shouldRequireMainTicketEvidence(meta, content) && !hasMainTicketDurableEvidence(content)) {
+    return ["audit_evidence_missing"];
+  }
+  return [];
+}
+
+function validateClaimAgainstTicketContent(meta, content, claim) {
+  const reasons = [];
+  const claimTerms = tokenizeClaimText(claim);
+  if (claimTerms.length === 0) {
+    reasons.push("claim_terms_missing");
+    return reasons;
+  }
+
+  const coverageText = collectClaimTargetSections(content);
+  const coverage = buildClaimCoverageSummary(claimTerms, coverageText);
+  const matchingRate = coverage.matched.length / Math.max(coverage.total, 1);
+  if (matchingRate < 0.33) {
+    reasons.push(`claim_coverage_missing:${coverage.matched.length}/${coverage.total}`);
+  }
+
+  if (!meta.summary || hasPlaceholderTokens(meta.summary)) {
+    reasons.push("claim_ticket_summary_missing");
+  }
+
+  const phase1Missing = getAnalysisDesignIncompleteReasons(meta, content);
+  if (phase1Missing.length > 0) {
+    reasons.push("claim_ticket_incomplete_record");
+  }
+
+  return reasons;
+}
+
+function getClaimEvidenceResult(target, meta, content, claim) {
+  const reasons = validateClaimAgainstTicketContent(meta, content, claim);
+  const claimTerms = tokenizeClaimText(claim);
+  const coverage = buildClaimCoverageSummary(claimTerms, collectClaimTargetSections(content));
+  return {
+    ok: reasons.length === 0,
+    reasons,
+    ticket: target.topic,
+    path: target.path,
+    claim,
+    claimTerms: coverage.total,
+    coveredTerms: coverage.matched.length,
+    matchedTerms: coverage.matched,
+    missRate: Number((coverage.missRate * 100).toFixed(1)),
+    sections: {
+      problemAnalysis: extractMarkdownSection(content, "Problem Analysis").trim(),
+      sourceObservations: extractMarkdownSection(content, "Source Observations").trim(),
+      causeHypotheses: extractMarkdownSection(content, "Cause Hypotheses").trim(),
+      improvementDirection: extractMarkdownSection(content, "Improvement Direction").trim()
+    }
+  };
 }
 
 function isCompactTicketOutput(opts = {}) {
@@ -341,6 +581,8 @@ function getPhase1IncompleteReasons(cwd, absPath) {
   }
 
   reasons.push(...evaluateApcCompleteness(content));
+  reasons.push(...getAnalysisDesignIncompleteReasons(meta, content));
+  reasons.push(...getMainTicketEvidenceReasons(meta, content));
   return [...new Set(reasons)];
 }
 
@@ -1086,24 +1328,89 @@ export async function runTicketConnect(opts) {
   }
 }
 
+export async function runTicketEvidenceCheck(opts) {
+  applyTicketContext(opts);
+  if (!opts.claim || !String(opts.claim).trim()) {
+    throw new Error("ticket evidence requires --claim <text> to compare with ticket content.");
+  }
+
+  const index = rebuildTicketIndexFromTopicFilesIfNeeded(opts.cwd, { ...opts, force: false });
+  const target = pickTicketEntry(opts, index);
+  if (!target) {
+    throw new Error("ticket evidence: no matching ticket found.");
+  }
+
+  const absPath = join(opts.cwd, target.path);
+  if (!existsSync(absPath)) throw new Error("Ticket file not found: " + target.path);
+  const { meta, content } = parseFrontMatter(readFileSync(absPath, "utf8"));
+  const result = getClaimEvidenceResult(target, meta, content, opts.claim);
+
+  if (!result.ok) {
+    throw new Error(`[VALIDATION FAILED] Ticket ${target.topic} has insufficient evidence coverage for claim "${opts.claim}": ${result.reasons.join(", ")}.`);
+  }
+
+  if (opts.json) {
+    console.log(JSON.stringify(result, null, 2));
+  } else {
+    console.log(`[evidence-ok] ${target.topic} claim coverage ${result.coveredTerms}/${result.claimTerms}`);
+  }
+}
+
+export async function runTicketEvidenceReport(opts) {
+  applyTicketContext(opts);
+  if (!opts.claim || !String(opts.claim).trim()) {
+    throw new Error("ticket report requires --claim <text> when generating a claim-bound report.");
+  }
+
+  const index = rebuildTicketIndexFromTopicFilesIfNeeded(opts.cwd, { ...opts, force: false });
+  const target = pickTicketEntry(opts, index);
+  if (!target) {
+    throw new Error("ticket report: no matching ticket found.");
+  }
+
+  const absPath = join(opts.cwd, target.path);
+  if (!existsSync(absPath)) throw new Error("Ticket file not found: " + target.path);
+  const { meta, content } = parseFrontMatter(readFileSync(absPath, "utf8"));
+  const result = getClaimEvidenceResult(target, meta, content, opts.claim);
+
+  if (!result.ok) {
+    throw new Error(`[VALIDATION FAILED] Ticket ${target.topic} cannot produce claim-bound report for "${opts.claim}": ${result.reasons.join(", ")}.`);
+  }
+
+  if (opts.json) {
+    console.log(JSON.stringify(result, null, 2));
+    return;
+  }
+
+  console.log(`Claim-bound ticket report: ${target.topic}`);
+  console.log(`Claim: ${opts.claim}`);
+  console.log(`Coverage: ${result.coveredTerms}/${result.claimTerms}`);
+  for (const [label, value] of Object.entries(result.sections)) {
+    if (!value) continue;
+    console.log(`\n## ${label}`);
+    console.log(value);
+  }
+}
+
 
 export async function runTicketClose(opts) {
   applyTicketContext(opts);
   if (!opts.topic && !opts.latest) {
-    if (opts.nonInteractive) {
-      throw new Error("ticket close: --topic or --latest is required in non-interactive mode.");
+    if (opts.nonInteractive || !process.stdout.isTTY) {
+      opts.latest = true;
+    } else {
+      await withReadline(async (rl) => {
+        const index = rebuildTicketIndexFromTopicFilesIfNeeded(opts.cwd, { ...opts, force: false });
+        const choices = index.entries
+          .filter(e => e.status !== "closed" && e.status !== "cancelled")
+          .map(e => ({ label: `[${e.group}] ${e.title}`, value: e.topic }));
+        if (choices.length > 0) {
+          opts.topic = await selectOne(rl, "Choose a ticket to close:", choices);
+        } else {
+          throw new Error("No open tickets found to close.");
+        }
+      });
     }
-    await withReadline(async (rl) => {
-      const index = rebuildTicketIndexFromTopicFilesIfNeeded(opts.cwd, { ...opts, force: false });
-      const choices = index.entries
-        .filter(e => e.status !== "closed" && e.status !== "cancelled")
-        .map(e => ({ label: `[${e.group}] ${e.title}`, value: e.topic }));
-      if (choices.length > 0) {
-        opts.topic = await selectOne(rl, "Choose a ticket to close:", choices);
-      } else {
-        throw new Error("No open tickets found to close.");
-      }
-    });
   }
   // Respect --status flag (e.g. 'cancelled', 'wontfix'); default to 'closed'
   if (!opts.status) opts.status = "closed";
@@ -1116,6 +1423,14 @@ export async function runTicketClose(opts) {
   const abs = join(opts.cwd, targetEntry.path);
   if (!existsSync(abs)) throw new Error("Ticket file not found: " + targetEntry.path);
   const previousBody = readFileSync(abs, "utf8");
+  const parsedForClose = parseFrontMatter(previousBody);
+  const closePlanningReasons = [
+    ...getAnalysisDesignIncompleteReasons(parsedForClose.meta, parsedForClose.content),
+    ...getMainTicketEvidenceReasons(parsedForClose.meta, parsedForClose.content)
+  ];
+  if (closePlanningReasons.length) {
+    throw new Error(`[VALIDATION FAILED] Ticket ${targetEntry.topic} cannot close without complete main-ticket analysis/design evidence: ${[...new Set(closePlanningReasons)].join(", ")}.`);
+  }
 
   try {
     const entry = updateTicketEntryStatus(opts.cwd, opts);
@@ -1464,26 +1779,9 @@ export async function runTicketMove(opts) {
   let nextPhase = opts.next ? currentPhase + 1 : (opts.phase || currentPhase + 1);
 
   if (currentPhase === 1 && nextPhase >= 2) {
-    // Validate APC
-    const apcMatch = content.match(/## Agent Permission Contract[\s\S]*?(?=\n## |$)/i);
-    if (!apcMatch) {
-      throw new Error(`[VALIDATION FAILED] Ticket ${entry.topic} is missing the Agent Permission Contract (APC) block. You must fill it out before moving to Phase 2.`);
-    }
-    const apcText = apcMatch[0];
-    
-    // Check for placeholders or empty values
-    const boundaryMatch = apcText.match(/### \[BOUNDARY\]([\s\S]*?)(?=\n### |$)/i);
-    const contractMatch = apcText.match(/### \[CONTRACT\]([\s\S]*?)(?=\n### |$)/i);
-    const planMatch = apcText.match(/### \[PATCH PLAN\]([\s\S]*?)(?=\n### |$)/i);
-    
-    const isEmptyOrPlaceholder = (text) => {
-      if (!text) return true;
-      const clean = text.replace(/-\s*\*\*[^*:]+:?\*\*\s*/g, "").trim();
-      return clean === "" || clean.includes("[Add ") || clean.includes("프로젝트 룰 문서");
-    };
-
-    if (isEmptyOrPlaceholder(boundaryMatch?.[1]) || isEmptyOrPlaceholder(contractMatch?.[1]) || isEmptyOrPlaceholder(planMatch?.[1])) {
-      throw new Error(`[VALIDATION FAILED] The Agent Permission Contract (APC) in ${entry.topic} is incomplete or contains placeholders. Please fill out the [BOUNDARY], [CONTRACT], and [PATCH PLAN] sections before moving to Phase 2.`);
+    const reasons = getPhase1IncompleteReasons(opts.cwd, abs);
+    if (reasons.length) {
+      throw new Error(`[VALIDATION FAILED] Ticket ${entry.topic} has incomplete Phase 1 planning evidence: ${reasons.join(", ")}. Fill substantive APC and compact plan content before moving to Phase 2.`);
     }
   }
 

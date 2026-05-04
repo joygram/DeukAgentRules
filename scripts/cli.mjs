@@ -4,7 +4,7 @@ import { dirname, join } from "path";
 import { fileURLToPath } from "url";
 import { parseArgs, parseTicketArgs, parseSkillArgs, parseTelemetryArgs } from "./cli-args.mjs";
 import { runInit, runMerge } from "./cli-init-commands.mjs";
-import { runTicketCreate, runTicketList, runTicketUse, runTicketClose, runTicketArchive, runTicketReports, runTicketMeta, runTicketConnect, runTicketRebuild, runTicketReportAttach, runTicketMove, runTicketNext, runTicketHotfix, runTicketStatus, runTicketHandoff } from "./cli-ticket-commands.mjs";
+import { runTicketCreate, runTicketList, runTicketUse, runTicketClose, runTicketArchive, runTicketReports, runTicketMeta, runTicketConnect, runTicketRebuild, runTicketReportAttach, runTicketMove, runTicketNext, runTicketHotfix, runTicketStatus, runTicketHandoff, runTicketEvidenceCheck, runTicketEvidenceReport } from "./cli-ticket-commands.mjs";
 import { runTelemetry } from "./cli-telemetry-commands.mjs";
 import { performUpgradeMigration } from "./cli-ticket-migration.mjs";
 import { loadInitConfig, writeInitConfig, checkUpdateNotifier, normalizeWorkflowMode, WORKFLOW_MODE_EXECUTE, AGENT_ROOT_DIR, resolveWorkflowMode, LEGACY_TEMPLATE_DIR, LEGACY_CONFIG_FILE } from "./cli-utils.mjs";
@@ -31,6 +31,7 @@ async function main() {
     else if (action === "list") await runTicketList(opts);
     else if (action === "use") await runTicketUse(opts);
     else if (action === "next") await runTicketNext(opts);
+    else if (action === "evidence") await runTicketEvidenceCheck(opts);
     else if (action === "close") await runTicketClose(opts);
     else if (action === "archive") await runTicketArchive(opts);
     else if (action === "reports") await runTicketReports(opts);
@@ -46,6 +47,8 @@ async function main() {
       if (subAction === "attach") {
         const attachOpts = parseTicketArgs(rest.slice(2));
         await runTicketReportAttach(attachOpts);
+      } else if (opts.claim) {
+        await runTicketEvidenceReport(opts);
       } else {
         await runTicketReports(opts);
       }
@@ -160,7 +163,7 @@ Usage:
   npx deuk-agent-rule lint:md [--cwd <path>] [files...]
   npx deuk-agent-rule rules audit [--compact|--json]
   npx deuk-agent-rule skill <list|add|expose|lint> [options]
-  npx deuk-agent-rule ticket <create|list|status|handoff|continue|use|close|archive|reports|migrate|upgrade|meta|connect|move> [options]
+  npx deuk-agent-rule ticket <create|evidence|list|status|handoff|continue|use|close|archive|reports|migrate|upgrade|meta|connect|move> [options]
   npx deuk-agent-rule telemetry <log|sync|summary|migrate> [options]
 
 Options:
@@ -189,6 +192,7 @@ Ticket Options:
   --submodule <name>    Submodule filter (DeukPack|DeukUI)
   --docs-language <lang> auto | ko | en
   --evidence <text>     Provide Phase 0 RAG evidence summary
+  --claim <text>        Validate or report only from ticket evidence matching this claim
   --skip-phase0         Bypass Phase 0 RAG validation
   --from-plan <path>    Create ticket from an existing plan markdown file
   --require-filled      Enforce non-placeholder APC and compact plan content before create succeeds

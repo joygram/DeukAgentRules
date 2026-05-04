@@ -49,6 +49,18 @@ changelog: "v39: Add instruction precedence and collapse duplicate pointer-messa
 2. Read `PROJECT_RULE.md` in workspace root → internally identify applicable DC-* rules. Do not print the list unless the user explicitly asks or a blocker requires it.
 3. Find or create active ticket (1-CALL RULE below) → call `set_workflow_context(project, ticket_id, phase)` → print the mandatory one-line ticket-start announcement as a clickable markdown link to the ticket file. If approval is still pending, stop after the link/announcement.
 
+### First-Turn Invariant
+
+Before any investigation answer, source/config/product write, ticket phase move, or close action, the minimum valid state is:
+
+- this core hub and root `PROJECT_RULE.md` have been read;
+- an active ticket has been selected or created by the Ticket Discovery rule;
+- `set_workflow_context(project, ticket_id, phase)` has been called for that ticket;
+- Phase 1 ticket content has substantive APC and compact plan evidence, not template/scaffold/placeholder prose;
+- review-gated issue, regression, policy-violation, surprising-behavior, and "why did this happen" requests have stopped for post-plan user approval before Phase 2.
+
+If the session already drifted before this invariant was met, use recovery mode: stop execution, create or select the investigation ticket, record confirmed facts/hypotheses/improvement direction/open questions in that ticket, call `set_workflow_context`, answer compactly with the ticket pointer, and wait for approval before writes, phase moves, or close.
+
 ### Ticket Discovery (1-CALL RULE)
 
 | Situation | Action |
@@ -91,35 +103,32 @@ WRITE tools requiring active ticket: `write_to_file`, `replace_file_content`, `m
 | Phase | What to do | STOP condition |
 |-------|-----------|----------------|
 | 0: Research | Inspect local source-of-truth files first. Use MCP RAG only when history, prior decisions, or unfamiliar cross-module context would change the plan. Record weak/miss results in the ticket when they affect confidence. | 2 MCP calls for the same question or low-quality hits → stop searching and use local files as truth. |
-| 1: Ticket + Plan | Create or select the ticket → read arch rules → fill ticket-owned scope/APC, investigation evidence, and compact plan in the user's prompt language. Keep the main ticket as the only Phase 1 planning record. | For issue/regression reports, stop after Phase 1 and wait for user review approval. For direct execution requests, move to Phase 2 only after the Phase 1 plan is complete/linted and the approval is post-plan or unambiguous. |
+| 1: Ticket + Plan | Create or select the ticket → read arch rules → fill the main ticket with scope/APC, investigation evidence, and compact plan in the user's prompt language. | For issue/regression reports, stop after Phase 1 and wait for user review approval. For direct execution requests, move to Phase 2 only after the Phase 1 record is complete/linted and the approval is post-plan or unambiguous. |
 | 2: Execute | Implement per approved post-review plan. Update checkboxes `[x]`. | Do not stop after writes; continue to Phase 3 unless verification is explicitly deferred or blocked. |
 | 3: Verify | Run the smallest relevant build/tests/lint gate for the changed surface. Record the durable verification entry in the ticket; chat gets only a short outcome and ticket pointer. User did not explicitly ask for tests is **not** a valid skip reason after execute writes. | Verification may stop only on pass, recorded failure, explicit user deferral, or recorded environment blocker. |
 | 4: Close | Close ticket and file follow-ups if needed. Do not immediately archive a just-closed ticket; leave archiving to lazy cleanup or explicit archive work. | **NEVER skip close.** |
 
 Phase 1 document boundary rule:
 - The main ticket is the default SSoT for scope, APC, investigation evidence, compact planning, linked issues, and verification outcomes.
-- Sub tickets infer their relationship to the main ticket from the numbered ticket ID. Do not add inline master links just to identify the parent; keep the main ticket as the planning SSoT.
-- Once a ticket's compact plan and APC are complete and linted, do not keep rewriting ticket prose to mirror phase progress or lifecycle state.
-- Phase transitions, archive, and close actions are lifecycle events, not permission to reopen document boundaries.
-- If the work scope changes materially after Phase 1, create/link a child ticket instead of mutating the old ticket into a new contract.
-- Corrections to factual mistakes in the ticket plan are allowed only when they preserve the original scope; new requirements belong in a linked ticket.
+- Keep the main ticket as the only Phase 1 planning record; sub tickets infer their relationship from the numbered ticket ID.
+- Once the Phase 1 record is complete, do not use ticket prose as a running worklog.
+- If scope changes materially after Phase 1, create/link a child ticket instead of mutating the old contract.
 
 Durable ticket record rule:
 - Investigation records must include the finding, root cause or hypothesis, affected files/symbols, and planned fix direction when the work produces reusable knowledge.
+- Recorded-Claim Integrity: do not say "recorded in the ticket" unless the same ticket contains same-topic investigation evidence for that claim. Prefer CLI claim checks/reports over manual chat claims.
 - Before asking a clarification during an investigation, regression, quality issue, or root-cause task, first write the current confirmed facts, hypotheses, improvement direction, and unresolved question into the active ticket. Then point the user to that ticket and ask only the unresolved question.
 - Verification records must include the command/check, observed result, key pass/fail signal, and follow-up direction when the result implies more work.
-- RAG records must state which MCP query/tool was used, whether it was hit/weak-hit/miss/stale, and how it changed or did not change the plan.
-- Chat must stay compact after the ticket has the durable record: summarize the outcome and point to the ticket instead of duplicating details.
+- RAG records must state query quality and whether they changed the plan. Chat should stay compact after the durable record exists.
 
 Plan-only mode: Do Phases 0–1 only. Defer code/config writes as text in plan. On transition to Execute → run deferred commands → Phase 2.
 
 ### Issue-Review Gate
 
 If the user reports a bug, regression, policy violation, surprising behavior, or asks "why did this happen?", treat it as review-gated even when the prompt includes words like "fix", "resolve", or "해결".
-- Create or select the ticket and complete Phase 1 with root-cause hypotheses, scope, APC, and the proposed patch plan.
-- For investigation-style Phase 1 records, include `Problem Analysis`, `Source Observations`, `Cause Hypotheses`, `Improvement Direction`, and `Open Questions` when any part is still uncertain.
-- Stop after the ticket-start line or a concise review-request final answer. Do not move to Phase 2, edit product/source/config files, or close the ticket until the user approves the Phase 1 plan.
-- Approval must be after the ticket exists and the Phase 1 plan is reviewable. Pre-ticket issue wording is not enough to bypass review.
+- Complete the main-ticket Phase 1 record, including `Problem Analysis`, `Source Observations`, `Cause Hypotheses`, `Improvement Direction`, and `Open Questions` when uncertainty remains.
+- Stop after the ticket-start line or a concise review-request final answer. Do not move to Phase 2 or close the ticket until the user approves the Phase 1 plan.
+- Approval must be post-ticket and post-plan.
 
 ### Exploration-Only Mode
 
@@ -206,22 +215,14 @@ When a project is in a transition state, agents must preserve the baseline befor
 |------|------|
 | Plans | `.deuk-agent/docs/plan/<ticket-id>-plan.md` |
 | Reports | `.deuk-agent/docs/plan/<ticket-id>-report.md` |
-| Scratch | (deprecated; use docs/plan for temporary docs and archive for lifecycle end) |
 | Knowledge | `.deuk-agent/knowledge/<ticket-id>.json` |
 
 - ALL artifacts MUST be under `.deuk-agent/docs/` for RAG indexing.
 - `docs` is for human-readable source artifacts: plans/reports (all in `docs/plan`) and archived originals (`docs/archive`).
 - `knowledge` is only for distilled machine-readable retrieval JSON generated from archived tickets/plans. Do not place arbitrary JSON, notes, plans, or reports there.
 - ALL optional plan/report files MUST have frontmatter (`summary`, `status`, `priority`, `tags`). Run `enrich_frontmatter` after creation.
-- Ticket lifecycle commands (`ticket create`, `move`, `close`, `archive`) must auto-run `lint:md` against touched markdown artifacts before they exit successfully. If lint fails, roll back the lifecycle mutation and keep ticket/index state consistent.
+- CLI lifecycle guards enforce markdown lint, Phase 1 completeness, move/close evidence gates, and claim-bound reporting. Keep the kernel file short and let CLI own the detailed failure criteria.
 - Manual `npx deuk-agent-rule lint:md` remains an audit command, not the primary enforcement path.
-- Phase 1 is **ticket creation plus indexed planning evidence in the main ticket**. Do not create duplicate tickets just to restate the same plan; update the existing ticket's compact plan.
-- Main ticket MUST NOT duplicate screen progress. It owns identity, scope, constraints, APC, investigation evidence, compact plan, linked issues, lifecycle checklist, and verification outcome.
-- Ticket in Phase 1 is **not complete** unless its APC and compact plan sections contain substantive, non-placeholder content.
-- `ticket create` seeds a compact draft plan, but draft scaffolds are not complete. Use `npx deuk-agent-rule ticket create --require-filled` when you need creation to fail unless ticket APC and compact plan content are already substantive.
-- Investigation, issue, regression, root-cause, and bug tickets should be created in strict Phase 1 mode by default; if the command path does not infer that automatically, pass `--require-filled` explicitly.
-- Ticket document edits after Phase 1 should be limited to factual corrections, linked issue records, verification outcomes, or lifecycle-finalization notes; they must not be used as a running worklog.
-- Investigation, RAG, and verification records follow the Durable ticket record rule above; do not leave those details in chat-only output.
 - Platform native paths (`brain/`, `.cursor/plans/`) are NOT indexed → copy to `.deuk-agent/docs/`.
 - Platform features (planning, artifacts, KI) co-exist. NEVER disable them. Always call `set_workflow_context`.
 - Run `npx deuk-agent-rule lint:md` after markdown edits. For Phase 1 completion, lint the ticket and any optional linked plan/report in one run.
@@ -231,6 +232,8 @@ When a project is in a transition state, agents must preserve the baseline befor
 | Action | Command | Max calls |
 |--------|---------|----------|
 | Create | `npx deuk-agent-rule ticket create --topic <name> --summary "<text>" --non-interactive` | 1 per task |
+| Claim evidence | `npx deuk-agent-rule ticket evidence --topic <id> --claim "<claim>" --non-interactive` | before saying "recorded in ticket" |
+| Claim report | `npx deuk-agent-rule ticket report --topic <id> --claim "<claim>" --non-interactive` | when final report must be derived from ticket content |
 | Fast nav | `npx deuk-agent-rule ticket next --path-only` → `view_file` | 1 per boot |
 | Activate | `npx deuk-agent-rule ticket use --topic <id> --non-interactive` | 1 |
 | Advance | `npx deuk-agent-rule ticket move --topic <id> --next --non-interactive` | 1 per phase |
@@ -248,4 +251,5 @@ NEVER manually edit `INDEX.json` or ticket files via `sed`/`awk`/`echo`.
 
 - Rule violations must be machine-returnable. Prefer CLI guards that exit non-zero with stable codes over prose-only reminders.
 - `rules audit` MUST fail if core rules reintroduce progress beacons, non-`rg` search defaults, post-execute verification optionality, verbose duplicate-output policies, or removes anti-bypass/scope-containment/ticket-velocity/current-state quarantine guards.
+- `rules audit` MUST fail if the First-Turn Invariant, drift recovery path, issue-review post-plan approval requirement, or Phase 1→2 compact-plan enforcement is removed.
 - In compact mode, rule audits print only `rules:audit ok` or `rules:audit failed <count>`.
