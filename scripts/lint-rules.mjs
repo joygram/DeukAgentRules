@@ -7,6 +7,7 @@ const RULE_CHECKS = [
     message: "Low-token mode must stay quiet and compact.",
     test: (rules) => /Silent-by-default is mandatory/i.test(rules)
       && /Keep chat compact/i.test(rules)
+      && /avoid repeating them in chat/i.test(rules)
   },
   {
     code: "DR-PRIORITY-01",
@@ -51,6 +52,7 @@ const RULE_CHECKS = [
       && /Phase 4/i.test(rules)
       && /Durable records must include findings, hypotheses, affected files, and verification outcomes/i.test(rules)
       && /Keep chat compact once the ticket carries the durable record/i.test(rules)
+      && /Do not repeat interim or final progress reports in chat/i.test(rules)
   },
   {
     code: "DR-GATE-01",
@@ -67,6 +69,14 @@ const RULE_CHECKS = [
     test: (rules) => /HALT Conditions \+ File Guards/i.test(rules)
       && /generated-file edits/i.test(rules)
       && /missing tests/i.test(rules)
+  },
+  {
+    code: "DR-CHURN-01",
+    message: "Repeated symptom fixes must trigger stabilization instead of ticket churn.",
+    test: (rules) => /Symptom Churn Guard/i.test(rules)
+      && /fragmentation signal/i.test(rules)
+      && /stabilization or root-cause ticket/i.test(rules)
+      && /same failure family keeps reappearing/i.test(rules)
   },
   {
     code: "DR-CLI-01",

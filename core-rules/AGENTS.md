@@ -1,6 +1,6 @@
 ---
-version: 39
-changelog: "v39: Add instruction precedence and collapse duplicate pointer-message handling."
+version: 40
+changelog: "v40: Add symptom churn guard and keep fragmentation signals ticket-first."
 ---
 
 # Agent Rules
@@ -31,6 +31,7 @@ changelog: "v39: Add instruction precedence and collapse duplicate pointer-messa
 - Screen output is for final answers, blockers, or explicit command results only.
 - After selecting or creating the active ticket, print one concise ticket-start line and stop if approval is pending.
 - Keep chat compact; do not mirror ticket prose in screen output.
+- If the ticket already carries the durable record, put progress and wrap-up details in the ticket and avoid repeating them in chat.
 - Prefer targeted reads and the shortest valid path that still preserves boot, phase, lint, verify, and close.
 
 ## 2. Boot Sequence (run once)
@@ -64,6 +65,7 @@ Use the mentioned ticket directly. For investigation/regression/why questions, c
 - Phase 4: close the ticket.
 - Durable records must include findings, hypotheses, affected files, and verification outcomes.
 - Keep chat compact once the ticket carries the durable record.
+- Do not repeat interim or final progress reports in chat when the ticket already records them.
 
 ### Issue-Review Gate
 
@@ -89,6 +91,11 @@ Use RAG only when local evidence is insufficient or older decisions matter. Keep
 
 - Stop for repeated errors, scope creep, infrastructure errors, unregistered work, multi-module edits, velocity spikes, transition-state baselines, generated-file edits, unsafe deletes, shared-interface changes, or missing tests.
 - Use a stabilization ticket when the same failure family keeps reappearing.
+
+### Symptom Churn Guard
+
+- Repeated symptom fixes are a fragmentation signal, not a new bug.
+- When the same failure family keeps reappearing, stop adding symptom-only tickets and switch to a stabilization or root-cause ticket.
 
 ## 6. Emergency, Docs, CLI
 

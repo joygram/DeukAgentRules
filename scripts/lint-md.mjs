@@ -7,7 +7,7 @@ import { AGENT_ROOT_DIR } from "./cli-utils.mjs";
 
 const ignoredDirs = new Set([".git", "node_modules"]);
 
-export function collectChangedMarkdownFiles(repoRoot) {
+export function collectChangedFiles(repoRoot) {
   const changed = new Set();
 
   const gitArgs = ["-C", repoRoot, "diff", "--name-only", "--diff-filter=ACMRTUXB"];
@@ -17,7 +17,6 @@ export function collectChangedMarkdownFiles(repoRoot) {
       .split("\n")
       .map(s => s.trim())
       .filter(Boolean)
-      .filter(isMarkdownFile)
       .forEach(f => changed.add(f));
   }
 
@@ -27,11 +26,14 @@ export function collectChangedMarkdownFiles(repoRoot) {
       .split("\n")
       .map(s => s.trim())
       .filter(Boolean)
-      .filter(isMarkdownFile)
       .forEach(f => changed.add(f));
   }
 
   return Array.from(changed).sort();
+}
+
+export function collectChangedMarkdownFiles(repoRoot) {
+  return collectChangedFiles(repoRoot).filter(isMarkdownFile);
 }
 
 function isMarkdownFile(filePath) {

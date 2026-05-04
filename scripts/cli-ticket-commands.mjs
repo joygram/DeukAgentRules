@@ -3,14 +3,14 @@ import { hostname } from "os";
 import { basename, join, dirname, relative, resolve } from "path";
 import { 
   toSlug, toRepoRelativePath, toFileUri, inferRefTitleAndTopic, resolveReferencedTicketPath, toPosixPath, stringifyFrontMatter,
-  selectLocalizedTemplatePath, resolveDocsLanguage, inferDocsLanguageFromText, normalizeDocsLanguage, isMcpActive, withReadline, parseFrontMatter,
+  resolveDocsLanguage, inferDocsLanguageFromText, normalizeDocsLanguage, isMcpActive, withReadline, parseFrontMatter,
   AGENT_ROOT_DIR, TICKET_SUBDIR, TEMPLATE_SUBDIR, TICKET_DIR_NAME, TICKET_INDEX_FILENAME, detectConsumerTicketDir, loadInitConfig, computeTicketPath
 } from "./cli-utils.mjs";
 import { readTicketIndexJson, writeTicketIndexJson, syncActiveTicketId, generateTicketId, syncToPipeline } from "./cli-ticket-index.mjs";
 import { appendTicketEntry, rebuildTicketIndexFromTopicFilesIfNeeded, writeTicketListFile, updateTicketEntryStatus } from "./cli-ticket-parser.mjs";
 import { appendInternalWorkflowEvent } from "./cli-telemetry-commands.mjs";
 import { parsePlan } from "./plan-parser.mjs";
-import { collectChangedMarkdownFiles, lintMarkdownPaths } from "./lint-md.mjs";
+import { collectChangedFiles, collectChangedMarkdownFiles, lintMarkdownPaths } from "./lint-md.mjs";
 import ejs from "ejs";
 import YAML from "yaml";
 
@@ -51,8 +51,10 @@ function resolveTicketTemplate(cwd, docsLanguageInput, promptText = "") {
   const bundleTplDir = join(new URL(".", import.meta.url).pathname, "..", "templates");
 
   const ticketTemplateCandidates = [
-    selectLocalizedTemplatePath(templateDir, "TICKET_TEMPLATE.md", docsLanguage),
-    selectLocalizedTemplatePath(bundleTplDir, "TICKET_TEMPLATE.md", docsLanguage),
+    join(templateDir, `TICKET_TEMPLATE.${docsLanguage}.md`),
+    join(bundleTplDir, `TICKET_TEMPLATE.${docsLanguage}.md`),
+    join(templateDir, "TICKET_TEMPLATE.md"),
+    join(bundleTplDir, "TICKET_TEMPLATE.md"),
   ];
   const ticketTemplatePath = ticketTemplateCandidates.find(p => existsSync(p));
   if (!ticketTemplatePath) {
@@ -340,6 +342,63 @@ function getClaimEvidenceResult(target, meta, content, claim) {
       causeHypotheses: extractMarkdownSection(content, "Cause Hypotheses").trim(),
       improvementDirection: extractMarkdownSection(content, "Improvement Direction").trim()
     }
+  };
+}
+
+const IMPLEMENTATION_CLAIM_PATTERNS = [
+  /\b(?:fix|fixed|implement|implemented|apply|applied|change(?:d)?|patch(?:ed)?|resolved?)\b/i,
+  /(수정|구현|적용|변경|패치|해결)(?:했|됨|완료|함)?/i
+];
+
+function claimImpliesCodeChange(text) {
+  const src = String(text || "").trim();
+  if (!src) return false;
+  return IMPLEMENTATION_CLAIM_PATTERNS.some(pattern => pattern.test(src));
+}
+
+function isTicketOwnedPath(relPath) {
+  const normalized = toPosixPath(String(relPath || ""));
+  return normalized.startsWith(`${AGENT_ROOT_DIR}/tickets/`) || normalized.startsWith(`${AGENT_ROOT_DIR}/docs/`);
+}
+
+function collectChangedSourceFiles(cwd, changedFilesOverride = null) {
+  const changed = Array.isArray(changedFilesOverride) ? changedFilesOverride : collectChangedFiles(cwd);
+  return changed.filter(relPath => !isTicketOwnedPath(relPath));
+}
+
+function extractLikelyAffectedFiles(text) {
+  const matches = String(text || "").match(/\b[\w./-]+\.(?:[cm]?[jt]s|tsx?|jsx?|mjs|cjs|json|ya?ml|ejs|rs|py|java|cs|cpp|hpp|h|ex|exs|go|kt|swift|rb|php|sh)\b/gi) || [];
+  return [...new Set(matches.map(match => toPosixPath(match.trim()).replace(/^\.\//, "")))];
+}
+
+export function getImplementationClaimGuardResult(cwd, { claim = "", content = "", changedFiles = null } = {}) {
+  const changedSourceFiles = collectChangedSourceFiles(cwd, changedFiles);
+  const effectiveClaim = String(claim || "").trim();
+  const verificationOutcome = extractMarkdownSection(content, "Verification Outcome");
+  const candidateText = [effectiveClaim, verificationOutcome].filter(Boolean).join("\n");
+
+  if (!claimImpliesCodeChange(candidateText)) {
+    return { ok: true, changedFiles: changedSourceFiles, affectedFiles: [] };
+  }
+
+  const affectedFiles = extractLikelyAffectedFiles(candidateText);
+  const normalizedChanged = changedSourceFiles.map(file => toPosixPath(String(file || "")).replace(/^\.\//, ""));
+  const overlap = affectedFiles.filter(file => normalizedChanged.includes(file));
+  const reasons = [];
+
+  if (normalizedChanged.length === 0) {
+    reasons.push("implementation_changed_files_missing");
+  }
+  if (affectedFiles.length > 0 && overlap.length === 0) {
+    reasons.push("implementation_affected_files_not_changed");
+  }
+
+  return {
+    ok: reasons.length === 0,
+    reasons,
+    changedFiles: changedSourceFiles,
+    affectedFiles,
+    overlap
   };
 }
 
@@ -1344,9 +1403,11 @@ export async function runTicketEvidenceCheck(opts) {
   if (!existsSync(absPath)) throw new Error("Ticket file not found: " + target.path);
   const { meta, content } = parseFrontMatter(readFileSync(absPath, "utf8"));
   const result = getClaimEvidenceResult(target, meta, content, opts.claim);
+  const implementationGuard = getImplementationClaimGuardResult(opts.cwd, { claim: opts.claim, content, changedFiles: opts.changedFiles });
 
-  if (!result.ok) {
-    throw new Error(`[VALIDATION FAILED] Ticket ${target.topic} has insufficient evidence coverage for claim "${opts.claim}": ${result.reasons.join(", ")}.`);
+  if (!result.ok || !implementationGuard.ok) {
+    const reasons = [...result.reasons, ...(implementationGuard.reasons || [])];
+    throw new Error(`[VALIDATION FAILED] Ticket ${target.topic} has insufficient evidence coverage for claim "${opts.claim}": ${reasons.join(", ")}.`);
   }
 
   if (opts.json) {
@@ -1372,9 +1433,11 @@ export async function runTicketEvidenceReport(opts) {
   if (!existsSync(absPath)) throw new Error("Ticket file not found: " + target.path);
   const { meta, content } = parseFrontMatter(readFileSync(absPath, "utf8"));
   const result = getClaimEvidenceResult(target, meta, content, opts.claim);
+  const implementationGuard = getImplementationClaimGuardResult(opts.cwd, { claim: opts.claim, content, changedFiles: opts.changedFiles });
 
-  if (!result.ok) {
-    throw new Error(`[VALIDATION FAILED] Ticket ${target.topic} cannot produce claim-bound report for "${opts.claim}": ${result.reasons.join(", ")}.`);
+  if (!result.ok || !implementationGuard.ok) {
+    const reasons = [...result.reasons, ...(implementationGuard.reasons || [])];
+    throw new Error(`[VALIDATION FAILED] Ticket ${target.topic} cannot produce claim-bound report for "${opts.claim}": ${reasons.join(", ")}.`);
   }
 
   if (opts.json) {
@@ -1428,6 +1491,10 @@ export async function runTicketClose(opts) {
     ...getAnalysisDesignIncompleteReasons(parsedForClose.meta, parsedForClose.content),
     ...getMainTicketEvidenceReasons(parsedForClose.meta, parsedForClose.content)
   ];
+  const implementationGuard = getImplementationClaimGuardResult(opts.cwd, { content: parsedForClose.content, changedFiles: opts.changedFiles });
+  if (!implementationGuard.ok) {
+    closePlanningReasons.push(...implementationGuard.reasons);
+  }
   if (closePlanningReasons.length) {
     throw new Error(`[VALIDATION FAILED] Ticket ${targetEntry.topic} cannot close without complete main-ticket analysis/design evidence: ${[...new Set(closePlanningReasons)].join(", ")}.`);
   }

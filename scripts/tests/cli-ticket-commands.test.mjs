@@ -4,7 +4,7 @@ import { spawnSync } from "node:child_process";
 import { existsSync, mkdtempSync, mkdirSync, readFileSync, readdirSync, rmSync, writeFileSync } from "node:fs";
 import { tmpdir } from "node:os";
 import { join } from "node:path";
-import { pickTicketEntry, runTicketArchive, runTicketCreate, runTicketClose, runTicketMove, runTicketNext, runTicketStatus, runTicketUse, runTicketHandoff, runTicketEvidenceCheck, runTicketEvidenceReport } from "../cli-ticket-commands.mjs";
+import { getImplementationClaimGuardResult, pickTicketEntry, runTicketArchive, runTicketCreate, runTicketClose, runTicketMove, runTicketNext, runTicketStatus, runTicketUse, runTicketHandoff, runTicketEvidenceCheck, runTicketEvidenceReport } from "../cli-ticket-commands.mjs";
 import { readTicketIndexJson } from "../cli-ticket-index.mjs";
 import { lintMarkdownPaths } from "../lint-md.mjs";
 import { TICKET_INDEX_FILENAME } from "../cli-utils.mjs";
@@ -1497,6 +1497,66 @@ test("runTicketClose rejects audit ticket without main-ticket durable evidence",
   }
 });
 
+test("runTicketClose rejects implementation completion when only ticket files changed", async () => {
+  const ticketPath = ".deuk-agent/tickets/sub/002-impl-close.md";
+  const { cwd, ticketDir } = makeTicketWorkspace([
+    makeEntry({
+      id: "002-impl-close",
+      title: "implementation close",
+      topic: "implementation-close",
+      fileName: "002-impl-close.md",
+      path: ticketPath,
+      status: "active",
+      phase: 2
+    })
+  ]);
+
+  mkdirSync(join(ticketDir, "sub"), { recursive: true });
+  writeFileSync(join(cwd, ticketPath), [
+    "---",
+    "id: 002-impl-close",
+    "title: implementation close",
+    "phase: 2",
+    "status: active",
+    "summary: Rust provider implementation close claim",
+    "priority: P2",
+    "tags: [test]",
+    "---",
+    "# implementation close",
+    "",
+    "## Verification Outcome",
+    "",
+    "- Implemented `src/providers/RustSerializationProvider.ts` and verified behavior.",
+    "",
+    "## Problem Analysis",
+    "",
+    "Close should fail when implementation was claimed without source changes.",
+    "",
+    "## Improvement Direction",
+    "",
+    "Require a real changed source file before close.",
+    ""
+  ].join("\n"), "utf8");
+
+  try {
+    await assert.rejects(
+      () => runTicketClose({
+        cwd,
+        topic: "002",
+        changedFiles: [ticketPath],
+        nonInteractive: true
+      }),
+      /implementation_changed_files_missing/
+    );
+
+    const body = readFileSync(join(cwd, ticketPath), "utf8");
+    assert.match(body, /phase: 2/);
+    assert.match(body, /status: active/);
+  } finally {
+    rmSync(cwd, { recursive: true, force: true });
+  }
+});
+
 test("runTicketArchive ignores linked plan markdown and still archives ticket", async () => {
   const ticketPath = ".deuk-agent/tickets/sub/007-default-host.md";
   const planPath = ".deuk-agent/docs/plan/007-default-host-plan.md";
@@ -2071,6 +2131,132 @@ test("runTicketEvidenceReport emits report only when claim is covered by ticket 
   }
 });
 
+test("getImplementationClaimGuardResult rejects implementation claims without non-ticket changed files", () => {
+  const result = getImplementationClaimGuardResult("/tmp/unused", {
+    claim: "Rust provider code was implemented and fixed",
+    content: "",
+    changedFiles: [".deuk-agent/tickets/sub/001-sample.md"]
+  });
+
+  assert.strictEqual(result.ok, false);
+  assert.match(result.reasons.join(","), /implementation_changed_files_missing/);
+});
+
+test("runTicketEvidenceReport rejects implementation claim when only ticket files changed", async () => {
+  const { cwd, ticketDir } = makeTicketWorkspace([]);
+  const srcDir = join(ticketDir, "sub");
+  mkdirSync(srcDir, { recursive: true });
+
+  const ticketId = "001-impl-claim-report";
+  writeFileSync(join(srcDir, `${ticketId}.md`), [
+    "---",
+    `id: ${ticketId}`,
+    "title: implementation claim report",
+    "phase: 2",
+    "status: active",
+    "summary: Rust provider implementation claim",
+    "---",
+    "",
+    "# implementation claim report",
+    "",
+    "## Problem Analysis",
+    "Rust provider implementation must be reported only with real source changes.",
+    "",
+    "## Source Observations",
+    "- `src/providers/RustSerializationProvider.ts` is the intended implementation target.",
+    "",
+    "## Cause Hypotheses",
+    "- Ticket-only reporting can overstate implementation progress.",
+    "",
+    "## Improvement Direction",
+    "- Block implementation reports unless source changes exist.",
+    ""
+  ].join("\n"), "utf8");
+  writeFileSync(join(ticketDir, "INDEX.json"), JSON.stringify(makeIndex([makeEntry({
+    id: ticketId,
+    title: "implementation claim report",
+    topic: ticketId,
+    fileName: `${ticketId}.md`,
+    path: `.deuk-agent/tickets/sub/${ticketId}.md`,
+    createdAt: "2026-05-03 00:00:00",
+    status: "active"
+  })]), null, 2) + "\n", "utf8");
+
+  try {
+    await assert.rejects(
+      () => runTicketEvidenceReport({
+        cwd,
+        topic: ticketId,
+        claim: "RustSerializationProvider.ts implementation was fixed",
+        changedFiles: [`.deuk-agent/tickets/sub/${ticketId}.md`],
+        nonInteractive: true
+      }),
+      /implementation_changed_files_missing/
+    );
+  } finally {
+    rmSync(cwd, { recursive: true, force: true });
+  }
+});
+
+test("runTicketEvidenceReport accepts implementation claim when affected source file changed", async () => {
+  const { cwd, ticketDir } = makeTicketWorkspace([]);
+  const srcDir = join(ticketDir, "sub");
+  mkdirSync(srcDir, { recursive: true });
+
+  const ticketId = "001-impl-claim-pass";
+  writeFileSync(join(srcDir, `${ticketId}.md`), [
+    "---",
+    `id: ${ticketId}`,
+    "title: implementation claim pass",
+    "phase: 2",
+    "status: active",
+    "summary: Rust provider implementation claim",
+    "---",
+    "",
+    "# implementation claim pass",
+    "",
+    "## Problem Analysis",
+    "Rust provider implementation must align with real changed files.",
+    "",
+    "## Source Observations",
+    "- `src/providers/RustSerializationProvider.ts` is the implementation target.",
+    "",
+    "## Cause Hypotheses",
+    "- Matching changed files should permit the claim-bound report.",
+    "",
+    "## Improvement Direction",
+    "- Use the changed source file as proof for the claim.",
+    ""
+  ].join("\n"), "utf8");
+  writeFileSync(join(ticketDir, "INDEX.json"), JSON.stringify(makeIndex([makeEntry({
+    id: ticketId,
+    title: "implementation claim pass",
+    topic: ticketId,
+    fileName: `${ticketId}.md`,
+    path: `.deuk-agent/tickets/sub/${ticketId}.md`,
+    createdAt: "2026-05-03 00:00:00",
+    status: "active"
+  })]), null, 2) + "\n", "utf8");
+
+  const lines = [];
+  const originalLog = console.log;
+  console.log = (line = "") => lines.push(String(line));
+
+  try {
+    await runTicketEvidenceReport({
+      cwd,
+      topic: ticketId,
+      claim: "src/providers/RustSerializationProvider.ts implementation was fixed",
+      changedFiles: ["src/providers/RustSerializationProvider.ts"],
+      nonInteractive: true
+    });
+    assert.match(lines.join("\n"), /Claim-bound ticket report/);
+  } finally {
+    console.log = originalLog;
+    rmSync(cwd, { recursive: true, force: true });
+  }
+});
+
 test("runTicketHandoff compact mode emits current and next ticket summary", async () => {
   const { cwd, ticketDir } = makeTicketWorkspace([
     makeEntry({
@@ -2577,7 +2763,7 @@ test("runTicketCreate renders ticket list with required frontmatter", async () =
   }
 });
 
-test("runTicketCreate surfaces fallback risk when localized template is missing", async () => {
+test("runTicketCreate prefers bundled localized template over local base fallback", async () => {
   const { cwd, ticketDir } = makeTemplateWorkspace({ withKoTemplate: false });
   const originalLog = console.log;
   const originalWarn = console.warn;
@@ -2597,9 +2783,9 @@ test("runTicketCreate surfaces fallback risk when localized template is missing"
     const ticketFile = readNewestTicketMarkdown(ticketDir);
     assert.ok(ticketFile, "ticket markdown should be created");
     const ticketText = readFileSync(ticketFile, "utf8");
-      assert.match(ticketText, /TemplateLocale: locale: base/);
-      assert.ok(!/TemplateLocale: ko/.test(ticketText), "missing localized template should keep the fallback visible");
-      assert.ok(!/## Problem Analysis/.test(ticketText), "fallback template should also stay minimal");
+    assert.match(ticketText, /## Compact Plan/);
+    assert.match(ticketText, /찾은 점|방향|검증|메모/);
+    assert.ok(!/## Problem Analysis/.test(ticketText), "localized scaffold should stay minimal");
   } finally {
     console.log = originalLog;
     console.warn = originalWarn;
@@ -2695,34 +2881,6 @@ test("runTicketCreate infers English prompt language before saved Korean config"
     assert.ok(ticketFile, "ticket markdown should be created");
     const ticketText = readFileSync(ticketFile, "utf8");
     assert.match(ticketText, /docsLanguage: en/);
-    assert.match(ticketText, /TemplateLocale: locale: base/);
-  } finally {
-    console.log = originalLog;
-    console.warn = originalWarn;
-    rmSync(cwd, { recursive: true, force: true });
-  }
-});
-
-test("runTicketCreate falls back to base template when localized template is missing", async () => {
-  const { cwd, ticketDir } = makeTemplateWorkspace({ withKoTemplate: false });
-  const originalLog = console.log;
-  const originalWarn = console.warn;
-  console.log = () => {};
-  console.warn = () => {};
-
-  try {
-    await runTicketCreate({
-      cwd,
-      topic: "fallback-ticket-template",
-      summary: "validate ko language fallback in template lookup",
-      nonInteractive: true,
-      docsLanguage: "ko",
-      skipPhase0: true
-    });
-
-    const ticketFile = readNewestTicketMarkdown(ticketDir);
-    assert.ok(ticketFile, "ticket markdown should be created");
-    const ticketText = readFileSync(ticketFile, "utf8");
     assert.match(ticketText, /TemplateLocale: locale: base/);
   } finally {
     console.log = originalLog;
