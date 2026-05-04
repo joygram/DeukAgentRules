@@ -1847,6 +1847,10 @@ export async function runTicketMove(opts) {
 
   if (currentPhase === 1 && nextPhase >= 2) {
     const reasons = getPhase1IncompleteReasons(opts.cwd, abs);
+    const implementationGuard = getImplementationClaimGuardResult(opts.cwd, { content, changedFiles: opts.changedFiles });
+    if (!implementationGuard.ok) {
+      reasons.push(...implementationGuard.reasons);
+    }
     if (reasons.length) {
       throw new Error(`[VALIDATION FAILED] Ticket ${entry.topic} has incomplete Phase 1 planning evidence: ${reasons.join(", ")}. Fill substantive APC and compact plan content before moving to Phase 2.`);
     }

@@ -1108,6 +1108,98 @@ test("runTicketMove accepts audit ticket with main-ticket source observations", 
   }
 });
 
+test("runTicketMove rejects implementation transition when only ticket files changed", async () => {
+  const ticketPath = ".deuk-agent/tickets/sub/001-impl-move.md";
+  const { cwd, ticketDir } = makeTicketWorkspace([
+    makeEntry({
+      id: "001-impl-move",
+      title: "implementation move",
+      topic: "implementation-move",
+      fileName: "001-impl-move.md",
+      path: ticketPath,
+      status: "open",
+      phase: 1
+    })
+  ]);
+
+  mkdirSync(join(ticketDir, "sub"), { recursive: true });
+  writeFileSync(join(cwd, ticketPath), [
+    "---",
+    "id: 001-impl-move",
+    "title: implementation move",
+    "phase: 1",
+    "status: open",
+    "summary: Rust provider implementation move claim",
+    "priority: P2",
+    "tags: [test]",
+    "---",
+    "# implementation move",
+    "",
+    "## Agent Permission Contract (APC)",
+    "### [BOUNDARY]",
+    "- Editable modules: source module",
+    "",
+    "### [CONTRACT]",
+    "- Input: source context",
+    "- Output: implementation update",
+    "- Side effects: scoped changes only",
+    "",
+    "### [PATCH PLAN]",
+    "- Move to execution only when source changes exist.",
+    "",
+    "## Compact Plan",
+    "",
+    "- **Finding:** Rust provider implementation is ready to execute.",
+    "- **Root cause / hypothesis:** Ticket-only progress can overstate implementation readiness.",
+    "- **Approach:** Block move unless non-ticket source changes exist.",
+    "- **Verification:** Move should fail when only ticket files changed.",
+    "",
+    "## Source Observations",
+    "",
+    "- `src/providers/RustSerializationProvider.ts` is the intended implementation target.",
+    "",
+    "## Cause Hypotheses",
+    "",
+    "- Implementation claims must align with real changed files.",
+    "",
+    "## Problem Analysis",
+    "",
+    "Phase transition should fail when implementation is claimed without source changes.",
+    "",
+    "## Improvement Direction",
+    "",
+    "Require a real changed source file before moving to Phase 2.",
+    "",
+    "## Verification Outcome",
+    "",
+    "- Implemented `src/providers/RustSerializationProvider.ts` and verified behavior.",
+    ""
+  ].join("\n"), "utf8");
+
+  try {
+    await assert.rejects(
+      () => runTicketMove({
+        cwd,
+        topic: "001",
+        next: true,
+        changedFiles: [ticketPath],
+        nonInteractive: true
+      }),
+      err => {
+        assert.match(err.message, /incomplete Phase 1 planning evidence/);
+        assert.match(err.message, /implementation_changed_files_missing/);
+        return true;
+      }
+    );
+
+    const body = readFileSync(join(cwd, ticketPath), "utf8");
+    assert.match(body, /phase: 1/);
+    assert.match(body, /status: open/);
+  } finally {
+    rmSync(cwd, { recursive: true, force: true });
+  }
+});
+
 test("runTicketMove finds ticket owner repo by topic from sibling cwd", async () => {
   const parent = mkdtempSync(join(tmpdir(), "deuk-ticket-workspace-"));
   const ticketPath = ".deuk-agent/tickets/sub/014-sibling-owned-host.md";

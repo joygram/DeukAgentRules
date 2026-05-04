@@ -7,6 +7,7 @@ const RULE_CHECKS = [
     message: "Low-token mode must stay quiet and compact.",
     test: (rules) => /Silent-by-default is mandatory/i.test(rules)
       && /Keep chat compact/i.test(rules)
+      && /Status-only reports MUST be 3 visible characters or fewer/i.test(rules)
       && /avoid repeating them in chat/i.test(rules)
   },
   {

@@ -1,6 +1,6 @@
 ---
-version: 40
-changelog: "v40: Add symptom churn guard and keep fragmentation signals ticket-first."
+version: 41
+changelog: "v41: Cap status-only reports at three visible characters."
 ---
 
 # Agent Rules
@@ -31,6 +31,7 @@ changelog: "v40: Add symptom churn guard and keep fragmentation signals ticket-f
 - Screen output is for final answers, blockers, or explicit command results only.
 - After selecting or creating the active ticket, print one concise ticket-start line and stop if approval is pending.
 - Keep chat compact; do not mirror ticket prose in screen output.
+- Status-only reports MUST be 3 visible characters or fewer.
 - If the ticket already carries the durable record, put progress and wrap-up details in the ticket and avoid repeating them in chat.
 - Prefer targeted reads and the shortest valid path that still preserves boot, phase, lint, verify, and close.
 
