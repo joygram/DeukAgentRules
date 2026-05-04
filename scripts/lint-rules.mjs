@@ -4,150 +4,76 @@ import { join } from "path";
 const RULE_CHECKS = [
   {
     code: "DR-TOKEN-01",
-    message: "Low-Token mode must be silent-by-default.",
+    message: "Low-token mode must stay quiet and compact.",
     test: (rules) => /Silent-by-default is mandatory/i.test(rules)
-  },
-  {
-    code: "DR-TOKEN-02",
-    message: "Progress status beacons must be forbidden.",
-    test: (rules) => /Do not print status beacons/i.test(rules) && /phase=<n> action=<verb> reason=<short>/i.test(rules)
-  },
-  {
-    code: "DR-TOKEN-03",
-    message: "Screen output must be limited to final/decision/blocker/explicit command-result cases.",
-    test: (rules) => /Screen output is allowed only for final answers, user decisions, blockers, destructive-risk confirmation, or command results/i.test(rules)
-  },
-  {
-    code: "DR-TOKEN-04",
-    message: "Rules must state that tool output has input-token cost.",
-    test: (rules) => /Treat tool output as input-token cost/i.test(rules)
-  },
-  {
-    code: "DR-TOKEN-05",
-    message: "Boot sequence must not require routine version/DC rule screen output.",
-    test: (rules) => /internally note the version number/i.test(rules)
-      && /internally identify applicable DC-\* rules/i.test(rules)
-      && !/state version number/i.test(rules)
-      && !/list applicable DC-\* rules/i.test(rules)
-  },
-  {
-    code: "DR-TOKEN-06",
-    message: "Silent-by-default must route routine progress conflicts through Instruction Priority.",
-    test: (rules) => /another instruction requests routine progress updates/i.test(rules)
-      && /use Instruction Priority/i.test(rules)
-      && /shortest required update/i.test(rules)
-      && /record the conflict in the ticket/i.test(rules)
-  },
-  {
-    code: "DR-TOKEN-07",
-    message: "Duplicate output directives must be applied once, not echoed per layer.",
-    test: (rules) => /Duplicate directive rule/i.test(rules)
-      && /apply the strictest instruction once/i.test(rules)
-      && /Do not emit multiple acknowledgements, summaries, or ticket-start variants/i.test(rules)
+      && /Keep chat compact/i.test(rules)
   },
   {
     code: "DR-PRIORITY-01",
     message: "Rules must define pointer/core/project instruction precedence.",
     test: (rules) => /Instruction Priority/i.test(rules)
       && /Global DeukAgentRules pointer/i.test(rules)
-      && /Locator only/i.test(rules)
       && /Local generated pointer\/spoke/i.test(rules)
       && /core-rules\/AGENTS\.md/i.test(rules)
+      && /PROJECT_RULE\.md/i.test(rules)
+  },
+  {
+    code: "DR-BOOT-01",
+    message: "Boot sequence must load core rules, project rules, and ticket context.",
+    test: (rules) => /Boot Sequence \(run once\)/i.test(rules)
+      && /Read this file \(AGENTS\.md\)/i.test(rules)
+      && /Read `PROJECT_RULE\.md`/i.test(rules)
+      && /set_workflow_context\(project, ticket_id, phase\)/i.test(rules)
+      && /ticket-start announcement/i.test(rules)
   },
   {
     code: "DR-TICKET-01",
-    message: "Main ticket must be the default planning SSoT.",
-    test: (rules) => /main ticket is the default SSoT/i.test(rules)
-  },
-  {
-    code: "DR-TICKET-02",
-    message: "Issue and regression reports must stop for review before Phase 2 execution.",
-    test: (rules) => /Issue-Review Gate/i.test(rules)
-      && /reports a bug, regression, policy violation, surprising behavior/i.test(rules)
-      && /Stop after the ticket-start line or a concise review-request final answer/i.test(rules)
-      && /Approval must be post-ticket and post-plan/i.test(rules)
-  },
-  {
-    code: "DR-TICKET-03",
-    message: "Investigation clarifications must be ticket-first.",
-    test: (rules) => /Before asking a clarification during an investigation/i.test(rules)
-      && /confirmed facts, hypotheses, improvement direction, and unresolved question/i.test(rules)
-      && /point the user to that ticket/i.test(rules)
-  },
-  {
-    code: "DR-TICKET-04",
-    message: "Rules must define the first-turn boot/ticket/context invariant.",
+    message: "First-turn and discovery behavior must stay ticket-first.",
     test: (rules) => /First-Turn Invariant/i.test(rules)
-      && /minimum valid state/i.test(rules)
-      && /set_workflow_context\(project, ticket_id, phase\)/i.test(rules)
-      && /substantive APC and compact plan evidence/i.test(rules)
-      && /review-gated issue, regression, policy-violation/i.test(rules)
+      && /Ticket Discovery \(1-CALL RULE\)/i.test(rules)
+      && /create the ticket first/i.test(rules)
+      && /Do not use `ticket list` for discovery/i.test(rules)
   },
   {
-    code: "DR-TICKET-05",
-    message: "Rules must define a recovery path for sessions that already drifted.",
-    test: (rules) => /session already drifted/i.test(rules)
-      && /recovery mode/i.test(rules)
-      && /record confirmed facts\/hypotheses\/improvement direction\/open questions/i.test(rules)
-      && /wait for approval before writes, phase moves, or close/i.test(rules)
+    code: "DR-CHANGE-01",
+    message: "Pre-action guards must require ticket, context, and rg/apply_patch usage.",
+    test: (rules) => /Pre-Action Guards/i.test(rules)
+      && /No active ticket before write/i.test(rules)
+      && /Missing `set_workflow_context`/i.test(rules)
+      && /Use `rg`\/`rg --files` first/i.test(rules)
+      && /Use `apply_patch` for edits/i.test(rules)
   },
   {
-    code: "DR-TICKET-06",
-    message: "Rules must require compact-plan enforcement before Phase 2.",
-    test: (rules) => /Phase 1 ticket content has substantive APC and compact plan evidence/i.test(rules)
-      && /CLI lifecycle guards enforce markdown lint, Phase 1 completeness, move\/close evidence gates/i.test(rules)
+    code: "DR-LIFECYCLE-01",
+    message: "Lifecycle must cover phases, durable records, and compact chat.",
+    test: (rules) => /Ticket Lifecycle/i.test(rules)
+      && /Phase 0/i.test(rules)
+      && /Phase 4/i.test(rules)
+      && /Durable records must include findings, hypotheses, affected files, and verification outcomes/i.test(rules)
+      && /Keep chat compact once the ticket carries the durable record/i.test(rules)
   },
   {
-    code: "DR-TICKET-07",
-    message: "Recorded-in-ticket claims must require same-topic claim evidence.",
-    test: (rules) => /Recorded-Claim Integrity/i.test(rules)
-      && /same ticket contains same-topic investigation evidence/i.test(rules)
-      && /Prefer CLI claim checks\/reports over manual chat claims/i.test(rules)
+    code: "DR-GATE-01",
+    message: "Review, exploration, bypass, scope, and RAG controls must remain in the kernel.",
+    test: (rules) => /Issue-Review Gate/i.test(rules)
+      && /Exploration-Only Mode/i.test(rules)
+      && /Anti-Bypass Guard/i.test(rules)
+      && /Scope Containment Guard/i.test(rules)
+      && /MCP RAG Decision Ladder/i.test(rules)
   },
   {
-    code: "DR-SEARCH-01",
-    message: "Repository search must be rg-first.",
-    test: (rules) => /use `rg`\/`rg --files` first/i.test(rules)
+    code: "DR-HALT-01",
+    message: "Kernel must still define halt conditions and file guards.",
+    test: (rules) => /HALT Conditions \+ File Guards/i.test(rules)
+      && /generated-file edits/i.test(rules)
+      && /missing tests/i.test(rules)
   },
   {
-    code: "DR-VERIFY-01",
-    message: "Post-execute verification must be mandatory unless explicitly deferred or blocked.",
-    test: (rules) => /without Phase 3 verification recorded/i.test(rules) && /User did not explicitly ask for tests is \*\*not\*\* a valid skip reason/i.test(rules)
-  },
-  {
-    code: "DR-RETURN-01",
-    message: "Rule violations must be machine-returnable through CLI audits.",
-    test: (rules) => /Rule violations must be machine-returnable/i.test(rules) && /rules audit/i.test(rules)
-  },
-  {
-    code: "DR-BYPASS-01",
-    message: "Rules must block local workaround bypasses of project contracts.",
-    test: (rules) => /Anti-Bypass Guard/i.test(rules)
-      && /local workaround/i.test(rules)
-      && /generated\/source ownership boundaries/i.test(rules)
-      && /cross-language\/cross-runtime parity obligations/i.test(rules)
-  },
-  {
-    code: "DR-SCOPE-01",
-    message: "Rules must contain low-capability agents that cannot verify broad scope.",
-    test: (rules) => /Scope Containment Guard/i.test(rules)
-      && /Low-capability agents must not accept broad ownership/i.test(rules)
-      && /stop\/split\/escalate/i.test(rules)
-  },
-  {
-    code: "DR-VELOCITY-01",
-    message: "Rules must treat high ticket velocity as a stabilization trigger.",
-    test: (rules) => /Ticket Velocity Guard/i.test(rules)
-      && /High ticket creation velocity is a failure signal/i.test(rules)
-      && /no more symptom tickets/i.test(rules)
-  },
-  {
-    code: "DR-STATE-01",
-    message: "Rules must quarantine dirty or transition-state project baselines.",
-    test: (rules) => /Current-State Quarantine/i.test(rules)
-      && /dirty worktrees/i.test(rules)
-      && /verify_failed/i.test(rules)
-      && /unimplemented/i.test(rules)
+    code: "DR-CLI-01",
+    message: "CLI ownership for lifecycle, claim checks, and reports must stay explicit.",
+    test: (rules) => /Emergency, Docs, CLI/i.test(rules)
+      && /Let CLI own lifecycle enforcement, claim checks, and report generation/i.test(rules)
+      && /rules audit/i.test(rules)
   }
 ];
 

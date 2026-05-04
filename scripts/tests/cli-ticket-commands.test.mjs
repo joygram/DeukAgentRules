@@ -1571,11 +1571,10 @@ test("runTicketArchive ignores linked plan markdown and still archives ticket", 
   }
 });
 
-test("runTicketCreate/next/archive roundtrip preserves language template output", async () => {
+test("runTicketCreate/next/archive roundtrip keeps ticket scaffold compact", async () => {
   const cases = [
     { label: "en", docsLanguage: "en", expectedTemplate: "TemplateLocale: locale: base", withKoTemplate: false },
-    { label: "ko", docsLanguage: "ko", expectedTemplate: "TemplateLocale: ko", withKoTemplate: true },
-    { label: "fr-fallback", docsLanguage: "fr", expectedTemplate: "TemplateLocale: locale: base", withKoTemplate: false }
+    { label: "ko", docsLanguage: "ko", expectedTemplate: "TemplateLocale: ko", withKoTemplate: true }
   ];
 
   for (const tc of cases) {
@@ -1602,6 +1601,8 @@ test("runTicketCreate/next/archive roundtrip preserves language template output"
       const createdFileName = createdFile.split("/").pop();
       const createdText = readFileSync(createdFile, "utf8");
       assert.match(createdText, new RegExp(tc.expectedTemplate));
+      assert.ok(!/## Problem Analysis/.test(createdText), "ticket scaffold should stay compact");
+      assert.ok(!/## Source Observations/.test(createdText), "ticket scaffold should avoid long analysis sections");
 
       const index = readTicketIndexJson(cwd);
       const entry = index.entries.find(item => item.path && item.path.endsWith(`sub/${createdFileName}`));
@@ -2479,18 +2480,14 @@ test("runTicketCreate generates main-ticket compact plan by default", async () =
     assert.ok(ticketFile, "ticket markdown should be created");
 
     const ticketText = readFileSync(ticketFile, "utf8");
-    assert.doesNotMatch(ticketText, /Read relevant architecture and target module files/);
-    assert.match(ticketText, /inherits output, review-gate, and lifecycle policy/i);
-    assert.match(ticketText, /Keep scope, APC, investigation evidence, and verification outcome here/i);
-    assert.doesNotMatch(ticketText, /Do not execute before post-ticket approval/i);
     assert.match(ticketText, /## Compact Plan/);
-    assert.match(ticketText, /## Problem Analysis/);
-    assert.match(ticketText, /## Source Observations/);
-    assert.match(ticketText, /## Cause Hypotheses/);
-    assert.match(ticketText, /## Improvement Direction/);
-    assert.match(ticketText, /## Open Questions/);
-    assert.match(ticketText, /before asking the user for clarification/i);
-    assert.match(ticketText, /Ticket Numbering/);
+    assert.match(ticketText, /## Tasks/);
+    assert.match(ticketText, /## Done When/);
+    assert.doesNotMatch(ticketText, /## Problem Analysis/);
+    assert.doesNotMatch(ticketText, /## Source Observations/);
+    assert.doesNotMatch(ticketText, /## Cause Hypotheses/);
+    assert.doesNotMatch(ticketText, /## Improvement Direction/);
+    assert.doesNotMatch(ticketText, /## Open Questions/);
     assert.match(ticketText, new RegExp(summary));
 
     const planDir = join(cwd, ".deuk-agent", "docs", "plan");
@@ -2580,38 +2577,63 @@ test("runTicketCreate renders ticket list with required frontmatter", async () =
   }
 });
 
-test("runTicketCreate works per docsLanguage and uses localized template when present", async () => {
-  const cases = [
-    { docsLanguage: "en", expectedTemplate: "TemplateLocale: locale: base", withKoTemplate: false },
-    { docsLanguage: "ko", expectedTemplate: "TemplateLocale: ko", withKoTemplate: true }
-  ];
+test("runTicketCreate surfaces fallback risk when localized template is missing", async () => {
+  const { cwd, ticketDir } = makeTemplateWorkspace({ withKoTemplate: false });
+  const originalLog = console.log;
+  const originalWarn = console.warn;
+  console.log = () => {};
+  console.warn = () => {};
 
-  for (const tc of cases) {
-    const { cwd, ticketDir } = makeTemplateWorkspace({ withKoTemplate: tc.withKoTemplate });
-    const originalLog = console.log;
-    const originalWarn = console.warn;
-    console.log = () => {};
-    console.warn = () => {};
+  try {
+    await runTicketCreate({
+      cwd,
+      topic: "fallback-risk-ticket",
+      summary: "validate ko language fallback risk in template lookup",
+      nonInteractive: true,
+      docsLanguage: "ko",
+      skipPhase0: true
+    });
 
-    try {
-      await runTicketCreate({
-        cwd,
-        topic: `language-${tc.docsLanguage}-ticket`,
-        summary: `validate template rendering for ${tc.docsLanguage}`,
-        nonInteractive: true,
-        docsLanguage: tc.docsLanguage,
-        skipPhase0: true
-      });
+    const ticketFile = readNewestTicketMarkdown(ticketDir);
+    assert.ok(ticketFile, "ticket markdown should be created");
+    const ticketText = readFileSync(ticketFile, "utf8");
+      assert.match(ticketText, /TemplateLocale: locale: base/);
+      assert.ok(!/TemplateLocale: ko/.test(ticketText), "missing localized template should keep the fallback visible");
+      assert.ok(!/## Problem Analysis/.test(ticketText), "fallback template should also stay minimal");
+  } finally {
+    console.log = originalLog;
+    console.warn = originalWarn;
+    rmSync(cwd, { recursive: true, force: true });
+  }
+});
 
-      const ticketFile = readNewestTicketMarkdown(ticketDir);
-      assert.ok(ticketFile, "ticket markdown should be created");
-      const ticketText = readFileSync(ticketFile, "utf8");
-      assert.match(ticketText, new RegExp(tc.expectedTemplate));
-    } finally {
-      console.log = originalLog;
-      console.warn = originalWarn;
-      rmSync(cwd, { recursive: true, force: true });
-    }
+test("runTicketCreate uses localized template when present and keeps it compact", async () => {
+  const { cwd, ticketDir } = makeTemplateWorkspace({ withKoTemplate: true });
+  const originalLog = console.log;
+  const originalWarn = console.warn;
+  console.log = () => {};
+  console.warn = () => {};
+
+  try {
+    await runTicketCreate({
+      cwd,
+      topic: "localized-ko-ticket",
+      summary: "validate template rendering for ko",
+      nonInteractive: true,
+      docsLanguage: "ko",
+      skipPhase0: true
+    });
+
+    const ticketFile = readNewestTicketMarkdown(ticketDir);
+    assert.ok(ticketFile, "ticket markdown should be created");
+    const ticketText = readFileSync(ticketFile, "utf8");
+    assert.match(ticketText, /TemplateLocale: ko/);
+    assert.ok(!/## Problem Analysis/.test(ticketText), "localized scaffold should stay minimal");
+    assert.ok(!/## Source Observations/.test(ticketText), "localized scaffold should avoid long analysis sections");
+  } finally {
+    console.log = originalLog;
+    console.warn = originalWarn;
+    rmSync(cwd, { recursive: true, force: true });
   }
 });
 
