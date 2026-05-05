@@ -4,25 +4,27 @@ import { join } from "path";
 const RULE_CHECKS = [
   {
     code: "DR-KERNEL-01",
-    message: "Execution kernel must keep ticket-first invariants at the top of the core rules.",
-    test: (rules) => /## Execution Kernel/i.test(rules)
+    message: "Compact kernel must keep ticket-first and tool-contract invariants at the top of the core rules.",
+    test: (rules) => /## Compact Kernel/i.test(rules)
+      && /Tools own detail/i.test(rules)
       && /No ticket, no writes/i.test(rules)
+      && /Every phase must request and satisfy the tool-provided contract/i.test(rules)
       && /Phase state has two records/i.test(rules)
       && /Verification is mandatory/i.test(rules)
-      && /Urgency is not an override/i.test(rules)
+      && /never bypass ticket, scope, generated-file, or verification gates/i.test(rules)
   },
   {
     code: "DR-TOKEN-01",
     message: "Low-token mode must stay quiet and compact.",
     test: (rules) => /Silent-by-default is mandatory/i.test(rules)
       && /Keep chat compact/i.test(rules)
-      && /Interim and final reports MUST be 3 words or fewer/i.test(rules)
+      && /Final answers must be short but complete enough/i.test(rules)
       && /avoid repeating them in chat/i.test(rules)
   },
   {
     code: "DR-PRIORITY-01",
     message: "Rules must define pointer/core/project instruction precedence.",
-    test: (rules) => /Instruction Priority/i.test(rules)
+    test: (rules) => /## 0\. Priority/i.test(rules)
       && /Global DeukAgentRules pointer/i.test(rules)
       && /Local generated pointer\/spoke/i.test(rules)
       && /core-rules\/AGENTS\.md/i.test(rules)
@@ -35,7 +37,7 @@ const RULE_CHECKS = [
       && /Read this file \(AGENTS\.md\)/i.test(rules)
       && /Read `PROJECT_RULE\.md`/i.test(rules)
       && /set_workflow_context\(project, ticket_id, phase\)/i.test(rules)
-      && /ticket-start announcement/i.test(rules)
+      && /clickable ticket-start line/i.test(rules)
   },
   {
     code: "DR-TICKET-01",
@@ -47,12 +49,12 @@ const RULE_CHECKS = [
   },
   {
     code: "DR-CHANGE-01",
-    message: "Pre-action guards must require ticket, context, and rg/apply_patch usage.",
-    test: (rules) => /Pre-Action Guards/i.test(rules)
-      && /No active ticket before write/i.test(rules)
-      && /Missing `set_workflow_context`/i.test(rules)
-      && /Use `rg`\/`rg --files` first/i.test(rules)
-      && /Use `apply_patch` for edits/i.test(rules)
+    message: "Phase contract must require tool-provided requirements and block shortcuts.",
+    test: (rules) => /Phase Contract/i.test(rules)
+      && /complete requirement bundle/i.test(rules)
+      && /Required ticket fields\/tasks/i.test(rules)
+      && /Scope boundaries, generated\/source mapping/i.test(rules)
+      && /Do not invent a shortcut/i.test(rules)
   },
   {
     code: "DR-LIFECYCLE-01",
@@ -60,39 +62,40 @@ const RULE_CHECKS = [
     test: (rules) => /Ticket Lifecycle/i.test(rules)
       && /Phase 0/i.test(rules)
       && /Phase 4/i.test(rules)
-      && /Durable records must include findings, hypotheses, affected files, and verification outcomes/i.test(rules)
+      && /findings, hypotheses, scope, compact plan, and phase contract/i.test(rules)
+      && /affected files, and residual risk/i.test(rules)
       && /Keep chat compact once the ticket carries the durable record/i.test(rules)
-      && /Do not repeat interim or final progress reports in chat/i.test(rules)
   },
   {
     code: "DR-GATE-01",
-    message: "Review, exploration, bypass, scope, and RAG controls must remain in the kernel.",
-    test: (rules) => /Issue-Review Gate/i.test(rules)
-      && /Exploration-Only Mode/i.test(rules)
-      && /Anti-Bypass Guard/i.test(rules)
-      && /Scope Containment Guard/i.test(rules)
-      && /MCP RAG Decision Ladder/i.test(rules)
+    message: "Hard stops must block missing contracts, unsafe scope, and premature execution.",
+    test: (rules) => /Hard Stops/i.test(rules)
+      && /missing phase contract/i.test(rules)
+      && /generated\/source uncertainty/i.test(rules)
+      && /shared-interface changes/i.test(rules)
+      && /read-only until the ticket records findings/i.test(rules)
   },
   {
     code: "DR-HALT-01",
     message: "Kernel must still define halt conditions and file guards.",
-    test: (rules) => /HALT Conditions \+ File Guards/i.test(rules)
-      && /generated-file edits/i.test(rules)
+    test: (rules) => /Hard Stops/i.test(rules)
+      && /generated\/source uncertainty/i.test(rules)
       && /missing tests/i.test(rules)
   },
   {
     code: "DR-CHURN-01",
     message: "Repeated symptom fixes must trigger stabilization instead of ticket churn.",
-    test: (rules) => /Symptom Churn Guard/i.test(rules)
-      && /fragmentation signal/i.test(rules)
+    test: (rules) => /Hard Stops/i.test(rules)
       && /stabilization or root-cause ticket/i.test(rules)
-      && /same failure family keeps reappearing/i.test(rules)
+      && /same failure family/i.test(rules)
   },
   {
     code: "DR-CLI-01",
-    message: "CLI ownership for lifecycle, claim checks, and reports must stay explicit.",
-    test: (rules) => /Emergency, Docs, CLI/i.test(rules)
-      && /Let CLI own lifecycle enforcement, claim checks, and report generation/i.test(rules)
+    message: "Tool delegation and CLI ownership must stay explicit.",
+    test: (rules) => /Tool Delegation/i.test(rules)
+      && /Use `rg`\/`rg --files` first/i.test(rules)
+      && /Use MCP\/RAG only when local evidence is insufficient/i.test(rules)
+      && /Let CLI own lifecycle enforcement, claim checks, reports, and audits/i.test(rules)
       && /rules audit/i.test(rules)
   }
 ];
