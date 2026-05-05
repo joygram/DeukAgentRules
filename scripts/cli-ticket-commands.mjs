@@ -657,10 +657,29 @@ function buildStrictCreateFailureMessage(reasons) {
     "[VALIDATION FAILED] ticket create strict mode rejected incomplete Phase 1.",
     `Missing: ${uniqueReasons.join(", ")}`,
     "",
-    "Provide the missing Phase 1 content in one pass instead of creating ticket markdown manually.",
-    "Recommended:",
-    "  1. Create a filled plan markdown with APC, Compact Plan, Problem Analysis, Source Observations, Cause Hypotheses, Improvement Direction, and Audit Evidence.",
-    "  2. Run: npx deuk-agent-rule ticket create --topic <topic> --summary <summary> --from-plan <filled-plan.md> --non-interactive",
+    "Required one-pass inputs:",
+    "  --summary \"<concrete request summary>\"",
+    "  --plan-body \"<filled Phase 1 markdown containing every required section below>\"",
+    "",
+    "Required --plan-body sections:",
+    "  # <title>",
+    "  ## Agent Permission Contract (APC)",
+    "  ### [BOUNDARY]",
+    "  ### [CONTRACT]",
+    "  ### [PATCH PLAN]",
+    "  ## Compact Plan",
+    "  ## Problem Analysis",
+    "  ## Source Observations",
+    "  ## Cause Hypotheses",
+    "  ## Improvement Direction",
+    "  ## Audit Evidence",
+    "",
+    "Copy/paste command shape:",
+    "  npx deuk-agent-rule ticket create --topic <topic> --summary \"<concrete summary>\" --plan-body \"$(cat <<'EOF'",
+    "  # <title>",
+    "  <filled Phase 1 markdown with all sections listed above>",
+    "  EOF",
+    "  )\" --non-interactive",
     "",
     "Manual fallback is forbidden: do not write .deuk-agent/tickets/**/*.md directly after this failure."
   ];
@@ -710,7 +729,7 @@ function assertTicketLifecycleProvenance(entry, meta = {}) {
     `[VALIDATION FAILED] Ticket ${entry?.id || entry?.topic || "unknown"} cannot be used as an execution ticket: ${reasons.join(", ")}.`,
     "This ticket file does not carry CLI creation provenance.",
     "Do not create or repair tickets by writing .deuk-agent/tickets/**/*.md directly.",
-    "Use: npx deuk-agent-rule ticket create --topic <topic> --summary <summary> --from-plan <filled-plan.md> --non-interactive"
+    "Use: npx deuk-agent-rule ticket create --topic <topic> --summary <summary> --plan-body \"<filled phase 1 markdown>\" --non-interactive"
   ].join("\n"));
 }
 
@@ -1075,14 +1094,9 @@ export async function runTicketCreate(opts) {
     let finalTitle = title;
     let finalTopic = topic;
     
-    if (typeof opts.fromPlan === "string" && opts.fromPlan.trim()) {
-      const planAbsPath = resolve(opts.cwd, opts.fromPlan);
-      if (!existsSync(planAbsPath)) {
-        throw new Error(`ticket create: Plan file not found at ${planAbsPath}`);
-      }
-      const planContent = readFileSync(planAbsPath, "utf8");
-      parsedPlan = parsePlan(planAbsPath, planContent);
-      
+    if (typeof opts.planBody === "string" && opts.planBody.trim()) {
+      parsedPlan = parsePlan("inline-plan-body.md", opts.planBody);
+
       finalTitle = opts.topic || parsedPlan.title || title;
       finalTopic = toSlug(finalTitle);
     }
@@ -1177,7 +1191,7 @@ export async function runTicketCreate(opts) {
 
     const strictCreate = !opts.allowPlaceholder && (
       opts.requireFilled ||
-      opts.fromPlan === true ||
+      typeof opts.planBody === "string" ||
       looksLikeInvestigationTicket(summary, finalTitle, finalTopic)
     );
 

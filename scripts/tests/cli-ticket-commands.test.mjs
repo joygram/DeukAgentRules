@@ -1956,7 +1956,10 @@ test("runTicketCreate rolls back when strict create rejects placeholder summary"
       err => {
         assert.match(err.message, /strict mode rejected incomplete Phase 1/);
         assert.match(err.message, /summary_missing_or_placeholder/);
-        assert.match(err.message, /--from-plan <filled-plan\.md>/);
+        assert.match(err.message, /Required one-pass inputs/);
+        assert.match(err.message, /Required --plan-body sections/);
+        assert.match(err.message, /Copy\/paste command shape/);
+        assert.match(err.message, /--plan-body/);
         assert.match(err.message, /Manual fallback is forbidden/);
         return true;
       }
@@ -2001,7 +2004,9 @@ test("runTicketCreate strict mode rejects scaffold-only compact plan drafts", as
       err => {
         assert.match(err.message, /strict mode rejected incomplete Phase 1/);
         assert.match(err.message, /compact_plan_placeholder_or_incomplete/);
-        assert.match(err.message, /--from-plan <filled-plan\.md>/);
+        assert.match(err.message, /Required one-pass inputs/);
+        assert.match(err.message, /## Source Observations/);
+        assert.match(err.message, /--plan-body/);
         assert.match(err.message, /Manual fallback is forbidden/);
         return true;
       }
@@ -2193,7 +2198,7 @@ test("runTicketUse rejects manually written execution ticket without CLI provena
       () => runTicketUse({ cwd, topic: ticketId, nonInteractive: true }),
       err => {
         assert.match(err.message, /manual_ticket_lifecycle_provenance_missing/);
-        assert.match(err.message, /--from-plan <filled-plan\.md>/);
+        assert.match(err.message, /--plan-body/);
         return true;
       }
     );
@@ -2900,7 +2905,9 @@ test("runTicketCreate auto-enables strict mode for investigation tickets", async
       err => {
         assert.match(err.message, /strict mode rejected incomplete Phase 1/);
         assert.match(err.message, /compact_plan_placeholder_or_incomplete/);
-        assert.match(err.message, /--from-plan <filled-plan\.md>/);
+        assert.match(err.message, /Required one-pass inputs/);
+        assert.match(err.message, /## Cause Hypotheses/);
+        assert.match(err.message, /--plan-body/);
         assert.match(err.message, /Manual fallback is forbidden/);
         return true;
       }
