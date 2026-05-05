@@ -3,7 +3,7 @@ import assert from "node:assert";
 import { existsSync, mkdtempSync, mkdirSync, readFileSync, rmSync, writeFileSync } from "node:fs";
 import { tmpdir } from "node:os";
 import { join } from "node:path";
-import { buildGlobalCodexInstructions, canonicalizeDocsArchiveBuckets, enforceCanonicalAgentLayout, generateSpokeContent, migrateLegacyStructure, runInit } from "../cli-init-commands.mjs";
+import { buildGlobalCodexInstructions, canonicalizeDocsArchiveBuckets, enforceCanonicalAgentLayout, generateSpokeContent, mergeManagedRuleContent, migrateLegacyStructure, runInit } from "../cli-init-commands.mjs";
 
 test("init migration moves legacy reports and prunes empty legacy ticket dirs", () => {
   const cwd = mkdtempSync(join(tmpdir(), "deuk-init-migrate-"));
@@ -89,6 +89,18 @@ test("global codex instructions stay locator-only", () => {
   assert.doesNotMatch(content, /## Core Directives/);
   assert.doesNotMatch(content, /Follow TDW/);
   assert.doesNotMatch(content, /Stay silent while working/);
+});
+
+test("managed rule content appends without deleting existing prose", () => {
+  const merged = mergeManagedRuleContent(
+    "# Notes\n\nKeep this line.\n",
+    "# Deuk Agent Rules\n\nManaged block.\n"
+  );
+
+  assert.match(merged, /# Notes/);
+  assert.match(merged, /Keep this line\./);
+  assert.match(merged, /deuk-agent-managed:begin/);
+  assert.match(merged, /Managed block\./);
 });
 
 test("init migration removes duplicate scratch reports and moves legacy archive ticket shards", () => {

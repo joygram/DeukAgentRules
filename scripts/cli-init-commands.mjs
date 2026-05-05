@@ -30,6 +30,66 @@ function sameFileContent(leftPath, rightPath) {
   return safeReadText(leftPath) === safeReadText(rightPath);
 }
 
+function isSelectedTool(selectedTools = [], spokeId) {
+  const tools = Array.isArray(selectedTools) ? selectedTools : [];
+  return tools.includes("all") || tools.includes(spokeId);
+}
+
+const MANAGED_BLOCK_BEGIN = "<!-- deuk-agent-managed:begin -->";
+const MANAGED_BLOCK_END = "<!-- deuk-agent-managed:end -->";
+
+function wrapManagedBlock(content) {
+  return `${MANAGED_BLOCK_BEGIN}\n${String(content || "").trimEnd()}\n${MANAGED_BLOCK_END}`;
+}
+
+function mergeManagedBlock(existing, managedContent) {
+  const current = String(existing || "");
+  const nextBlock = wrapManagedBlock(managedContent);
+
+  if (!current.trim()) return `${nextBlock}\n`;
+  if (current.includes(MANAGED_BLOCK_BEGIN) && current.includes(MANAGED_BLOCK_END)) {
+    const beginIdx = current.indexOf(MANAGED_BLOCK_BEGIN);
+    const endIdx = current.indexOf(MANAGED_BLOCK_END, beginIdx);
+    if (beginIdx !== -1 && endIdx !== -1) {
+      const before = current.slice(0, beginIdx).trimEnd();
+      const after = current.slice(endIdx + MANAGED_BLOCK_END.length).trimStart();
+      return [before, nextBlock, after].filter(Boolean).join("\n\n").trimEnd() + "\n";
+    }
+  }
+
+  const cleaned = current.trimEnd();
+  const managedBody = String(managedContent || "").trim();
+  if (managedBody && cleaned.includes(managedBody)) return cleaned + "\n";
+
+  return `${cleaned}\n\n${nextBlock}\n`;
+}
+
+function ensureWritableDirectory(dirAbs, cwd, dryRun, label) {
+  if (!existsSync(dirAbs)) return;
+
+  try {
+    if (statSync(dirAbs).isDirectory()) return;
+  } catch (err) {
+    if (process.env.DEBUG) console.warn(`[DEBUG] Failed to inspect ${dirAbs}:`, err);
+    return;
+  }
+
+  const backupBase = `${dirAbs}.bak`;
+  let backupAbs = backupBase;
+  let index = 1;
+  while (existsSync(backupAbs)) {
+    backupAbs = `${backupBase}.${index}`;
+    index += 1;
+  }
+
+  const relDir = toRepoRelativePath(cwd, dirAbs);
+  const relBackup = toRepoRelativePath(cwd, backupAbs);
+  if (!dryRun) {
+    renameSync(dirAbs, backupAbs);
+  }
+  console.log(`[MIGRATE] ${label}: ${relDir} -> ${relBackup}`);
+}
+
 function moveOrMergeFile(srcAbs, dstAbs, cwd, dryRun, action) {
   const relSrc = toRepoRelativePath(cwd, srcAbs);
   const relDst = toRepoRelativePath(cwd, dstAbs);
@@ -1214,6 +1274,10 @@ ${content}`;
   return `---\n\n## DeukAgentRules\n\n> Managed by DeukAgentRules. Remove this section if not installed.\n\n${content}\n`;
 }
 
+export function mergeManagedRuleContent(existingContent, managedContent) {
+  return mergeManagedBlock(existingContent, managedContent);
+}
+
 function hasCustomUserRules(filePath) {
   try {
     const content = readFileSync(filePath, "utf8");
@@ -1263,14 +1327,22 @@ function deploySpokePointers(cwd, bundleRoot, dryRun, selectedTools = []) {
       }
     }
 
-    if (!spoke.detect(cwd, selectedTools)) continue;
-    
+    if (!isSelectedTool(selectedTools, spoke.id) && !spoke.detect(cwd, selectedTools)) continue;
+
     const targetPath = join(cwd, spoke.target);
     const targetDir = dirname(targetPath);
+    const managedContent = generateSpokeContent(spoke, bundleRoot);
+    const existingContent = existsSync(targetPath) ? safeReadText(targetPath) : "";
+    const nextContent = mergeManagedBlock(existingContent, managedContent);
+    if (existingContent === nextContent) {
+      console.log(`spoke synced: ${spoke.target} (${spoke.id})`);
+      continue;
+    }
     
     if (!dryRun) {
+      ensureWritableDirectory(targetDir, cwd, dryRun, `spoke target conflict resolved for ${spoke.id}`);
       mkdirSync(targetDir, { recursive: true });
-      writeFileSync(targetPath, generateSpokeContent(spoke, bundleRoot), "utf8");
+      writeFileSync(targetPath, nextContent, "utf8");
     }
     console.log(`spoke synced: ${spoke.target} (${spoke.id})`);
   }
@@ -1283,7 +1355,6 @@ function removeDuplicateRuleCopies(cwd, dryRun) {
   const duplicatePaths = [
     join(cwd, AGENT_ROOT_DIR, "rules"),
     join(cwd, ".cursor", "rules", "deuk-agent-rule-multi-ai-workflow.mdc"),
-    join(cwd, ".claude"),
     join(cwd, "CLAUDE.md"),
   ];
 

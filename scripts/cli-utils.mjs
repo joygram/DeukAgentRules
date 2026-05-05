@@ -185,19 +185,20 @@ export function writeInitConfig(cwd, opts) {
   if (!existsSync(dir)) {
     mkdirSync(dir, { recursive: true });
   }
+  const existing = loadInitConfig(cwd) || {};
   const workflowMode = normalizeWorkflowMode(opts.workflowMode ?? opts.workflow ?? opts.approvalState ?? opts.approval);
   const data = {
     version: INIT_CONFIG_VERSION,
-    agentsMode: opts.agents || "inject",
+    agentsMode: opts.agents ?? existing.agentsMode ?? "inject",
     workflowMode,
     approvalState: workflowMode === WORKFLOW_MODE_EXECUTE ? "approved" : "pending",
-    stack: opts.stack,
-    agentTools: opts.agentTools,
-    docsLanguage: normalizeDocsLanguage(opts.docsLanguage || "auto"),
-    shareTickets: !!opts.shareTickets,
-    remoteSync: !!opts.remoteSync,
+    stack: opts.stack ?? existing.stack,
+    agentTools: opts.agentTools ?? existing.agentTools,
+    docsLanguage: normalizeDocsLanguage(opts.docsLanguage ?? existing.docsLanguage ?? "auto"),
+    shareTickets: opts.shareTickets ?? existing.shareTickets ?? false,
+    remoteSync: opts.remoteSync ?? existing.remoteSync ?? false,
     pipelineUrl: opts.pipelineUrl,
-    ignoreDirs: opts.ignoreDirs || DEFAULT_IGNORE_DIRS,
+    ignoreDirs: opts.ignoreDirs || existing.ignoreDirs || DEFAULT_IGNORE_DIRS,
     updatedAt: new Date().toISOString(),
   };
   writeFileSync(p, JSON.stringify(data, null, 2), "utf8");
