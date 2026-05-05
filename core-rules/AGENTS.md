@@ -1,9 +1,17 @@
 ---
-version: 41
-changelog: "v41: Cap status-only reports at three visible characters."
+version: 43
+changelog: "v43: Add execution kernel and ticket-first invariants."
 ---
 
 # Agent Rules
+
+## Execution Kernel
+
+- No ticket, no writes: before any file change, select or create the active ticket, complete substantive Phase 1, and call `set_workflow_context(project, ticket_id, phase)`.
+- Phase state has two records: `set_workflow_context` updates runtime context; the ticket markdown frontmatter/tasks must be updated separately before claiming progress.
+- Keep the first pass small: read this hub, read `PROJECT_RULE.md`, use `rg` first, and write the durable plan/evidence into the ticket instead of chat.
+- Verification is mandatory: record findings, affected files, and the smallest useful verification result in the ticket before close.
+- Urgency is not an override: use `ticket hotfix` for legitimate fast-track work; never bypass ticket, scope, generated-file, or verification guards.
 
 ## Tone
 - Dry, concise, technical. No emojis/exclamation marks.
@@ -31,7 +39,7 @@ changelog: "v41: Cap status-only reports at three visible characters."
 - Screen output is for final answers, blockers, or explicit command results only.
 - After selecting or creating the active ticket, print one concise ticket-start line and stop if approval is pending.
 - Keep chat compact; do not mirror ticket prose in screen output.
-- Status-only reports MUST be 3 visible characters or fewer.
+- Interim and final reports MUST be 3 words or fewer.
 - If the ticket already carries the durable record, put progress and wrap-up details in the ticket and avoid repeating them in chat.
 - Prefer targeted reads and the shortest valid path that still preserves boot, phase, lint, verify, and close.
 

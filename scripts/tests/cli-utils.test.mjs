@@ -80,6 +80,8 @@ test("cli-utils.mjs - normalizeTicketGroup", (t) => {
 test("cli-utils.mjs - toSlug", (t) => {
   assert.strictEqual(toSlug("Hello World! 123"), "hello-world-123");
   assert.strictEqual(toSlug("  spaced  "), "spaced");
+  assert.strictEqual(toSlug("Crème Brûlée"), "creme-brulee");
+  assert.strictEqual(toSlug("한글 티켓 생성"), "ticket");
   assert.strictEqual(toSlug("!@#$"), "ticket"); // fallback
 });
 

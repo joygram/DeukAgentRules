@@ -278,7 +278,9 @@ export function toRepoRelativePath(cwd, absPath) {
 export function toSlug(input) {
   return String(input || "")
     .toLowerCase()
-    .replace(/[^\p{L}\p{N}]+/gu, "-")
+    .normalize("NFKD")
+    .replace(/[\u0300-\u036f]/g, "")
+    .replace(/[^a-z0-9]+/g, "-")
     .replace(/^-+|-+$/g, "") || "ticket";
 }
 

@@ -3,11 +3,20 @@ import { join } from "path";
 
 const RULE_CHECKS = [
   {
+    code: "DR-KERNEL-01",
+    message: "Execution kernel must keep ticket-first invariants at the top of the core rules.",
+    test: (rules) => /## Execution Kernel/i.test(rules)
+      && /No ticket, no writes/i.test(rules)
+      && /Phase state has two records/i.test(rules)
+      && /Verification is mandatory/i.test(rules)
+      && /Urgency is not an override/i.test(rules)
+  },
+  {
     code: "DR-TOKEN-01",
     message: "Low-token mode must stay quiet and compact.",
     test: (rules) => /Silent-by-default is mandatory/i.test(rules)
       && /Keep chat compact/i.test(rules)
-      && /Status-only reports MUST be 3 visible characters or fewer/i.test(rules)
+      && /Interim and final reports MUST be 3 words or fewer/i.test(rules)
       && /avoid repeating them in chat/i.test(rules)
   },
   {

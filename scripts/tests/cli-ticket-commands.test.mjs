@@ -2948,6 +2948,42 @@ test("runTicketCreate infers Korean prompt language before saved English config"
   }
 });
 
+test("runTicketCreate keeps ticket filename ascii while preserving Korean content", async () => {
+  const { cwd, ticketDir } = makeTemplateWorkspace({ withKoTemplate: true });
+  const originalLog = console.log;
+  const originalWarn = console.warn;
+  console.log = () => {};
+  console.warn = () => {};
+
+  try {
+    await runTicketCreate({
+      cwd,
+      topic: "에이전트룰 한글 티켓 생성",
+      summary: "티켓 파일명은 영문이고 본문은 사용자 언어로 생성한다",
+      nonInteractive: true,
+      skipPhase0: true
+    });
+
+    const ticketFile = readNewestTicketMarkdown(ticketDir);
+    assert.ok(ticketFile, "ticket markdown should be created");
+    assert.match(ticketFile, /001-ticket-[a-z0-9-]+\.md$/);
+    assert.doesNotMatch(ticketFile, /[^\x00-\x7F]/);
+
+    const ticketText = readFileSync(ticketFile, "utf8");
+    assert.match(ticketText, /title: 에이전트룰 한글 티켓 생성/);
+    assert.match(ticketText, /docsLanguage: ko/);
+    assert.match(ticketText, /TemplateLocale: ko/);
+
+    const indexJson = readTicketIndexJson(cwd);
+    assert.strictEqual(indexJson.entries[0].topic, "ticket");
+    assert.match(indexJson.entries[0].id, /^001-ticket-[a-z0-9-]+$/);
+  } finally {
+    console.log = originalLog;
+    console.warn = originalWarn;
+    rmSync(cwd, { recursive: true, force: true });
+  }
+});
+
 test("runTicketCreate infers English prompt language before saved Korean config", async () => {
   const { cwd, ticketDir } = makeTemplateWorkspace({ withKoTemplate: true });
   writeFileSync(join(cwd, ".deuk-agent", "config.json"), JSON.stringify({
