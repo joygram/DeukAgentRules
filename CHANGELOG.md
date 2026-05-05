@@ -53,7 +53,7 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 - **rules:** add AI Agent fallback guide to PROJECT_RULE.md template
 - **rules:** normalize canonical rules and decouple DeukPack rules
 - **telemetry:** add local-first telemetry CLI and update AGENTS.md
-- **ticket:** implement --from-plan for plan-to-ticket conversion and update project rules
+- **ticket:** implement --plan-body for filled Phase 1 ticket body input and update project rules
 
 
 ### Fixed

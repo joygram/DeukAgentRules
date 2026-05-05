@@ -10,14 +10,7 @@ export function parseTicketArgs(argv) {
     else if (a === "--project") out.project = argv[++i];
     else if (a === "--content") out.content = argv[++i];
     else if (a === "--from") out.from = argv[++i];
-    else if (a === "--from-plan") {
-      const next = argv[i + 1];
-      if (next && !next.startsWith("--")) {
-        out.fromPlan = argv[++i];
-      } else {
-        out.fromPlan = true;
-      }
-    }
+    else if (a === "--plan-body") out.planBody = argv[++i];
     else if (a === "--ref") out.ref = argv[++i];
     else if (a === "--limit") out.limit = Number(argv[++i]);
     else if (a === "--submodule") out.submodule = argv[++i];

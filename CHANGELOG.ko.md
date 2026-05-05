@@ -38,7 +38,7 @@
 ### 추가됨 (Added)
 - **arch:** 제로카피(Zero-Copy) 포인터 아키텍처 도입 (`PROJECT_RULE.md` 연동) 및 구조 간소화
 - **cli:** 엄격한 Phase 기반 티켓 워크플로우 및 APC(Agent Permission Contract) 검증 기능 추가
-- **cli:** `--from-plan` 옵션을 통한 구현 계획서(plan)의 티켓 변환 기능 추가
+- **cli:** `--plan-body` 옵션을 통한 채워진 Phase 1 티켓 본문 입력 기능 추가
 - **ticket:** 티켓 아카이브 시 불필요한 토큰 낭비를 막는 Zero-Token 지식 증류(Knowledge Distillation) 구현
 - **telemetry:** 로컬 환경에 최적화된 Telemetry CLI 추가
 - **rules:** `PROJECT_RULE.md` 템플릿 추가 (AI 에이전트 폴백 가이드 포함) 및 이중 언어(한/영) 지원

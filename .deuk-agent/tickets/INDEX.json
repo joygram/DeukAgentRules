@@ -1,7 +1,20 @@
 {
   "version": 1,
-  "updatedAt": "2026-05-05T01:47:20.893Z",
+  "updatedAt": "2026-05-05T08:05:59.262Z",
   "entries": [
+    {
+      "id": "283-ninehire-application-prefill-joy-nucb",
+      "title": "ninehire-application-prefill",
+      "topic": "283-ninehire-application-prefill-joy-nucb",
+      "group": "main",
+      "fileName": "283-ninehire-application-prefill-joy-nucb.md",
+      "project": "global",
+      "submodule": "",
+      "createdAt": "2026-05-05 04:24:54",
+      "updatedAt": "2026-05-05T04:24:54.012Z",
+      "source": "ticket-sync",
+      "status": "open"
+    },
     {
       "id": "268-deukpack-405-missing-analysis-re-joy-nucb",
       "title": "deukpack-405-missing-analysis-record",
@@ -70,7 +83,7 @@
     {
       "id": "257-득팩-처리-수준-개선-joy-nucb",
       "title": "득팩 처리 수준 개선",
-      "topic": "257-득팩-처리-수준-개선-joy-nucb",
+      "topic": "257-joy-nucb",
       "group": "sub",
       "fileName": "257-득팩-처리-수준-개선-joy-nucb.md",
       "project": "global",
@@ -198,5 +211,5 @@
       "status": "open"
     }
   ],
-  "activeTicketId": "268-deukpack-405-missing-analysis-re-joy-nucb"
+  "activeTicketId": "283-ninehire-application-prefill-joy-nucb"
 }

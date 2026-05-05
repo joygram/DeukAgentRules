@@ -7,7 +7,7 @@
 
 1) CLI 개선
 - `ticket create`에 `--require-filled` 플래그 추가: 플래그 사용 시 본문/APC/compact plan이 없으면 생성 실패.
-- `--from-plan`을 점진적으로 기본값으로 전환(레거시 호환성 고려) 또는 별도 `--strict` 모드 제공.
+- `--plan-body`를 통해 채워진 Phase 1 본문을 티켓 내부에 직접 넣도록 유도.
 
 2) 룰 개선 (프로젝트 루트)
 - 모든 프로젝트 루트의 `AGENTS.md` 또는 `PROJECT_RULE.md`에 다음 짧은 문구를 중복 명시:
@@ -27,7 +27,7 @@
 
 다음 작업 제안
 - (단계 1) 이 RFC를 리뷰, 합의
-- (단계 2) CLI 코드에서 `--require-filled`/`--from-plan` 옵션 설계 및 구현
+- (단계 2) CLI 코드에서 `--require-filled`/`--plan-body` 옵션 설계 및 구현
 - (단계 3) 프로젝트 루트 문서(`AGENTS.md`/`PROJECT_RULE.md`) 업데이트
 - (단계 4) 템플릿 자동채우기 구현 및 테스트
 - (단계 5) 워크플로 가드(생성 실패 또는 상태 마킹) 구현 및 테스트

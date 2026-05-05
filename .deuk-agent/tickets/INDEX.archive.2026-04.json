@@ -1,6 +1,6 @@
 {
   "version": 1,
-  "updatedAt": "2026-05-05T01:47:20.893Z",
+  "updatedAt": "2026-05-05T08:05:59.262Z",
   "activeTicketId": null,
   "entries": [
     {
@@ -411,7 +411,7 @@
     {
       "id": "103-architectureguard-인라인-yaml파싱-slu-joy-nucb",
       "title": "103-architectureguard-인라인-yaml파싱-slu-joy-nucb",
-      "topic": "103-architectureguard-인라인-yaml파싱-slu-joy-nucb",
+      "topic": "103-architectureguard-yaml-slu-joy-nucb",
       "group": "sub",
       "fileName": "103-architectureguard-인라인-yaml파싱-slu-joy-nucb.md",
       "project": "global",

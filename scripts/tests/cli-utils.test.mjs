@@ -268,25 +268,24 @@ test("cli-args.mjs - parseTicketArgs supports strict/guard flags", () => {
     "--topic", "demo",
     "--summary", "summary",
     "--require-filled",
-    "--status-detail",
-    "--from-plan", "plans/a.md"
+    "--status-detail"
   ]);
   assert.strictEqual(opts.topic, "demo");
   assert.strictEqual(opts.summary, "summary");
   assert.strictEqual(opts.requireFilled, true);
   assert.strictEqual(opts.statusDetail, true);
   assert.strictEqual(opts.compact, undefined);
-  assert.strictEqual(opts.fromPlan, "plans/a.md");
+});
+
+test("cli-args.mjs - parseTicketArgs supports inline plan body", () => {
+  const opts = parseTicketArgs(["--topic", "demo", "--plan-body", "# Demo\n\nbody"]);
+  assert.strictEqual(opts.topic, "demo");
+  assert.strictEqual(opts.planBody, "# Demo\n\nbody");
 });
 
 test("cli-args.mjs - parseTicketArgs supports compact ticket output", () => {
   const opts = parseTicketArgs(["--topic", "demo", "--compact"]);
   assert.strictEqual(opts.compact, true);
-});
-
-test("cli-args.mjs - parseTicketArgs supports bare --from-plan flag", () => {
-  const opts = parseTicketArgs(["--topic", "demo", "--summary", "x", "--from-plan"]);
-  assert.strictEqual(opts.fromPlan, true);
 });
 
 test("cli-args.mjs - parseArgs supports compact rule audit output", () => {

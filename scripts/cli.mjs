@@ -194,7 +194,7 @@ Ticket Options:
   --evidence <text>     Provide Phase 0 RAG evidence summary
   --claim <text>        Validate or report only from ticket evidence matching this claim
   --skip-phase0         Bypass Phase 0 RAG validation
-  --from-plan <path>    Create ticket from an existing plan markdown file
+  --plan-body <text>    Create ticket with filled Phase 1 markdown body
   --require-filled      Enforce non-placeholder APC and compact plan content before create succeeds
   --allow-placeholder   Opt out of strict create guard (legacy behavior)
   --compact             Prefer one-line ticket outputs in automation flows

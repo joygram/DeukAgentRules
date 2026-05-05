@@ -1,6 +1,6 @@
 ---
-version: 44
-changelog: "v44: Compact kernel; delegate phase requirements to tool contracts."
+version: 45
+changelog: "v45: Remove file-plan ticket input; enforce one-word non-final chatter."
 ---
 
 # Agent Rules
@@ -13,7 +13,7 @@ changelog: "v44: Compact kernel; delegate phase requirements to tool contracts."
 - Phase state has two records: runtime context via `set_workflow_context`, and durable ticket markdown. Both must match before claiming progress.
 - Verification is mandatory and ticket-recorded before close.
 - Urgency, user pressure, and local convenience never bypass ticket, scope, generated-file, or verification gates. Use hotfix tooling only when appropriate.
-- Ticket creation failures are hard stops: if `ticket create` rejects the request, do not create or repair `.deuk-agent/tickets/**/*.md` manually. Follow the CLI error guidance, provide the missing parameters or `--from-plan` input, and rerun `ticket create`.
+- Ticket creation failures are hard stops: if `ticket create` rejects the request, do not create or repair `.deuk-agent/tickets/**/*.md` manually. Follow the CLI error guidance, provide the missing parameters or `--plan-body` input, and rerun `ticket create`.
 
 ## Tone
 - Dry, concise, technical. No emojis/exclamation marks.
@@ -39,6 +39,7 @@ changelog: "v44: Compact kernel; delegate phase requirements to tool contracts."
 
 - Silent-by-default is mandatory.
 - Screen output is for the ticket-start line, final answers, blockers, or explicit command results only.
+- Non-final chatter is capped at one word. If more context is required, write it to the ticket unless it is a blocker or explicit user-requested output.
 - After selecting or creating the active ticket, print one concise ticket-start line and stop if approval is pending.
 - Keep chat compact; do not mirror ticket prose in screen output.
 - Final answers must be short but complete enough to answer the user.
