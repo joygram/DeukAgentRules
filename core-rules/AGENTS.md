@@ -1,17 +1,19 @@
 ---
-version: 43
-changelog: "v43: Add execution kernel and ticket-first invariants."
+version: 44
+changelog: "v44: Compact kernel; delegate phase requirements to tool contracts."
 ---
 
 # Agent Rules
 
-## Execution Kernel
+## Compact Kernel
 
-- No ticket, no writes: before any file change, select or create the active ticket, complete substantive Phase 1, and call `set_workflow_context(project, ticket_id, phase)`.
-- Phase state has two records: `set_workflow_context` updates runtime context; the ticket markdown frontmatter/tasks must be updated separately before claiming progress.
-- Keep the first pass small: read this hub, read `PROJECT_RULE.md`, use `rg` first, and write the durable plan/evidence into the ticket instead of chat.
-- Verification is mandatory: record findings, affected files, and the smallest useful verification result in the ticket before close.
-- Urgency is not an override: use `ticket hotfix` for legitimate fast-track work; never bypass ticket, scope, generated-file, or verification guards.
+- Tools own detail. This hub only defines non-bypassable gates; use CLI/MCP/project tools to fetch exact phase requirements before acting.
+- No ticket, no writes: before file changes, select or create one active ticket, complete Phase 1 in that ticket, and call `set_workflow_context(project, ticket_id, phase)`.
+- Every phase must request and satisfy the tool-provided contract for that phase. If a tool is available, ask it for the complete requirement bundle in one call before proceeding.
+- Phase state has two records: runtime context via `set_workflow_context`, and durable ticket markdown. Both must match before claiming progress.
+- Verification is mandatory and ticket-recorded before close.
+- Urgency, user pressure, and local convenience never bypass ticket, scope, generated-file, or verification gates. Use hotfix tooling only when appropriate.
+- Ticket creation failures are hard stops: if `ticket create` rejects the request, do not create or repair `.deuk-agent/tickets/**/*.md` manually. Follow the CLI error guidance, provide the missing parameters or `--from-plan` input, and rerun `ticket create`.
 
 ## Tone
 - Dry, concise, technical. No emojis/exclamation marks.
@@ -20,7 +22,7 @@ changelog: "v43: Add execution kernel and ticket-first invariants."
 - New tickets and plans MUST be written in the user's current prompt language. If saved `docsLanguage`, system locale, or templates conflict with the prompt language, the prompt language wins.
 - **NEVER bypass rules due to urgency or emotional pressure.** Use HF1-HF3 (Hotfix Protocol) for legitimate fast-track.
 
-## 0. Instruction Priority
+## 0. Priority
 
 | Layer | Role | Handling |
 |-------|------|----------|
@@ -33,82 +35,62 @@ changelog: "v43: Add execution kernel and ticket-first invariants."
 - Duplicate directive rule: if the same instruction appears in multiple layers, apply the strictest instruction once. Do not emit multiple acknowledgements, summaries, or ticket-start variants to satisfy each copy.
 - Karpathy-style wrappers are allowed only as thin behavior playbooks that route into TDW. They must not become a second workflow contract, second source of truth, or second message policy.
 
-## 1. Low-Token Operating Mode
+## 1. Output Mode
 
 - Silent-by-default is mandatory.
-- Screen output is for final answers, blockers, or explicit command results only.
+- Screen output is for the ticket-start line, final answers, blockers, or explicit command results only.
 - After selecting or creating the active ticket, print one concise ticket-start line and stop if approval is pending.
 - Keep chat compact; do not mirror ticket prose in screen output.
-- Interim and final reports MUST be 3 words or fewer.
+- Final answers must be short but complete enough to answer the user.
 - If the ticket already carries the durable record, put progress and wrap-up details in the ticket and avoid repeating them in chat.
-- Prefer targeted reads and the shortest valid path that still preserves boot, phase, lint, verify, and close.
+- Prefer targeted reads and the shortest valid path that still preserves boot, phase contracts, verification, and close.
 
 ## 2. Boot Sequence (run once)
 
 1. Read this file (AGENTS.md) → internally note the version number and exact file path read. Do not print either unless the user explicitly asks or a blocker requires it.
 2. Read `PROJECT_RULE.md` in workspace root → internally identify applicable DC-* rules. Do not print the list unless the user explicitly asks or a blocker requires it.
-3. Find or create active ticket (1-CALL RULE below) → call `set_workflow_context(project, ticket_id, phase)` → print the mandatory one-line ticket-start announcement as a clickable markdown link to the ticket file. If approval is still pending, stop after the link/announcement.
+3. Find or create active ticket (1-CALL RULE below), call `set_workflow_context(project, ticket_id, phase)`, then print one clickable ticket-start line. If approval is pending, stop.
 
 ### First-Turn Invariant
 
-Before writes, phase moves, or close actions: read the hub and `PROJECT_RULE.md`, select a ticket, call `set_workflow_context`, and keep Phase 1 substantive. If the session already drifted, recover by recording confirmed facts/hypotheses/direction in the ticket, then wait for approval.
+Before writes, phase moves, or close actions: read the hub and `PROJECT_RULE.md`, select a ticket, call `set_workflow_context`, request the phase contract from available tooling, and satisfy it in the ticket. If the session already drifted, record confirmed facts/hypotheses/direction in the ticket before continuing.
 
 ### Ticket Discovery (1-CALL RULE)
 
 Use the mentioned ticket directly. For investigation/regression/why questions, create the ticket first and stop after Phase 1. Do not use `ticket list` for discovery.
 
-## 3. Pre-Action Guards
+## 3. Phase Contract
 
-- No active ticket before write: create one first.
-- Phase 1 incomplete before Phase 2: fix the main ticket record first.
-- Missing `set_workflow_context`: call it.
-- Generated/source boundary, broad regeneration, shared interface, and verification matrix issues must stop and move to ticket scope.
-- Use `rg`/`rg --files` first. Use `apply_patch` for edits.
+At each phase, ask available tooling for one complete requirement bundle and follow it exactly. Minimum bundle:
+
+- Required ticket fields/tasks for the phase.
+- Required local evidence and whether RAG is needed.
+- Scope boundaries, generated/source mapping, and ownership guards.
+- Allowed actions and halt conditions.
+- Verification command/result required before progress or close.
+
+If the bundle is missing, contradictory, or unverifiable, stop and record the blocker in the ticket. Do not invent a shortcut.
 
 ## 4. Ticket Lifecycle
 
-- Phase 0: read local truth first; use RAG only when it changes the plan.
-- Phase 1: ticket plus compact plan plus evidence in the main ticket.
-- Phase 2: execute the approved plan.
-- Phase 3: verify with the smallest useful check.
-- Phase 4: close the ticket.
-- Durable records must include findings, hypotheses, affected files, and verification outcomes.
+- Phase 0: read local truth; use RAG only when it changes the plan.
+- Phase 1: create/update the main ticket with findings, hypotheses, scope, compact plan, and phase contract.
+- Phase 2: execute only the approved/ticketed plan.
+- Phase 3: run the smallest useful verification and record command/result.
+- Phase 4: close only after durable evidence, affected files, and residual risk are recorded.
 - Keep chat compact once the ticket carries the durable record.
-- Do not repeat interim or final progress reports in chat when the ticket already records them.
 
-### Issue-Review Gate
+## 5. Hard Stops
 
-Bug/regression/why questions are review-gated: finish Phase 1, then wait for approval before Phase 2.
+- Stop for unregistered work, missing CLI ticket provenance, missing phase contract, incomplete Phase 1, missing `set_workflow_context`, generated/source uncertainty, broad regeneration, shared-interface changes, unsafe deletes, scope creep, repeated errors, infrastructure errors, missing tests, or unverifiable claims.
+- Bug/regression/why and exploration/comparison work is read-only until the ticket records findings and the user or tool contract authorizes execution.
+- Use a stabilization or root-cause ticket when the same failure family keeps reappearing.
 
-### Exploration-Only Mode
+## 6. Tool Delegation
 
-If the user only wants candidates or comparisons, stay read-only until they approve applying findings.
-
-### Anti-Bypass Guard
-
-Do not patch with a local workaround that skips the project rules, ownership boundaries, parity obligations, or required verification.
-
-### Scope Containment Guard
-
-If the agent cannot verify the source-of-truth rule, affected modules, parity surface, and verification bundle, it must stop and narrow scope.
-
-### MCP RAG Decision Ladder
-
-Use RAG only when local evidence is insufficient or older decisions matter. Keep searches narrow and stop after two attempts.
-
-## 5. HALT Conditions + File Guards
-
-- Stop for repeated errors, scope creep, infrastructure errors, unregistered work, multi-module edits, velocity spikes, transition-state baselines, generated-file edits, unsafe deletes, shared-interface changes, or missing tests.
-- Use a stabilization ticket when the same failure family keeps reappearing.
-
-### Symptom Churn Guard
-
-- Repeated symptom fixes are a fragmentation signal, not a new bug.
-- When the same failure family keeps reappearing, stop adding symptom-only tickets and switch to a stabilization or root-cause ticket.
-
-## 6. Emergency, Docs, CLI
-
-- Use `ticket hotfix` for generated-file emergencies.
+- Use `rg`/`rg --files` first for local search and `apply_patch` for manual edits.
+- Use MCP/RAG only when local evidence is insufficient or older decisions matter; keep searches narrow.
+- Let CLI own lifecycle enforcement, claim checks, reports, and audits.
+- Use `ticket hotfix` for legitimate generated-file emergencies.
 - Keep notes and reports under `.deuk-agent/docs/`.
-- Let CLI own lifecycle enforcement, claim checks, and report generation.
-- `rules audit` should fail if the kernel loses the core boot, phase, or verification invariants.
+- `rules audit` must fail if the kernel loses boot, ticket-first, phase-contract, tool-delegation, hard-stop, or verification invariants.

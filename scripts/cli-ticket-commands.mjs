@@ -7,7 +7,7 @@ import {
   AGENT_ROOT_DIR, TICKET_SUBDIR, TEMPLATE_SUBDIR, TICKET_DIR_NAME, TICKET_INDEX_FILENAME, detectConsumerTicketDir, loadInitConfig, computeTicketPath
 } from "./cli-utils.mjs";
 import { readTicketIndexJson, writeTicketIndexJson, syncActiveTicketId, generateTicketId, syncToPipeline } from "./cli-ticket-index.mjs";
-import { appendTicketEntry, rebuildTicketIndexFromTopicFilesIfNeeded, writeTicketListFile, updateTicketEntryStatus } from "./cli-ticket-parser.mjs";
+import { appendTicketEntry, rebuildTicketIndexFromTopicFilesIfNeeded, updateTicketEntryStatus } from "./cli-ticket-parser.mjs";
 import { appendInternalWorkflowEvent } from "./cli-telemetry-commands.mjs";
 import { parsePlan } from "./plan-parser.mjs";
 import { collectChangedFiles, collectChangedMarkdownFiles, lintMarkdownPaths } from "./lint-md.mjs";
@@ -42,9 +42,16 @@ async function ensurePhase0Validation(opts) {
 function resolveTicketTemplate(cwd, docsLanguageInput, promptText = "") {
   const config = loadInitConfig(cwd) || {};
   const explicitDocsLanguage = normalizeDocsLanguage(docsLanguageInput);
-  const promptDocsLanguage = explicitDocsLanguage === "auto" ? inferDocsLanguageFromText(promptText) : null;
+  const configDocsLanguage = normalizeDocsLanguage(config.docsLanguage || "auto");
+  const promptDocsLanguage = explicitDocsLanguage === "auto" && configDocsLanguage === "auto"
+    ? inferDocsLanguageFromText(promptText)
+    : null;
   const docsLanguage = resolveDocsLanguage(
-    explicitDocsLanguage !== "auto" ? explicitDocsLanguage : promptDocsLanguage || config.docsLanguage || "auto"
+    explicitDocsLanguage !== "auto"
+      ? explicitDocsLanguage
+      : configDocsLanguage !== "auto"
+        ? configDocsLanguage
+        : promptDocsLanguage || "en"
   );
 
   const templateDir = join(cwd, AGENT_ROOT_DIR, TEMPLATE_SUBDIR);
@@ -613,7 +620,6 @@ function collectTicketLifecycleMarkdownTargets(cwd, ticketAbsPath, extraTargets 
 function restoreTicketIndexSnapshot(cwd, snapshot, opts = {}) {
   if (opts.dryRun) return;
   writeTicketIndexJson(cwd, snapshot, opts);
-  writeTicketListFile(cwd, snapshot.entries || [], { ...opts, render: true });
 }
 
 function rollbackTicketLifecycleArtifacts(cwd, previousIndex, previousBody, absPath, opts = {}) {
@@ -643,6 +649,69 @@ function getPhase1IncompleteReasons(cwd, absPath) {
   reasons.push(...getAnalysisDesignIncompleteReasons(meta, content));
   reasons.push(...getMainTicketEvidenceReasons(meta, content));
   return [...new Set(reasons)];
+}
+
+function buildStrictCreateFailureMessage(reasons) {
+  const uniqueReasons = [...new Set(reasons || [])];
+  const lines = [
+    "[VALIDATION FAILED] ticket create strict mode rejected incomplete Phase 1.",
+    `Missing: ${uniqueReasons.join(", ")}`,
+    "",
+    "Provide the missing Phase 1 content in one pass instead of creating ticket markdown manually.",
+    "Recommended:",
+    "  1. Create a filled plan markdown with APC, Compact Plan, Problem Analysis, Source Observations, Cause Hypotheses, Improvement Direction, and Audit Evidence.",
+    "  2. Run: npx deuk-agent-rule ticket create --topic <topic> --summary <summary> --from-plan <filled-plan.md> --non-interactive",
+    "",
+    "Manual fallback is forbidden: do not write .deuk-agent/tickets/**/*.md directly after this failure."
+  ];
+
+  if (uniqueReasons.includes("summary_missing_or_placeholder")) {
+    lines.push("Summary fix: replace placeholder/TBD wording with a concrete --summary value.");
+  }
+  if (uniqueReasons.includes("missing_apc_block") || uniqueReasons.some(reason => reason.startsWith("apc_"))) {
+    lines.push("APC fix: include ## Agent Permission Contract (APC) with [BOUNDARY], [CONTRACT], and [PATCH PLAN].");
+  }
+  if (uniqueReasons.includes("compact_plan_placeholder_or_incomplete")) {
+    lines.push("Compact Plan fix: replace scaffold text with concrete finding, direction, and verification lines.");
+  }
+  if (uniqueReasons.some(reason => [
+    "problem_analysis_missing",
+    "source_observations_missing",
+    "cause_hypotheses_missing",
+    "improvement_direction_missing",
+    "audit_evidence_missing"
+  ].includes(reason))) {
+    lines.push("Investigation fix: record concrete evidence with file/command references before creating the ticket.");
+  }
+
+  return lines.join("\n");
+}
+
+function isExecutionTicketStatus(status) {
+  return OPEN_TICKET_STATUSES.has(String(status || "open").toLowerCase());
+}
+
+function getTicketLifecycleProvenanceReasons(entry, meta = {}) {
+  const reasons = [];
+  if (!entry || String(entry.status || "").toLowerCase() === "archived") return reasons;
+  if (!isExecutionTicketStatus(entry.status || meta.status || "open")) return reasons;
+
+  const lifecycleSource = String(meta.lifecycleSource || meta.ticketLifecycleSource || "").trim();
+  if (lifecycleSource !== "ticket-create") {
+    reasons.push("manual_ticket_lifecycle_provenance_missing");
+  }
+  return reasons;
+}
+
+function assertTicketLifecycleProvenance(entry, meta = {}) {
+  const reasons = getTicketLifecycleProvenanceReasons(entry, meta);
+  if (reasons.length === 0) return;
+  throw new Error([
+    `[VALIDATION FAILED] Ticket ${entry?.id || entry?.topic || "unknown"} cannot be used as an execution ticket: ${reasons.join(", ")}.`,
+    "This ticket file does not carry CLI creation provenance.",
+    "Do not create or repair tickets by writing .deuk-agent/tickets/**/*.md directly.",
+    "Use: npx deuk-agent-rule ticket create --topic <topic> --summary <summary> --from-plan <filled-plan.md> --non-interactive"
+  ].join("\n"));
 }
 
 function updatePreviousTicketRef(cwd, prevTicketEntry, ticketId) {
@@ -966,7 +1035,6 @@ function autoArchiveDoneTickets(cwd, indexJson, opts = {}) {
 
   if (archived.length > 0) {
     writeTicketIndexJson(cwd, indexJson, opts);
-    if (opts.render) writeTicketListFile(cwd, indexJson.entries, opts);
   }
 
   return archived;
@@ -976,7 +1044,6 @@ function rollbackCreatedTicket(cwd, abs, rollbackIndexJson, opts = {}) {
   if (opts.dryRun) return;
   rmSync(abs, { force: true });
   writeTicketIndexJson(cwd, rollbackIndexJson, opts);
-  writeTicketListFile(cwd, rollbackIndexJson.entries || [], { ...opts, render: true });
 }
 
 function buildCreateRollbackIndex(currentIndexJson, ticketId, previousIndexJson) {
@@ -1124,6 +1191,7 @@ export async function runTicketCreate(opts) {
       title: finalTitle,
       phase: 1,
       status: "open",
+      lifecycleSource: "ticket-create",
       submodule: opts.submodule,
       project: opts.project === "global" ? undefined : opts.project,
       docsLanguage,
@@ -1160,7 +1228,7 @@ export async function runTicketCreate(opts) {
       if (strictCreate && !opts.dryRun) {
         const reasons = getPhase1IncompleteReasons(opts.cwd, abs);
         if (reasons.length > 0) {
-          throw new Error(`[VALIDATION FAILED] ticket create strict mode rejected placeholder/incomplete phase1 state: ${reasons.join(", ")}`);
+          throw new Error(buildStrictCreateFailureMessage(reasons));
         }
       }
 
@@ -1255,8 +1323,7 @@ export async function runTicketList(opts) {
   });
   
   if (opts.render) {
-    writeTicketListFile(opts.cwd, index.entries, { render: true });
-    console.log(`\nRendered markdown list to ${detectConsumerTicketDir(opts.cwd)}/TICKET_LIST.md`);
+    console.log("ticket list --render is deprecated; TICKET_LIST.md is no longer generated.");
   }
 }
 
@@ -1269,6 +1336,7 @@ export async function runTicketStatus(opts) {
   const fileMissing = !existsSync(absPath);
   const body = fileMissing ? "" : readFileSync(absPath, "utf8");
   const parsed = fileMissing ? { meta: {}, content: "" } : parseFrontMatter(body);
+  if (!fileMissing) assertTicketLifecycleProvenance(found, parsed.meta);
   const phase = Number(parsed.meta.phase || 1);
   const incompleteReasons = getPhase1IncompleteReasons(opts.cwd, absPath);
   const derivedStatus = incompleteReasons.length > 0 && phase === 1
@@ -1560,6 +1628,11 @@ export async function runTicketUse(opts) {
     }
     throw new Error(buildUseNoMatchError(targetTopic, candidates));
   }
+
+  const foundAbsPath = join(opts.cwd, found.path);
+  if (!existsSync(foundAbsPath)) throw new Error("Ticket file not found: " + found.path);
+  const foundParsed = parseFrontMatter(readFileSync(foundAbsPath, "utf8"));
+  assertTicketLifecycleProvenance(found, foundParsed.meta);
   
   // Explicitly set activeTicketId to the selected ticket
   if (index.activeTicketId !== found.id) {
@@ -1736,7 +1809,6 @@ export async function runTicketArchive(opts) {
   if (opts.dryRun) return;
 
   writeTicketIndexJson(opts.cwd, indexJson, opts);
-  if (opts.render) writeTicketListFile(opts.cwd, indexJson.entries, opts);
   syncActiveTicketId(opts.cwd);
   if (result?.id) {
     appendTelemetryEvent(opts.cwd, {

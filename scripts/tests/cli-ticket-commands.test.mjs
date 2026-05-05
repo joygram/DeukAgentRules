@@ -1954,8 +1954,10 @@ test("runTicketCreate rolls back when strict create rejects placeholder summary"
         requireFilled: true
       }),
       err => {
-        assert.match(err.message, /strict mode rejected placeholder\/incomplete phase1 state/);
+        assert.match(err.message, /strict mode rejected incomplete Phase 1/);
         assert.match(err.message, /summary_missing_or_placeholder/);
+        assert.match(err.message, /--from-plan <filled-plan\.md>/);
+        assert.match(err.message, /Manual fallback is forbidden/);
         return true;
       }
     );
@@ -1997,8 +1999,10 @@ test("runTicketCreate strict mode rejects scaffold-only compact plan drafts", as
         requireFilled: true
       }),
       err => {
-        assert.match(err.message, /strict mode rejected placeholder\/incomplete phase1 state/);
+        assert.match(err.message, /strict mode rejected incomplete Phase 1/);
         assert.match(err.message, /compact_plan_placeholder_or_incomplete/);
+        assert.match(err.message, /--from-plan <filled-plan\.md>/);
+        assert.match(err.message, /Manual fallback is forbidden/);
         return true;
       }
     );
@@ -2031,6 +2035,7 @@ test("runTicketStatus compact mode emits one-line phase summary", async () => {
     "title: compact status host",
     "phase: 1",
     "status: open",
+    "lifecycleSource: ticket-create",
     "summary: compact status test",
     "---",
     "",
@@ -2107,6 +2112,94 @@ test("runTicketStatus compact mode emits one-line phase summary", async () => {
 
   assert.strictEqual(lines.length, 1);
   assert.match(lines[0], /^001-compact-status-host \| phase=1 \| status=open \| ok$/);
+});
+
+test("runTicketStatus rejects manually written execution ticket without CLI provenance", async () => {
+  const { cwd, ticketDir } = makeTicketWorkspace([]);
+  const srcDir = join(ticketDir, "sub");
+  mkdirSync(srcDir, { recursive: true });
+
+  const ticketId = "001-manual-ticket-host";
+  writeFileSync(join(srcDir, `${ticketId}.md`), [
+    "---",
+    `id: ${ticketId}`,
+    "title: manual ticket host",
+    "phase: 1",
+    "status: open",
+    "summary: manual ticket should not be executable",
+    "---",
+    "",
+    "# manual ticket host",
+    "",
+    "## Compact Plan",
+    "- **Problem:** manual ticket exists",
+    "- **Approach:** reject it",
+    "- **Verification:** status fails",
+    ""
+  ].join("\n"), "utf8");
+  writeFileSync(join(ticketDir, "INDEX.json"), JSON.stringify(makeIndex([makeEntry({
+    id: ticketId,
+    title: "manual ticket host",
+    topic: ticketId,
+    fileName: `${ticketId}.md`,
+    createdAt: "2026-05-03 00:00:00",
+    status: "open"
+  })]), null, 2) + "\n", "utf8");
+
+  try {
+    await assert.rejects(
+      () => runTicketStatus({ cwd, topic: ticketId, compact: true }),
+      err => {
+        assert.match(err.message, /manual_ticket_lifecycle_provenance_missing/);
+        assert.match(err.message, /do not create or repair tickets/i);
+        assert.match(err.message, /ticket create --topic/);
+        return true;
+      }
+    );
+  } finally {
+    rmSync(cwd, { recursive: true, force: true });
+  }
+});
+
+test("runTicketUse rejects manually written execution ticket without CLI provenance", async () => {
+  const { cwd, ticketDir } = makeTicketWorkspace([]);
+  const srcDir = join(ticketDir, "sub");
+  mkdirSync(srcDir, { recursive: true });
+
+  const ticketId = "001-manual-use-host";
+  writeFileSync(join(srcDir, `${ticketId}.md`), [
+    "---",
+    `id: ${ticketId}`,
+    "title: manual use host",
+    "phase: 1",
+    "status: open",
+    "summary: manual use should not be executable",
+    "---",
+    "",
+    "# manual use host",
+    ""
+  ].join("\n"), "utf8");
+  writeFileSync(join(ticketDir, "INDEX.json"), JSON.stringify(makeIndex([makeEntry({
+    id: ticketId,
+    title: "manual use host",
+    topic: ticketId,
+    fileName: `${ticketId}.md`,
+    createdAt: "2026-05-03 00:00:00",
+    status: "open"
+  })]), null, 2) + "\n", "utf8");
+
+  try {
+    await assert.rejects(
+      () => runTicketUse({ cwd, topic: ticketId, nonInteractive: true }),
+      err => {
+        assert.match(err.message, /manual_ticket_lifecycle_provenance_missing/);
+        assert.match(err.message, /--from-plan <filled-plan\.md>/);
+        return true;
+      }
+    );
+  } finally {
+    rmSync(cwd, { recursive: true, force: true });
+  }
 });
 
 test("runTicketEvidenceCheck rejects claim not covered by same-topic investigation sections", async () => {
@@ -2560,10 +2653,7 @@ test("runTicketCreate normalizes stale closed archive metadata without requiring
     assert.strictEqual(staleClosed.status, "archived");
 
     const ticketListPath = join(ticketDir, "TICKET_LIST.md");
-    const ticketListText = readFileSync(ticketListPath, "utf8");
-    assert.match(ticketListText, /## Latest[\s\S]*new-after-stale-closed/i);
-    const activeSection = ticketListText.split("### 📦 Archived Tickets")[0];
-    assert.doesNotMatch(activeSection, /229-stale-closed-host/);
+    assert.ok(!existsSync(ticketListPath));
   } finally {
     console.log = originalLog;
     console.warn = originalWarn;
@@ -2808,8 +2898,10 @@ test("runTicketCreate auto-enables strict mode for investigation tickets", async
         skipPhase0: true
       }),
       err => {
-        assert.match(err.message, /strict mode rejected placeholder\/incomplete phase1 state/);
+        assert.match(err.message, /strict mode rejected incomplete Phase 1/);
         assert.match(err.message, /compact_plan_placeholder_or_incomplete/);
+        assert.match(err.message, /--from-plan <filled-plan\.md>/);
+        assert.match(err.message, /Manual fallback is forbidden/);
         return true;
       }
     );
@@ -2820,7 +2912,7 @@ test("runTicketCreate auto-enables strict mode for investigation tickets", async
   }
 });
 
-test("runTicketCreate renders ticket list with required frontmatter", async () => {
+test("runTicketCreate does not generate ticket list markdown anymore", async () => {
   const cwd = mkdtempSync(join(tmpdir(), "deuk-ticket-list-frontmatter-"));
   const originalLog = console.log;
   const originalWarn = console.warn;
@@ -2831,7 +2923,7 @@ test("runTicketCreate renders ticket list with required frontmatter", async () =
     await runTicketCreate({
       cwd,
       topic: "ticket-list-frontmatter",
-      summary: "render the ticket list index with valid frontmatter",
+      summary: "render is deprecated and should not create ticket list markdown",
       nonInteractive: true,
       docsLanguage: "en",
       skipPhase0: true,
@@ -2839,15 +2931,7 @@ test("runTicketCreate renders ticket list with required frontmatter", async () =
     });
 
     const ticketListPath = join(cwd, ".deuk-agent", "tickets", "TICKET_LIST.md");
-    const ticketListText = readFileSync(ticketListPath, "utf8");
-    assert.match(ticketListText, /^---\n/);
-    assert.match(ticketListText, /summary:\s*ticket list index/);
-    assert.match(ticketListText, /status:\s*open/);
-    assert.match(ticketListText, /priority:\s*P3/);
-    assert.match(ticketListText, /tags:/);
-
-    const lint = lintMarkdownPaths([ticketListPath], cwd);
-    assert.deepStrictEqual(lint.errors, []);
+    assert.ok(!existsSync(ticketListPath));
   } finally {
     console.log = originalLog;
     console.warn = originalWarn;
@@ -2915,7 +2999,7 @@ test("runTicketCreate uses localized template when present and keeps it compact"
   }
 });
 
-test("runTicketCreate infers Korean prompt language before saved English config", async () => {
+test("runTicketCreate keeps saved English config ahead of Korean prompt text", async () => {
   const { cwd, ticketDir } = makeTemplateWorkspace({ withKoTemplate: true });
   writeFileSync(join(cwd, ".deuk-agent", "config.json"), JSON.stringify({
     version: 1,
@@ -2939,8 +3023,8 @@ test("runTicketCreate infers Korean prompt language before saved English config"
     const ticketFile = readNewestTicketMarkdown(ticketDir);
     assert.ok(ticketFile, "ticket markdown should be created");
     const ticketText = readFileSync(ticketFile, "utf8");
-    assert.match(ticketText, /docsLanguage: ko/);
-    assert.match(ticketText, /TemplateLocale: ko/);
+    assert.match(ticketText, /docsLanguage: en/);
+    assert.match(ticketText, /TemplateLocale: locale: base/);
   } finally {
     console.log = originalLog;
     console.warn = originalWarn;
@@ -2984,7 +3068,7 @@ test("runTicketCreate keeps ticket filename ascii while preserving Korean conten
   }
 });
 
-test("runTicketCreate infers English prompt language before saved Korean config", async () => {
+test("runTicketCreate keeps saved Korean config ahead of English prompt text", async () => {
   const { cwd, ticketDir } = makeTemplateWorkspace({ withKoTemplate: true });
   writeFileSync(join(cwd, ".deuk-agent", "config.json"), JSON.stringify({
     version: 1,
@@ -3008,8 +3092,8 @@ test("runTicketCreate infers English prompt language before saved Korean config"
     const ticketFile = readNewestTicketMarkdown(ticketDir);
     assert.ok(ticketFile, "ticket markdown should be created");
     const ticketText = readFileSync(ticketFile, "utf8");
-    assert.match(ticketText, /docsLanguage: en/);
-    assert.match(ticketText, /TemplateLocale: locale: base/);
+    assert.match(ticketText, /docsLanguage: ko/);
+    assert.match(ticketText, /TemplateLocale: ko/);
   } finally {
     console.log = originalLog;
     console.warn = originalWarn;
