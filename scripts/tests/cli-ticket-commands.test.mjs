@@ -724,6 +724,32 @@ test("runTicketCreate rolls back when markdown lint fails", async () => {
   }
 });
 
+test("markdown lint ignores legacy archived ticket template artifacts", () => {
+  const { cwd } = makeTemplateWorkspace();
+  const legacyDir = join(cwd, ".deuk-agent", "tickets", "archive", "sub", "2026-05", "05");
+  mkdirSync(legacyDir, { recursive: true });
+  const legacyPath = join(legacyDir, "ticket-list-template.md");
+  writeFileSync(legacyPath, [
+    "---",
+    "summary: ticket-list-template",
+    "status: archived",
+    "priority: P2",
+    "tags: [legacy]",
+    "id: ticket-list-template",
+    "---",
+    "# ticket-list-template",
+    "- [<%= latest.safeTitle %>](<%= latest.fileUri %>)",
+    ""
+  ].join("\n"), "utf8");
+
+  try {
+    const result = lintMarkdownPaths([legacyPath], cwd);
+    assert.deepStrictEqual(result.errors, []);
+  } finally {
+    rmSync(cwd, { recursive: true, force: true });
+  }
+});
+
 test("runTicketMove ignores linked plan markdown and still moves ticket", async () => {
   const ticketPath = ".deuk-agent/tickets/sub/001-default-host.md";
   const planPath = ".deuk-agent/docs/plan/001-default-host-plan.md";

@@ -3,7 +3,7 @@ import { readFileSync, readdirSync, statSync } from "fs";
 import { join, relative, dirname, resolve } from "path";
 import { spawnSync } from "child_process";
 import YAML from "yaml";
-import { AGENT_ROOT_DIR } from "./cli-utils.mjs";
+import { AGENT_ROOT_DIR, TICKET_DIR_NAME } from "./cli-utils.mjs";
 
 const ignoredDirs = new Set([".git", "node_modules"]);
 
@@ -45,6 +45,22 @@ function isPlanReport(relPath) {
   return relPath.includes(`${AGENT_ROOT_DIR}/docs/plan/`) && relPath.endsWith("-report.md");
 }
 
+const LEGACY_ARCHIVED_TEMPLATE_NAMES = new Set([
+  "module-rule-template.md",
+  "ticket-list-template.md",
+  "ticket-template-ko.md",
+  "ticket-template.md"
+]);
+
+function isLegacyArchivedTemplateArtifact(relPath, content) {
+  const normalized = relPath.replace(/\\/g, "/");
+  if (!normalized.includes(`${TICKET_DIR_NAME}/archive/`)) return false;
+  if (!LEGACY_ARCHIVED_TEMPLATE_NAMES.has(normalized.split("/").pop())) return false;
+
+  const src = String(content || "");
+  return src.includes("<%=") || src.includes("<%-") || /^id:\s*(module-rule-template|ticket-list-template|ticket-template-ko|ticket-template)\s*$/m.test(src);
+}
+
 function lintWalkthroughReportStructure(relPath, content) {
   const errors = [];
   const hasSummary = /##\s+(Summary|요약)(?:\s|$)/i.test(content);
@@ -81,6 +97,10 @@ function lintFile(absPath, repoRoot) {
   const rel = relative(repoRoot, absPath);
   const content = readFileSync(absPath, "utf8");
   const errors = [];
+
+  if (isLegacyArchivedTemplateArtifact(rel, content)) {
+    return errors;
+  }
 
   const lines = content.split(/\r?\n/);
   lines.forEach((line, idx) => {
