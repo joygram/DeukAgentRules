@@ -81,3 +81,93 @@ createdAt: 2026-05-03 08:54:51
 ## Build & Test
 - Build: `[Command]`
 - Test: `[Command]`
+## Merged Legacy Document
+
+### MODULE RULE TEMPLATE
+
+# Submodule Rules: [Module Name]
+
+- **Path Root:** `[Path]`
+- **Tech Stack:** `[Tech]`
+
+## Architecture & Conventions
+- [Add module-specific conventions here]
+
+## Build & Test
+- Build: `[Command]`
+- Test: `[Command]`
+## Merged Legacy Document
+
+### MODULE RULE TEMPLATE
+
+# Submodule Rules: [Module Name]
+
+- **Path Root:** `[Path]`
+- **Tech Stack:** `[Tech]`
+
+## Architecture & Conventions
+- [Add module-specific conventions here]
+
+## Build & Test
+- Build: `[Command]`
+- Test: `[Command]`
+## Merged Legacy Document
+
+### MODULE RULE TEMPLATE
+
+# Submodule Rules: [Module Name]
+
+- **Path Root:** `[Path]`
+- **Tech Stack:** `[Tech]`
+
+## Architecture & Conventions
+- [Add module-specific conventions here]
+
+## Build & Test
+- Build: `[Command]`
+- Test: `[Command]`
+## Merged Legacy Document
+
+### MODULE RULE TEMPLATE
+
+# Submodule Rules: [Module Name]
+
+- **Path Root:** `[Path]`
+- **Tech Stack:** `[Tech]`
+
+## Architecture & Conventions
+- [Add module-specific conventions here]
+
+## Build & Test
+- Build: `[Command]`
+- Test: `[Command]`
+## Merged Legacy Document
+
+### MODULE RULE TEMPLATE
+
+# Submodule Rules: [Module Name]
+
+- **Path Root:** `[Path]`
+- **Tech Stack:** `[Tech]`
+
+## Architecture & Conventions
+- [Add module-specific conventions here]
+
+## Build & Test
+- Build: `[Command]`
+- Test: `[Command]`
+## Merged Legacy Document
+
+### MODULE RULE TEMPLATE
+
+# Submodule Rules: [Module Name]
+
+- **Path Root:** `[Path]`
+- **Tech Stack:** `[Tech]`
+
+## Architecture & Conventions
+- [Add module-specific conventions here]
+
+## Build & Test
+- Build: `[Command]`
+- Test: `[Command]`

@@ -204,7 +204,6 @@ Ticket Options:
   --next                Move to the next phase
   --latest, -l          Use most recent ticket (default if no topic)
   --path-only           Print only the file path
-  --render              Generate markdown list (TICKET_LIST.md)
   --json                Output result in JSON format
 `);
 }

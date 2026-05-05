@@ -7,7 +7,7 @@
   "agentTools": [
     "all"
   ],
-  "docsLanguage": "auto",
+  "docsLanguage": "ko",
   "shareTickets": false,
   "remoteSync": false,
   "ignoreDirs": [
@@ -18,5 +18,5 @@
     ".tmp",
     ".cache"
   ],
-  "updatedAt": "2026-05-03T09:00:10.010Z"
+  "updatedAt": "2026-05-05T01:18:33.822Z"
 }

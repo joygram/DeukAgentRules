@@ -1,7 +1,7 @@
 import { existsSync, mkdirSync, readFileSync, writeFileSync, unlinkSync, copyFileSync, statSync } from "fs";
 import { basename, dirname, join, relative } from "path";
 import {
-  toRepoRelativePath, AGENT_ROOT_DIR, TICKET_SUBDIR, TICKET_LIST_FILENAME, TICKET_LIST_TEMPLATE_FILENAME,
+  toRepoRelativePath, AGENT_ROOT_DIR, TICKET_SUBDIR, TICKET_LIST_FILENAME,
   parseFrontMatter, stringifyFrontMatter, findFileRecursively, detectConsumerTicketDir
 } from "./cli-utils.mjs";
 import { readTicketIndexJson, writeTicketIndexJson, syncActiveTicketId } from "./cli-ticket-index.mjs";
@@ -152,7 +152,7 @@ export function performUpgradeMigration(cwd, opts = {}) {
   
   const files = collectTicketMarkdownFiles(root).filter(p => {
     const base = basename(p);
-    return base !== "LATEST.md" && base !== TICKET_LIST_FILENAME && base !== TICKET_LIST_TEMPLATE_FILENAME && base !== "ACTIVE_TICKET.md";
+    return base !== "LATEST.md" && base !== TICKET_LIST_FILENAME && base !== "ACTIVE_TICKET.md";
   });
 
   console.log(`[UPGRADE] Scanning ${files.length} tickets for V2 migration...`);
@@ -230,7 +230,7 @@ export function performDefragmentation(cwd, opts = {}) {
   if (!rootTicketDir) return;
   const tickets = collectTicketMarkdownFiles(rootTicketDir).filter(p => {
     const base = basename(p);
-    return base !== "LATEST.md" && base !== TICKET_LIST_FILENAME && base !== TICKET_LIST_TEMPLATE_FILENAME && base !== "ACTIVE_TICKET.md";
+    return base !== "LATEST.md" && base !== TICKET_LIST_FILENAME && base !== "ACTIVE_TICKET.md";
   });
 
   console.log(`[DEFRAG] Checking ${tickets.length} tickets for workspace placement...`);

@@ -15,4 +15,3 @@ This pointer is a thin bootstrap, not a second workflow contract.
 3. After the core hub is loaded, `core-rules/AGENTS.md` is the DeukAgentRules SSoT for TDW, RAG, silence, scope, and verification.
 
 Do not print pointer/core metadata, version, DC-* lists, progress commentary, or interim summaries. Only the single required ticket-start line may appear before the final answer unless the user explicitly asks for live narration or a blocker/user decision must be surfaced.
-

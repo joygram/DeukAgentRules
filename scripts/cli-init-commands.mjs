@@ -607,7 +607,12 @@ function routeMisplacedTicketFile(cwd, sourceAbs, dryRun) {
   const meta = parseFrontMatter(raw).meta || {};
   const status = String(meta.status || "").toLowerCase();
 
-  if (fileName === TICKET_LIST_FILENAME || !fileName.endsWith(".md")) {
+  if (fileName === TICKET_LIST_FILENAME) {
+    if (!dryRun) unlinkSync(sourceAbs);
+    return;
+  }
+
+  if (!fileName.endsWith(".md")) {
     const targetAbs = classifyAgentFileTarget(cwd, sourceAbs);
     moveOrMergeFile(sourceAbs, targetAbs, cwd, dryRun, "misplaced ticket artifact cleanup");
     return;
@@ -648,7 +653,7 @@ function canonicalizeAgentTicketsLayout(cwd, dryRun) {
   const ticketDir = join(cwd, AGENT_ROOT_DIR, TICKET_SUBDIR);
   if (!existsSync(ticketDir)) return;
   const allowedDirs = new Set(["archive", "sub"]);
-  const allowedFiles = new Set([TICKET_INDEX_FILENAME, TICKET_LIST_FILENAME]);
+  const allowedFiles = new Set([TICKET_INDEX_FILENAME]);
 
   for (const entry of sortedDirEntries(ticketDir, { withFileTypes: true })) {
     const sourceAbs = join(ticketDir, entry.name);

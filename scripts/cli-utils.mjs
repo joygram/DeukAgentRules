@@ -19,7 +19,6 @@ export const WORKFLOW_MODE_EXECUTE = "execute";
 export const TICKET_DIR_NAME = `${AGENT_ROOT_DIR}/${TICKET_SUBDIR}`;
 export const TICKET_INDEX_FILENAME = "INDEX.json";
 export const TICKET_LIST_FILENAME = "TICKET_LIST.md";
-export const TICKET_LIST_TEMPLATE_FILENAME = "TICKET_LIST.template.md";
 export const DOCS_SUBDIR = "docs";
 export const PLANS_SUBDIR = "plan";
 export const PLAN_LINKS_DIR = `${AGENT_ROOT_DIR}/${DOCS_SUBDIR}/${PLANS_SUBDIR}`;
