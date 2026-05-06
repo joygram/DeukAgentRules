@@ -110,6 +110,13 @@ export function parseTelemetryArgs(argv) {
     knowledgeAction: "",
     tokenQuality: "",
     savedTokens: 0,
+    sessionMode: "",
+    retryCount: 0,
+    turnCount: 0,
+    failureCount: 0,
+    phaseTransitionCount: 0,
+    outcome: "",
+    qualityScore: 0,
     json: false
   };
   for (let i = 0; i < argv.length; i++) {
@@ -134,6 +141,13 @@ export function parseTelemetryArgs(argv) {
     else if (a === "--knowledge-action") out.knowledgeAction = argv[++i];
     else if (a === "--token-quality") out.tokenQuality = argv[++i];
     else if (a === "--saved-tokens") out.savedTokens = Number(argv[++i]);
+    else if (a === "--session-mode") out.sessionMode = argv[++i];
+    else if (a === "--retries") out.retryCount = Number(argv[++i]);
+    else if (a === "--turns") out.turnCount = Number(argv[++i]);
+    else if (a === "--failures") out.failureCount = Number(argv[++i]);
+    else if (a === "--phase-transitions") out.phaseTransitionCount = Number(argv[++i]);
+    else if (a === "--outcome") out.outcome = argv[++i];
+    else if (a === "--quality-score") out.qualityScore = Number(argv[++i]);
     else if (a === "--json") out.json = true;
   }
   return out;

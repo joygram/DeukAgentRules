@@ -242,6 +242,62 @@ test("runTicketNext preserves unfiltered active-first behavior", async () => {
   assert.deepStrictEqual(lines, [join(ticketDir, "sub", "001-global-active-host.md")]);
 });
 
+test("runTicketNext skips open tickets without CLI lifecycle provenance", async () => {
+  const { cwd, ticketDir } = makeTicketWorkspace([
+    makeEntry({
+      id: "001-manual-open-host",
+      topic: "001-manual-open-host",
+      fileName: "001-manual-open-host.md",
+      status: "open",
+      createdAt: "2026-05-01 07:00:00"
+    }),
+    makeEntry({
+      id: "002-cli-open-host",
+      topic: "002-cli-open-host",
+      fileName: "002-cli-open-host.md",
+      status: "open",
+      createdAt: "2026-05-01 08:00:00"
+    })
+  ]);
+  const srcDir = join(ticketDir, "sub");
+  mkdirSync(srcDir, { recursive: true });
+  writeFileSync(join(srcDir, "001-manual-open-host.md"), [
+    "---",
+    "id: 001-manual-open-host",
+    "title: manual open host",
+    "phase: 1",
+    "status: open",
+    "summary: manual ticket should be skipped by next",
+    "---",
+    "# manual open host",
+    ""
+  ].join("\n"), "utf8");
+  writeFileSync(join(srcDir, "002-cli-open-host.md"), [
+    "---",
+    "id: 002-cli-open-host",
+    "title: cli open host",
+    "phase: 1",
+    "status: open",
+    "lifecycleSource: ticket-create",
+    "summary: cli-created ticket should be selected by next",
+    "---",
+    "# cli open host",
+    ""
+  ].join("\n"), "utf8");
+
+  const originalLog = console.log;
+  const lines = [];
+  console.log = value => lines.push(String(value));
+  try {
+    await runTicketNext({ cwd, pathOnly: true });
+  } finally {
+    console.log = originalLog;
+    rmSync(cwd, { recursive: true, force: true });
+  }
+
+  assert.deepStrictEqual(lines, [join(ticketDir, "sub", "002-cli-open-host.md")]);
+});
+
 test("runTicketNext tells agents to inspect git history when no ticket exists", async () => {
   const { cwd } = makeTicketWorkspace([]);
 

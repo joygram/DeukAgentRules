@@ -2036,6 +2036,7 @@ export async function runTicketNext(opts) {
   const index = rebuildTicketIndexFromTopicFilesIfNeeded(opts.cwd, { ...opts, force: false });
   // Find the first active ticket, or if none, the first open ticket (earliest created)
   const rows = filterTicketEntries(index.entries, opts)
+    .filter(entry => isTicketNextRunnableCandidate(opts.cwd, entry))
     .sort((a, b) => String(a.createdAt || "").localeCompare(String(b.createdAt || "")));
   let found = rows.find(e => e.status === "active");
   if (!found) {
@@ -2059,6 +2060,16 @@ export async function runTicketNext(opts) {
     console.log(`Path: [${posixPath}](file://${absPath})`);
     if (opts.printContent) console.log("\n" + readFileSync(join(opts.cwd, found.path), "utf8"));
   }
+}
+
+function isTicketNextRunnableCandidate(cwd, entry) {
+  const entryPath = entry.path || computeTicketPath(entry);
+  const absPath = join(cwd, entryPath);
+  if (!existsSync(absPath)) return true;
+
+  const { meta } = parseFrontMatter(readFileSync(absPath, "utf8"));
+  const lifecycleSource = String(meta.lifecycleSource || meta.ticketLifecycleSource || "").trim();
+  return lifecycleSource === "ticket-create";
 }
 
 export async function runTicketHotfix(opts) {

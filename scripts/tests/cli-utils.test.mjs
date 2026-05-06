@@ -245,7 +245,14 @@ test("cli-args.mjs - parseTelemetryArgs supports remote sync target", () => {
     "--event", "ticket_created",
     "--occurred-at", "2026-05-02T00:00:00.000Z",
     "--phase", "1",
-    "--status", "open"
+    "--status", "open",
+    "--session-mode", "guided",
+    "--retries", "2",
+    "--turns", "5",
+    "--failures", "1",
+    "--phase-transitions", "3",
+    "--outcome", "success",
+    "--quality-score", "4"
   ]);
   assert.strictEqual(opts.cwd, "/tmp/work");
   assert.strictEqual(opts.tokens, 42);
@@ -261,6 +268,13 @@ test("cli-args.mjs - parseTelemetryArgs supports remote sync target", () => {
   assert.strictEqual(opts.occurredAt, "2026-05-02T00:00:00.000Z");
   assert.strictEqual(opts.phase, 1);
   assert.strictEqual(opts.status, "open");
+  assert.strictEqual(opts.sessionMode, "guided");
+  assert.strictEqual(opts.retryCount, 2);
+  assert.strictEqual(opts.turnCount, 5);
+  assert.strictEqual(opts.failureCount, 1);
+  assert.strictEqual(opts.phaseTransitionCount, 3);
+  assert.strictEqual(opts.outcome, "success");
+  assert.strictEqual(opts.qualityScore, 4);
 });
 
 test("cli-args.mjs - parseTicketArgs supports strict/guard flags", () => {

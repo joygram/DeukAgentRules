@@ -334,3 +334,117 @@ test("telemetry summary surfaces knowledge origin categories", async () => {
     rmSync(cwd, { recursive: true, force: true });
   }
 });
+
+test("telemetry summary compares guided and unguided session metrics", async () => {
+  const cwd = mkdtempSync(join(tmpdir(), "deuk-telemetry-session-mode-"));
+  try {
+    const telemetryDir = join(cwd, ".deuk-agent");
+    mkdirSync(telemetryDir, { recursive: true });
+    writeFileSync(join(telemetryDir, "telemetry.jsonl"), [
+      JSON.stringify({
+        ts: 1,
+        tokens: 120,
+        tdw: 80,
+        model: "m1",
+        client: "Codex",
+        ticket: "a",
+        action: "work",
+        tokenQuality: "saved",
+        savedTokens: 40,
+        sessionMode: "guided",
+        retryCount: 1,
+        turnCount: 4,
+        failureCount: 0,
+        phaseTransitionCount: 2,
+        outcome: "success",
+        qualityScore: 4,
+        synced: false
+      }),
+      JSON.stringify({
+        ts: 2,
+        tokens: 200,
+        tdw: 0,
+        model: "m1",
+        client: "Codex",
+        ticket: "b",
+        action: "work",
+        tokenQuality: "rework",
+        sessionMode: "unguided",
+        retryCount: 3,
+        turnCount: 8,
+        failureCount: 2,
+        phaseTransitionCount: 1,
+        outcome: "failure",
+        qualityScore: 2,
+        synced: false
+      })
+    ].join("\n") + "\n", "utf8");
+
+    const originalArgv = process.argv;
+    const originalLog = console.log;
+    const lines = [];
+    process.argv = ["node", "test", "telemetry", "summary"];
+    console.log = (value) => lines.push(String(value));
+
+    try {
+      await runTelemetry({ cwd, json: true });
+    } finally {
+      process.argv = originalArgv;
+      console.log = originalLog;
+    }
+
+    const payload = JSON.parse(lines.at(-1));
+    assert.strictEqual(payload.sessionModeComparison.guided.entries, 1);
+    assert.strictEqual(payload.sessionModeComparison.guided.tokens, 120);
+    assert.strictEqual(payload.sessionModeComparison.guided.retries, 1);
+    assert.strictEqual(payload.sessionModeComparison.guided.turns, 4);
+    assert.strictEqual(payload.sessionModeComparison.guided.successRate, 1);
+    assert.strictEqual(payload.sessionModeComparison.guided.averageQualityScore, 4);
+    assert.strictEqual(payload.sessionModeComparison.unguided.entries, 1);
+    assert.strictEqual(payload.sessionModeComparison.unguided.averageFailuresPerEntry, 2);
+    assert.strictEqual(payload.sessionModeComparison.unguided.outcomeFailureRate, 1);
+    assert.strictEqual(payload.sessionModeComparison.unguided.byOutcome.failure, 1);
+  } finally {
+    rmSync(cwd, { recursive: true, force: true });
+  }
+});
+
+test("telemetry log writes guided session comparison fields", async () => {
+  const cwd = mkdtempSync(join(tmpdir(), "deuk-telemetry-log-session-mode-"));
+  try {
+    const originalArgv = process.argv;
+    const originalLog = console.log;
+    process.argv = ["node", "test", "telemetry", "log"];
+    console.log = () => {};
+
+    try {
+      await runTelemetry({
+        cwd,
+        tokens: 9,
+        model: "m1",
+        ticket: "a",
+        sessionMode: "guided",
+        retryCount: 2,
+        turnCount: 6,
+        failureCount: 1,
+        phaseTransitionCount: 3,
+        outcome: "partial",
+        qualityScore: 4.5
+      });
+    } finally {
+      process.argv = originalArgv;
+      console.log = originalLog;
+    }
+
+    const rows = readFileSync(join(cwd, ".deuk-agent", "telemetry.jsonl"), "utf8").trim().split("\n").map(JSON.parse);
+    assert.strictEqual(rows[0].sessionMode, "guided");
+    assert.strictEqual(rows[0].retryCount, 2);
+    assert.strictEqual(rows[0].turnCount, 6);
+    assert.strictEqual(rows[0].failureCount, 1);
+    assert.strictEqual(rows[0].phaseTransitionCount, 3);
+    assert.strictEqual(rows[0].outcome, "partial");
+    assert.strictEqual(rows[0].qualityScore, 4.5);
+  } finally {
+    rmSync(cwd, { recursive: true, force: true });
+  }
+});
