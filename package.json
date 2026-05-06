@@ -1,11 +1,14 @@
 {
   "name": "deuk-agent-rule",
   "version": "3.3.3",
-  "description": "AI coding agent guardrails for every repo: ticketed scope, verification, and shared AGENTS.md workflows.",
+  "description": "Agent workflow guardrails for AGENTS.md and multi-agent config: ticketed scope, verification, and project memory.",
   "keywords": [
     "agents-md",
     "cursor-rules",
     "copilot",
+    "agent-config",
+    "agent-workflow",
+    "ai-coding-agent",
     "gemini",
     "claude",
     "windsurf",
@@ -54,6 +57,7 @@
     "scripts/lint-rules.mjs",
     "scripts/merge-logic.mjs",
     "scripts/plan-parser.mjs",
+    "scripts/publish-dual-npm.mjs",
     "README.md",
     "README.ko.md",
     "CHANGELOG.md",
@@ -67,7 +71,11 @@
     "merge:dry": "node scripts/cli.mjs merge --dry-run --cwd .. --agents skip",
     "lint:md": "node scripts/lint-md.mjs",
     "test": "node --test scripts/tests/*.test.mjs",
-    "sync:oss": "node scripts/sync-oss.mjs"
+    "sync:oss": "node scripts/sync-oss.mjs",
+    "publish": "node scripts/publish-dual-npm.mjs",
+    "publish:dry": "node scripts/publish-dual-npm.mjs --dry-run",
+    "publish:bootstrap": "node scripts/publish-dual-npm.mjs --alias-only",
+    "publish:bootstrap:dry": "node scripts/publish-dual-npm.mjs --alias-only --dry-run"
   },
   "engines": {
     "node": ">=18"

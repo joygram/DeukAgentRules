@@ -1,10 +1,10 @@
-# DeukAgentRules 비전: AI 에이전트 가드레일 허브
+# Deuk Agent Workflow 비전: AI 에이전트 가드레일 허브
 
 작성일: 2026-05-02
 
 ## 비전
 
-DeukAgentRules는 특정 에이전트를 대체하지 않는다. 사용자가 이미 쓰는 Cursor, Codex, Claude Code, Copilot, Gemini, Windsurf 같은 도구 위에 **공통 작업 규율**을 얹는다.
+Deuk Agent Workflow는 특정 에이전트를 대체하지 않는다. 사용자가 이미 쓰는 Cursor, Codex, Claude Code, Copilot, Gemini, Windsurf 같은 도구 위에 **공통 작업 규율**을 얹는다.
 
 장기 비전은 다음과 같다.
 
@@ -24,7 +24,7 @@ AI 코딩 에이전트의 문제는 “코드를 못 짠다”가 아니다. 문
 - 작업이 끝난 뒤 왜 그렇게 했는지 남지 않는다.
 - 에이전트별 지침 파일이 서로 어긋난다.
 
-DeukAgentRules는 이 문제를 에이전트별 prompt tuning이 아니라 repository-level operating system으로 푼다.
+Deuk Agent Workflow는 이 문제를 에이전트별 prompt tuning이 아니라 repository-level operating system으로 푼다.
 
 ## 제품 원칙
 
@@ -32,7 +32,7 @@ DeukAgentRules는 이 문제를 에이전트별 prompt tuning이 아니라 repos
 
 사용자는 에이전트를 바꾸고 싶어 하지 않는다. 이미 Cursor를 쓰는 사람은 Cursor 안에서, Claude Code를 쓰는 사람은 Claude Code 안에서, Codex를 쓰는 사람은 Codex 안에서 같은 규칙을 얻고 싶다.
 
-DeukAgentRules는 특정 모델이나 클라이언트에 종속되지 않는 agent guardrail layer가 되어야 한다.
+Deuk Agent Workflow는 특정 모델이나 클라이언트에 종속되지 않는 agent guardrail layer가 되어야 한다.
 
 ### 2. No Ticket, No Code
 
@@ -58,7 +58,7 @@ DeukAgentRules는 특정 모델이나 클라이언트에 종속되지 않는 age
 - `GEMINI.md`
 - `.windsurf/rules`
 
-DeukAgentRules의 역할은 모든 파일을 두껍게 채우는 것이 아니라, 공통 허브를 만들고 각 도구별 spoke가 그 허브를 가리키게 하는 것이다.
+Deuk Agent Workflow의 역할은 모든 파일을 두껍게 채우는 것이 아니라, 공통 허브를 만들고 각 도구별 spoke가 그 허브를 가리키게 하는 것이다.
 
 ### 4. Visible guardrails
 
@@ -98,7 +98,7 @@ VS Code/Cursor companion extension은 다음을 보여줘야 한다.
 ```text
 Stop AI coding agents from making untracked, unsafe changes.
 
-DeukAgentRules adds ticket-driven guardrails for Cursor, Codex,
+Deuk Agent Workflow connects AGENTS.md and agent config to ticket-driven guardrails for Cursor, Codex,
 Claude Code, Copilot, Gemini, Windsurf, and other coding agents.
 ```
 
@@ -107,13 +107,13 @@ Claude Code, Copilot, Gemini, Windsurf, and other coding agents.
 ```text
 AI 코딩 에이전트가 추적되지 않는 위험한 변경을 만들지 못하게 하세요.
 
-DeukAgentRules는 Cursor, Codex, Claude Code, Copilot 등
+Deuk Agent Workflow는 Cursor, Codex, Claude Code, Copilot 등
 여러 코딩 에이전트에 티켓 기반 가드레일을 제공합니다.
 ```
 
 ## 장기 카테고리 이름
 
-DeukAgentRules가 선점해야 할 카테고리는 다음 중 하나다.
+Deuk Agent Workflow가 선점해야 할 카테고리는 다음 중 하나다.
 
 - AI coding agent guardrails
 - Agent workflow control plane
@@ -121,7 +121,7 @@ DeukAgentRules가 선점해야 할 카테고리는 다음 중 하나다.
 - Ticket-driven agent execution
 - Multi-agent instruction hub
 
-가장 직관적인 외부 메시지는 `AI coding agent guardrails`다. 내부 아키텍처 문서에서는 `workflow control plane`을 유지해도 된다.
+가장 직관적인 외부 메시지는 `AGENTS.md and agent config guardrails`다. 보조 메시지로 `AI coding agent guardrails`를 쓰고, 내부 아키텍처 문서에서는 `workflow control plane`을 유지해도 된다.
 
 ## 비전 문서의 외부 링크 사용 원칙
 

@@ -1063,6 +1063,46 @@ function autoArchiveDoneTickets(cwd, indexJson, opts = {}) {
   return archived;
 }
 
+function canAutoArchiveOpenLimit(indexJson) {
+  const openRows = (indexJson.entries || []).filter(isOpenTicketEntry);
+  if (openRows.length <= MAX_OPEN_TICKETS) {
+    return { needed: 0, candidates: [], ok: true };
+  }
+
+  const candidates = selectOpenLimitCandidates(indexJson);
+  const needed = openRows.length - MAX_OPEN_TICKETS;
+  return {
+    needed,
+    candidates,
+    ok: candidates.length >= needed
+  };
+}
+
+function autoArchiveOpenLimitTickets(cwd, indexJson, opts = {}) {
+  const ticketDir = detectConsumerTicketDir(cwd);
+  if (!ticketDir) return [];
+
+  const { needed, candidates, ok } = canAutoArchiveOpenLimit(indexJson);
+  if (needed <= 0 || !ok) return [];
+
+  const archived = [];
+  for (const candidate of candidates.slice(0, needed)) {
+    const result = archiveTicketEntry({ cwd, ticketDir, indexJson, found: candidate, opts, report: null });
+    if (result?.id) {
+      archived.push(result);
+      if (!isCompactTicketOutput(opts)) {
+        console.warn(`[AUTO-CLEANUP] ${candidate.id} archived to stay within the open-ticket limit.`);
+      }
+    }
+  }
+
+  if (archived.length > 0) {
+    writeTicketIndexJson(cwd, indexJson, opts);
+  }
+
+  return archived;
+}
+
 function rollbackCreatedTicket(cwd, abs, rollbackIndexJson, opts = {}) {
   if (opts.dryRun) return;
   rmSync(abs, { force: true });
@@ -1274,7 +1314,8 @@ export async function runTicketCreate(opts) {
             }
           ]
         };
-        const limitError = buildOpenTicketLimitError(simulatedIndexJson);
+        const autoArchiveCheck = canAutoArchiveOpenLimit(simulatedIndexJson);
+        const limitError = autoArchiveCheck.ok ? null : buildOpenTicketLimitError(simulatedIndexJson);
         if (limitError) {
           throw new Error(limitError);
         }
@@ -1288,6 +1329,7 @@ export async function runTicketCreate(opts) {
 
       const limitIndexJson = readTicketIndexJson(opts.cwd);
       autoArchiveDoneTickets(opts.cwd, limitIndexJson, opts);
+      autoArchiveOpenLimitTickets(opts.cwd, limitIndexJson, opts);
 
       const limitError = buildOpenTicketLimitError(readTicketIndexJson(opts.cwd));
       if (limitError) {

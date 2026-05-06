@@ -9,19 +9,19 @@
 GitHub **About** description field (keep under ~350 characters if the UI enforces a limit):
 
 ```
-DeukAgentRules — AI coding agent guardrails for every repo. Bring tickets, scope contracts, verification, and project memory to Codex, Copilot, Claude Code, Cursor, Windsurf, and more without changing your coding agent.
+Deuk Agent Workflow — AGENTS.md and agent config guardrails for every repo. Connect Codex, Copilot, Claude Code, Cursor, and Windsurf to ticketed scope, verification, and project memory.
 ```
 
 ## Paste into GitHub — Korean (optional)
 
 ```
-DeukAgentRules — 모든 레포를 위한 AI 코딩 에이전트 가드레일. Codex, Copilot, Claude Code, Cursor, Windsurf 등에 티켓, 범위 계약, 검증, 프로젝트 기억을 더해 코딩 에이전트를 바꾸지 않고도 같은 작업 규율을 적용합니다.
+Deuk Agent Workflow — 모든 레포를 위한 AGENTS.md 및 agent config 가드레일. Codex, Copilot, Claude Code, Cursor, Windsurf를 티켓, 범위 계약, 검증, 프로젝트 기억에 연결합니다.
 ```
 
 ## Even shorter (topics / subtitle)
 
-- EN: `DeukAgentRules — AI coding agent guardrails with tickets, verification, and project memory`
-- KO: `DeukAgentRules — 티켓, 검증, 프로젝트 기억을 더하는 AI 코딩 에이전트 가드레일`
+- EN: `Deuk Agent Workflow — AGENTS.md guardrails with tickets, verification, and memory`
+- KO: `Deuk Agent Workflow — AGENTS.md, 티켓, 검증, 프로젝트 기억 가드레일`
 
 ## GitHub repository — Topics (recommended)
 
@@ -30,6 +30,8 @@ Add under **About → Topics** (and mirror on npm via `package.json` `keywords`)
 - `deuk-family`
 - `deukpack-ecosystem`
 - `deuk-agent-rule`
+- `deuk-agent-workflow`
+- `agent-config`
 - `ai-guardrails`
 - `ai-coding-agent`
 - `coding-agent`
@@ -52,7 +54,7 @@ Add under **About → Topics** (and mirror on npm via `package.json` `keywords`)
 
 Use related-project links to capture adjacent search intent from people already looking for
 Claude Code skills, AGENTS.md conventions, Cursor rules, and coding-agent instructions.
-Position DeukAgentRules as the workflow and guardrail layer that complements prompt-level
+Position Deuk Agent Workflow as the workflow and guardrail layer that complements prompt-level
 guideline repositories.
 
 Avoid `karpathy` as a repository topic unless there is an explicit campaign reason. Prefer

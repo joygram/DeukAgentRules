@@ -1,0 +1,26 @@
+import test from "node:test";
+import assert from "node:assert/strict";
+import { buildAliasPackageJson } from "../publish-dual-npm.mjs";
+
+test("buildAliasPackageJson syncs alias version and canonical dependency", () => {
+  const rootPkg = {
+    version: "4.5.6",
+    license: "Apache-2.0",
+    repository: { type: "git", url: "git+https://github.com/joygram/DeukAgentRules.git" },
+    bugs: { url: "https://github.com/joygram/DeukAgentRules/issues" },
+    homepage: "https://github.com/joygram/DeukAgentRules#readme",
+    engines: { node: ">=18" },
+  };
+
+  const aliasPkg = buildAliasPackageJson(rootPkg, {
+    name: "old-name",
+    version: "0.0.1",
+    dependencies: { "deuk-agent-rule": "0.0.1" },
+  });
+
+  assert.equal(aliasPkg.name, "deuk-agent-workflow");
+  assert.equal(aliasPkg.version, "4.5.6");
+  assert.deepEqual(aliasPkg.dependencies, { "deuk-agent-rule": "4.5.6" });
+  assert.equal(aliasPkg.bin["deuk-agent-workflow"], "./bin/deuk-agent-workflow.js");
+  assert.equal(aliasPkg.repository.url, rootPkg.repository.url);
+});

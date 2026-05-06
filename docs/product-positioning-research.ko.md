@@ -1,27 +1,27 @@
-# DeukAgentRules 제품 포지셔닝 리서치
+# Deuk Agent Workflow 제품 포지셔닝 리서치
 
 작성일: 2026-05-02
 
 ## 요약
 
-DeukAgentRules의 유입 포지션은 `npm` 패키지가 아니라 **AI 코딩 에이전트 안전 가드레일**이어야 한다. 일반 사용자는 “규칙 생성기”를 찾지 않는다. 대신 Cursor, Copilot, Codex, Claude Code 같은 도구가 코드베이스를 과하게 수정하거나, 지침 파일이 도구별로 흩어지거나, 작업 기록이 남지 않는 문제를 겪는다.
+Deuk Agent Workflow의 유입 포지션은 `npm` 패키지명이나 `deuk-agent-rule`이 아니라 **AGENTS.md / agent config workflow 가드레일**이어야 한다. 일반 사용자는 “규칙 생성기”나 제품명을 먼저 찾지 않는다. 대신 Cursor, Copilot, Codex, Claude Code 같은 도구가 코드베이스를 과하게 수정하거나, 지침 파일이 도구별로 흩어지거나, 작업 기록이 남지 않는 문제를 겪는다.
 
 따라서 제품 메시지는 다음 한 문장으로 수렴한다.
 
-> DeukAgentRules는 Cursor, Codex, Claude Code, Copilot 같은 AI 코딩 에이전트가 티켓, 스코프, 검증 기록 없이 코드를 바꾸지 못하게 하는 프로젝트 가드레일이다.
+> Deuk Agent Workflow는 AGENTS.md와 agent config를 티켓, 스코프, 검증 기록, 프로젝트 기억으로 연결하는 레포 단위 워크플로우 가드레일이다.
 
 ## 시장 관찰
 
 AI 코딩 도구는 에디터, 터미널, GitHub, 에이전트별 지침 파일로 분산되어 있다. 공식 문서 기준으로도 각 제품은 서로 다른 확장 표면을 갖는다.
 
-| 생태계 | 공식 확장/지침 표면 | DeukAgentRules의 기회 |
+| 생태계 | 공식 확장/지침 표면 | Deuk Agent Workflow의 기회 |
 |---|---|---|
 | VS Code | Extension Manifest, Contribution Points, Views, Walkthroughs, Commands, Marketplace publishing | CLI를 보이는 온보딩/대시보드로 감싸는 companion extension |
 | Open VSX | VS Code API 호환 확장 공개 레지스트리와 `ovsx` publishing | VS Code Marketplace 밖의 VS Code 계열 편집기 유입 |
 | GitHub Copilot | `.github/copilot-instructions.md`, `.github/instructions`, `AGENTS.md`, `CLAUDE.md`, `GEMINI.md` | 여러 지침 파일을 한 허브에서 동기화하는 가치 |
 | Cursor | `.cursor/rules`, Project Rules, `AGENTS.md`, legacy `.cursorrules` | Cursor 사용자의 rule drift와 팀 규칙 공유 문제 해결 |
-| Claude Code | `CLAUDE.md`, custom slash commands, project/user skills | DeukAgentRules skill registry와 ticket workflow를 Claude 표면으로 노출 |
-| Codex | `AGENTS.md` 기반 repository instructions | DeukAgentRules의 Hub-Spoke 모델과 직접 정렬 |
+| Claude Code | `CLAUDE.md`, custom slash commands, project/user skills | Skill registry와 ticket workflow를 Claude 표면으로 노출 |
+| Codex | `AGENTS.md` 기반 repository instructions | Hub-Spoke 모델과 직접 정렬 |
 
 ## 사용자 세그먼트
 
@@ -75,16 +75,16 @@ AI 코딩 에이전트가 티켓 없이 코드를 바꾸지 못하게 하세요.
 
 | 계층 | 메시지 |
 |---|---|
-| 짧은 태그라인 | AI coding agent guardrails for every repo |
-| 한국어 태그라인 | 모든 레포를 위한 AI 코딩 에이전트 가드레일 |
+| 짧은 태그라인 | Agent workflow guardrails for AGENTS.md and multi-agent config |
+| 한국어 태그라인 | AGENTS.md와 멀티 에이전트 설정을 위한 Agent Workflow 가드레일 |
 | 문제 문장 | Agents edit too much, forget scope, and leave no audit trail. |
-| 해결 문장 | DeukAgentRules makes agents work through tickets, scope contracts, verification, and archiveable memory. |
+| 해결 문장 | Deuk Agent Workflow connects AGENTS.md and agent config to tickets, scope contracts, verification, and archiveable memory. |
 | CLI CTA | `npx deuk-agent-rule init` |
-| 확장 CTA | Install the DeukAgentRules VS Code companion |
+| 확장 CTA | Install the Deuk Agent Workflow VS Code companion |
 
 ## 경쟁/대체재 관찰
 
-사용자는 이미 수동으로 instruction 파일을 복사하거나, 각 도구의 자체 규칙 시스템을 따로 관리한다. DeukAgentRules의 차별점은 “더 좋은 지침 파일”이 아니라 **여러 에이전트 표면을 연결하면서 티켓 기반 실행 계약을 강제하는 것**이다.
+사용자는 이미 수동으로 instruction 파일을 복사하거나, 각 도구의 자체 규칙 시스템을 따로 관리한다. Deuk Agent Workflow의 차별점은 “더 좋은 지침 파일”이 아니라 **여러 에이전트 표면을 연결하면서 티켓 기반 실행 계약을 강제하는 것**이다.
 
 직접 경쟁 프레임:
 

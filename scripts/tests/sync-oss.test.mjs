@@ -59,6 +59,7 @@ test("OSS mirror package payload stays public-only and excludes telemetry intern
     "scripts/lint-rules.mjs",
     "scripts/merge-logic.mjs",
     "scripts/plan-parser.mjs",
+    "scripts/publish-dual-npm.mjs",
     "README.md",
     "README.ko.md",
     "CHANGELOG.md",

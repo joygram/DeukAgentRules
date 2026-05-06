@@ -2,22 +2,24 @@
   <br />
   <img src="docs/assets/architecture-v3.png" width="800" alt="DeukAgentRules Architecture" />
   <br />
-  <h1>DeukAgentRules v3.3.3</h1>
+  <h1>Deuk Agent Workflow v3.3.3</h1>
   <p>
     <a href="https://www.npmjs.com/package/deuk-agent-rule"><img src="https://img.shields.io/npm/v/deuk-agent-rule.svg" alt="npm version" /></a>
     <a href="https://www.npmjs.com/package/deuk-agent-rule"><img src="https://img.shields.io/npm/dt/deuk-agent-rule.svg" alt="npm downloads" /></a>
   </p>
-  <p><b>AI coding agent guardrails for every repo</b></p>
-  <p><i>Ticketed scope, verification, and memory for Codex, Copilot, Claude Code, Cursor, and more</i></p>
+  <p><b>Agent workflow guardrails for AGENTS.md and multi-agent config</b></p>
+  <p><i>Turn scattered agent instructions into ticketed scope, verification, and project memory for Codex, Copilot, Claude Code, Cursor, and more</i></p>
   <p>Part of the <a href="https://deukpack.app">Deuk Family</a> ecosystem.</p>
   <p><a href="README.ko.md">한국어</a> · <a href="README.md">English</a></p>
 </div>
 
 ---
 
-**DeukAgentRules** gives AI coding agents a shared way to work through tickets, scope contracts, verification, and durable project memory.
+**Deuk Agent Workflow** gives AI coding agents a shared way to work through `AGENTS.md`, agent config files, tickets, scope contracts, verification, and durable project memory.
 
-It is more than a prompt pack. It is a repository-level workflow layer that standardizes collaboration through the **Hub-Spoke Architecture** and a **Ticket-Driven Execution Model** while keeping `AGENTS.md`, Copilot instructions, Cursor rules, Claude skills, and related agent surfaces aligned.
+The canonical npm package remains `deuk-agent-rule` for backward compatibility. `deuk-agent-workflow` is published as a wrapper package for the same CLI and positioning.
+
+People usually search for `AGENTS.md`, agent config, Cursor rules, Copilot instructions, or Claude skills before they search for a product name. This project should meet that intent directly: it is more than a prompt pack or rule template. It is a repository-level workflow layer that standardizes collaboration through the **Hub-Spoke Architecture** and a **Ticket-Driven Execution Model** while keeping `AGENTS.md`, Copilot instructions, Cursor rules, Claude skills, and related agent surfaces aligned.
 
 Ticket management lives under `.deuk-agent/`, with active work tracked in `.deuk-agent/tickets/` and related docs, plans, and archive data kept alongside it.
 
@@ -29,7 +31,7 @@ Ticket management lives under `.deuk-agent/`, with active work tracked in `.deuk
 
 ### 🗺️ Main Features & Architecture
 
-DeukAgentRules brings four core capabilities to day-to-day AI engineering:
+Deuk Agent Workflow brings four core capabilities to day-to-day AI engineering:
 
 1. **Zero-Copy Hub-Spoke Architecture**
    - **Hub**: `AGENTS.md` acts as the global single source of truth.
@@ -51,9 +53,9 @@ DeukAgentRules brings four core capabilities to day-to-day AI engineering:
 
 ### Why Not Just Instructions?
 
-The agent tooling space already has useful building blocks: `AGENTS.md`, GitHub Copilot instructions, Cursor rules, Claude skills, agent launchers, and general LLM guardrail frameworks. DeukAgentRules is positioned one layer above plain instruction sync: it turns those surfaces into a ticketed repository workflow.
+The agent tooling space already has useful building blocks: `AGENTS.md`, GitHub Copilot instructions, Cursor rules, Claude skills, agent launchers, and general LLM guardrail frameworks. Deuk Agent Workflow is positioned one layer above plain instruction sync: it turns those surfaces into a ticketed repository workflow.
 
-| Similar approach | What it helps with | DeukAgentRules adds |
+| Similar approach | What it helps with | Deuk Agent Workflow adds |
 |---|---|---|
 | `AGENTS.md` open format | A predictable instruction file for coding agents | Ticket lifecycle, phase gates, verification, and archiveable memory |
 | Copilot instructions / Cursor rules / Claude memory | Tool-specific guidance | One repo-owned workflow shared across agent clients |
@@ -61,13 +63,13 @@ The agent tooling space already has useful building blocks: `AGENTS.md`, GitHub 
 | Agent launchers and harnesses | Running many coding agents from one place | Lifecycle control inside the repository, independent of the chosen agent |
 | General LLM/MCP guardrails | Runtime policy checks for AI systems | Developer-facing work orders, scope contracts, Git-visible history, and closeout evidence |
 
-Use DeukAgentRules when you want AI coding work to stay coordinated, reviewable, and easy to carry forward across sessions and teammates.
+Use Deuk Agent Workflow when you want AI coding work to stay coordinated, reviewable, and easy to carry forward across sessions and teammates.
 
 ### Better Together With Karpathy-Style Skills
 
-Karpathy-style skills are great at improving how an agent behaves inside a task. DeukAgentRules is great at making that task ticketed, scoped, verified, and remembered at the repository level.
+Karpathy-style skills are great at improving how an agent behaves inside a task. Deuk Agent Workflow is great at making that task ticketed, scoped, verified, and remembered at the repository level.
 
-Used together, skills can improve the quality of the move, while DeukAgentRules keeps the move connected to team workflow. The result is a better session and a better project record: behavior playbooks on the front end, ticket lifecycle and DeukAgentContext memory on the back end.
+Used together, skills can improve the quality of the move, while Deuk Agent Workflow keeps the move connected to team workflow. The result is a better session and a better project record: behavior playbooks on the front end, ticket lifecycle and DeukAgentContext memory on the back end.
 
 ### What's Next
 
@@ -93,6 +95,13 @@ npm install -g deuk-agent-rule
 deuk-agent-rule init
 ```
 
+You can also install the workflow-branded alias:
+
+```bash
+npm install -g deuk-agent-workflow
+deuk-agent-workflow init
+```
+
 ### 2. Local Source Development (Maintainer/Power User)
 v3.0 introduces a **Global CLI Proxy**. If you are developing inside the `DeukAgentRules` workspace, the global command will automatically delegate execution to your local source.
 
@@ -103,6 +112,27 @@ deuk-agent-rule init  # Routes to local scripts/cli.mjs automatically
 ```
 
 If you primarily work in Codex or Copilot, this is the recommended day-to-day setup. Those clients currently have the smoothest behavior with the hub-spoke and ticket-driven workflow.
+
+### 3. Maintainer Publish
+Maintainers can publish both npm packages with one root command:
+
+```bash
+npm run publish
+```
+
+Use dry-run mode before writing to the npm registry:
+
+```bash
+npm run publish:dry
+```
+
+The publish helper runs `npm test`, syncs the wrapper package version to the root package version, publishes `deuk-agent-rule` first, and then publishes `deuk-agent-workflow`.
+
+If the current `deuk-agent-rule` version is already published and you only need to introduce the wrapper package, use the bootstrap command:
+
+```bash
+npm run publish:bootstrap
+```
 
 ---
 
@@ -148,12 +178,12 @@ For more day-to-day examples, see [docs/how-it-works.md](docs/how-it-works.md).
 
 ## Related Ideas & Inspiration
 
-DeukAgentRules shares the same concern as guideline-first projects like
+Deuk Agent Workflow shares the same concern as guideline-first projects like
 [andrej-karpathy-skills](https://github.com/forrestchang/andrej-karpathy-skills):
 AI coding agents often over-assume, over-engineer, and edit outside the requested scope.
 
 Where prompt-level guideline files improve agent behavior inside one client,
-DeukAgentRules adds a repository-level workflow layer: tickets, phase gates,
+Deuk Agent Workflow adds a repository-level workflow layer: tickets, phase gates,
 scoped permissions, verification, and archiveable engineering memory.
 
 The first-party skill MVP keeps that boundary explicit: skills are short

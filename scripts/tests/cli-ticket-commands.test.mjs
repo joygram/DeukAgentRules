@@ -1845,7 +1845,7 @@ test("runTicketCreate/next/archive roundtrip keeps ticket scaffold compact", asy
   }
 });
 
-test("runTicketCreate blocks excess open tickets and asks user to choose archive target", async () => {
+test("runTicketCreate auto-archives oldest open tickets when open ticket limit is exceeded", async () => {
   const { cwd, ticketDir } = makeTemplateWorkspace();
   const srcDir = join(ticketDir, "sub");
   mkdirSync(srcDir, { recursive: true });
@@ -1887,34 +1887,27 @@ test("runTicketCreate blocks excess open tickets and asks user to choose archive
   console.warn = () => {};
 
   try {
-    await assert.rejects(
-      () => runTicketCreate({
-        cwd,
-        topic: "new-overflow-ticket",
-        summary: "create one more ticket after twenty open entries",
-        nonInteractive: true,
-        docsLanguage: "en",
-        skipPhase0: true
-      }),
-      err => {
-        assert.match(err.message, /Open tickets: 21\/20/);
-        assert.match(err.message, /ticket list --active --non-interactive/);
-        assert.match(err.message, /ticket archive --topic <ticket-id> --non-interactive/);
-        assert.match(err.message, /001-old-open-host/);
-        return true;
-      }
-    );
+    await runTicketCreate({
+      cwd,
+      topic: "new-overflow-ticket",
+      summary: "create one more ticket after twenty open entries",
+      planBody: minimalEvidencePhase1Plan("new overflow ticket"),
+      nonInteractive: true,
+      docsLanguage: "en",
+      skipPhase0: true,
+      requireFilled: true
+    });
 
     const index = readTicketIndexJson(cwd);
     const openCount = index.entries.filter(e => e.status === "open" || e.status === "active").length;
     assert.strictEqual(openCount, 20);
 
     const oldest = index.entries.find(e => e.id === "001-old-open-host");
-    assert.strictEqual(oldest.status, "open");
-    assert.ok(existsSync(join(cwd, ".deuk-agent/tickets/sub/001-old-open-host.md")));
-    assert.ok(!existsSync(join(cwd, ".deuk-agent/tickets/archive/sub/2026-04/01/001-old-open-host.md")));
+    assert.strictEqual(oldest.status, "archived");
+    assert.ok(!existsSync(join(cwd, ".deuk-agent/tickets/sub/001-old-open-host.md")));
+    assert.ok(existsSync(join(cwd, ".deuk-agent/tickets/archive/sub/2026-04/01/001-old-open-host.md")));
     const subFiles = readdirSync(srcDir);
-    assert.ok(!subFiles.some(name => name.includes("new-overflow-ticket")));
+    assert.ok(subFiles.some(name => name.includes("new-overflow-ticket")));
   } finally {
     console.log = originalLog;
     console.warn = originalWarn;
@@ -1922,7 +1915,7 @@ test("runTicketCreate blocks excess open tickets and asks user to choose archive
   }
 });
 
-test("runTicketCreate dry-run blocks excess open tickets before claiming success", async () => {
+test("runTicketCreate dry-run simulates open-ticket auto-cleanup before claiming success", async () => {
   const { cwd, ticketDir } = makeTemplateWorkspace();
   const srcDir = join(ticketDir, "sub");
   mkdirSync(srcDir, { recursive: true });
@@ -1963,28 +1956,21 @@ test("runTicketCreate dry-run blocks excess open tickets before claiming success
   console.warn = () => {};
 
   try {
-    await assert.rejects(
-      () => runTicketCreate({
-        cwd,
-        topic: "dry-overflow-ticket",
-        summary: "preview should fail before exceeding the open ticket limit",
-        planBody: minimalEvidencePhase1Plan("dry overflow ticket"),
-        nonInteractive: true,
-        docsLanguage: "en",
-        skipPhase0: true,
-        requireFilled: true,
-        dryRun: true
-      }),
-      err => {
-        assert.match(err.message, /Open tickets: 21\/20/);
-        assert.match(err.message, /ticket archive --topic <ticket-id> --non-interactive/);
-        return true;
-      }
-    );
+    await runTicketCreate({
+      cwd,
+      topic: "dry-overflow-ticket",
+      summary: "preview should simulate auto cleanup before exceeding the open ticket limit",
+      planBody: minimalEvidencePhase1Plan("dry overflow ticket"),
+      nonInteractive: true,
+      docsLanguage: "en",
+      skipPhase0: true,
+      requireFilled: true,
+      dryRun: true
+    });
 
     assert.strictEqual(readFileSync(join(ticketDir, TICKET_INDEX_FILENAME), "utf8"), beforeIndexText);
     assert.ok(!readdirSync(srcDir).some(name => name.includes("dry-overflow-ticket")));
-    assert.ok(!logs.some(line => line.includes("Ticket would be created:")));
+    assert.ok(logs.some(line => line.includes("Ticket would be created:")));
   } finally {
     console.log = originalLog;
     console.warn = originalWarn;
@@ -2839,7 +2825,7 @@ test("runTicketCreate normalizes stale closed archive metadata without requiring
   }
 });
 
-test("runTicketCreate preserves closed auto-archive when new ticket exceeds open limit", async () => {
+test("runTicketCreate preserves closed auto-archive and reclaims open-ticket capacity when new ticket exceeds open limit", async () => {
   const { cwd, ticketDir } = makeTemplateWorkspace();
   const srcDir = join(ticketDir, "sub");
   mkdirSync(srcDir, { recursive: true });
@@ -2904,25 +2890,22 @@ test("runTicketCreate preserves closed auto-archive when new ticket exceeds open
   console.warn = () => {};
 
   try {
-    await assert.rejects(
-      () => runTicketCreate({
-        cwd,
-        topic: "new-overflow-after-closed-cleanup",
-        summary: "create should fail but keep closed archive consistent",
-        nonInteractive: true,
-        docsLanguage: "en",
-        skipPhase0: true
-      }),
-      err => {
-        assert.match(err.message, /Open tickets: 21\/20/);
-        return true;
-      }
-    );
+    await runTicketCreate({
+      cwd,
+      topic: "new-overflow-after-closed-cleanup",
+      summary: "create should auto-clean and keep closed archive consistent",
+      planBody: minimalEvidencePhase1Plan("new overflow after closed cleanup"),
+      nonInteractive: true,
+      docsLanguage: "en",
+      skipPhase0: true,
+      requireFilled: true
+    });
 
     const index = readTicketIndexJson(cwd);
     const openCount = index.entries.filter(e => e.status === "open" || e.status === "active").length;
     assert.strictEqual(openCount, 20);
-    assert.ok(!index.entries.some(e => e.topic === "new-overflow-after-closed-cleanup"));
+    const created = index.entries.find(e => e.topic === "new-overflow-after-closed-cleanup");
+    assert.ok(created);
 
     const closed = index.entries.find(e => e.id === closedId);
     assert.strictEqual(closed.status, "archived");
@@ -2931,8 +2914,12 @@ test("runTicketCreate preserves closed auto-archive when new ticket exceeds open
     assert.ok(existsSync(join(cwd, ".deuk-agent/tickets/archive/sub/2026-04/21/021-closed-host.md")));
     assert.ok(!existsSync(join(cwd, ".deuk-agent/tickets/sub/021-closed-host.md")));
 
-    const subFiles = readdirSync(srcDir);
-    assert.ok(!subFiles.some(name => name.includes("new-overflow-after-closed-cleanup")));
+    const oldest = index.entries.find(e => e.id === "001-old-open-host");
+    assert.strictEqual(oldest.status, "archived");
+    assert.ok(existsSync(join(cwd, ".deuk-agent/tickets/archive/sub/2026-04/01/001-old-open-host.md")));
+    assert.ok(!existsSync(join(cwd, ".deuk-agent/tickets/sub/001-old-open-host.md")));
+
+    assert.ok(existsSync(join(cwd, created.path)));
   } finally {
     console.log = originalLog;
     console.warn = originalWarn;

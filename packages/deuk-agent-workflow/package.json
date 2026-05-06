@@ -1,0 +1,35 @@
+{
+  "name": "deuk-agent-workflow",
+  "version": "3.3.3",
+  "description": "Wrapper package for Deuk Agent Workflow. The canonical npm package is deuk-agent-rule.",
+  "keywords": [
+    "agents-md",
+    "agent-workflow",
+    "ai-guardrails",
+    "agent-guardrails",
+    "deuk-family"
+  ],
+  "license": "Apache-2.0",
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/joygram/DeukAgentRules.git"
+  },
+  "bugs": {
+    "url": "https://github.com/joygram/DeukAgentRules/issues"
+  },
+  "homepage": "https://github.com/joygram/DeukAgentRules#readme",
+  "files": [
+    "bin/**/*",
+    "README.md"
+  ],
+  "bin": {
+    "deuk-agent-workflow": "./bin/deuk-agent-workflow.js",
+    "deukagentworkflow": "./bin/deuk-agent-workflow.js"
+  },
+  "engines": {
+    "node": ">=18"
+  },
+  "dependencies": {
+    "deuk-agent-rule": "3.3.3"
+  }
+}

@@ -84,6 +84,7 @@ export function buildOssPackageJson(srcPkg, baseUrl = base, gitRemoteUrl = gitUr
       "scripts/lint-rules.mjs",
       "scripts/merge-logic.mjs",
       "scripts/plan-parser.mjs",
+      "scripts/publish-dual-npm.mjs",
       "README.md",
       "README.ko.md",
       "CHANGELOG.md",
@@ -134,6 +135,7 @@ export function syncOssTree() {
     ".versionrc.cjs",
     "changelog-templates",
     "docs",
+    "packages",
     "PROJECT_RULE.md",
     "RELEASING.md",
     "RELEASING.ko.md",
@@ -147,6 +149,7 @@ export function syncOssTree() {
     }
   }
   cpSync(join(pkgRoot, "templates"), join(ossRoot, "templates"), { recursive: true, force: true });
+  cpSync(join(pkgRoot, "packages"), join(ossRoot, "packages"), { recursive: true, force: true });
   mkdirSync(join(ossRoot, "docs"), { recursive: true });
   for (const doc of PUBLIC_DOCS) {
     cpSync(join(pkgRoot, "docs", doc), join(ossRoot, "docs", doc), { force: true });
