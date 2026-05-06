@@ -6,6 +6,14 @@
 
 형식은 [Keep a Changelog](https://keepachangelog.com/ko/1.1.0/)를 기반으로 하며, 이 프로젝트는 [유의적 버전(Semantic Versioning)](https://semver.org/spec/v2.0.0.html)을 준수합니다.
 
+## [3.3.2] - 2026-05-06
+
+### 포지셔닝 (Positioning)
+
+- npm/GitHub에서 보이는 정체성을 **모든 레포를 위한 AI 코딩 에이전트 가드레일**로 재정리했습니다.
+- `AGENTS.md`, Copilot instructions, Cursor rules, Claude skills, 에이전트 실행기, 일반 LLM/MCP 가드레일과 비교해 DeukAgentRules가 더하는 티켓 생명주기, 범위 계약, 검증, 아카이브 가능한 기억을 README에 드러냈습니다.
+- 다음 개선 방향으로 첫 실행 점검, CLI/RAG 재각인 신호, active ticket/phase/open ticket count/DeukAgentContext memory status를 보여주는 companion 표면을 명시했습니다.
+
 ## [3.3.0] - 2026-05-02
 
 ### 추가됨 (Added)

@@ -2,34 +2,33 @@
   <br />
   <img src="docs/assets/architecture-v3.png" width="800" alt="DeukAgentRules Architecture" />
   <br />
-  <h1>DeukAgentRules v3.0</h1>
+  <h1>DeukAgentRules v3.3.2</h1>
   <p>
     <a href="https://www.npmjs.com/package/deuk-agent-rule"><img src="https://img.shields.io/npm/v/deuk-agent-rule.svg" alt="npm version" /></a>
     <a href="https://www.npmjs.com/package/deuk-agent-rule"><img src="https://img.shields.io/npm/dt/deuk-agent-rule.svg" alt="npm downloads" /></a>
   </p>
-  <p><b>Zero-Latency, High-Signal AI Orchestration Protocol</b></p>
-  <p><i>The Sovereign Workflow Control Plane for AI Engineering</i></p>
+  <p><b>모든 레포를 위한 AI 코딩 에이전트 가드레일</b></p>
+  <p><i>Codex, Copilot, Claude Code, Cursor를 위한 티켓, 범위 계약, 검증, 기억 계층</i></p>
   <p><a href="https://deukpack.app">Deuk Family</a> 생태계의 핵심 모듈입니다.</p>
 </div>
 
 ---
 
-**DeukAgentRules**는 단순한 규칙 생성기를 넘어, 자율형 AI 에이전트 시대를 위해 설계된 **주권적 워크플로우 제어 평면(Sovereign Workflow Control Plane)**입니다.
+**DeukAgentRules**는 AI 코딩 에이전트가 티켓, 범위 계약, 검증 기록, 프로젝트 기억을 공유된 방식으로 따라가게 만드는 레포 단위 워크플로우입니다.
 
-**Hub-Spoke 아키텍처**와 **티켓 기반 실행 모델**을 통해 협업을 표준화함으로써, 컨텍스트 환각을 제거하고 토큰 소비를 획기적으로 줄이며, 거대 모노레포 환경에서도 엄격한 엔지니어링 표준을 강제합니다.
+단순한 프롬프트 모음에 머물지 않습니다. **Hub-Spoke 아키텍처**와 **티켓 기반 실행 모델**을 통해 `AGENTS.md`, Copilot instructions, Cursor rules, Claude skills 같은 에이전트 지침 표면을 하나의 레포 워크플로우로 묶습니다.
+
+티켓 관리는 `.deuk-agent/` 아래에서 이뤄지며, 진행 중인 작업은 `.deuk-agent/tickets/`에, 관련 문서와 계획, 아카이브 정보도 그 주변 구조에 함께 쌓입니다.
 
 > **현재 배포 기준:**
-> 이 버전은 에이전트 기반 리포지토리에 배포해 사용할 수 있는 상태입니다. 현재는 **OpenAI Codex**와 **GitHub Copilot** 환경에서 가장 안정적으로 동작합니다. Cursor, Windsurf, MCP도 포인터 구조로 지원하지만, 워크스페이스별로 먼저 검증하는 것을 권장합니다.
+> v3.3.2는 에이전트 기반 리포지토리에 배포해 사용할 수 있는 상태입니다. 현재는 **OpenAI Codex**와 **GitHub Copilot** 환경에서 가장 안정적으로 동작합니다. Cursor, Windsurf, Claude Code, MCP도 포인터 구조로 지원하지만, 워크스페이스별 검증을 권장합니다. MCP 서버 등록은 `init`에 딸려 들어가지 않고 별도로 설정합니다.
 
-> **🚀 3.2 주요 업데이트:**
-> 다양한 AI 환경(Copilot, Cursor, Windsurf, MCP)에서 엄격한 에이전트 권한 계약(APC)을 강제하기 위한 **플랫폼 공존 프로토콜(Platform Co-existence Protocol)**과 **모드 인지형(Mode-Aware) Workflow Gate**를 도입했습니다.
-
-> **🚀 3.0 주요 업데이트:**
+> **아키텍처 기반:**
 > 거대하고 무거운 레거시 `.cursorrules` 방식을 공식적으로 폐기했습니다. v3.0은 `AGENTS.md`를 단일 진실 공급원으로 사용하는 **Hub-Spoke 모델**을 도입하여, IDE별 규칙은 얇은 진입점 포인터 역할만 수행합니다.
 
 ### 🗺️ 핵심 기능 및 아키텍처 (Main Features)
 
-DeukAgentRules는 AI 에이전트가 코드를 분석하고 작성하는 모든 과정을 통제하는 **4대 핵심 기능**을 제공합니다.
+DeukAgentRules는 AI 에이전트가 코드를 분석하고 작성하는 흐름을 안정적으로 이끄는 **4대 핵심 기능**을 제공합니다.
 
 1. **Zero-Copy Hub-Spoke 아키텍처**
    - **Hub**: 단일 진실 공급원인 `AGENTS.md` (글로벌 룰)
@@ -37,16 +36,40 @@ DeukAgentRules는 AI 에이전트가 코드를 분석하고 작성하는 모든 
    - **효과**: IDE별(Cursor, Copilot, Windsurf) 설정 파일 중복을 제거하고, 에이전트가 오직 하나의 규약만 바라보게 하여 지시 사항의 충돌과 환각을 원천 차단합니다.
 
 2. **티켓 주도 워크플로우 (TDW: Ticket-Driven Workflow)**
-   - 계획(Plan) → 실행(Execute) → 검증(Verify) → 보관(Archive)의 엄격한 라이프사이클을 강제합니다.
-   - 에이전트는 활성화된 티켓(`ACTIVE_TICKET.md`) 없이 코드를 수정하거나 범위를 벗어난 작업을 수행할 수 없습니다 (Anti-Shoveling).
+   - 계획(Plan) → 실행(Execute) → 검증(Verify) → 보관(Archive)의 분명한 라이프사이클로 작업을 이끕니다.
+   - 활성화된 티켓(`ACTIVE_TICKET.md`)을 중심으로 변경을 연결해 범위와 진행 상태가 계속 보이게 합니다.
 
 3. **플랫폼 공존 및 모드 인지형 게이트 (Mode-Aware Workflow Gate)**
-   - 에이전트의 현재 모드(Plan Mode vs. Execute Mode)를 인지하여, Plan Mode에서는 소스 코드 수정을 차단하고 구현 계획서(Artifacts) 작성만 허용하는 강력한 권한 계약(APC)을 시행합니다.
-   - MCP(Model Context Protocol) Soft Gate와 연동되어 티켓 컨텍스트가 없는 비인가 작업을 차단합니다.
+   - 에이전트의 현재 모드(Plan Mode vs. Execute Mode)를 인지하여, Plan Mode에서는 분석과 구현 계획서(Artifacts) 작성에 집중하도록 APC를 적용합니다.
+   - MCP(Model Context Protocol) Soft Gate와 연동되어 현재 티켓 컨텍스트에 맞는 변경 흐름을 유지합니다.
 
 4. **지식 증류 및 Zero-Legacy (Knowledge Distillation)**
    - 완료된 작업은 `reports/`로 아카이빙되며, 이 과정에서 **Zero-Token 지식 증류** 기술이 적용되어 핵심 히스토리만 벡터 DB(DeukAgentContext)로 전달됩니다.
    - 불필요한 과거 로그나 사용되지 않는 `.cursorrules` 스텁을 자동으로 청소하여 컨텍스트 윈도우 낭비를 막습니다.
+
+### 지침 파일만으로 부족한 이유
+
+이미 AI 코딩 에이전트 생태계에는 `AGENTS.md`, GitHub Copilot instructions, Cursor rules, Claude skills, 여러 에이전트 실행 도구, 일반 LLM 가드레일이 있습니다. DeukAgentRules는 이들과 경쟁하기보다 그 위에 **티켓 기반 레포 워크플로우**를 얹습니다.
+
+| 비슷한 접근 | 도움이 되는 부분 | DeukAgentRules가 더하는 것 |
+|---|---|---|
+| `AGENTS.md` 공개 형식 | 코딩 에이전트가 읽을 공통 지침 파일 | 티켓 생명주기, Phase Gate, 검증, 아카이브 가능한 기억 |
+| Copilot instructions / Cursor rules / Claude memory | 도구별 맞춤 지침 | 여러 에이전트가 공유하는 레포 소유 워크플로우 |
+| Claude/Copilot custom agent와 skill | 재사용 가능한 작업 playbook | skill이 워크플로우를 대체하지 않고 티켓 실행으로 들어가게 함 |
+| 에이전트 실행기와 harness | 여러 코딩 에이전트 실행 | 어떤 에이전트를 쓰든 레포 안에서 생명주기를 통제 |
+| 일반 LLM/MCP 가드레일 | 런타임 정책 검사 | 작업 지시서, 범위 계약, 깃에 남는 기록, 완료 근거 |
+
+DeukAgentRules는 AI 코딩 작업을 팀이 이해하고 이어받기 쉬운 흐름으로 만들고 싶을 때 특히 잘 맞습니다. 여러 파일에 걸친 변경, 검증, 기록, 다음 작업 연결이 자연스럽게 이어지도록 돕는 데 초점을 둡니다.
+
+### Karpathy식 skill과 같이 쓰면 좋은 점
+
+Karpathy식 skill은 한 작업 안에서 에이전트의 행동을 더 좋게 만드는 데 강합니다. DeukAgentRules는 그 작업을 레포 차원에서 티켓화하고, 범위를 맞추고, 검증하고, 다시 찾을 수 있게 남기는 데 강합니다.
+
+둘을 함께 쓰면 skill은 작업 수행 품질을 끌어올리고, DeukAgentRules는 그 결과를 팀 워크플로우에 연결합니다. 앞단에서는 행동 playbook이 작동하고, 뒷단에서는 티켓 생명주기와 DeukAgentContext 기억 계층이 남습니다.
+
+### 다음 개선 방향
+
+다음 단계는 이 워크플로우를 더 잘 보이고 더 쉽게 도입하게 만드는 것입니다. 첫 실행 점검을 더 명확히 하고, CLI/RAG 결과에 짧은 재각인 신호를 붙이며, README/npm 포지셔닝을 강화하고, active ticket, phase, open ticket count, DeukAgentContext memory status를 보여주는 companion 표면을 준비하는 방향입니다. 목표는 팀이 쓰는 코딩 에이전트를 바꾸지 않고도 같은 작업 규율을 자연스럽게 얻는 것입니다.
 
 ### 📚 상세 문서
 | 문서 | 용도 |
@@ -129,6 +152,16 @@ Codex나 Copilot을 주로 사용한다면 이 구성이 일상 운영에 가장
 | \`deuk-agent-rule skill add --skill safe-refactor\` | TDW/APC 권한 모델을 바꾸지 않고 로컬 skill registry에 skill을 설치합니다. |
 | \`deuk-agent-rule skill expose --platform claude\` | 설치된 skill을 플랫폼별 얇은 wrapper로 노출합니다. MVP 지원 플랫폼은 `claude`, `cursor`입니다. |
 | \`deuk-agent-rule skill lint\` | skill 파일이 중복 workflow 계약이나 generated 파일 직접 수정 지침을 담지 않았는지 검사합니다. |
+
+### 티켓 파일 깃 관리 원칙
+
+- `.deuk-agent/tickets/**/*.md`와 `INDEX*.json`은 CLI가 바꾼 결과만 반영합니다.
+- 티켓 본문만 커밋하고 index를 빼먹지 마세요. 다음 작업에서 상태가 맞지 않을 수 있습니다.
+- 생성이 실패한 뒤 티켓 파일을 손으로 만들거나 frontmatter로 상태를 바로 바꾸지 마세요.
+- `telemetry.jsonl`은 보통 실행 로그이므로 일반 코드 커밋에는 넣지 않는 편이 낫습니다.
+- 작업을 마쳤다면 가능하면 `ticket archive`까지 끝낸 뒤 커밋해 active/archive 흐름이 함께 남도록 하세요.
+
+자세한 사용 예시는 [docs/usage-guide.ko.md](docs/usage-guide.ko.md)를 참고하세요.
 
 ---
 

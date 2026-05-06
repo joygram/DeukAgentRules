@@ -2,34 +2,33 @@
   <br />
   <img src="docs/assets/architecture-v3.png" width="800" alt="DeukAgentRules Architecture" />
   <br />
-  <h1>DeukAgentRules v3.0</h1>
+  <h1>DeukAgentRules v3.3.2</h1>
   <p>
     <a href="https://www.npmjs.com/package/deuk-agent-rule"><img src="https://img.shields.io/npm/v/deuk-agent-rule.svg" alt="npm version" /></a>
     <a href="https://www.npmjs.com/package/deuk-agent-rule"><img src="https://img.shields.io/npm/dt/deuk-agent-rule.svg" alt="npm downloads" /></a>
   </p>
-  <p><b>Zero-Latency, High-Signal AI Orchestration Protocol</b></p>
-  <p><i>The Sovereign Workflow Control Plane for AI Engineering</i></p>
+  <p><b>AI coding agent guardrails for every repo</b></p>
+  <p><i>Ticketed scope, verification, and memory for Codex, Copilot, Claude Code, Cursor, and more</i></p>
   <p>Part of the <a href="https://deukpack.app">Deuk Family</a> ecosystem.</p>
 </div>
 
 ---
 
-**DeukAgentRules** is more than a rule generator; it is a **Sovereign Workflow Control Plane** designed for the age of autonomous AI agents.
+**DeukAgentRules** gives AI coding agents a shared way to work through tickets, scope contracts, verification, and durable project memory.
 
-By standardizing collaboration via the **Hub-Spoke Architecture** and a **Ticket-Driven Execution Model**, it eliminates context hallucination, reduces token consumption, and enforces rigorous engineering standards across monolithic and multi-module repositories.
+It is more than a prompt pack. It is a repository-level workflow layer that standardizes collaboration through the **Hub-Spoke Architecture** and a **Ticket-Driven Execution Model** while keeping `AGENTS.md`, Copilot instructions, Cursor rules, Claude skills, and related agent surfaces aligned.
+
+Ticket management lives under `.deuk-agent/`, with active work tracked in `.deuk-agent/tickets/` and related docs, plans, and archive data kept alongside it.
 
 > **Current readiness:**
-> This release is deployment-ready for agent-driven repositories. It is currently most reliable in **OpenAI Codex** and **GitHub Copilot** workflows. Cursor, Windsurf, and MCP remain supported through pointer-style integration, but they should be validated per workspace before rollout.
+> v3.3.2 is deployment-ready for agent-driven repositories. It is currently most reliable in **OpenAI Codex** and **GitHub Copilot** workflows. Cursor, Windsurf, Claude Code, and MCP remain supported through pointer-style integration, but they should be validated per workspace before rollout. MCP server registration is separate from `init`.
 
-> **🚀 3.2 Major Update:**
-> Introduced **Platform Co-existence Protocol** and **Mode-Aware Workflow Gate** to enforce strict Agent Permission Contracts (APC) across different AI environments (Copilot, Cursor, Windsurf, MCP).
-
-> **🚀 3.0 Major Update:**
+> **Architecture foundation:**
 > We have officially deprecated monolithic `.cursorrules`. v3.0 introduces the **Hub-Spoke model** where `AGENTS.md` is the single source of truth, and IDE-specific rules act as thin entry-point pointers.
 
 ### 🗺️ Main Features & Architecture
 
-DeukAgentRules enforces a strict operating environment for AI agents through four core mechanisms:
+DeukAgentRules brings four core capabilities to day-to-day AI engineering:
 
 1. **Zero-Copy Hub-Spoke Architecture**
    - **Hub**: `AGENTS.md` acts as the global single source of truth.
@@ -37,17 +36,41 @@ DeukAgentRules enforces a strict operating environment for AI agents through fou
    - **Benefit**: Eliminates rule duplication, preventing conflicting instructions and context hallucination across different IDEs (Cursor, Copilot, Windsurf).
 
 2. **Ticket-Driven Workflow (TDW)**
-   - Enforces a strict lifecycle: Plan → Execute → Verify → Archive.
-   - Agents are explicitly forbidden from mutating code without an active ticket in `.deuk-agent/tickets/` (Anti-Shoveling rule).
+   - Guides work through a clear lifecycle: Plan → Execute → Verify → Archive.
+   - Keeps changes connected to an active ticket in `.deuk-agent/tickets/`, so scope and progress stay visible.
 
 3. **Platform Co-existence & Mode-Aware Workflow Gate**
-   - Implements strong Agent Permission Contracts (APC) by making the workflow **Mode-Aware**.
-   - In **Plan Mode**, agents are restricted to read-only operations and artifact generation. Execution and code mutation are only unlocked upon user approval into the Execute Phase.
-   - Integrates with MCP Soft Gates to block unauthorized code changes.
+   - Uses strong Agent Permission Contracts (APC) through a **Mode-Aware** workflow.
+   - In **Plan Mode**, agents focus on analysis and planning artifacts before moving into approved execution.
+   - Integrates with MCP Soft Gates to keep code changes aligned with the current ticket context.
 
 4. **Zero-Token Knowledge Distillation**
    - When a ticket is archived, it is distilled into a zero-token summary and moved to `reports/`.
    - These reports are vectorized into DeukAgentContext, building a permanent Engineering Memory Engine without cluttering the agent's active context window.
+
+### Why Not Just Instructions?
+
+The agent tooling space already has useful building blocks: `AGENTS.md`, GitHub Copilot instructions, Cursor rules, Claude skills, agent launchers, and general LLM guardrail frameworks. DeukAgentRules is positioned one layer above plain instruction sync: it turns those surfaces into a ticketed repository workflow.
+
+| Similar approach | What it helps with | DeukAgentRules adds |
+|---|---|---|
+| `AGENTS.md` open format | A predictable instruction file for coding agents | Ticket lifecycle, phase gates, verification, and archiveable memory |
+| Copilot instructions / Cursor rules / Claude memory | Tool-specific guidance | One repo-owned workflow shared across agent clients |
+| Claude or Copilot custom agents and skills | Reusable task playbooks | Skills route into scoped, ticketed execution instead of replacing the workflow |
+| Agent launchers and harnesses | Running many coding agents from one place | Lifecycle control inside the repository, independent of the chosen agent |
+| General LLM/MCP guardrails | Runtime policy checks for AI systems | Developer-facing work orders, scope contracts, Git-visible history, and closeout evidence |
+
+Use DeukAgentRules when you want AI coding work to stay coordinated, reviewable, and easy to carry forward across sessions and teammates.
+
+### Better Together With Karpathy-Style Skills
+
+Karpathy-style skills are great at improving how an agent behaves inside a task. DeukAgentRules is great at making that task ticketed, scoped, verified, and remembered at the repository level.
+
+Used together, skills can improve the quality of the move, while DeukAgentRules keeps the move connected to team workflow. The result is a better session and a better project record: behavior playbooks on the front end, ticket lifecycle and DeukAgentContext memory on the back end.
+
+### What's Next
+
+The next step is to make this workflow even easier to see and adopt: clearer first-run checks, compact CLI/RAG reminders for agents, stronger README/npm positioning, and companion surfaces that show active ticket, phase, open-ticket count, and DeukAgentContext memory status without asking teams to switch coding agents.
 
 ### 📚 Detailed Documentation
 | Doc | Purpose |
@@ -112,6 +135,17 @@ Delegate these to your AI agent via natural language prompts!
 | `deuk-agent-rule skill add --skill safe-refactor` | Installs a skill into the local registry without changing the TDW/APC authority model. |
 | `deuk-agent-rule skill expose --platform claude` | Exposes installed skills as platform-specific thin wrappers. Supported MVP platforms: `claude`, `cursor`. |
 | `deuk-agent-rule skill lint` | Audits skill files for duplicate workflow contracts and unsafe generated-file guidance. |
+
+### Ticket File Git Hygiene
+
+- Treat `.deuk-agent/tickets/**/*.md` and `INDEX*.json` as CLI-managed lifecycle artifacts.
+- Do not commit a ticket body without the related index updates. The next session can restore the wrong active/archive state.
+- After `ticket create` fails, do not create or repair ticket files manually.
+- Do not flip ticket status by editing frontmatter directly. Use `ticket move`, `ticket close`, or `ticket archive`.
+- `telemetry.jsonl` is usually operational log noise, so it is better left out of normal code commits unless your repo intentionally tracks it.
+- When possible, commit completed work after `ticket archive` so the active/archive transition lands in one history step.
+
+For more day-to-day examples, see [docs/how-it-works.md](docs/how-it-works.md).
 
 ---
 

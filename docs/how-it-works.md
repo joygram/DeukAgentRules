@@ -50,3 +50,22 @@ Running `deuk-agent-rule init` triggers the following lifecycle:
 4. **Phase Transition**: After the Phase 1 plan is reviewable and the user approves execution, run `ticket move` to transition to Phase 2 (Execute).
 5. **Execute & Verify (Phase 2)**: Changes are made and verified within the isolated boundary.
 6. **Knowledge Distillation Archive**: When archiving, core information is extracted (Zero-Token Distillation) to save context tokens for long-term memory.
+
+## 6. Ticket Files in Git
+
+Ticket files are part of the repository workflow, but they should not be handled like ordinary handwritten notes.
+
+- Commit `.deuk-agent/tickets/INDEX*.json` together with the related ticket markdown changes. Leaving index updates behind can break state restoration in the next session.
+- Treat ticket markdown under `.deuk-agent/tickets/**/*.md` as CLI-owned artifacts. If `ticket create` fails, do not create or repair the file manually.
+- Editing ticket body content is fine while planning, but lifecycle state changes should go through `ticket move`, `ticket close`, and `ticket archive`, not direct frontmatter edits.
+- `telemetry.jsonl` is typically operational output rather than durable project state. Unless your repository intentionally tracks it, keep it out of ordinary code commits.
+- Prefer committing finished work after `ticket archive` so the ticket file move and archive index update stay in the same Git change.
+- When reviewing Git changes, first ask whether each ticket-related diff came from an expected CLI lifecycle step. If not, reconcile with CLI commands before committing.
+
+Useful quick checks:
+
+```bash
+git status --short
+git diff -- .deuk-agent/tickets/INDEX.json
+git diff -- .deuk-agent/tickets/INDEX.archive.*.json
+```

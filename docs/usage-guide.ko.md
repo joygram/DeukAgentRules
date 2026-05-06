@@ -101,6 +101,26 @@ deuk-agent-rule ticket move --topic user-auth-impl
 
 이때 아카이브 작업 중 **Zero-Token 지식 증류(Knowledge Distillation)**가 동작하여 불필요한 컨텍스트 토큰 소모를 줄이도록 핵심 정보만 압축되어 저장됩니다.
 
+### 5단계: 티켓 파일 깃 관리
+티켓 파일도 깃 기록의 일부이지만, 소스 코드처럼 무심코 다루면 active/archive 상태가 쉽게 꼬입니다.
+
+- `ticket create`, `ticket move`, `ticket close`, `ticket archive`로 바뀐 `.deuk-agent/tickets/INDEX*.json`은 함께 커밋합니다. 티켓 본문만 커밋하고 index를 빼면 다음 작업에서 상태가 맞지 않을 수 있습니다.
+- `.deuk-agent/tickets/**/*.md`는 CLI가 만든 결과만 따라갑니다. 티켓 생성이 실패한 뒤 파일을 손으로 만들거나 고치지 않습니다.
+- 작업 중 티켓 본문을 다듬는 것은 괜찮지만, 상태를 바꿀 때는 frontmatter를 직접 고치지 말고 반드시 CLI를 사용합니다.
+- `.deuk-agent/telemetry.jsonl`은 보통 실행 로그에 가깝기 때문에, 저장소 정책상 꼭 추적하는 경우가 아니라면 커밋 목록에 넣지 않는 편이 안전합니다.
+- 작업을 끝냈다면 `ticket archive`까지 마친 뒤 커밋하는 편이 좋습니다. archive는 티켓 파일 위치와 archive index를 함께 정리하므로, 중간에 손으로 옮기면 기록 흐름이 흐려집니다.
+- 여러 작업을 한 커밋에 섞지 말고, 가능하면 "코드 변경 + 해당 티켓 lifecycle 변경" 묶음으로 나눕니다.
+
+빠르게 확인할 때는 아래 정도를 습관처럼 보면 좋습니다.
+
+```bash
+git status --short
+git diff -- .deuk-agent/tickets/INDEX.json
+git diff -- .deuk-agent/tickets/INDEX.archive.*.json
+```
+
+티켓 관련 변경이 보일 때는 "이 변경이 CLI lifecycle의 결과인가?"를 먼저 확인하세요. 아니라면 손으로 고치기보다 `ticket status`, `ticket list`, `ticket archive` 같은 명령으로 상태를 다시 맞추는 편이 안전합니다.
+
 ---
 
 ## 3. 에이전트 프롬프트 가이드 (Agent Prompting)

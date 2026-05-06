@@ -63,7 +63,7 @@ export function compileDynamicRules(cwd, bundleRoot, targetFileName) {
  * Attempts to locate and parse the DeukContext config.yaml from the workspace root.
  */
 function resolveDeukContextConfig(cwd) {
-  // Go up directories until we find a sibling DeukAgentContext/DeukRag folder, or hit root
+  // Go up directories until we find a sibling DeukAgentContext folder, or hit root
   let current = resolve(cwd);
   while (current && current !== "/") {
     const candidates = [
