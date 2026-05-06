@@ -10,8 +10,8 @@ import { AGENT_ROOT_DIR } from "./cli-utils.mjs";
 const __dirname = dirname(fileURLToPath(import.meta.url));
 const pkgRoot = join(__dirname, "..");
 const repoRoot = join(pkgRoot, "..");
-// OSS moved to workspace/OSS/DeukAgentRulesOSS (sibling of monorepo root)
-const ossRoot = join(repoRoot, "..", "OSS", "DeukAgentRulesOSS");
+// OSS mirror lives under workspace/OSS/DeukAgentRulesOSS.
+const ossRoot = join(repoRoot, "OSS", "DeukAgentRulesOSS");
 const ossPublic = join(pkgRoot, "oss-public");
 
 /** Set DEUK_AGENT_RULES_OSS_REPO to override, e.g. https://github.com/you/DeukAgentRulesOSS */
@@ -88,9 +88,34 @@ export function syncOssTree() {
   if (existsSync(join(ossRoot, "TICKET_LIST.md"))) {
     unlinkSync(join(ossRoot, "TICKET_LIST.md"));
   }
+  for (const rel of [
+    ".aiassistant",
+    ".claude",
+    ".codex",
+    ".cursor",
+    ".github/workflows",
+    ".windsurf",
+    "AGENTS.md",
+    ".npmrc",
+    ".versionrc.cjs",
+    "changelog-templates",
+    "PROJECT_RULE.md",
+    "RELEASING.md",
+    "RELEASING.ko.md",
+    "GITHUB_DESCRIPTION.md",
+    "publish",
+    "scripts/sync-oss.mjs"
+  ]) {
+    const abs = join(ossRoot, rel);
+    if (existsSync(abs)) {
+      rmSync(abs, { recursive: true, force: true });
+    }
+  }
   cpSync(join(pkgRoot, "templates"), join(ossRoot, "templates"), { recursive: true, force: true });
-  if (existsSync(join(pkgRoot, ".github"))) {
-    cpSync(join(pkgRoot, ".github"), join(ossRoot, ".github"), { recursive: true, force: true });
+  const copilotInstructions = join(pkgRoot, ".github", "copilot-instructions.md");
+  if (existsSync(copilotInstructions)) {
+    mkdirSync(join(ossRoot, ".github"), { recursive: true });
+    cpSync(copilotInstructions, join(ossRoot, ".github", "copilot-instructions.md"), { force: true });
   }
   cpSync(join(pkgRoot, "scripts"), join(ossRoot, "scripts"), { recursive: true, force: true });
 
@@ -111,23 +136,6 @@ export function syncOssTree() {
   if (existsSync(join(pkgRoot, "LICENSE"))) {
     cpSync(join(pkgRoot, "LICENSE"), join(ossRoot, "LICENSE"), { force: true });
   }
-  if (existsSync(join(pkgRoot, ".npmrc"))) {
-    cpSync(join(pkgRoot, ".npmrc"), join(ossRoot, ".npmrc"), { force: true });
-  }
-  if (existsSync(join(pkgRoot, ".versionrc.cjs"))) {
-    cpSync(join(pkgRoot, ".versionrc.cjs"), join(ossRoot, ".versionrc.cjs"), { force: true });
-    stripOssVersionrcScripts(join(ossRoot, ".versionrc.cjs"));
-  }
-  const changelogTemplates = join(pkgRoot, "changelog-templates");
-  if (existsSync(changelogTemplates)) {
-    cpSync(changelogTemplates, join(ossRoot, "changelog-templates"), { recursive: true, force: true });
-  }
-  cpSync(join(ossPublic, "RELEASING.md"), join(ossRoot, "RELEASING.md"), { force: true });
-  cpSync(join(ossPublic, "RELEASING.ko.md"), join(ossRoot, "RELEASING.ko.md"), { force: true });
-  cpSync(join(ossPublic, "GITHUB_DESCRIPTION.md"), join(ossRoot, "GITHUB_DESCRIPTION.md"), {
-    force: true,
-  });
-
   const srcPkg = JSON.parse(readFileSync(join(pkgRoot, "package.json"), "utf8"));
   const outPkg = buildOssPackageJson(srcPkg);
 
@@ -136,6 +144,10 @@ export function syncOssTree() {
   const ossPolish = join(ossRoot, "scripts", "changelog-polish.mjs");
   if (existsSync(ossPolish)) {
     unlinkSync(ossPolish);
+  }
+  const ossSyncScript = join(ossRoot, "scripts", "sync-oss.mjs");
+  if (existsSync(ossSyncScript)) {
+    unlinkSync(ossSyncScript);
   }
 
   console.log("deuk-agent-rule: synced OSS tree at " + ossRoot);
