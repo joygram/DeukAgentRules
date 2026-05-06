@@ -4,6 +4,76 @@ All notable changes to this project will be documented in this file.
 
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/), and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [3.3.2] - 2026-05-06
+
+
+### Added
+
+-  AGENTS.md v12 + summary mandatory guard + PROJECT_RULE optimization
+- **cli:** add 'ticket next' command for instant task discovery (T[#295](https://github.com/joygram/DeukAgentRules/issues/295))
+- **cli:** enforce required frontmatter keys in lint:md (T-118)
+-  harden ticket paths and add DeukPack RAG schemas
+- **migration:** add summary/planLink/caution auto-enrichment for legacy tickets
+-  Phase 0 search limiter - max 2 MCP calls, skip when context sufficient
+-  replace legacy fill-in-the-blank rule check with Version Gating and Task Relevance check
+- **rules:** enforce hard guardrails, add hotfix protocol and urgency response
+- **rules:** harden document boundary workflow
+- **spoke:** add fill-in completion template for rule enforcement
+- **T-114:** 1-CALL ticket discovery rule + CLI max call limits
+- **T-115:** HARD BLOCK on write tools without active ticket
+- **T-116:** auto-close stale tickets on ticket create + Phase 4 NEVER skip
+- **T-116:** smart close based on checklist + phase state
+- **ticket:** enforce filled create flow and phase1 status guard
+- **ticket:** enforce open ticket cleanup flow
+- **ticket:** partition archive index by month
+
+
+### Fixed
+
+-  add Refactor Safety Guard and Halt-and-Replan hard rules
+-  agent degradation remediation — planLink, inline TDW, token optimization
+-  align ticket APC template with phase gate
+- **docs:** correct frontmatter keys in AGENTS.md (remove fm_ prefix)
+- **init:** deploy Antigravity spoke to project root AGENTS.md
+-  register legitimate DR-04/DR-05 exceptions and update PROJECT_RULE.md
+-  remove duplicate phase key in ticket template and repair broken tickets
+- **rules:** announce active ticket at start
+- **rules:** keep planlink free of progress checkboxes
+- **rules:** make planlink capture agent analysis
+- **rules:** separate ticket and plan content
+- **spoke:** GLOBAL_AGENTS.md link text to actual filename AGENTS.md
+-  SSOT — init removes .deuk-agent/templates/ unconditionally (bundle is single source of truth)
+- **T-116:** parallel-safe auto-close - only close activeTicketId, warn others
+- **T-116:** replace auto-close with activeTicketId switch + warning
+- **ticket:** honor project and submodule filters
+- **ticket:** Sync close/archive status to frontmatter to prevent rebuild reversion
+
+
+### Changed
+
+-  add Dependency Integrity Guard (HARD RULE) to AGENTS.md
+-  add lite accessibility vision plan
+-  add skill positioning release notes
+-  add version frontmatter to AGENTS.md for rule loading optimization
+-  align bad examples with plan/archive convention
+-  archive bmt coordination ticket 142
+-  archive bmt frontmatter cleanup ticket 144
+-  archive bmt go ticket 140
+-  archive bmt java ticket 139
+-  archive bmt matrix ticket 133
+-  archive bmt rust ticket 141
+-  bump AGENTS.md to v15 and strengthen dependency guards
+-  clarify ticket creation flow
+-  document rationale for docs/plan and fix section numbering
+-  Enforce strict rules for Scope Creep Handling
+-  enhance main features and workflow intro for v3.2.0
+-  optimize AGENTS.md — merge Dependency Integrity into Refactor Guard, compress Scope Creep
+-  position agent guardrail growth loop
+- **rules:** clarify phase one execution semantics
+- **rules:** mandate enrich_frontmatter for all plan/report files (T-118)
+- **spoke:** hard rule single directive
+-  update legacy path guidance to plan/archive layout
+
 ## [3.3.0] - 2026-05-02
 
 ### Added
