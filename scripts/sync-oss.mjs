@@ -13,6 +13,15 @@ const repoRoot = join(pkgRoot, "..");
 // OSS mirror lives under workspace/OSS/DeukAgentRulesOSS.
 const ossRoot = join(repoRoot, "OSS", "DeukAgentRulesOSS");
 const ossPublic = join(pkgRoot, "oss-public");
+const PUBLIC_DOCS = [
+  "architecture.md",
+  "architecture.ko.md",
+  "how-it-works.md",
+  "how-it-works.ko.md",
+  "principles.md",
+  "principles.ko.md",
+  "usage-guide.ko.md",
+];
 
 /** Set DEUK_AGENT_RULES_OSS_REPO to override, e.g. https://github.com/you/DeukAgentRulesOSS */
 const OSS_REPO =
@@ -49,6 +58,14 @@ export function buildOssPackageJson(srcPkg, baseUrl = base, gitRemoteUrl = gitUr
     files: [
       "LICENSE",
       "bin/**/*",
+      "docs/architecture.md",
+      "docs/architecture.ko.md",
+      "docs/how-it-works.md",
+      "docs/how-it-works.ko.md",
+      "docs/principles.md",
+      "docs/principles.ko.md",
+      "docs/usage-guide.ko.md",
+      "docs/assets/**/*",
       "templates/**/*",
       "scripts/cli.mjs",
       "scripts/cli-args.mjs",
@@ -116,6 +133,7 @@ export function syncOssTree() {
     ".npmrc",
     ".versionrc.cjs",
     "changelog-templates",
+    "docs",
     "PROJECT_RULE.md",
     "RELEASING.md",
     "RELEASING.ko.md",
@@ -129,6 +147,11 @@ export function syncOssTree() {
     }
   }
   cpSync(join(pkgRoot, "templates"), join(ossRoot, "templates"), { recursive: true, force: true });
+  mkdirSync(join(ossRoot, "docs"), { recursive: true });
+  for (const doc of PUBLIC_DOCS) {
+    cpSync(join(pkgRoot, "docs", doc), join(ossRoot, "docs", doc), { force: true });
+  }
+  cpSync(join(pkgRoot, "docs", "assets"), join(ossRoot, "docs", "assets"), { recursive: true, force: true });
   const copilotInstructions = join(pkgRoot, ".github", "copilot-instructions.md");
   if (existsSync(copilotInstructions)) {
     mkdirSync(join(ossRoot, ".github"), { recursive: true });
