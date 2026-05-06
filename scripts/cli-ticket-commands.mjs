@@ -660,39 +660,16 @@ function buildStrictCreateFailureMessage(reasons) {
   const lines = [
     "[VALIDATION FAILED] ticket create strict mode rejected incomplete Phase 1.",
     `Missing: ${uniqueReasons.join(", ")}`,
-    "",
-    "Required one-pass inputs:",
-    "  --summary \"<concrete request summary>\"",
-    "  --plan-body \"<filled Phase 1 markdown containing every required section below>\"",
-    "",
-    "Required --plan-body sections:",
-    "  # <title>",
-    "  ## Agent Permission Contract (APC)",
-    "  ### [BOUNDARY]",
-    "  ### [CONTRACT]",
-    "  ### [PATCH PLAN]",
-    "  ## Compact Plan",
-    "  ## Problem Analysis",
-    "  ## Source Observations",
-    "  ## Cause Hypotheses",
-    "  ## Improvement Direction",
-    "  ## Audit Evidence",
-    "",
-    "Copy/paste command shape:",
-    "  npx deuk-agent-rule ticket create --topic <topic> --summary \"<concrete summary>\" --plan-body \"$(cat <<'EOF'",
-    "  # <title>",
-    "  <filled Phase 1 markdown with all sections listed above>",
-    "  EOF",
-    "  )\" --non-interactive",
-    "",
+    "Fix: provide `--summary` and a filled `--plan-body` with APC, Compact Plan, Problem Analysis, Source Observations, Cause Hypotheses, Improvement Direction, and Audit Evidence.",
+    "Command: npx deuk-agent-rule ticket create --topic <topic> --summary \"<concrete summary>\" --plan-body \"<filled phase 1 markdown>\" --non-interactive",
     "Manual fallback is forbidden: do not write .deuk-agent/tickets/**/*.md directly after this failure."
   ];
 
   if (uniqueReasons.includes("summary_missing_or_placeholder")) {
-    lines.push("Summary fix: replace placeholder/TBD wording with a concrete --summary value.");
+    lines.push("Summary fix: replace placeholder/TBD wording with a concrete `--summary` value.");
   }
   if (uniqueReasons.includes("missing_apc_block") || uniqueReasons.some(reason => reason.startsWith("apc_"))) {
-    lines.push("APC fix: include ## Agent Permission Contract (APC) with [BOUNDARY], [CONTRACT], and [PATCH PLAN].");
+    lines.push("APC fix: include `## Agent Permission Contract (APC)` with `[BOUNDARY]`, `[CONTRACT]`, and `[PATCH PLAN]`.");
   }
   if (uniqueReasons.includes("compact_plan_placeholder_or_incomplete")) {
     lines.push("Compact Plan fix: replace scaffold text with concrete finding, direction, and verification lines.");
