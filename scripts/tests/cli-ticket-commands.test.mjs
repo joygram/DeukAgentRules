@@ -1883,8 +1883,9 @@ test("runTicketCreate auto-archives oldest open tickets when open ticket limit i
 
   const originalLog = console.log;
   const originalWarn = console.warn;
+  const warnings = [];
   console.log = () => {};
-  console.warn = () => {};
+  console.warn = (...args) => warnings.push(args.join(" "));
 
   try {
     await runTicketCreate({
@@ -1908,6 +1909,7 @@ test("runTicketCreate auto-archives oldest open tickets when open ticket limit i
     assert.ok(existsSync(join(cwd, ".deuk-agent/tickets/archive/sub/2026-04/01/001-old-open-host.md")));
     const subFiles = readdirSync(srcDir);
     assert.ok(subFiles.some(name => name.includes("new-overflow-ticket")));
+    assert.ok(warnings.some(line => line.includes("자동으로 티켓 정리를 진행하겠습니다.")));
   } finally {
     console.log = originalLog;
     console.warn = originalWarn;

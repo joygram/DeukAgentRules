@@ -1086,6 +1086,7 @@ function autoArchiveOpenLimitTickets(cwd, indexJson, opts = {}) {
   if (needed <= 0 || !ok) return [];
 
   const archived = [];
+  console.warn("[AUTO-CLEANUP] Open-ticket limit reached. 자동으로 티켓 정리를 진행하겠습니다.");
   for (const candidate of candidates.slice(0, needed)) {
     const result = archiveTicketEntry({ cwd, ticketDir, indexJson, found: candidate, opts, report: null });
     if (result?.id) {
