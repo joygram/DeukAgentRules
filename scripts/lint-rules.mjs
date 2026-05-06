@@ -19,6 +19,8 @@ const RULE_CHECKS = [
     test: (rules) => /Silent-by-default is mandatory/i.test(rules)
       && /Keep chat compact/i.test(rules)
       && /Final answers must be short but complete enough/i.test(rules)
+      && /짧게|매우 짧게|한 줄로|간단히/i.test(rules)
+      && /one-sentence or bullet-only/i.test(rules)
       && /avoid repeating them in chat/i.test(rules)
   },
   {

@@ -32,6 +32,40 @@ function makeEntry(overrides) {
   };
 }
 
+function minimalEvidencePhase1Plan(title = "dry-run validation ticket") {
+  return [
+    `# ${title}`,
+    "",
+    "## Agent Permission Contract (APC)",
+    "### [BOUNDARY]",
+    "- Change only ticket-create dry-run validation behavior.",
+    "### [CONTRACT]",
+    "- Dry-run must fail on the same lifecycle blockers as real creation.",
+    "### [PATCH PLAN]",
+    "- Validate generated content in memory and simulate the open-ticket count.",
+    "",
+    "## Compact Plan",
+    "- Finding: `runTicketCreate` dry-run can report success before real creation fails.",
+    "- Direction: reuse strict validation on in-memory content and check open-limit before success output.",
+    "- Verification: `node --test --test-name-pattern='dry-run' scripts/tests/cli-ticket-commands.test.mjs`.",
+    "",
+    "## Problem Analysis",
+    "- The preview path skipped blockers that the real create path enforces.",
+    "",
+    "## Source Observations",
+    "- `scripts/cli-ticket-commands.mjs` owns `runTicketCreate` and open-limit handling.",
+    "",
+    "## Cause Hypotheses",
+    "- Dry-run avoided file writes but also skipped the validation that depended on written files.",
+    "",
+    "## Improvement Direction",
+    "- Keep validation content-based so dry-run can check quality without writing files.",
+    "",
+    "## Audit Evidence",
+    "- `node --test scripts/tests/cli-ticket-commands.test.mjs` covers ticket create dry-run behavior."
+  ].join("\n");
+}
+
 function makeTicketWorkspace(entries) {
   const cwd = mkdtempSync(join(tmpdir(), "deuk-ticket-next-"));
   const ticketDir = join(cwd, ".deuk-agent", "tickets");
@@ -1888,6 +1922,76 @@ test("runTicketCreate blocks excess open tickets and asks user to choose archive
   }
 });
 
+test("runTicketCreate dry-run blocks excess open tickets before claiming success", async () => {
+  const { cwd, ticketDir } = makeTemplateWorkspace();
+  const srcDir = join(ticketDir, "sub");
+  mkdirSync(srcDir, { recursive: true });
+
+  const entries = [];
+  for (let i = 1; i <= 20; i++) {
+    const id = `${String(i).padStart(3, "0")}-dry-open-host`;
+    const fileName = `${id}.md`;
+    entries.push(makeEntry({
+      id,
+      title: `dry open ${i}`,
+      topic: id,
+      fileName,
+      createdAt: `2026-04-${String(i).padStart(2, "0")} 00:00:00`,
+      status: "open"
+    }));
+    writeFileSync(join(srcDir, fileName), [
+      "---",
+      `id: ${id}`,
+      `title: dry open ${i}`,
+      "phase: 1",
+      "status: open",
+      "summary: existing dry-run open ticket",
+      "priority: P2",
+      "tags: [test]",
+      "---",
+      `# dry open ${i}`,
+      ""
+    ].join("\n"), "utf8");
+  }
+  writeFileSync(join(ticketDir, TICKET_INDEX_FILENAME), JSON.stringify(makeIndex(entries), null, 2) + "\n", "utf8");
+  const beforeIndexText = readFileSync(join(ticketDir, TICKET_INDEX_FILENAME), "utf8");
+
+  const originalLog = console.log;
+  const originalWarn = console.warn;
+  const logs = [];
+  console.log = msg => logs.push(String(msg));
+  console.warn = () => {};
+
+  try {
+    await assert.rejects(
+      () => runTicketCreate({
+        cwd,
+        topic: "dry-overflow-ticket",
+        summary: "preview should fail before exceeding the open ticket limit",
+        planBody: minimalEvidencePhase1Plan("dry overflow ticket"),
+        nonInteractive: true,
+        docsLanguage: "en",
+        skipPhase0: true,
+        requireFilled: true,
+        dryRun: true
+      }),
+      err => {
+        assert.match(err.message, /Open tickets: 21\/20/);
+        assert.match(err.message, /ticket archive --topic <ticket-id> --non-interactive/);
+        return true;
+      }
+    );
+
+    assert.strictEqual(readFileSync(join(ticketDir, TICKET_INDEX_FILENAME), "utf8"), beforeIndexText);
+    assert.ok(!readdirSync(srcDir).some(name => name.includes("dry-overflow-ticket")));
+    assert.ok(!logs.some(line => line.includes("Ticket would be created:")));
+  } finally {
+    console.log = originalLog;
+    console.warn = originalWarn;
+    rmSync(cwd, { recursive: true, force: true });
+  }
+});
+
 test("runTicketCreate dry-run does not write ticket, plan, index, or active ticket frontmatter", async () => {
   const { cwd, ticketDir } = makeTemplateWorkspace();
   const srcDir = join(ticketDir, "sub");
@@ -1938,6 +2042,7 @@ test("runTicketCreate dry-run does not write ticket, plan, index, or active tick
       cwd,
       topic: "dry-run-ticket",
       summary: "preview ticket creation without writing any files",
+      planBody: minimalEvidencePhase1Plan("dry run ticket"),
       nonInteractive: true,
       docsLanguage: "en",
       skipPhase0: true,
@@ -1999,6 +2104,48 @@ test("runTicketCreate rolls back when strict create rejects placeholder summary"
       ? readdirSync(planDir).filter(name => name.endsWith(".md"))
       : [];
     assert.strictEqual(planFiles.length, 0);
+  } finally {
+    console.log = originalLog;
+    console.warn = originalWarn;
+    rmSync(cwd, { recursive: true, force: true });
+  }
+});
+
+test("runTicketCreate dry-run rejects incomplete strict Phase 1 before claiming success", async () => {
+  const { cwd, ticketDir } = makeTemplateWorkspace();
+  const srcDir = join(ticketDir, "sub");
+  mkdirSync(srcDir, { recursive: true });
+  const beforeIndexText = readFileSync(join(ticketDir, TICKET_INDEX_FILENAME), "utf8");
+
+  const originalLog = console.log;
+  const originalWarn = console.warn;
+  const logs = [];
+  console.log = msg => logs.push(String(msg));
+  console.warn = () => {};
+
+  try {
+    await assert.rejects(
+      () => runTicketCreate({
+        cwd,
+        topic: "dry-strict-incomplete-ticket",
+        summary: "validate dry-run strict incomplete Phase 1 rejection",
+        nonInteractive: true,
+        docsLanguage: "en",
+        skipPhase0: true,
+        requireFilled: true,
+        dryRun: true
+      }),
+      err => {
+        assert.match(err.message, /strict mode rejected incomplete Phase 1/);
+        assert.match(err.message, /compact_plan_placeholder_or_incomplete/);
+        assert.match(err.message, /Manual fallback is forbidden/);
+        return true;
+      }
+    );
+
+    assert.strictEqual(readFileSync(join(ticketDir, TICKET_INDEX_FILENAME), "utf8"), beforeIndexText);
+    assert.ok(!readdirSync(srcDir).some(name => name.includes("dry-strict-incomplete-ticket")));
+    assert.ok(!logs.some(line => line.includes("Ticket would be created:")));
   } finally {
     console.log = originalLog;
     console.warn = originalWarn;

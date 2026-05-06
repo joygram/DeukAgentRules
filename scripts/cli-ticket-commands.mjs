@@ -123,6 +123,7 @@ function looksLikeInvestigationTicket(summary, title, topic) {
 
 const DURABLE_EVIDENCE_SECTION_NAMES = [
   "Source Observations",
+  "Audit Evidence",
   "Audit Findings",
   "Findings",
   "Verification Outcome"
@@ -632,9 +633,7 @@ function rollbackTicketLifecycleArtifacts(cwd, previousIndex, previousBody, absP
   }
 }
 
-function getPhase1IncompleteReasons(cwd, absPath) {
-  if (!existsSync(absPath)) return ["ticket_file_missing"];
-  const body = readFileSync(absPath, "utf8");
+function getPhase1IncompleteReasonsFromBody(body) {
   const { meta, content } = parseFrontMatter(body);
   const phase = Number(meta.phase || 1);
   if (phase !== 1) return [];
@@ -649,6 +648,11 @@ function getPhase1IncompleteReasons(cwd, absPath) {
   reasons.push(...getAnalysisDesignIncompleteReasons(meta, content));
   reasons.push(...getMainTicketEvidenceReasons(meta, content));
   return [...new Set(reasons)];
+}
+
+function getPhase1IncompleteReasons(cwd, absPath) {
+  if (!existsSync(absPath)) return ["ticket_file_missing"];
+  return getPhase1IncompleteReasonsFromBody(readFileSync(absPath, "utf8"));
 }
 
 function buildStrictCreateFailureMessage(reasons) {
@@ -1239,8 +1243,10 @@ export async function runTicketCreate(opts) {
     source = "ticket-create";
 
     try {
-      if (strictCreate && !opts.dryRun) {
-        const reasons = getPhase1IncompleteReasons(opts.cwd, abs);
+      if (strictCreate) {
+        const reasons = opts.dryRun
+          ? getPhase1IncompleteReasonsFromBody(finalContent)
+          : getPhase1IncompleteReasons(opts.cwd, abs);
         if (reasons.length > 0) {
           throw new Error(buildStrictCreateFailureMessage(reasons));
         }
@@ -1248,6 +1254,30 @@ export async function runTicketCreate(opts) {
 
       if (!opts.dryRun) {
         lintTicketLifecycleMarkdown(opts.cwd, lifecycleTargets, `ticket create ${ticketId}`);
+      }
+
+      if (opts.dryRun) {
+        const simulatedIndexJson = {
+          ...indexJson,
+          entries: [
+            ...(indexJson.entries || []),
+            {
+              id: ticketId,
+              title,
+              topic,
+              group,
+              project: opts.project || "global",
+              createdAt: new Date().toISOString(),
+              path,
+              source,
+              status: "open"
+            }
+          ]
+        };
+        const limitError = buildOpenTicketLimitError(simulatedIndexJson);
+        if (limitError) {
+          throw new Error(limitError);
+        }
       }
 
       appendTicketEntry(opts.cwd, {

@@ -43,6 +43,9 @@ changelog: "v45: Remove file-plan ticket input; enforce one-word non-final chatt
 - After selecting or creating the active ticket, print one concise ticket-start line and stop if approval is pending.
 - Keep chat compact; do not mirror ticket prose in screen output.
 - Final answers must be short but complete enough to answer the user.
+- If the user asks for `짧게`, `매우 짧게`, `한 줄로`, or `간단히`, prioritize a one-sentence or bullet-only answer and omit background unless the user asks for it or a blocker requires it.
+- Do not expand a short answer into explanation, examples, or rationale unless the user explicitly requests more detail.
+- Before drafting a user-facing reply, re-open the active ticket and this Output Mode section if the user asked for brevity or if substantial tool work changed the state.
 - If the ticket already carries the durable record, put progress and wrap-up details in the ticket and avoid repeating them in chat.
 - Prefer targeted reads and the shortest valid path that still preserves boot, phase contracts, verification, and close.
 
