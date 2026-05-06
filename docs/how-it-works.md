@@ -44,7 +44,7 @@ Running `deuk-agent-rule init` triggers the following lifecycle:
 
 ## 5. Strict Phase-Driven Workflow (TDW)
 
-1. **Issue Ticket (Phase 1)**: `ticket create` or an existing ticket defines the target scope. Use `--plan-body` to place a filled Phase 1 body directly inside the ticket. If `ticket next` finds no active/open ticket, inspect recent git history before creating a follow-up ticket.
+1. **Issue Ticket (Phase 1)**: `ticket create` or an existing ticket defines the target scope. Use `--summary` plus `--plan-body` to place a filled Phase 1 body directly inside the ticket, and prefer `--require-filled` when you want placeholder tickets to fail fast instead of looping. If `ticket next` finds no active/open ticket, inspect recent git history before creating a follow-up ticket.
 2. **APC and Main Ticket Record**: Before modifying code, the agent fills the APC (Agent Permission Contract) blocks `[BOUNDARY]`, `[CONTRACT]`, and `[PATCH PLAN]` inside the main ticket. The main ticket owns scope, contract, lifecycle checks, execution planning, and verification outcomes. Never move execution logs, command transcripts, completion summaries, or verification results into planning prose.
 3. **Review Gate**: Issue/regression reports stop after Phase 1. The user reviews the ticket plan before execution; wording such as "fix" or "resolve" in the original issue is not approval to skip review.
 4. **Phase Transition**: After the Phase 1 plan is reviewable and the user approves execution, run `ticket move` to transition to Phase 2 (Execute).

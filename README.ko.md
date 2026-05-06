@@ -18,6 +18,9 @@
 
 **Hub-Spoke 아키텍처**와 **티켓 기반 실행 모델**을 통해 협업을 표준화함으로써, 컨텍스트 환각을 제거하고 토큰 소비를 획기적으로 줄이며, 거대 모노레포 환경에서도 엄격한 엔지니어링 표준을 강제합니다.
 
+> **현재 배포 기준:**
+> 이 버전은 에이전트 기반 리포지토리에 배포해 사용할 수 있는 상태입니다. 현재는 **OpenAI Codex**와 **GitHub Copilot** 환경에서 가장 안정적으로 동작합니다. Cursor, Windsurf, MCP도 포인터 구조로 지원하지만, 워크스페이스별로 먼저 검증하는 것을 권장합니다.
+
 > **🚀 3.2 주요 업데이트:**
 > 다양한 AI 환경(Copilot, Cursor, Windsurf, MCP)에서 엄격한 에이전트 권한 계약(APC)을 강제하기 위한 **플랫폼 공존 프로토콜(Platform Co-existence Protocol)**과 **모드 인지형(Mode-Aware) Workflow Gate**를 도입했습니다.
 
@@ -96,6 +99,8 @@ sudo npm link
 deuk-agent-rule init  # 자동으로 로컬 scripts/cli.mjs로 라우팅됨
 \`\`\`
 
+Codex나 Copilot을 주로 사용한다면 이 구성이 일상 운영에 가장 적합합니다. 현재는 이 두 환경에서 Hub-Spoke와 티켓 기반 워크플로우가 가장 부드럽게 동작합니다.
+
 ---
 
 ## 🎯 프로토콜 워크플로우
@@ -117,7 +122,7 @@ deuk-agent-rule init  # 자동으로 로컬 scripts/cli.mjs로 라우팅됨
 | 명령어 | 설명 / 프롬프트 예시 |
 |--------|------|
 | \`deuk-agent-rule init\` | 규칙 허브와 스포크 포인터를 동기화합니다. <br>💬 *"프로젝트 규칙 초기화해줘"* |
-| \`deuk-agent-rule ticket create\` | 새로운 실행 계약(티켓)을 발행합니다. <br>💬 *"refactor-ui 티켓 만들어줘"* |
+| \`deuk-agent-rule ticket create\` | 새로운 실행 계약(티켓)을 발행합니다. `--summary`와 `--plan-body`를 함께 넣어 1회 생성으로 Phase 1을 끝내는 것을 권장합니다. <br>💬 *"refactor-ui 티켓을 APC까지 채워서 만들어줘"* |
 | \`deuk-agent-rule ticket list\` | 활성화된 작업 지시서를 표시합니다. <br>💬 *"활성 티켓 목록 보여줘"* |
 | \`deuk-agent-rule ticket archive\` | 완료된 작업을 안전하게 보관합니다. <br>💬 *"068번 티켓 아카이브해줘"* |
 | \`deuk-agent-rule skill list\` | `safe-refactor`, `generated-file-guard`, `context-recall` 같은 first-party 얇은 skill을 보여줍니다. |

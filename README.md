@@ -18,6 +18,9 @@
 
 By standardizing collaboration via the **Hub-Spoke Architecture** and a **Ticket-Driven Execution Model**, it eliminates context hallucination, reduces token consumption, and enforces rigorous engineering standards across monolithic and multi-module repositories.
 
+> **Current readiness:**
+> This release is deployment-ready for agent-driven repositories. It is currently most reliable in **OpenAI Codex** and **GitHub Copilot** workflows. Cursor, Windsurf, and MCP remain supported through pointer-style integration, but they should be validated per workspace before rollout.
+
 > **🚀 3.2 Major Update:**
 > Introduced **Platform Co-existence Protocol** and **Mode-Aware Workflow Gate** to enforce strict Agent Permission Contracts (APC) across different AI environments (Copilot, Cursor, Windsurf, MCP).
 
@@ -79,6 +82,8 @@ sudo npm link
 deuk-agent-rule init  # Routes to local scripts/cli.mjs automatically
 ```
 
+If you primarily work in Codex or Copilot, this is the recommended day-to-day setup. Those clients currently have the smoothest behavior with the hub-spoke and ticket-driven workflow.
+
 ---
 
 ## 🎯 The Protocol Workflow
@@ -100,7 +105,7 @@ Delegate these to your AI agent via natural language prompts!
 | Command | Description / Example Prompt |
 |--------|------|
 | `deuk-agent-rule init` | Synchronizes the rule Hub and Spoke pointers. <br>💬 *"Initialize project rules"* |
-| `deuk-agent-rule ticket create` | Issues a new execution contract. <br>💬 *"Create ticket: refactor-ui"* |
+| `deuk-agent-rule ticket create` | Issues a new execution contract. Use `--summary` plus `--plan-body` for a one-pass Phase 1 ticket. <br>💬 *"Create ticket: refactor-ui with filled APC"* |
 | `deuk-agent-rule ticket list` | Displays active work orders. <br>💬 *"Show active tickets"* |
 | `deuk-agent-rule ticket archive` | Securely stores completed work. <br>💬 *"Archive ticket 068"* |
 | `deuk-agent-rule skill list` | Shows first-party thin skills such as `safe-refactor`, `generated-file-guard`, and `context-recall`. |

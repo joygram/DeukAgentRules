@@ -40,6 +40,43 @@ deuk-agent-rule ticket create --topic user-auth-impl --evidence "기존 auth 로
 ```
 이미 작성된 Phase 1 본문이 있다면 `--plan-body` 옵션으로 티켓 내부에 바로 넣을 수도 있습니다.
 
+반복 생성과 자리표시자만 남는 루프를 막으려면, 아래처럼 **한 번에 끝나는 형태**를 기본으로 쓰는 편이 좋습니다.
+
+```bash
+npx deuk-agent-rule ticket create \
+  --topic user-auth-impl \
+  --summary "기존 auth 로직과 충돌하지 않는 신규 인증 흐름 정리" \
+  --plan-body "$(cat <<'EOF'
+# User auth implementation
+## Agent Permission Contract (APC)
+### [BOUNDARY]
+- ...
+### [CONTRACT]
+- ...
+### [PATCH PLAN]
+- ...
+## Compact Plan
+- Finding: ...
+- Approach: ...
+- Verification: ...
+## Problem Analysis
+- ...
+## Source Observations
+- ...
+## Cause Hypotheses
+- ...
+## Improvement Direction
+- ...
+## Audit Evidence
+- ...
+EOF
+)" \
+  --require-filled \
+  --non-interactive
+```
+
+`--require-filled`를 붙이면 APC와 compact plan이 비어 있을 때 생성이 실패하므로, 에이전트가 placeholder를 고치느라 여러 번 반복하는 상황을 줄일 수 있습니다.
+
 기존 작업을 이어받으려는데 `ticket next`가 진행 가능한 티켓을 찾지 못하면, 에이전트는 새 티켓을 즉시 만들지 않고 최근 git history를 먼저 분석해 실제 후속 작업 후보를 복원합니다. 새 티켓은 그 분석 근거를 메인 티켓의 compact plan에 기록한 뒤 생성합니다.
 
 ### 2단계: APC(Agent Permission Contract) 기록
