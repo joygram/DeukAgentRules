@@ -8,7 +8,7 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 
 ### Fixed
 
-- **init/ticket:** restore the intended month-only archive policy by normalizing legacy `archive/sub/YYYY-MM/DD/...` tickets into `archive/sub/YYYY-MM/...`, rebuilding archive shard indexes without `archiveDay`, and preventing new day-depth imports during `init`.
+- **init/ticket:** restore the intended month-only archive policy by normalizing older deep archive layouts into the canonical month bucket layout, rebuilding archive shard indexes without obsolete archive-depth metadata, and preventing new non-canonical imports during `init`.
 
 ## [3.3.3] - 2026-05-06
 
@@ -104,7 +104,7 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 ### Changed
 
 - **ticket:** enforce a decision-first cleanup flow when open tickets exceed the configured limit, while allowing closed tickets to be archived automatically.
-- **ticket:** organize archived tickets by year-month and day to reduce active ticket repository clutter.
+- **ticket:** organize archived tickets by year-month buckets to reduce active ticket repository clutter.
 - **docs:** update README document indexes and GitHub topic guidance to emphasize the agent guardrail, instruction hub, skill registry, and project memory positioning.
 
 ### Fixed
