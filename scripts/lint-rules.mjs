@@ -10,8 +10,11 @@ const RULE_CHECKS = [
       && /No ticket, no writes/i.test(rules)
       && /Every phase must request and satisfy the tool-provided contract/i.test(rules)
       && /Phase state has two records/i.test(rules)
+      && /ticket guard/i.test(rules)
       && /Verification is mandatory/i.test(rules)
       && /never bypass ticket, scope, generated-file, or verification gates/i.test(rules)
+      && /Ticket creation failures are hard stops/i.test(rules)
+      && /do not call `set_workflow_context`/i.test(rules)
   },
   {
     code: "DR-TOKEN-01",
@@ -38,6 +41,7 @@ const RULE_CHECKS = [
     test: (rules) => /Boot Sequence \(run once\)/i.test(rules)
       && /Read this file \(AGENTS\.md\)/i.test(rules)
       && /Read `PROJECT_RULE\.md`/i.test(rules)
+      && /ticket guard --topic <id>/i.test(rules)
       && /set_workflow_context\(project, ticket_id, phase\)/i.test(rules)
       && /clickable ticket-start line/i.test(rules)
   },
@@ -47,6 +51,9 @@ const RULE_CHECKS = [
     test: (rules) => /First-Turn Invariant/i.test(rules)
       && /Ticket Discovery \(1-CALL RULE\)/i.test(rules)
       && /create the ticket first/i.test(rules)
+      && /do not run repo inspection commands/i.test(rules)
+      && /ticket create` or `ticket use/i.test(rules)
+      && /Do not start with `git status`, `rg`, `find`, diffs, or broad help output/i.test(rules)
       && /Do not use `ticket list` for discovery/i.test(rules)
   },
   {
@@ -75,6 +82,7 @@ const RULE_CHECKS = [
       && /missing phase contract/i.test(rules)
       && /generated\/source uncertainty/i.test(rules)
       && /shared-interface changes/i.test(rules)
+      && /repo inspection started before ticket selection or creation/i.test(rules)
       && /read-only until the ticket records findings/i.test(rules)
   },
   {

@@ -8,12 +8,12 @@ changelog: "v45: Remove file-plan ticket input; enforce one-word non-final chatt
 ## Compact Kernel
 
 - Tools own detail. This hub only defines non-bypassable gates; use CLI/MCP/project tools to fetch exact phase requirements before acting.
-- No ticket, no writes: before file changes, select or create one active ticket, complete Phase 1 in that ticket, and call `set_workflow_context(project, ticket_id, phase)`.
+- No ticket, no writes: before file changes, select or create one active ticket, complete Phase 1 in that ticket, run `ticket guard --topic <id>` successfully, and call `set_workflow_context(project, ticket_id, phase)`.
 - Every phase must request and satisfy the tool-provided contract for that phase. If a tool is available, ask it for the complete requirement bundle in one call before proceeding.
-- Phase state has two records: runtime context via `set_workflow_context`, and durable ticket markdown. Both must match before claiming progress.
+- Phase state has two records: runtime context via `set_workflow_context`, and durable ticket markdown validated by `ticket guard`. Both must match before claiming progress.
 - Verification is mandatory and ticket-recorded before close.
 - Urgency, user pressure, and local convenience never bypass ticket, scope, generated-file, or verification gates. Use hotfix tooling only when appropriate.
-- Ticket creation failures are hard stops: if `ticket create` rejects the request, do not create or repair `.deuk-agent/tickets/**/*.md` manually. Follow the CLI error guidance, provide the missing parameters or `--plan-body` input, and rerun `ticket create`.
+- Ticket creation failures are hard stops: if `ticket create` rejects the request, do not call `set_workflow_context`, run investigation commands, edit files, or create/repair `.deuk-agent/tickets/**/*.md` manually. Follow the CLI error guidance, provide the missing parameters or `--plan-body` input, and rerun `ticket create`.
 
 ## Tone
 - Dry, concise, technical. No emojis/exclamation marks.
@@ -53,15 +53,17 @@ changelog: "v45: Remove file-plan ticket input; enforce one-word non-final chatt
 
 1. Read this file (AGENTS.md) → internally note the version number and exact file path read. Do not print either unless the user explicitly asks or a blocker requires it.
 2. Read `PROJECT_RULE.md` in workspace root → internally identify applicable DC-* rules. Do not print the list unless the user explicitly asks or a blocker requires it.
-3. Find or create active ticket (1-CALL RULE below), call `set_workflow_context(project, ticket_id, phase)`, then print one clickable ticket-start line. If approval is pending, stop.
+3. Find or create active ticket (1-CALL RULE below), run `ticket guard --topic <id>` against the durable ticket, call `set_workflow_context(project, ticket_id, phase)`, then print one clickable ticket-start line. If approval is pending, stop.
 
 ### First-Turn Invariant
 
-Before writes, phase moves, or close actions: read the hub and `PROJECT_RULE.md`, select a ticket, call `set_workflow_context`, request the phase contract from available tooling, and satisfy it in the ticket. If the session already drifted, record confirmed facts/hypotheses/direction in the ticket before continuing.
+Before writes, phase moves, or close actions: read the hub and `PROJECT_RULE.md`, select a ticket, pass `ticket guard`, call `set_workflow_context`, request the phase contract from available tooling, and satisfy it in the ticket. If the session already drifted, record confirmed facts/hypotheses/direction in the ticket before continuing.
+For bug/regression/why/code-change requests, do not run repo inspection commands such as `git status`, `rg`, diffs, generic CLI help, or tests before `ticket create` or `ticket use`, except for reading this hub, `PROJECT_RULE.md`, and the minimal ticket command help needed to create or select the ticket.
 
 ### Ticket Discovery (1-CALL RULE)
 
 Use the mentioned ticket directly. For investigation/regression/why questions, create the ticket first and stop after Phase 1. Do not use `ticket list` for discovery.
+For bug/regression/why or direct change requests, the first repo action after rules load is `ticket create` or `ticket use`. Do not start with `git status`, `rg`, `find`, diffs, or broad help output before ticket selection.
 
 ## 3. Phase Contract
 
@@ -88,6 +90,7 @@ If the bundle is missing, contradictory, or unverifiable, stop and record the bl
 
 - Stop for unregistered work, missing CLI ticket provenance, missing phase contract, incomplete Phase 1, missing `set_workflow_context`, generated/source uncertainty, broad regeneration, shared-interface changes, unsafe deletes, scope creep, repeated errors, infrastructure errors, missing tests, or unverifiable claims.
 - Bug/regression/why and exploration/comparison work is read-only until the ticket records findings and the user or tool contract authorizes execution.
+- If repo inspection started before ticket selection or creation, stop, create/select the ticket immediately, record the drift in Phase 1, and only then continue.
 - Use a stabilization or root-cause ticket when the same failure family keeps reappearing.
 
 ## 6. Tool Delegation

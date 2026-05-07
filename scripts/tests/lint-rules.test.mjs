@@ -15,3 +15,12 @@ test("rules audit includes explicit short-answer override for direct user reques
   assert.match(rulesText, /짧게|매우 짧게|한 줄로|간단히/i);
   assert.match(rulesText, /one-sentence or bullet-only/i);
 });
+
+test("rules audit keeps ticket creation ahead of repo inspection for bug and regression work", () => {
+  const result = auditRules(process.cwd());
+  assert.ok(result.ok, result.violations.map((v) => `${v.code}:${v.message}`).join(", "));
+  const rulesText = result.path ? String(readFileSync(result.path, "utf8")) : "";
+  assert.match(rulesText, /do not run repo inspection commands/i);
+  assert.match(rulesText, /ticket create` or `ticket use/i);
+  assert.match(rulesText, /Do not start with `git status`, `rg`, `find`, diffs, or broad help output/i);
+});

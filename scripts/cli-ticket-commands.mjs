@@ -718,6 +718,7 @@ function buildStrictCreateFailureMessage(reasons) {
   const lines = [
     "[VALIDATION FAILED] ticket create strict mode rejected incomplete Phase 1.",
     `Missing: ${uniqueReasons.join(", ")}`,
+    "TDW hard stop: do not call set_workflow_context, run investigation commands, or edit files until ticket create succeeds.",
     "Fix: provide `--summary` and a filled `--plan-body` with APC, Compact Plan, Problem Analysis, Source Observations, Cause Hypotheses, Improvement Direction, and Audit Evidence.",
     "Command: npx deuk-agent-flow ticket create --topic <topic> --summary \"<concrete summary>\" --plan-body \"<filled phase 1 markdown>\" --non-interactive",
     "Manual fallback is forbidden: do not write .deuk-agent/tickets/**/*.md directly after this failure."
@@ -1497,6 +1498,49 @@ export async function runTicketStatus(opts) {
     else console.log(`Reasons: ${out.reasons.join(", ")}`);
   }
   printUsageReminder(opts.cwd);
+}
+
+export async function runTicketGuard(opts) {
+  applyTicketContext(opts);
+  if (!opts.topic && !opts.latest) {
+    throw new Error("ticket guard: --topic or --latest is required before set_workflow_context.");
+  }
+
+  const index = rebuildTicketIndexFromTopicFilesIfNeeded(opts.cwd, { ...opts, force: false });
+  const found = pickTicketEntry(opts, index);
+  if (!found) {
+    throw new Error("ticket guard: no matching durable ticket found; do not call set_workflow_context.");
+  }
+
+  const absPath = join(opts.cwd, found.path);
+  if (!existsSync(absPath)) {
+    throw new Error(`ticket guard: durable ticket file missing for ${found.id || found.topic}; do not call set_workflow_context.`);
+  }
+
+  const body = readFileSync(absPath, "utf8");
+  const parsed = parseFrontMatter(body);
+  assertTicketLifecycleProvenance(found, parsed.meta);
+
+  const phase = Number(parsed.meta.phase || 1);
+  const reasons = getPhase1IncompleteReasons(opts.cwd, absPath);
+  if (phase === 1 && reasons.length > 0) {
+    throw new Error(`[VALIDATION FAILED] ticket guard rejected incomplete Phase 1 for ${found.id || found.topic}: ${reasons.join(", ")}. Do not call set_workflow_context until the durable ticket is complete.`);
+  }
+
+  const out = {
+    id: found.id,
+    topic: found.topic,
+    phase,
+    status: parsed.meta.status || found.status || "open",
+    path: found.path
+  };
+
+  if (opts.json) {
+    console.log(JSON.stringify(out, null, 2));
+  } else {
+    console.log(`ticket-context-ok ${out.id} | phase=${out.phase} | status=${out.status} | ${out.path}`);
+  }
+  return out;
 }
 
 export async function runTicketHandoff(opts) {

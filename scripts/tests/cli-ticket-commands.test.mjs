@@ -4,7 +4,7 @@ import { spawnSync } from "node:child_process";
 import { existsSync, mkdtempSync, mkdirSync, readFileSync, readdirSync, rmSync, writeFileSync } from "node:fs";
 import { tmpdir } from "node:os";
 import { join } from "node:path";
-import { getImplementationClaimGuardResult, pickTicketEntry, runTicketArchive, runTicketCreate, runTicketClose, runTicketMove, runTicketNext, runTicketStatus, runTicketUse, runTicketHandoff, runTicketEvidenceCheck, runTicketEvidenceReport } from "../cli-ticket-commands.mjs";
+import { getImplementationClaimGuardResult, pickTicketEntry, runTicketArchive, runTicketCreate, runTicketClose, runTicketMove, runTicketNext, runTicketStatus, runTicketGuard, runTicketUse, runTicketHandoff, runTicketEvidenceCheck, runTicketEvidenceReport } from "../cli-ticket-commands.mjs";
 import { readTicketIndexJson } from "../cli-ticket-index.mjs";
 import { lintMarkdownPaths } from "../lint-md.mjs";
 import { TICKET_INDEX_FILENAME } from "../cli-utils.mjs";
@@ -1646,8 +1646,11 @@ test("runTicketMove auto-runs rules audit for changed rule files", async () => {
     "No ticket, no writes.",
     "Every phase must request and satisfy the tool-provided contract.",
     "Phase state has two records.",
+    "ticket guard",
     "Verification is mandatory.",
     "never bypass ticket, scope, generated-file, or verification gates",
+    "Ticket creation failures are hard stops",
+    "do not call `set_workflow_context`",
     "",
     "## 0. Priority",
     "Global DeukAgentFlow pointer",
@@ -1658,12 +1661,16 @@ test("runTicketMove auto-runs rules audit for changed rule files", async () => {
     "## Boot Sequence (run once)",
     "Read this file (AGENTS.md)",
     "Read `PROJECT_RULE.md`",
+    "ticket guard --topic <id>",
     "set_workflow_context(project, ticket_id, phase)",
     "clickable ticket-start line",
     "",
     "## First-Turn Invariant",
+    "do not run repo inspection commands",
+    "ticket create` or `ticket use",
     "## Ticket Discovery (1-CALL RULE)",
     "create the ticket first",
+    "Do not start with `git status`, `rg`, `find`, diffs, or broad help output",
     "Do not use `ticket list` for discovery",
     "",
     "## Phase Contract",
@@ -1683,6 +1690,7 @@ test("runTicketMove auto-runs rules audit for changed rule files", async () => {
     "missing phase contract",
     "generated/source uncertainty",
     "shared-interface changes",
+    "repo inspection started before ticket selection or creation",
     "read-only until the ticket records findings",
     "missing tests",
     "stabilization or root-cause ticket",
@@ -2689,6 +2697,57 @@ test("runTicketStatus rejects manually written execution ticket without CLI prov
       }
     );
   } finally {
+    rmSync(cwd, { recursive: true, force: true });
+  }
+});
+
+test("runTicketGuard rejects missing durable ticket before workflow context", async () => {
+  const { cwd } = makeTicketWorkspace([]);
+
+  try {
+    await assert.rejects(
+      () => runTicketGuard({ cwd, topic: "missing-ticket", nonInteractive: true }),
+      err => {
+        assert.match(err.message, /no matching durable ticket found/);
+        assert.match(err.message, /do not call set_workflow_context/);
+        return true;
+      }
+    );
+  } finally {
+    rmSync(cwd, { recursive: true, force: true });
+  }
+});
+
+test("runTicketGuard accepts only complete CLI-created Phase 1 tickets", async () => {
+  const { cwd } = makeTicketWorkspace([]);
+  const originalLog = console.log;
+  const originalWarn = console.warn;
+  const lines = [];
+  console.log = value => { lines.push(String(value)); };
+  console.warn = () => {};
+
+  try {
+    await runTicketCreate({
+      cwd,
+      topic: "guard-complete-ticket",
+      summary: "guard validates durable ticket before workflow context",
+      planBody: minimalEvidencePhase1Plan("guard complete ticket"),
+      nonInteractive: true,
+      docsLanguage: "en",
+      skipPhase0: true,
+      requireFilled: true
+    });
+
+    lines.length = 0;
+    const out = await runTicketGuard({ cwd, topic: "guard-complete-ticket", nonInteractive: true });
+
+    assert.match(out.id, /^001-guard-complete-ticket-/);
+    assert.strictEqual(out.phase, 1);
+    assert.strictEqual(lines.length, 1);
+    assert.match(lines[0], /^ticket-context-ok 001-guard-complete-ticket-/);
+  } finally {
+    console.log = originalLog;
+    console.warn = originalWarn;
     rmSync(cwd, { recursive: true, force: true });
   }
 });

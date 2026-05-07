@@ -4,7 +4,7 @@ import { dirname, join } from "path";
 import { fileURLToPath } from "url";
 import { parseArgs, parseTicketArgs, parseSkillArgs, parseTelemetryArgs, parseUsageArgs } from "./cli-args.mjs";
 import { runInit, runMerge } from "./cli-init-commands.mjs";
-import { runTicketCreate, runTicketList, runTicketUse, runTicketClose, runTicketArchive, runTicketReports, runTicketMeta, runTicketConnect, runTicketRebuild, runTicketReportAttach, runTicketMove, runTicketNext, runTicketHotfix, runTicketStatus, runTicketHandoff, runTicketEvidenceCheck, runTicketEvidenceReport } from "./cli-ticket-commands.mjs";
+import { runTicketCreate, runTicketList, runTicketUse, runTicketClose, runTicketArchive, runTicketReports, runTicketMeta, runTicketConnect, runTicketRebuild, runTicketReportAttach, runTicketMove, runTicketNext, runTicketHotfix, runTicketStatus, runTicketGuard, runTicketHandoff, runTicketEvidenceCheck, runTicketEvidenceReport } from "./cli-ticket-commands.mjs";
 import { runTelemetry } from "./cli-telemetry-commands.mjs";
 import { runUsage } from "./cli-usage-commands.mjs";
 import { performUpgradeMigration } from "./cli-ticket-migration.mjs";
@@ -42,6 +42,7 @@ async function main() {
     else if (action === "move" || action === "step") await runTicketMove(opts);
     else if (action === "hotfix") await runTicketHotfix(opts);
     else if (action === "status") await runTicketStatus(opts);
+    else if (action === "guard" || action === "context") await runTicketGuard(opts);
     else if (action === "handoff" || action === "continue") await runTicketHandoff(opts);
     else if (action === "report") {
       const subAction = rest[1];
@@ -171,7 +172,7 @@ Usage:
   npx deuk-agent-flow lint:md [--cwd <path>] [files...]
   npx deuk-agent-flow rules audit [--compact|--json]
   npx deuk-agent-flow skill <list|add|expose|lint> [options]
-  npx deuk-agent-flow ticket <create|evidence|list|status|handoff|continue|use|close|archive|reports|migrate|upgrade|meta|connect|move> [options]
+  npx deuk-agent-flow ticket <create|evidence|list|status|guard|context|handoff|continue|use|close|archive|reports|migrate|upgrade|meta|connect|move> [options]
   npx deuk-agent-flow telemetry <log|sync|summary|migrate> [options]
   npx deuk-agent-flow usage <set|status|advise> [options]
 
