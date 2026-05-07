@@ -1,6 +1,6 @@
 ---
-version: 50
-changelog: "v50: Make compact durable reinforcement and report text the only persisted guidance."
+version: 51
+changelog: "v51: Add test-ticket approval and unapproved ticket discard policy."
 ---
 
 # Agent Rules
@@ -13,6 +13,8 @@ changelog: "v50: Make compact durable reinforcement and report text the only per
 - User approval or correction creates another ticket update loop: record the approval/correction in the ticket, re-check scope and plan, then continue only through `deuk-agent-flow ticket guard --ticket-started --ticket-reviewed --approval approved`.
 - Approval is mandatory for every ticket. A ticket may not progress without explicit user approval, regardless of urgency or convenience.
 - Approval review must treat `rank/priority` as a hard gate. If `rank/priority` is missing, the ticket is incomplete and approval must be withheld.
+- Do not create or expand tests unless the user explicitly asks for tests. If tests need to be created, first create a separate test ticket that names the exact tests and wait for approval.
+- Unapproved Phase 1 tickets must be discarded with `deuk-agent-flow ticket discard`; do not leave abandoned pending tickets as active work.
 - Reinforcement only counts when it is written into the durable ticket body or this core rules file. Chat reminders are advisory only and do not change state.
 - If the user asks for reinforcement or report simplification, write the shortest durable version into the ticket or core rules. Do not depend on chat repetition.
 - Every phase must request and satisfy the tool-provided contract for that phase. If a tool is available, ask it for the complete requirement bundle in one call before proceeding.

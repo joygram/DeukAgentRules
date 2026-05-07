@@ -489,6 +489,12 @@ export function detectConsumerTicketDir(startDir, opts = {}) {
   return opts.createIfMissing ? resolveTicketSystemPaths(startDir).primary : null;
 }
 
+export function resolveConsumerTicketRoot(startDir, opts = {}) {
+  const ticketDir = detectConsumerTicketDir(startDir, opts);
+  if (!ticketDir) return null;
+  return dirname(dirname(ticketDir));
+}
+
 /**
  * Unified workspace/submodule discovery.
  */

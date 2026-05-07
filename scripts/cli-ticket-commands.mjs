@@ -5,7 +5,7 @@ import {
   toSlug, toRepoRelativePath, toFileUri, inferRefTitleAndTopic, resolveReferencedTicketPath, toPosixPath, stringifyFrontMatter,
   resolveDocsLanguage, inferDocsLanguageFromText, normalizeDocsLanguage, isMcpActive, withReadline, parseFrontMatter,
   AGENT_ROOT_DIR, TICKET_SUBDIR, TEMPLATE_SUBDIR, TICKET_DIR_NAME, TICKET_INDEX_FILENAME, WORKFLOW_MODE_EXECUTE,
-  detectConsumerTicketDir, loadInitConfig, computeTicketPath, normalizeWorkflowMode
+  detectConsumerTicketDir, resolveConsumerTicketRoot, loadInitConfig, computeTicketPath, normalizeWorkflowMode
 } from "./cli-utils.mjs";
 import { readTicketIndexJson, writeTicketIndexJson, syncActiveTicketId, generateTicketId, syncToPipeline } from "./cli-ticket-index.mjs";
 import { appendTicketEntry, rebuildTicketIndexFromTopicFilesIfNeeded, updateTicketEntryStatus } from "./cli-ticket-parser.mjs";
@@ -710,6 +710,12 @@ function applyTicketContext(opts = {}) {
   return opts;
 }
 
+function applyTicketRootContext(opts = {}, options = {}) {
+  const root = resolveConsumerTicketRoot(opts.cwd, options);
+  if (root) opts.cwd = root;
+  return opts;
+}
+
 function collectTicketLifecycleMarkdownTargets(cwd, ticketAbsPath, extraTargets = []) {
   const targets = [];
   if (ticketAbsPath) targets.push(ticketAbsPath);
@@ -1231,6 +1237,7 @@ function buildCreateRollbackIndex(currentIndexJson, ticketId, previousIndexJson)
 }
 
 export async function runTicketCreate(opts) {
+  applyTicketRootContext(opts, { createIfMissing: true });
   opts = hydrateCreateTextInputs(opts);
   if (!opts.topic && !opts.ref) throw new Error("ticket create requires --topic or --ref");
   const inferred = opts.ref ? inferRefTitleAndTopic(opts) : null;
@@ -1493,6 +1500,7 @@ export async function runTicketCreate(opts) {
 }
 
 export async function runTicketList(opts) {
+  applyTicketRootContext(opts);
   const ticketDir = detectConsumerTicketDir(opts.cwd);
   if (!ticketDir) {
     throw new Error("No ticket system found. Please run 'npx deuk-agent-flow init' first.");
@@ -1534,6 +1542,7 @@ export async function runTicketList(opts) {
 }
 
 export async function runTicketStatus(opts) {
+  applyTicketRootContext(opts);
   const index = rebuildTicketIndexFromTopicFilesIfNeeded(opts.cwd, { ...opts, force: false });
   const found = pickTicketEntry(opts, index);
   if (!found) throw new Error("ticket status: no matching ticket found");
@@ -1583,6 +1592,7 @@ export async function runTicketStatus(opts) {
 }
 
 export async function runTicketGuard(opts) {
+  applyTicketRootContext(opts);
   applyTicketContext(opts);
   if (!opts.topic && !opts.latest) {
     throw new Error("ticket guard: --topic or --latest is required before set_workflow_context.");
@@ -1635,6 +1645,7 @@ export async function runTicketGuard(opts) {
 }
 
 export async function runTicketHandoff(opts) {
+  applyTicketRootContext(opts);
   if (!opts.topic && !opts.latest) opts.latest = true;
   const index = rebuildTicketIndexFromTopicFilesIfNeeded(opts.cwd, { ...opts, force: false });
   const current = pickTicketEntry(opts, index);
@@ -1688,6 +1699,7 @@ export async function runTicketHandoff(opts) {
 }
 
 export async function runTicketMeta(opts) {
+  applyTicketRootContext(opts);
   applyTicketContext(opts);
   const index = rebuildTicketIndexFromTopicFilesIfNeeded(opts.cwd, { ...opts, force: false });
   const found = pickTicketEntry(opts, index);
@@ -1702,6 +1714,7 @@ export async function runTicketMeta(opts) {
 }
 
 export async function runTicketConnect(opts) {
+  applyTicketRootContext(opts);
   const config = loadInitConfig(opts.cwd);
   const url = opts.remote || config?.pipelineUrl;
   if (!url) throw new Error("ticket connect: no pipeline URL configured or provided via --remote");
@@ -1716,6 +1729,7 @@ export async function runTicketConnect(opts) {
 }
 
 export async function runTicketEvidenceCheck(opts) {
+  applyTicketRootContext(opts);
   applyTicketContext(opts);
   if (!opts.claim || !String(opts.claim).trim()) {
     throw new Error("ticket evidence requires --claim <text> to compare with ticket content.");
@@ -1746,6 +1760,7 @@ export async function runTicketEvidenceCheck(opts) {
 }
 
 export async function runTicketEvidenceReport(opts) {
+  applyTicketRootContext(opts);
   applyTicketContext(opts);
   if (!opts.claim || !String(opts.claim).trim()) {
     throw new Error("ticket report requires --claim <text> when generating a claim-bound report.");
@@ -1785,6 +1800,7 @@ export async function runTicketEvidenceReport(opts) {
 
 
 export async function runTicketClose(opts) {
+  applyTicketRootContext(opts);
   applyTicketContext(opts);
   if (!opts.topic && !opts.latest) {
     if (opts.nonInteractive || !process.stdout.isTTY) {
@@ -1851,6 +1867,7 @@ export async function runTicketClose(opts) {
 }
 
 export async function runTicketUse(opts) {
+  applyTicketRootContext(opts);
   applyTicketContext(opts);
   const index = rebuildTicketIndexFromTopicFilesIfNeeded(opts.cwd, { ...opts, force: false });
   
@@ -2031,6 +2048,7 @@ function filterTicketEntries(entries, opts = {}) {
 }
 
 export async function runTicketArchive(opts) {
+  applyTicketRootContext(opts);
   applyTicketContext(opts);
   const indexJson = rebuildTicketIndexFromTopicFilesIfNeeded(opts.cwd, { ...opts, force: false });
   const ticketDir = detectConsumerTicketDir(opts.cwd);
@@ -2085,7 +2103,68 @@ export async function runTicketArchive(opts) {
   return result;
 }
 
+export async function runTicketDiscard(opts) {
+  applyTicketRootContext(opts);
+  applyTicketContext(opts);
+  const indexJson = rebuildTicketIndexFromTopicFilesIfNeeded(opts.cwd, { ...opts, force: false });
+
+  if (!opts.latest && !opts.topic) {
+    if (opts.nonInteractive) {
+      throw new Error("ticket discard: --topic or --latest is required in non-interactive mode.");
+    }
+    await withReadline(async (rl) => {
+      const choices = indexJson.entries
+        .filter(e => e.status === "open")
+        .map(e => ({ label: `[${e.group}] ${e.title}`, value: e.topic }));
+      if (choices.length > 0) {
+        opts.topic = await selectOne(rl, "Choose an unapproved ticket to discard:", choices);
+      } else {
+        throw new Error("No open tickets found to discard.");
+      }
+    });
+  }
+
+  const found = pickTicketEntry(opts, indexJson);
+  if (!found) throw new Error("ticket discard: no matching entry");
+
+  const absPath = join(opts.cwd, found.path);
+  if (!existsSync(absPath)) throw new Error("Ticket file not found: " + found.path);
+
+  const body = readFileSync(absPath, "utf8");
+  const { meta } = parseFrontMatter(body);
+  const phase = Number(meta.phase || 1);
+  const status = String(meta.status || found.status || "open").toLowerCase();
+  if (phase >= 2 || status !== "open") {
+    throw new Error(`ticket discard: ${found.id || found.topic} is not an unapproved Phase 1 open ticket. Use ticket close/archive for approved or executed work.`);
+  }
+
+  if (opts.dryRun) {
+    console.log(`ticket discard: would delete ${found.id || found.topic} (${found.path})`);
+    return { id: found.id, path: found.path, discarded: false };
+  }
+
+  rmSync(absPath, { force: true });
+  const nextEntries = (indexJson.entries || []).filter(entry => entry.id !== found.id);
+  writeTicketIndexJson(opts.cwd, {
+    ...indexJson,
+    activeTicketId: indexJson.activeTicketId === found.id ? null : indexJson.activeTicketId,
+    entries: nextEntries
+  }, opts);
+  syncActiveTicketId(opts.cwd);
+  appendTelemetryEvent(opts.cwd, {
+    event: "ticket_discarded",
+    action: "ticket-discard",
+    ticket: found.id || found.topic,
+    file: found.path,
+    phase,
+    status: "discarded"
+  });
+  console.log(`ticket: discarded -> ${found.id || found.topic}`);
+  return { id: found.id, path: found.path, discarded: true };
+}
+
 export async function runTicketReports(opts) {
+  applyTicketRootContext(opts);
   const ticketDir = detectConsumerTicketDir(opts.cwd);
   if (!ticketDir) throw new Error("No ticket system found.");
   const reportDir = join(opts.cwd, AGENT_ROOT_DIR, "docs", "plan");
@@ -2115,6 +2194,7 @@ export async function runTicketReports(opts) {
 }
 
 export async function runTicketReportAttach(opts) {
+  applyTicketRootContext(opts);
   applyTicketContext(opts);
   if (!opts.report) throw new Error("ticket report attach requires --report <file_path>");
   
@@ -2152,11 +2232,13 @@ export async function runTicketReportAttach(opts) {
 }
 
 export async function runTicketRebuild(opts) {
+  applyTicketRootContext(opts, { createIfMissing: true });
   console.log("Rebuilding INDEX.json from markdown files...");
   rebuildTicketIndexFromTopicFilesIfNeeded(opts.cwd, { ...opts, force: true, rebuild: true });
 }
 
 export async function runTicketMove(opts) {
+  applyTicketRootContext(opts);
   applyTicketContext(opts);
   if (!opts.topic && !opts.latest) {
     if (opts.nonInteractive) {
@@ -2238,6 +2320,7 @@ export async function runTicketMove(opts) {
 }
 
 export async function runTicketNext(opts) {
+  applyTicketRootContext(opts);
   const index = rebuildTicketIndexFromTopicFilesIfNeeded(opts.cwd, { ...opts, force: false });
   // Find the first active ticket, or if none, the first open ticket (earliest created)
   const rows = filterTicketEntries(index.entries, opts)
@@ -2298,6 +2381,7 @@ function isTicketNextRunnableCandidate(cwd, entry) {
 }
 
 export async function runTicketHotfix(opts) {
+  applyTicketRootContext(opts);
   if (!opts.topic && !opts.latest) {
     if (opts.nonInteractive) {
       throw new Error("ticket hotfix: --topic or --latest is required in non-interactive mode.");
