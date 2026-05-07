@@ -41,7 +41,7 @@ architecture_docs: "docs/architecture.md"
 | DC-OSS-EDIT | OSS repositories are public release surfaces only. Never edit them directly; make changes in the main workspace source repo and propagate them through the sync script flow. |
 | DC-LEGACY | No v1/v2 HTML markers (`<!-- deuk-agent-rule:begin -->`). Templates use copy-only distribution. |
 | DC-OSS | `scripts/sync-oss.mjs` controls public distribution. `.internal.` files and `ticket/` dir are auto-excluded. |
-| DC-OSS-NAMING | During OSS sync, do not describe the OSS repo or its commits as a "mirror". Treat it as the public OSS release surface. Public OSS commit messages must describe the released change itself and must not use `sync` as the main semantic label. Reserve `sync` wording for mechanical tree synchronization only. |
+| DC-OSS-NAMING | During OSS sync, treat the OSS repo as the public OSS release surface. Public OSS commit messages must describe the released change itself and must not use `sync` as the main semantic label. Reserve `sync` wording for mechanical tree synchronization only. |
 
 ## Build & Test
 
