@@ -209,7 +209,7 @@ test("init migration skips empty legacy docs instead of creating placeholder tic
       cwd,
       dryRun: false,
       nonInteractive: true
-    }, "/home/joy/workspace/DeukAgentRules");
+    }, "/home/joy/workspace/DeukAgentFlow");
 
     const emptyTicketPath = join(cwd, ".deuk-agent", "tickets", "archive", "sub", "legacy-docs", "123.md");
     const nonEmptyTicketPath = join(cwd, ".deuk-agent", "tickets", "archive", "sub", "legacy-docs", "124.md");

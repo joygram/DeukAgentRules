@@ -1,5 +1,5 @@
 /**
- * Populates ../DeukAgentRulesOSS for the public GitHub repo.
+ * Populates ../DeukAgentFlowOSS for the public GitHub repo.
  * Run: cd deuk-agent-rule && npm run sync:oss
  */
 import { cpSync, existsSync, mkdirSync, readFileSync, unlinkSync, writeFileSync, rmSync } from "fs";
@@ -10,8 +10,8 @@ import { AGENT_ROOT_DIR } from "./cli-utils.mjs";
 const __dirname = dirname(fileURLToPath(import.meta.url));
 const pkgRoot = join(__dirname, "..");
 const repoRoot = join(pkgRoot, "..");
-// OSS mirror lives under workspace/OSS/DeukAgentRulesOSS.
-const ossRoot = join(repoRoot, "OSS", "DeukAgentRulesOSS");
+// OSS mirror lives under workspace/OSS/DeukAgentFlowOSS.
+const ossRoot = join(repoRoot, "OSS", "DeukAgentFlowOSS");
 const ossPublic = join(pkgRoot, "oss-public");
 const PUBLIC_DOCS = [
   "architecture.md",
@@ -23,9 +23,11 @@ const PUBLIC_DOCS = [
   "usage-guide.ko.md",
 ];
 
-/** Set DEUK_AGENT_RULES_OSS_REPO to override, e.g. https://github.com/you/DeukAgentRulesOSS */
+/** Set DEUK_AGENT_FLOW_OSS_REPO to override, e.g. https://github.com/you/DeukAgentFlowOSS */
 const OSS_REPO =
-  process.env.DEUK_AGENT_RULES_OSS_REPO || "https://github.com/joygram/DeukAgentRules";
+  process.env.DEUK_AGENT_FLOW_OSS_REPO
+  || process.env.DEUK_AGENT_RULES_OSS_REPO
+  || "https://github.com/joygram/DeukAgentRules";
 
 function gitBase() {
   let u = OSS_REPO.trim().replace(/\.git$/i, "").replace(/\/$/, "");
@@ -195,7 +197,7 @@ export function syncOssTree() {
   }
 
   console.log("deuk-agent-rule: synced OSS tree at " + ossRoot);
-  console.log("  Override repo URL: DEUK_AGENT_RULES_OSS_REPO=https://github.com/joygram/DeukAgentRules");
+  console.log("  Override repo URL: DEUK_AGENT_FLOW_OSS_REPO=https://github.com/joygram/DeukAgentRules");
 }
 
 if (process.argv[1] === fileURLToPath(import.meta.url)) {

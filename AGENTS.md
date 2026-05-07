@@ -6,7 +6,7 @@
 
 # Deuk Agent Rules
 
-**[MANDATORY — TOOL CALL REQUIRED]** Core rules are at: [AGENTS.md](file:///home/joy/workspace/DeukAgentRules/core-rules/AGENTS.md)
+**[MANDATORY — TOOL CALL REQUIRED]** Core rules are at: [AGENTS.md](file:///home/joy/workspace/DeukAgentFlow/core-rules/AGENTS.md)
 
 This pointer is a thin bootstrap, not a second workflow contract.
 
