@@ -1,6 +1,6 @@
 ---
-version: 57
-changelog: "v57: Compress duplicated output, approval, and ticket-create rules without weakening gates."
+version: 61
+changelog: "v61: Distinguish existing-ticket close actions from new-ticket triggers so commit/report/archive/close do not spawn new tickets."
 ---
 
 # Agent Rules
@@ -10,6 +10,7 @@ changelog: "v57: Compress duplicated output, approval, and ticket-create rules w
 - Tools own detail. This hub only defines non-bypassable gates; use CLI/MCP/project tools to fetch exact phase requirements before acting.
 - No ticket, no writes: before file changes, select or create one active ticket, relay the CLI-provided ticket-start line in chat, reopen and review the durable ticket body, wait for explicit user approval, complete Phase 1 in that ticket, run `deuk-agent-flow ticket guard --topic <id> --ticket-started --ticket-reviewed --approval approved` successfully, and call `set_workflow_context(project, ticket_id, phase)`.
 - User requirements are ticket-first: every user request that implies investigation, change, verification, or judgment must first be represented in a ticket containing cause, analysis, and design/approach before work continues.
+- Existing-ticket close actions are not new-ticket triggers: when the user asks to commit, report, archive, or close work that is already inside the approved active ticket scope, treat it as that ticket's Phase 4 close action unless the user also adds new scope.
 - User approval or correction creates another ticket update loop: record the approval/correction in the ticket, re-check scope and plan, then continue only through `deuk-agent-flow ticket guard --ticket-started --ticket-reviewed --approval approved`.
 - Approval is mandatory for every ticket. A ticket may not progress without explicit user approval, regardless of urgency or convenience.
 - `Ticket start` exposure is not approval. Phrases such as "진행", "go ahead", or "continue" count only after the agent has shown the exact ticket link, scope, and planned change summary for the active ticket; otherwise treat them as a request for scope clarification and stop.
@@ -21,7 +22,7 @@ changelog: "v57: Compress duplicated output, approval, and ticket-create rules w
 - Every phase must request and satisfy the tool-provided contract for that phase. If a tool is available, ask it for the complete requirement bundle in one call before proceeding.
 - Phase state has two records: runtime context via `set_workflow_context`, and durable ticket markdown plus explicit approval validated by `deuk-agent-flow ticket guard`. Both must match before claiming progress.
 - Verification is mandatory and ticket-recorded before close.
-- Completion reports go in the ticket first; chat gets only a very simple report with the ticket link, outcome, and verification status.
+- Completion reports go in the ticket first; chat gets only a very simple report with the ticket link, outcome, verification status, verified scope, any unverified scope, residual risk, and a short pointer to the ticket section to review next (for example `Completion Report`, `Verification`, or `Residual risk`).
 - During work, keep reminding the agent through terse TDW feedback only: ticket, approval, guard, context, verify.
 - Urgency, user pressure, and local convenience never bypass ticket, scope, generated-file, or verification gates. Use hotfix tooling only when appropriate.
 - Ticket creation failures are hard stops: if `deuk-agent-flow ticket create` rejects the request, do not call `set_workflow_context`, run investigation commands, edit files, or create/repair `.deuk-agent/tickets/**/*.md` manually. Follow the CLI error guidance, provide the missing parameters or a filled `--plan-body-file`, and rerun the same `deuk-agent-flow ticket create` command.
@@ -50,12 +51,14 @@ changelog: "v57: Compress duplicated output, approval, and ticket-create rules w
 ## 1. Output Mode
 
 - Silent-by-default is mandatory.
-- Screen output is for the ticket-start line, final answers, blockers, or explicit command results only.
+- Before the final answer, screen output is limited to the single required ticket-start line, blockers, explicit user-requested output, or explicit command results.
 - Ticket-start exposure contract: after selecting or creating the active ticket, relay exactly one clickable `Ticket start: [<id>](/absolute/path/to/ticket.md)` line, a short scope/planned-change summary, and any compact `Guard topic: <id>` line; tool/CLI output alone does not count, and `file://`, truncated, or non-clickable links must be converted without changing the id.
 - Approval-pending contract: stop if approval is pending and state that explicit user approval is required before work; this blocks unapproved work, not concise answers to explicit user-requested output or direct questions about workflow state.
 - Execution feedback contract: non-final chatter is capped at one word and must be short TDW state only (`ticket`, `approval`, `guard`, `context`, `verify`); do not repeat the same state or narrate routine reads, edits, formatting, lint retries, validation progress, or "almost done" status.
+- Default execution mode is no progress commentary. After approval, do not emit step-by-step status, planning narration, repo-state narration, or commit narration in chat unless the user explicitly asked for live narration or a blocker/user decision must be surfaced.
 - Keep chat compact; do not mirror ticket prose in screen output.
 - Final answers must be short but complete enough to answer the user.
+- After task completion, prefer: result, verification status, ticket link, then one short line saying which ticket section to read for details. If any important area is unverified, say that explicitly instead of sounding complete.
 - Do not cite approval-pending silence as a reason to withhold a concise explanation that the user explicitly requested. Explain the state, separate rule text from agent interpretation, and keep the answer narrow.
 - If the user asks for `짧게`, `매우 짧게`, `한 줄로`, or `간단히`, prioritize a one-sentence or bullet-only answer and omit background unless the user asks for it or a blocker requires it.
 - Do not expand a short answer into explanation, examples, or rationale unless the user explicitly requests more detail.
@@ -100,6 +103,7 @@ If `ticket create` fails, do not inspect unrelated repo files, run implementatio
 
 Before writes, phase moves, or close actions: read the hub and `PROJECT_RULE.md`, select a ticket, print the ticket-start line, reopen and review the durable ticket body, wait for explicit user approval, pass `deuk-agent-flow ticket guard --ticket-started --ticket-reviewed --approval approved`, call `set_workflow_context`, request the phase contract from available tooling, and satisfy it in the ticket. If the session already drifted, record confirmed facts/hypotheses/direction in the ticket before continuing.
 If the user approves, corrects, redirects, or adds requirements, update the ticket with that new input and repeat the review/approval/guard/context loop before doing more work.
+If the user asks only for commit/report/archive/close on work that is already inside the approved active ticket, reuse that ticket and continue through Phase 4; create a new ticket only if the user adds new implementation, new investigation, or a broader scope.
 For bug/regression/why/code-change requests, do not run repo inspection commands such as `git status`, `rg`, diffs, generic CLI help, or tests before `deuk-agent-flow ticket create` or `deuk-agent-flow ticket use`, except for reading this hub, `PROJECT_RULE.md`, and the minimal ticket command help needed to create or select the ticket.
 
 ### AgentFlow Skill Status

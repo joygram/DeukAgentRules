@@ -148,7 +148,7 @@ test("runInit replaces legacy generated spoke content and rewrites gitignore mar
       "2. Then read local `PROJECT_RULE.md` and internally identify applicable DC-* rules.",
       "3. After the core hub is loaded, `core-rules/AGENTS.md` is the DeukAgentRules SSoT for TDW, RAG, silence, scope, and verification.",
       "",
-      "Do not print pointer/core metadata, version, DC-* lists, progress commentary, or interim summaries. Only the single required ticket-start line may appear before the final answer unless the user explicitly asks for live narration or a blocker/user decision must be surfaced.",
+      "Do not print pointer/core metadata, version, DC-* lists, progress commentary, or interim summaries. Before the final answer, only the single required ticket-start line, blockers, explicit user-requested output, or explicit command results may appear. After approval, do not narrate progress unless the user explicitly asks for live narration or a blocker/user decision must be surfaced.",
       ""
     ].join("\n"), "utf8");
     writeFileSync(join(cwd, ".cursor", "rules", "deuk-agent.mdc"), [
@@ -167,7 +167,7 @@ test("runInit replaces legacy generated spoke content and rewrites gitignore mar
       "2. Then read local `PROJECT_RULE.md` and internally identify applicable DC-* rules.",
       "3. After the core hub is loaded, `core-rules/AGENTS.md` is the DeukAgentRules SSoT for TDW, RAG, silence, scope, and verification.",
       "",
-      "Do not print pointer/core metadata, version, DC-* lists, progress commentary, or interim summaries. Only the single required ticket-start line may appear before the final answer unless the user explicitly asks for live narration or a blocker/user decision must be surfaced.",
+      "Do not print pointer/core metadata, version, DC-* lists, progress commentary, or interim summaries. Before the final answer, only the single required ticket-start line, blockers, explicit user-requested output, or explicit command results may appear. After approval, do not narrate progress unless the user explicitly asks for live narration or a blocker/user decision must be surfaced.",
       ""
     ].join("\n"), "utf8");
     writeFileSync(join(cwd, ".gitignore"), [
@@ -375,7 +375,8 @@ test("generated agent spoke is a thin bootstrap with clear precedence", () => {
   assert.doesNotMatch(content, /confirming its version number/);
   assert.match(content, /core-rules\/AGENTS\.md` is the DeukAgentFlow SSoT/);
   assert.match(content, /Do not print pointer\/core metadata/);
-  assert.match(content, /Only the single required ticket-start line may appear before the final answer/);
+  assert.match(content, /only the single required ticket-start line, blockers, explicit user-requested output, or explicit command results may appear/i);
+  assert.match(content, /After approval, do not narrate progress unless the user explicitly asks for live narration/i);
 });
 
 test("global codex instructions stay locator-only", () => {

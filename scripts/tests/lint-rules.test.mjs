@@ -63,3 +63,13 @@ test("rules audit maps AgentFlow skill status to DeukAgentFlow skill commands", 
   assert.match(rulesText, /deuk-agent-flow skill list/i);
   assert.match(rulesText, /Do not answer from the host Codex skill list alone/i);
 });
+
+test("rules audit keeps commit and close requests inside the approved active ticket when scope does not expand", () => {
+  const result = auditRules(process.cwd());
+  assert.ok(result.ok, result.violations.map((v) => `${v.code}:${v.message}`).join(", "));
+  const rulesText = result.path ? String(readFileSync(result.path, "utf8")) : "";
+  assert.match(rulesText, /Existing-ticket close actions are not new-ticket triggers/i);
+  assert.match(rulesText, /If the user asks only for commit\/report\/archive\/close/i);
+  assert.match(rulesText, /reuse that ticket and continue through Phase 4/i);
+  assert.match(rulesText, /create a new ticket only if the user adds new implementation, new investigation, or a broader scope/i);
+});
