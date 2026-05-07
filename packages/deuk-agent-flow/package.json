@@ -1,9 +1,10 @@
 {
-  "name": "deuk-agent-workflow",
-  "version": "3.3.3",
-  "description": "Wrapper package for Deuk Agent Workflow. The canonical npm package is deuk-agent-rule.",
+  "name": "deuk-agent-flow",
+  "version": "4.0.0",
+  "description": "Keep AI coding work from vanishing between chats with Deuk Agent Flow.",
   "keywords": [
     "agents-md",
+    "agent-flow",
     "agent-workflow",
     "ai-guardrails",
     "agent-guardrails",
@@ -23,13 +24,13 @@
     "README.md"
   ],
   "bin": {
-    "deuk-agent-workflow": "./bin/deuk-agent-workflow.js",
-    "deukagentworkflow": "./bin/deuk-agent-workflow.js"
+    "deuk-agent-flow": "./bin/deuk-agent-flow.js",
+    "deukagentflow": "./bin/deuk-agent-flow.js"
   },
   "engines": {
     "node": ">=18"
   },
   "dependencies": {
-    "deuk-agent-rule": "3.3.3"
+    "deuk-agent-rule": "4.0.0"
   }
 }

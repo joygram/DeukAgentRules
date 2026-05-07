@@ -1,0 +1,22 @@
+{
+  "schemaVersion": 1,
+  "label": "npm downloads",
+  "message": "1.8K/last-month",
+  "color": "2f6fed",
+  "namedLogo": "npm",
+  "cacheSeconds": 86400,
+  "total": 1829,
+  "range": "last-month",
+  "packages": [
+    {
+      "package": "deuk-agent-flow",
+      "downloads": 0,
+      "missing": true
+    },
+    {
+      "package": "deuk-agent-rule",
+      "downloads": 1829,
+      "missing": false
+    }
+  ]
+}

@@ -9,19 +9,19 @@
 GitHub **About** description field (keep under ~350 characters if the UI enforces a limit):
 
 ```
-Deuk Agent Workflow — AGENTS.md and agent config guardrails for every repo. Connect Codex, Copilot, Claude Code, Cursor, and Windsurf to ticketed scope, verification, and project memory.
+Deuk Agent Flow — stop losing AI coding work between chats. Repo-owned tickets, scope, verification, and memory for Codex, Copilot, Claude Code, Cursor, and more.
 ```
 
 ## Paste into GitHub — Korean (optional)
 
 ```
-Deuk Agent Workflow — 모든 레포를 위한 AGENTS.md 및 agent config 가드레일. Codex, Copilot, Claude Code, Cursor, Windsurf를 티켓, 범위 계약, 검증, 프로젝트 기억에 연결합니다.
+Deuk Agent Flow — AI 코딩 작업이 대화창 밖으로 흘러내리지 않게. Codex, Copilot, Claude Code, Cursor 작업을 티켓, 범위, 검증, 기억으로 레포에 남깁니다.
 ```
 
 ## Even shorter (topics / subtitle)
 
-- EN: `Deuk Agent Workflow — AGENTS.md guardrails with tickets, verification, and memory`
-- KO: `Deuk Agent Workflow — AGENTS.md, 티켓, 검증, 프로젝트 기억 가드레일`
+- EN: `Deuk Agent Flow — AI coding work that survives the chat`
+- KO: `Deuk Agent Flow — 대화창 밖에 남는 AI 코딩 작업`
 
 ## GitHub repository — Topics (recommended)
 
@@ -30,7 +30,7 @@ Add under **About → Topics** (and mirror on npm via `package.json` `keywords`)
 - `deuk-family`
 - `deukpack-ecosystem`
 - `deuk-agent-rule`
-- `deuk-agent-workflow`
+- `deuk-agent-flow`
 - `agent-config`
 - `ai-guardrails`
 - `ai-coding-agent`
@@ -54,7 +54,7 @@ Add under **About → Topics** (and mirror on npm via `package.json` `keywords`)
 
 Use related-project links to capture adjacent search intent from people already looking for
 Claude Code skills, AGENTS.md conventions, Cursor rules, and coding-agent instructions.
-Position Deuk Agent Workflow as the workflow and guardrail layer that complements prompt-level
+Position Deuk Agent Flow as the workflow and guardrail layer that complements prompt-level
 guideline repositories.
 
 Avoid `karpathy` as a repository topic unless there is an explicit campaign reason. Prefer

@@ -191,7 +191,7 @@ Options:
   --no-sync             Force disable remote sync
 
 Skill Options:
-  --skill, --id <name>  Skill ID (safe-refactor|generated-file-guard|context-recall)
+  --skill, --id <name>  Skill ID (safe-refactor|generated-file-guard|context-recall|project-pilot)
   --platform <name>     Exposure target (claude|cursor)
 
 Ticket Options:
@@ -225,6 +225,9 @@ Usage Options:
   --five-hour-reset <text>   5-hour reset time label
   --task-grade <grade>       Task grade (S|A|B|C)
   --task <label>             Optional task label for advice output
+  --turn-count <n>           Conversation turn count for split advice
+  --linked-ticket-count <n>  Linked ticket count for split advice
+  --cross-workspace          Mark the conversation as cross-workspace
 `);
 }
 

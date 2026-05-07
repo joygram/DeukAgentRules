@@ -85,6 +85,7 @@ export function buildOssPackageJson(srcPkg, baseUrl = base, gitRemoteUrl = gitUr
       "scripts/merge-logic.mjs",
       "scripts/plan-parser.mjs",
       "scripts/publish-dual-npm.mjs",
+      "scripts/update-download-badge.mjs",
       "README.md",
       "README.ko.md",
       "CHANGELOG.md",

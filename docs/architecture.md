@@ -1,6 +1,6 @@
 # Architecture (v3.0)
 
-DeukAgentRules v3.0 introduces a **Hub-Spoke Architecture** and a **Global Execution Proxy** to ensure absolute consistency and efficiency in AI-agent workflows.
+DeukAgentFlow v3.0 introduces a **Hub-Spoke Architecture** and a **Global Execution Proxy** to ensure absolute consistency and efficiency in AI-agent workflows.
 
 ## 1. Zero-Copy Hub-Spoke Architecture
 
@@ -21,7 +21,7 @@ To solve the "Stale Tarball" problem common with `npx`, v3.0 implements a **Glob
 
 ### How it works:
 1. When you run `npx deuk-agent-rule`, the package's global entry point (`bin/deuk-agent-rule.js`) is executed.
-2. It automatically scans the current directory and its parents for a **Local Workspace Source** (`DeukAgentRules/scripts/cli.mjs`).
+2. It automatically scans the current directory and its parents for a **Local Workspace Source** (`DeukAgentFlow/scripts/cli.mjs`).
 3. If found, it **transparently routes** all commands to the local source.
 4. This ensures that agents always use the latest, uncommitted local rules instead of a cached version from the registry.
 
