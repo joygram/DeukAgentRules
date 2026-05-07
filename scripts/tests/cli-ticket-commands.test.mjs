@@ -684,6 +684,63 @@ test("runTicketArchive auto-detects existing walkthrough report and attaches lin
   rmSync(cwd, { recursive: true, force: true });
 });
 
+test("runTicketArchive ignores unrelated dirty markdown during lifecycle lint", async () => {
+  const ticketPath = ".deuk-agent/tickets/sub/004-default-host.md";
+  const { cwd } = makeTicketWorkspace([
+    makeEntry({
+      id: "004-default-host",
+      title: "archive-with-dirty-worktree",
+      topic: "004-default-host",
+      fileName: "004-default-host.md",
+      path: ticketPath,
+      status: "closed"
+    })
+  ]);
+
+  mkdirSync(join(cwd, ".deuk-agent", "tickets", "sub"), { recursive: true });
+  writeFileSync(join(cwd, ticketPath), [
+    "---",
+    "id: 004-default-host",
+    "title: archive-with-dirty-worktree",
+    "phase: 4",
+    "status: closed",
+    "summary: archive dirty worktree test",
+    "priority: P2",
+    "tags: [test]",
+    "---",
+    "# default",
+    ""
+  ].join("\n"), "utf8");
+
+  spawnSync("git", ["init"], { cwd, encoding: "utf8" });
+  spawnSync("git", ["add", ".deuk-agent"], { cwd, encoding: "utf8" });
+  spawnSync("git", ["commit", "-m", "seed"], {
+    cwd,
+    encoding: "utf8",
+    env: {
+      ...process.env,
+      GIT_AUTHOR_NAME: "Test",
+      GIT_AUTHOR_EMAIL: "test@example.com",
+      GIT_COMMITTER_NAME: "Test",
+      GIT_COMMITTER_EMAIL: "test@example.com"
+    }
+  });
+
+  mkdirSync(join(cwd, ".codex"), { recursive: true });
+  writeFileSync(join(cwd, ".codex", "AGENTS.md"), [
+    "---",
+    "> invalid YAML pointer content",
+    "---",
+    "# Generated pointer",
+    ""
+  ].join("\n"), "utf8");
+
+  const archived = await runTicketArchive({ cwd, topic: "004", nonInteractive: true });
+  assert.ok(archived.path.includes("archive/"), "ticket should archive despite unrelated invalid markdown");
+
+  rmSync(cwd, { recursive: true, force: true });
+});
+
 test("runTicketArchive distills ticket body into knowledge json", async () => {
   const ticketPath = ".deuk-agent/tickets/sub/006-default-host.md";
   const { cwd } = makeTicketWorkspace([
@@ -1510,6 +1567,166 @@ test("runTicketMove lints changed markdown outside the ticket", async () => {
   }
 });
 
+test("runTicketMove auto-runs rules audit for changed rule files", async () => {
+  const ticketPath = ".deuk-agent/tickets/sub/004-rules-audit-host.md";
+  const { cwd, ticketDir } = makeTicketWorkspace([
+    makeEntry({
+      id: "004-rules-audit-host",
+      title: "rules-audit-guard",
+      topic: "004-rules-audit-host",
+      fileName: "004-rules-audit-host.md",
+      path: ticketPath,
+      status: "open",
+      phase: 1
+    })
+  ]);
+
+  mkdirSync(join(ticketDir, "sub"), { recursive: true });
+  mkdirSync(join(cwd, "core-rules"), { recursive: true });
+
+  writeFileSync(join(cwd, ticketPath), [
+    "---",
+    "id: 004-rules-audit-host",
+    "title: rules-audit-guard",
+    "phase: 1",
+    "status: open",
+    "summary: rules audit guard",
+    "priority: P2",
+    "tags: [test]",
+    "---",
+    "# rules-audit-guard",
+    "",
+    "## Scope & Constraints",
+    "- Target: core rules module",
+    "",
+    "## Agent Permission Contract (APC)",
+    "### [BOUNDARY]",
+    "- Editable modules: core-rules/AGENTS.md",
+    "",
+    "### [CONTRACT]",
+    "- Input: core rules context",
+    "- Output: validated rule edit",
+    "- Side effects: rule text only",
+    "",
+    "### [PATCH PLAN]",
+    "- Run lifecycle verification before phase transition",
+    "",
+    "## Compact Plan",
+    "",
+    "- **Finding:** Rule changes must not bypass automatic audit.",
+    "- **Root cause / hypothesis:** Manual `rules audit` is easy to forget.",
+    "- **Approach:** Trigger audit from lifecycle move when rule files changed.",
+    "- **Verification:** Expect move rollback when `core-rules/AGENTS.md` violates audit checks.",
+    "",
+    "## Problem Analysis",
+    "",
+    "Rule edits need automatic validation from the CLI workflow path.",
+    "",
+    "## Source Observations",
+    "",
+    "- `core-rules/AGENTS.md` changed after the seed commit.",
+    "",
+    "## Cause Hypotheses",
+    "",
+    "- The move path should invoke `rules audit` before Phase 2 when rule files are dirty.",
+    "",
+    "## Improvement Direction",
+    "",
+    "Fail the phase move when changed rule files do not pass rules audit.",
+    "",
+    "## Audit Evidence",
+    "",
+    "- `git diff --name-only` includes `core-rules/AGENTS.md` in this workspace.",
+    ""
+  ].join("\n"), "utf8");
+
+  writeFileSync(join(cwd, "core-rules", "AGENTS.md"), [
+    "## Compact Kernel",
+    "Tools own detail.",
+    "No ticket, no writes.",
+    "Every phase must request and satisfy the tool-provided contract.",
+    "Phase state has two records.",
+    "Verification is mandatory.",
+    "never bypass ticket, scope, generated-file, or verification gates",
+    "",
+    "## 0. Priority",
+    "Global DeukAgentFlow pointer",
+    "Local generated pointer/spoke",
+    "core-rules/AGENTS.md",
+    "PROJECT_RULE.md",
+    "",
+    "## Boot Sequence (run once)",
+    "Read this file (AGENTS.md)",
+    "Read `PROJECT_RULE.md`",
+    "set_workflow_context(project, ticket_id, phase)",
+    "clickable ticket-start line",
+    "",
+    "## First-Turn Invariant",
+    "## Ticket Discovery (1-CALL RULE)",
+    "create the ticket first",
+    "Do not use `ticket list` for discovery",
+    "",
+    "## Phase Contract",
+    "complete requirement bundle",
+    "Required ticket fields/tasks",
+    "Scope boundaries, generated/source mapping",
+    "Do not invent a shortcut",
+    "",
+    "## Ticket Lifecycle",
+    "Phase 0",
+    "Phase 4",
+    "findings, hypotheses, scope, compact plan, and phase contract",
+    "affected files, and residual risk",
+    "Keep chat compact once the ticket carries the durable record",
+    "",
+    "## Hard Stops",
+    "missing phase contract",
+    "generated/source uncertainty",
+    "shared-interface changes",
+    "read-only until the ticket records findings",
+    "missing tests",
+    "stabilization or root-cause ticket",
+    "same failure family",
+    "",
+    "## Tool Delegation",
+    "Use `rg`/`rg --files` first",
+    "Use MCP/RAG only when local evidence is insufficient",
+    "Let CLI own lifecycle enforcement, claim checks, reports, and audits",
+    "rules audit",
+    "",
+    "## 1. Output Mode",
+    "Silent-by-default is mandatory",
+    "Keep chat compact",
+    "Final answers must be short but complete enough",
+    "짧게",
+    "one-sentence or bullet-only",
+    "avoid repeating them in chat"
+  ].join("\n"), "utf8");
+
+  spawnSync("git", ["init"], { cwd, encoding: "utf8" });
+  spawnSync("git", ["add", ".deuk-agent", "core-rules/AGENTS.md"], { cwd, encoding: "utf8" });
+  spawnSync("git", ["-c", "user.email=test@example.com", "-c", "user.name=Test", "commit", "-m", "seed"], { cwd, encoding: "utf8" });
+
+  writeFileSync(join(cwd, "core-rules", "AGENTS.md"), "## Compact Kernel\nBroken rule file\n", "utf8");
+
+  try {
+    await assert.rejects(
+      () => runTicketMove({ cwd, topic: "004", next: true, nonInteractive: true }),
+      err => {
+        assert.match(err.message, /rules audit failed/);
+        assert.match(err.message, /DR-TOKEN-01|DR-BOOT-01|DR-CLI-01/);
+        return true;
+      }
+    );
+
+    const body = readFileSync(join(cwd, ticketPath), "utf8");
+    assert.match(body, /phase: 1/);
+    assert.match(body, /status: open/);
+  } finally {
+    rmSync(cwd, { recursive: true, force: true });
+  }
+});
+
 test("runTicketClose ignores linked plan markdown and still closes ticket", async () => {
   const ticketPath = ".deuk-agent/tickets/sub/002-default-host.md";
   const planPath = ".deuk-agent/docs/plan/002-default-host-plan.md";
@@ -1935,6 +2152,28 @@ test("runTicketCreate auto-archives oldest open tickets when open ticket limit i
     ].join("\n"), "utf8");
   }
   writeFileSync(join(ticketDir, TICKET_INDEX_FILENAME), JSON.stringify(makeIndex(entries), null, 2) + "\n", "utf8");
+
+  spawnSync("git", ["init"], { cwd, encoding: "utf8" });
+  spawnSync("git", ["add", ".deuk-agent"], { cwd, encoding: "utf8" });
+  spawnSync("git", ["commit", "-m", "seed"], {
+    cwd,
+    encoding: "utf8",
+    env: {
+      ...process.env,
+      GIT_AUTHOR_NAME: "Test",
+      GIT_AUTHOR_EMAIL: "test@example.com",
+      GIT_COMMITTER_NAME: "Test",
+      GIT_COMMITTER_EMAIL: "test@example.com"
+    }
+  });
+  mkdirSync(join(cwd, ".codex"), { recursive: true });
+  writeFileSync(join(cwd, ".codex", "AGENTS.md"), [
+    "---",
+    "> invalid YAML pointer content",
+    "---",
+    "# Generated pointer",
+    ""
+  ].join("\n"), "utf8");
 
   const originalLog = console.log;
   const originalWarn = console.warn;

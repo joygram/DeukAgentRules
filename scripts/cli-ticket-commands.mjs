@@ -11,6 +11,7 @@ import { appendTicketEntry, rebuildTicketIndexFromTopicFilesIfNeeded, updateTick
 import { appendInternalWorkflowEvent } from "./cli-telemetry-commands.mjs";
 import { parsePlan } from "./plan-parser.mjs";
 import { collectChangedFiles, collectChangedMarkdownFiles, lintMarkdownPaths } from "./lint-md.mjs";
+import { auditRules } from "./lint-rules.mjs";
 import { getUsageReminderLine } from "./cli-usage-commands.mjs";
 import ejs from "ejs";
 import YAML from "yaml";
@@ -480,6 +481,21 @@ function lintTicketLifecycleMarkdown(cwd, targets, context) {
   return result;
 }
 
+function runTicketLifecycleQualityGate(cwd, { ticketAbsPath, extraTargets = [], context }) {
+  const lintTargets = collectTicketLifecycleMarkdownTargets(cwd, ticketAbsPath, extraTargets);
+  lintTicketLifecycleMarkdown(cwd, lintTargets, context);
+
+  const changedFiles = collectChangedFiles(cwd);
+  if (!existsSync(join(cwd, "core-rules", "AGENTS.md"))) return;
+  if (!shouldRunLifecycleRulesAudit(changedFiles)) return;
+
+  const result = auditRules(cwd);
+  if (result.ok) return;
+
+  const details = result.violations.map(violation => `- ${violation.code}: ${violation.message}`).join("\n");
+  throw new Error(`[VALIDATION FAILED] ${context}: rules audit failed\n${details}`);
+}
+
 function looksLikeTicketMarkdownPath(value) {
   const raw = String(value || "");
   return /\.md$/i.test(raw) && /[/\\]/.test(raw);
@@ -626,6 +642,24 @@ function collectTicketLifecycleMarkdownTargets(cwd, ticketAbsPath, extraTargets 
   return Array.from(new Set(targets));
 }
 
+function shouldRunLifecycleRulesAudit(changedFiles = []) {
+  return (changedFiles || []).some(relPath => {
+    const normalized = String(relPath || "").replace(/\\/g, "/");
+    if (!normalized) return false;
+    return normalized === "core-rules/AGENTS.md"
+      || normalized === "PROJECT_RULE.md"
+      || normalized === "AGENTS.md"
+      || normalized === ".codex/AGENTS.md"
+      || normalized.startsWith(".claude/rules/")
+      || normalized.startsWith(".aiassistant/rules/")
+      || normalized.startsWith(".windsurf/rules/")
+      || normalized.startsWith(".cursor/rules/")
+      || normalized.startsWith("templates/rules.d/")
+      || normalized === "templates/PROJECT_RULE.md"
+      || normalized === "scripts/lint-rules.mjs";
+  });
+}
+
 function restoreTicketIndexSnapshot(cwd, snapshot, opts = {}) {
   if (opts.dryRun) return;
   writeTicketIndexJson(cwd, snapshot, opts);
@@ -740,26 +774,24 @@ function updatePreviousTicketRef(cwd, prevTicketEntry, ticketId) {
 
 function archivePartitionForEntry(entry, now = new Date()) {
   const storedYearMonth = String(entry?.archiveYearMonth || "");
-  const storedDay = String(entry?.archiveDay || "");
-  if (/^\d{4}-\d{2}$/.test(storedYearMonth) && /^\d{2}$/.test(storedDay)) {
-    return { yearMonth: storedYearMonth, day: storedDay };
+  if (/^\d{4}-\d{2}$/.test(storedYearMonth)) {
+    return { yearMonth: storedYearMonth };
   }
 
   const source = String(entry?.createdAt || "");
   const match = source.match(/^(\d{4})-(\d{2})-(\d{2})/);
-  if (match) return { yearMonth: `${match[1]}-${match[2]}`, day: match[3] };
+  if (match) return { yearMonth: `${match[1]}-${match[2]}` };
 
   const iso = now.toISOString();
-  return { yearMonth: iso.slice(0, 7), day: iso.slice(8, 10) };
+  return { yearMonth: iso.slice(0, 7) };
 }
 
 function getArchiveDestination(ticketDir, entry, fileName) {
   const partition = archivePartitionForEntry(entry);
-  const archiveDir = join(ticketDir, "archive", entry.group || "sub", partition.yearMonth, partition.day);
+  const archiveDir = join(ticketDir, "archive", entry.group || "sub", partition.yearMonth);
   return {
     archiveDir,
     archiveYearMonth: partition.yearMonth,
-    archiveDay: partition.day,
     newAbsPath: join(archiveDir, fileName)
   };
 }
@@ -769,8 +801,7 @@ function archiveStorageFromPath(ticketDir, absPath, entry) {
   const archiveIdx = parts.indexOf("archive");
   if (archiveIdx < 0) return archivePartitionForEntry(entry);
   return {
-    archiveYearMonth: parts[archiveIdx + 2] || archivePartitionForEntry(entry).yearMonth,
-    archiveDay: parts[archiveIdx + 3] || archivePartitionForEntry(entry).day
+    archiveYearMonth: parts[archiveIdx + 2] || archivePartitionForEntry(entry).yearMonth
   };
 }
 
@@ -924,7 +955,6 @@ function archiveTicketEntry({ cwd, ticketDir, indexJson, found, opts = {}, repor
         indexJson.entries[entryIdx].fileName = fileName;
         indexJson.entries[entryIdx].status = "archived";
         indexJson.entries[entryIdx].archiveYearMonth = storage.archiveYearMonth;
-        indexJson.entries[entryIdx].archiveDay = storage.archiveDay;
         indexJson.entries[entryIdx].updatedAt = new Date().toISOString();
       }
       const archivedRelativePath = toRepoRelativePath(cwd, archivedAbsPath);
@@ -933,7 +963,7 @@ function archiveTicketEntry({ cwd, ticketDir, indexJson, found, opts = {}, repor
       }
       return { id: found.id, path: archivedRelativePath, repaired: true };
     }
-    if (String(found.status || "").toLowerCase() === "closed" && found.archiveYearMonth && found.archiveDay) {
+    if (String(found.status || "").toLowerCase() === "closed" && found.archiveYearMonth) {
       const entryIdx = indexJson.entries.findIndex(e => e.id === found.id);
       if (entryIdx >= 0) {
         indexJson.entries[entryIdx].fileName = fileName;
@@ -955,7 +985,7 @@ function archiveTicketEntry({ cwd, ticketDir, indexJson, found, opts = {}, repor
 
   const originalBody = readFileSync(absPath, "utf8");
   const { meta: archiveMeta } = parseFrontMatter(originalBody);
-  const { archiveDir, archiveYearMonth, archiveDay, newAbsPath } = getArchiveDestination(ticketDir, found, fileName);
+  const { archiveDir, archiveYearMonth, newAbsPath } = getArchiveDestination(ticketDir, found, fileName);
   if (!opts.dryRun) mkdirSync(archiveDir, { recursive: true });
 
   const bodyLines = originalBody.trimEnd().split(/\r?\n/);
@@ -982,7 +1012,6 @@ function archiveTicketEntry({ cwd, ticketDir, indexJson, found, opts = {}, repor
     bodyLines.push(`- [View Report](${relativeLink})`);
   }
 
-  const lintTargets = collectTicketLifecycleMarkdownTargets(cwd, newAbsPath, reportDest ? [reportDest] : []);
   if (opts.dryRun) {
     if (!isCompactTicketOutput(opts)) {
       console.log("ticket archive: would move " + toRepoRelativePath(cwd, absPath) + " to " + toRepoRelativePath(cwd, newAbsPath));
@@ -993,7 +1022,11 @@ function archiveTicketEntry({ cwd, ticketDir, indexJson, found, opts = {}, repor
   writeFileSync(newAbsPath, bodyLines.join("\n") + "\n", "utf8");
   rmSync(absPath);
   try {
-    lintTicketLifecycleMarkdown(cwd, lintTargets, `ticket archive ${found.id}`);
+    runTicketLifecycleQualityGate(cwd, {
+      ticketAbsPath: newAbsPath,
+      extraTargets: reportDest ? [reportDest] : [],
+      context: `ticket archive ${found.id}`
+    });
   } catch (err) {
     rmSync(newAbsPath, { force: true });
     writeFileSync(absPath, originalBody, "utf8");
@@ -1011,7 +1044,6 @@ function archiveTicketEntry({ cwd, ticketDir, indexJson, found, opts = {}, repor
     indexJson.entries[entryIdx].fileName = fileName;
     indexJson.entries[entryIdx].status = "archived";
     indexJson.entries[entryIdx].archiveYearMonth = archiveYearMonth;
-    indexJson.entries[entryIdx].archiveDay = archiveDay;
     indexJson.entries[entryIdx].updatedAt = new Date().toISOString();
   }
 
@@ -1262,7 +1294,6 @@ export async function runTicketCreate(opts) {
       finalContent = ejs.render(tplText, { meta, frontmatter, apcDraft });
     }
 
-    const lifecycleTargets = [abs];
     let rollbackIndexJson = indexJson;
 
     if (!opts.dryRun) writeFileSync(abs, finalContent, "utf8");
@@ -1279,7 +1310,10 @@ export async function runTicketCreate(opts) {
       }
 
       if (!opts.dryRun) {
-        lintTicketLifecycleMarkdown(opts.cwd, lifecycleTargets, `ticket create ${ticketId}`);
+        runTicketLifecycleQualityGate(opts.cwd, {
+          ticketAbsPath: abs,
+          context: `ticket create ${ticketId}`
+        });
       }
 
       if (opts.dryRun) {
@@ -1314,7 +1348,6 @@ export async function runTicketCreate(opts) {
       }, opts);
 
       const limitIndexJson = readTicketIndexJson(opts.cwd);
-      autoArchiveDoneTickets(opts.cwd, limitIndexJson, opts);
       autoArchiveOpenLimitTickets(opts.cwd, limitIndexJson, opts);
 
       const limitError = buildOpenTicketLimitError(readTicketIndexJson(opts.cwd));
@@ -1645,8 +1678,10 @@ export async function runTicketClose(opts) {
   try {
     const entry = updateTicketEntryStatus(opts.cwd, opts);
     const { meta } = parseFrontMatter(previousBody);
-    const lintTargets = collectTicketLifecycleMarkdownTargets(opts.cwd, abs);
-    lintTicketLifecycleMarkdown(opts.cwd, lintTargets, `ticket close ${entry.topic}`);
+    runTicketLifecycleQualityGate(opts.cwd, {
+      ticketAbsPath: abs,
+      context: `ticket close ${entry.topic}`
+    });
     syncActiveTicketId(opts.cwd);
     appendTelemetryEvent(opts.cwd, {
       event: "ticket_closed",
@@ -2025,8 +2060,10 @@ export async function runTicketMove(opts) {
       rebuildTicketIndexFromTopicFilesIfNeeded(opts.cwd, { ...opts, force: true });
     }
 
-    const lintTargets = collectTicketLifecycleMarkdownTargets(opts.cwd, abs);
-    lintTicketLifecycleMarkdown(opts.cwd, lintTargets, `ticket move ${entry.topic}`);
+    runTicketLifecycleQualityGate(opts.cwd, {
+      ticketAbsPath: abs,
+      context: `ticket move ${entry.topic}`
+    });
 
     syncActiveTicketId(opts.cwd);
     appendTelemetryEvent(opts.cwd, {
