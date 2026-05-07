@@ -101,7 +101,10 @@ export function parseUsageArgs(argv) {
     weeklyReset: "",
     fiveHourReset: "",
     taskGrade: "",
-    taskLabel: ""
+    taskLabel: "",
+    turnCount: 0,
+    linkedTicketCount: 0,
+    crossWorkspace: false
   };
   for (let i = 0; i < argv.length; i++) {
     const a = argv[i];
@@ -115,6 +118,9 @@ export function parseUsageArgs(argv) {
     else if (a === "--five-hour-reset") out.fiveHourReset = argv[++i];
     else if (a === "--task-grade") out.taskGrade = argv[++i];
     else if (a === "--task" || a === "--task-label") out.taskLabel = argv[++i];
+    else if (a === "--turns" || a === "--turn-count") out.turnCount = Number(argv[++i]);
+    else if (a === "--linked-tickets" || a === "--linked-ticket-count") out.linkedTicketCount = Number(argv[++i]);
+    else if (a === "--cross-workspace") out.crossWorkspace = true;
     else if (a === "--json") out.json = true;
   }
   return out;

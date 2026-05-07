@@ -166,6 +166,50 @@ function buildBudgetAdvice(state, taskGrade) {
   };
 }
 
+function buildConversationAdvice(state, opts = {}, budgetAdvice = {}) {
+  const turnCount = Number(opts.turnCount || 0);
+  const linkedTicketCount = Number(opts.linkedTicketCount || 0);
+  const crossWorkspace = Boolean(opts.crossWorkspace);
+  const weekly = state.weeklyRemainingPct;
+  const fiveHour = state.fiveHourRemainingPct;
+  const lowFiveHour = fiveHour !== null && fiveHour <= 15;
+  const criticalFiveHour = fiveHour !== null && fiveHour <= 8;
+  const lowWeekly = weekly !== null && weekly <= 20;
+  const highTurns = turnCount >= 25;
+  const veryHighTurns = turnCount >= 40;
+  const manyLinkedTickets = linkedTicketCount >= 3;
+
+  if (criticalFiveHour || (lowFiveHour && veryHighTurns) || (lowFiveHour && crossWorkspace && highTurns)) {
+    return {
+      conversationAction: "handoff-and-new-chat",
+      conversationGate: "handoff now",
+      conversationNext: "handoff and start new chat"
+    };
+  }
+
+  if ((crossWorkspace && highTurns) || manyLinkedTickets || (lowWeekly && highTurns)) {
+    return {
+      conversationAction: "split-chat",
+      conversationGate: "split context",
+      conversationNext: "split ticket or new chat"
+    };
+  }
+
+  if (budgetAdvice.gate === "phase1-only") {
+    return {
+      conversationAction: "stop-in-current-chat",
+      conversationGate: "phase1-only",
+      conversationNext: "summarize and stop"
+    };
+  }
+
+  return {
+    conversationAction: "keep-current-chat",
+    conversationGate: "keep current chat",
+    conversationNext: "continue"
+  };
+}
+
 async function runUsageSet(opts) {
   const current = loadUsageState(opts.cwd) || normalizeUsageState();
   const hasPlatformOverride = Boolean(String(opts.platform || "").trim());
@@ -237,11 +281,16 @@ async function runUsageAdvise(opts) {
 
   const taskGrade = resolveTaskGrade(opts.taskGrade);
   const advice = buildBudgetAdvice(state, taskGrade);
+  const conversation = buildConversationAdvice(state, opts, advice);
   const payload = {
     ...state,
     taskGrade: taskGrade || null,
     taskLabel: opts.taskLabel || "",
-    ...advice
+    turnCount: Number(opts.turnCount || 0),
+    linkedTicketCount: Number(opts.linkedTicketCount || 0),
+    crossWorkspace: Boolean(opts.crossWorkspace),
+    ...advice,
+    ...conversation
   };
 
   if (opts.json) {
@@ -254,6 +303,9 @@ async function runUsageAdvise(opts) {
   console.log(`budget: ${advice.budget}`);
   console.log(`${advice.gate === "ok" ? "next" : "gate"}: ${advice.gate === "ok" ? advice.next : advice.gate}`);
   if (advice.gate !== "ok") console.log(`next: ${advice.next}`);
+  if (conversation.conversationAction !== "keep-current-chat") {
+    console.log(`chat: ${conversation.conversationNext}`);
+  }
 }
 
 function formatPct(value) {
@@ -265,6 +317,10 @@ export function getUsageReminderLine(cwd, opts = {}) {
   if (!state) return "";
   const taskGrade = resolveTaskGrade(opts.taskGrade || "");
   const advice = buildBudgetAdvice(state, taskGrade);
+  const conversation = buildConversationAdvice(state, opts, advice);
   const gateText = advice.gate === "ok" ? advice.next : advice.gate;
-  return `usage reminder: ${state.client} weekly ${formatPct(state.weeklyRemainingPct)}, 5h ${formatPct(state.fiveHourRemainingPct)} | budget ${advice.budget} | gate ${gateText}`;
+  const chatText = conversation.conversationAction === "keep-current-chat"
+    ? "keep current chat"
+    : conversation.conversationNext;
+  return `usage reminder: ${state.client} weekly ${formatPct(state.weeklyRemainingPct)}, 5h ${formatPct(state.fiveHourRemainingPct)} | budget ${advice.budget} | gate ${gateText} | chat ${chatText}`;
 }

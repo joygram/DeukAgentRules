@@ -2405,7 +2405,7 @@ test("runTicketStatus prints usage reminder when usage state exists", async () =
 
   assert.strictEqual(lines.length, 2);
   assert.match(lines[0], /^001-status-usage-host \| phase=1 \| status=open \| ok$/);
-  assert.match(lines[1], /^usage reminder: Copilot weekly 64%, 5h 31% \| budget normal \| gate usage advise --task-grade A$/);
+  assert.match(lines[1], /^usage reminder: Copilot weekly 64%, 5h 31% \| budget normal \| gate usage advise --task-grade A \| chat keep current chat$/);
 });
 
 test("runTicketStatus rejects manually written execution ticket without CLI provenance", async () => {

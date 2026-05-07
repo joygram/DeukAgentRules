@@ -320,6 +320,9 @@ test("cli-args.mjs - parseUsageArgs supports usage inputs", () => {
     "--five-hour-reset", "2026-05-07 12:30",
     "--task-grade", "A",
     "--task", "refactor",
+    "--turn-count", "28",
+    "--linked-ticket-count", "3",
+    "--cross-workspace",
     "--json"
   ]);
   assert.strictEqual(opts.cwd, "/tmp/demo");
@@ -332,6 +335,9 @@ test("cli-args.mjs - parseUsageArgs supports usage inputs", () => {
   assert.strictEqual(opts.fiveHourReset, "2026-05-07 12:30");
   assert.strictEqual(opts.taskGrade, "A");
   assert.strictEqual(opts.taskLabel, "refactor");
+  assert.strictEqual(opts.turnCount, 28);
+  assert.strictEqual(opts.linkedTicketCount, 3);
+  assert.strictEqual(opts.crossWorkspace, true);
   assert.strictEqual(opts.json, true);
 });
 

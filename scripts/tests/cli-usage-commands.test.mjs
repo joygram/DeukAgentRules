@@ -87,6 +87,7 @@ test("usage advise returns split guidance when budget is tight", async () => {
       cwd,
       taskGrade: "S",
       taskLabel: "large refactor",
+      turnCount: 18,
       json: false
     });
 
@@ -95,6 +96,45 @@ test("usage advise returns split guidance when budget is tight", async () => {
     assert.match(lines[2], /budget: S split/);
     assert.match(lines[3], /gate: no broad refactor/);
     assert.match(lines[4], /next: split ticket/);
+  } finally {
+    console.log = originalLog;
+    rmSync(cwd, { recursive: true, force: true });
+  }
+});
+
+test("usage advise recommends handoff and new chat for dense low-budget conversation", async () => {
+  const cwd = mkdtempSync(join(tmpdir(), "deuk-usage-chat-split-"));
+  const originalLog = console.log;
+  const lines = [];
+  console.log = (value) => lines.push(String(value));
+  try {
+    await runUsage("set", {
+      cwd,
+      client: "Codex",
+      agentId: "codex-main",
+      weeklyRemaining: 34,
+      fiveHourRemaining: 11,
+      weeklyReset: "2026-05-12 07:30",
+      fiveHourReset: "2026-05-07 12:30",
+      json: false
+    });
+    lines.length = 0;
+
+    await runUsage("advise", {
+      cwd,
+      taskGrade: "A",
+      turnCount: 42,
+      linkedTicketCount: 3,
+      crossWorkspace: true,
+      json: false
+    });
+
+    assert.match(lines[0], /usage: Codex weekly 34%, 5h 11%/);
+    assert.match(lines[1], /agent: codex-main/);
+    assert.match(lines[2], /budget: A split/);
+    assert.match(lines[3], /gate: no broad refactor/);
+    assert.match(lines[4], /next: split ticket/);
+    assert.match(lines[5], /chat: handoff and start new chat/);
   } finally {
     console.log = originalLog;
     rmSync(cwd, { recursive: true, force: true });
@@ -123,6 +163,7 @@ test("usage advise emits json payload", async () => {
       cwd,
       taskGrade: "A",
       taskLabel: "rules cleanup",
+      turnCount: 8,
       json: true
     });
 
@@ -133,6 +174,7 @@ test("usage advise emits json payload", async () => {
     assert.strictEqual(payload.taskLabel, "rules cleanup");
     assert.strictEqual(payload.budget, "A ok");
     assert.strictEqual(payload.next, "execute");
+    assert.strictEqual(payload.conversationAction, "keep-current-chat");
   } finally {
     console.log = originalLog;
     rmSync(cwd, { recursive: true, force: true });
