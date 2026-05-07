@@ -2968,7 +2968,7 @@ test("runTicketGuard accepts only complete CLI-created Phase 1 tickets", async (
   }
 });
 
-test("runTicketCreate prints approval gate instructions immediately after creation", async () => {
+test("runTicketCreate prints compact clickable ticket start and approval state", async () => {
   const { cwd } = makeTicketWorkspace([]);
   const originalLog = console.log;
   const originalWarn = console.warn;
@@ -2989,8 +2989,10 @@ test("runTicketCreate prints approval gate instructions immediately after creati
     });
 
     assert.ok(lines.some(line => /^Ticket created: /.test(line)));
-    assert.ok(lines.some(line => /Approval pending: share the ticket-start line/i.test(line)));
-    assert.ok(lines.some(line => /After approval: deuk-agent-flow ticket guard --topic .* --ticket-started --ticket-reviewed --approval approved/.test(line)));
+    assert.ok(lines.some(line => /^Ticket start: \[001-create-needs-approval-.*\]\(\/.*\.md\)$/.test(line)));
+    assert.ok(lines.some(line => line === "Approval pending: explicit user approval is required before work."));
+    assert.ok(lines.some(line => /^Guard topic: 001-create-needs-approval-/.test(line)));
+    assert.ok(!lines.some(line => /After approval: deuk-agent-flow ticket guard/.test(line)));
   } finally {
     console.log = originalLog;
     console.warn = originalWarn;

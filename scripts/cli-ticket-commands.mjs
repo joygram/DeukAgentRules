@@ -255,7 +255,8 @@ function buildPlanBodyRequiredMessage(reasons = []) {
   return [
     "[VALIDATION FAILED] ticket create requires a filled Phase 1 plan body with actual data.",
     `Missing or incomplete: ${uniqueReasons.join(", ")}`,
-    "Use the one-shot flow: collect real observations first, write a filled `--plan-body-file`, then run `ticket create` once.",
+    "Use the one-shot flow: collect real observations first, pass a filled body with `--plan-body-file -`, then run `ticket create` once.",
+    "If a scratch plan-body file is unavoidable, keep it outside the workspace, delete it after create, and never present it as a ticket artifact.",
     "Do not rely on template defaults or auto-generated filler text for Phase 1 ticket content."
   ].join("\n");
 }
@@ -414,13 +415,18 @@ function printUsageReminder(cwd) {
   }
 }
 
-function printCreateApprovalGate(ticketId) {
+function printCreateApprovalGate(ticketId, opts = {}) {
+  if (isCompactTicketOutput(opts)) {
+    console.log("Approval pending: explicit user approval is required before work.");
+    console.log(`Guard topic: ${ticketId}`);
+    return;
+  }
   console.log("Approval pending: share the ticket-start line in chat, review the durable ticket body, and stop here until the user explicitly approves.");
   console.log(`After approval: deuk-agent-flow ticket guard --topic ${ticketId} --ticket-started --ticket-reviewed --approval approved`);
 }
 
 function formatTicketStartLine(ticketId, absPath) {
-  return `Ticket start: [${ticketId}](${toFileUri(absPath)})`;
+  return `Ticket start: [${ticketId}](${absPath})`;
 }
 
 function printTicketStartLine(ticketId, absPath) {
@@ -724,7 +730,7 @@ function assertTicketLifecycleProvenance(entry, meta = {}) {
     `[VALIDATION FAILED] Ticket ${entry?.id || entry?.topic || "unknown"} cannot be used as an execution ticket: ${reasons.join(", ")}.`,
     "This ticket file does not carry CLI creation provenance.",
     "Do not create or repair tickets by writing .deuk-agent/tickets/**/*.md directly.",
-    "Use: npx deuk-agent-flow ticket create --topic <topic> --summary <summary> --plan-body-file <filled-phase-1.md> --non-interactive"
+    "Use: npx deuk-agent-flow ticket create --topic <topic> --summary <summary> --plan-body-file - --non-interactive"
   ].join("\n"));
 }
 
@@ -1331,7 +1337,7 @@ export async function runTicketCreate(opts) {
     console.log(`${opts.dryRun ? "Ticket would be created" : "Ticket created"}: ${toFileUri(abs)}`);
     printTicketStartLine(ticketId, abs);
     if (!opts.dryRun) {
-      printCreateApprovalGate(ticketId);
+      printCreateApprovalGate(ticketId, opts);
     }
     printUsageReminder(opts.cwd);
     if (!opts.dryRun) {
