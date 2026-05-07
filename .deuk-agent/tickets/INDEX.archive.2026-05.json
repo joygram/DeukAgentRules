@@ -1,8 +1,34 @@
 {
   "version": 1,
-  "updatedAt": "2026-05-07T14:52:59.411Z",
+  "updatedAt": "2026-05-07T20:29:21.592Z",
   "activeTicketId": null,
   "entries": [
+    {
+      "id": "335-npm-login-joy-nucb",
+      "title": "npm-login",
+      "topic": "npm-login",
+      "group": "sub",
+      "project": "global",
+      "createdAt": "2026-05-07T14:36:02.726Z",
+      "source": "ticket-create",
+      "status": "closed",
+      "phase": 4,
+      "updatedAt": "2026-05-07T14:54:45.492Z",
+      "archiveYearMonth": "2026-05"
+    },
+    {
+      "id": "338-commit-all-worktree-joy-nucb",
+      "title": "commit-all-worktree",
+      "topic": "commit-all-worktree",
+      "group": "sub",
+      "project": "global",
+      "createdAt": "2026-05-07T14:52:59.407Z",
+      "source": "ticket-create",
+      "status": "closed",
+      "phase": 4,
+      "updatedAt": "2026-05-07T14:53:23.111Z",
+      "archiveYearMonth": "2026-05"
+    },
     {
       "id": "337-approval-drift-root-cause-joy-nucb",
       "title": "approval-drift-root-cause",

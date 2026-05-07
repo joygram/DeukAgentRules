@@ -1,25 +1,25 @@
 {
   "version": 1,
-  "updatedAt": "2026-05-07T14:52:59.411Z",
+  "updatedAt": "2026-05-07T20:29:21.592Z",
   "activeTicketId": "308-archive-yearmonth-workspace-sync-joy-nucb",
   "entries": [
     {
-      "id": "338-commit-all-worktree-joy-nucb",
-      "title": "commit-all-worktree",
-      "topic": "commit-all-worktree",
+      "id": "340-rank-approval-guard-joy-nucb",
+      "title": "rank-approval-guard",
+      "topic": "rank-approval-guard",
       "group": "sub",
       "project": "global",
-      "createdAt": "2026-05-07T14:52:59.407Z",
+      "createdAt": "2026-05-07T20:29:21.589Z",
       "source": "ticket-create",
       "status": "open"
     },
     {
-      "id": "335-npm-login-joy-nucb",
-      "title": "npm-login",
-      "topic": "npm-login",
+      "id": "339-ticket-delete-cli-joy-nucb",
+      "title": "ticket-delete-cli",
+      "topic": "ticket-delete-cli",
       "group": "sub",
       "project": "global",
-      "createdAt": "2026-05-07T14:36:02.726Z",
+      "createdAt": "2026-05-07T20:25:05.166Z",
       "source": "ticket-create",
       "status": "open"
     },
