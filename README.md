@@ -5,8 +5,6 @@
   <h1>Deuk Agent Flow v4.0.0</h1>
   <p>
     <a href="https://www.npmjs.com/package/deuk-agent-flow"><img src="https://img.shields.io/npm/v/deuk-agent-flow.svg?label=deuk-agent-flow" alt="deuk-agent-flow npm version" /></a>
-    <a href="https://www.npmjs.com/package/deuk-agent-rule"><img src="https://img.shields.io/npm/v/deuk-agent-rule.svg?label=legacy%20deuk-agent-rule" alt="deuk-agent-rule npm version" /></a>
-    <a href="https://www.npmjs.com/package/deuk-agent-flow"><img src="https://img.shields.io/endpoint?url=https%3A%2F%2Fraw.githubusercontent.com%2Fjoygram%2FDeukAgentFlow%2Fmain%2Fdocs%2Fbadges%2Fnpm-downloads.json" alt="combined npm downloads for deuk-agent-flow and deuk-agent-rule" /></a>
   </p>
   <p><b>Stop losing AI coding work between chats.</b></p>
   <p><i>Say "next" or "ship it"; Deuk Agent Flow keeps the ticket, scope, verification, and memory attached to your repo.</i></p>
@@ -137,13 +135,6 @@ npm install -g deuk-agent-flow
 deuk-agent-flow init
 ```
 
-Legacy compatibility install:
-
-```bash
-npm install -g deuk-agent-rule
-deuk-agent-rule init
-```
-
 If you manage many repos under one workspace, run `deuk-agent-flow init` in each project root that owns its own rules and tickets. The workspace root can act as a shared pointer, but day-to-day work usually belongs to each project's `PROJECT_RULE.md` and `.deuk-agent/`.
 
 This is where the effect compounds: use the workspace root as the shared entry point, each project root as an independent ticket/rule/verification boundary, and nested apps or servers as separate projects only when they have their own lifecycle.
@@ -160,7 +151,7 @@ deuk-agent-flow init  # Routes to local scripts/cli.mjs automatically
 If you primarily work in Codex or Copilot, this is the recommended day-to-day setup. Those clients currently have the smoothest behavior with the hub-spoke and ticket-driven workflow.
 
 ### 3. Maintainer Publish
-Maintainers can publish both npm packages with one root command:
+Maintainers can publish from the root command:
 
 ```bash
 npm run publish
@@ -176,18 +167,6 @@ Before publishing, run the Docker consumer smoke test. It installs the packed pa
 
 ```bash
 npm run smoke:npm:docker
-```
-
-The publish helper runs `npm test`, syncs the `deuk-agent-rule` compatibility package version to the root package version, publishes `deuk-agent-flow` first, and then publishes `deuk-agent-rule`.
-
-For the full migration sequence, see [docs/internal/deukagentflow-migration-plan.ko.md](docs/internal/deukagentflow-migration-plan.ko.md).
-
-Legacy note: `deuk-agent-rule` remains available for compatibility during the transition, and the combined downloads badge counts both packages.
-
-If the current `deuk-agent-flow` version is already published and you only need to publish the legacy compatibility wrapper, use the bootstrap command:
-
-```bash
-npm run publish:bootstrap
 ```
 
 ---

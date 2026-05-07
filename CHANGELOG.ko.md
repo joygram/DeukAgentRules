@@ -8,6 +8,16 @@
 
 ## [Unreleased]
 
+## [4.0.12] - 2026-05-07
+
+### 수정됨 (Fixed)
+
+- **init:** 마이그레이션 중 AgentFlow spoke가 사라지지 않도록 설치된 legacy `CLAUDE.md` 표면은 `.bak` 없이 교체하고, 감지된 agent tool 표면이 없는 `.deuk-agent` 프로젝트에도 기본 root `AGENTS.md` 포인터를 설치하도록 수정했습니다.
+- **skill:** registry뿐 아니라 온디스크 `.deuk-agent/skills/<id>/SKILL.md` 파일도 설치된 skill로 판정하여 `deuk-agent-flow skill list`가 마이그레이션된 skill 디렉터리 상태를 정확히 보여주도록 수정했습니다.
+- **rules:** AgentFlow skill 상태 질문은 `deuk-agent-flow skill list`로 확인하도록 명시하고, core agent rules의 ticket 예시를 완전한 `deuk-agent-flow ticket ...` 명령으로 정규화했습니다.
+
+## [4.0.11] - 2026-05-07
+
 ### 수정됨 (Fixed)
 
 - **init/ticket:** 의도했던 month-only archive 정책을 복원했습니다. `init`가 예전의 깊은 archive 레이아웃을 canonical month bucket 레이아웃으로 정규화하고, 낡은 archive depth metadata 없이 archive shard index를 다시 쓰며, 새 비정규 import가 생기지 않도록 수정했습니다.

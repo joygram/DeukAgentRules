@@ -27,6 +27,13 @@ test("cli-utils.mjs - normalizeWorkflowMode", (t) => {
   assert.strictEqual(normalizeWorkflowMode("unknown-val"), WORKFLOW_MODE_PLAN, "unknown fallback to plan");
 });
 
+test("parseTicketArgs preserves explicit workflow approval for ticket lifecycle commands", () => {
+  const opts = parseTicketArgs(["--topic", "abc", "--workflow", "execute", "--approval", "approved"]);
+
+  assert.strictEqual(opts.workflowMode, "execute");
+  assert.strictEqual(opts.approval, "approved");
+});
+
 test("cli-utils.mjs - resolveWorkflowMode fallback logic", (t) => {
   assert.strictEqual(resolveWorkflowMode({}, null), WORKFLOW_MODE_PLAN);
   assert.strictEqual(resolveWorkflowMode({ workflowMode: "execute" }, null), WORKFLOW_MODE_EXECUTE);
@@ -117,7 +124,7 @@ test("cli-utils.mjs - computeTicketPath", (t) => {
     archiveYearMonth: "2026-05",
     archiveDay: "01"
   };
-  assert.strictEqual(computeTicketPath(groupedArchivedEntry), ".deuk-agent/tickets/archive/main/2026-05/01/081-old-host.md");
+  assert.strictEqual(computeTicketPath(groupedArchivedEntry), ".deuk-agent/tickets/archive/main/2026-05/081-old-host.md");
 
   const defaultGroup = { id: "100-no-group-host", status: "open" };
   assert.strictEqual(computeTicketPath(defaultGroup), ".deuk-agent/tickets/sub/100-no-group-host.md");
@@ -282,11 +289,15 @@ test("cli-args.mjs - parseTicketArgs supports strict/guard flags", () => {
     "--topic", "demo",
     "--summary", "summary",
     "--require-filled",
+    "--ticket-started",
+    "--ticket-reviewed",
     "--status-detail"
   ]);
   assert.strictEqual(opts.topic, "demo");
   assert.strictEqual(opts.summary, "summary");
   assert.strictEqual(opts.requireFilled, true);
+  assert.strictEqual(opts.ticketStarted, true);
+  assert.strictEqual(opts.ticketReviewed, true);
   assert.strictEqual(opts.statusDetail, true);
   assert.strictEqual(opts.compact, undefined);
 });
@@ -295,6 +306,17 @@ test("cli-args.mjs - parseTicketArgs supports inline plan body", () => {
   const opts = parseTicketArgs(["--topic", "demo", "--plan-body", "# Demo\n\nbody"]);
   assert.strictEqual(opts.topic, "demo");
   assert.strictEqual(opts.planBody, "# Demo\n\nbody");
+});
+
+test("cli-args.mjs - parseTicketArgs supports file-backed ticket text inputs", () => {
+  const opts = parseTicketArgs([
+    "--topic", "demo",
+    "--plan-body-file", "phase1.md",
+    "--content-file", "context.md"
+  ]);
+  assert.strictEqual(opts.topic, "demo");
+  assert.strictEqual(opts.planBodyFile, "phase1.md");
+  assert.strictEqual(opts.contentFile, "context.md");
 });
 
 test("cli-args.mjs - parseTicketArgs supports inline ticket content", () => {

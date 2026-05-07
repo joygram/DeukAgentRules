@@ -53,13 +53,12 @@ export function computeTicketPath(entry) {
     return [TICKET_DIR_NAME, `${fileStem}.md`].join("/");
   }
 
-  if (isArchived && entry.archiveYearMonth && entry.archiveDay) {
+  if (isArchived && entry.archiveYearMonth) {
     return [
       TICKET_DIR_NAME,
       "archive",
       group,
       entry.archiveYearMonth,
-      entry.archiveDay,
       `${fileStem}.md`
     ].join("/");
   }
