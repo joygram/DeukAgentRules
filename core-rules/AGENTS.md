@@ -1,6 +1,6 @@
 ---
-version: 47
-changelog: "v47: Require first-ticket one-shot create recipe with exact strict APC headings."
+version: 50
+changelog: "v50: Make compact durable reinforcement and report text the only persisted guidance."
 ---
 
 # Agent Rules
@@ -11,6 +11,10 @@ changelog: "v47: Require first-ticket one-shot create recipe with exact strict A
 - No ticket, no writes: before file changes, select or create one active ticket, share the ticket-start line, reopen and review the durable ticket body, wait for explicit user approval, complete Phase 1 in that ticket, run `deuk-agent-flow ticket guard --topic <id> --ticket-started --ticket-reviewed --approval approved` successfully, and call `set_workflow_context(project, ticket_id, phase)`.
 - User requirements are ticket-first: every user request that implies investigation, change, verification, or judgment must first be represented in a ticket containing cause, analysis, and design/approach before work continues.
 - User approval or correction creates another ticket update loop: record the approval/correction in the ticket, re-check scope and plan, then continue only through `deuk-agent-flow ticket guard --ticket-started --ticket-reviewed --approval approved`.
+- Approval is mandatory for every ticket. A ticket may not progress without explicit user approval, regardless of urgency or convenience.
+- Approval review must treat `rank/priority` as a hard gate. If `rank/priority` is missing, the ticket is incomplete and approval must be withheld.
+- Reinforcement only counts when it is written into the durable ticket body or this core rules file. Chat reminders are advisory only and do not change state.
+- If the user asks for reinforcement or report simplification, write the shortest durable version into the ticket or core rules. Do not depend on chat repetition.
 - Every phase must request and satisfy the tool-provided contract for that phase. If a tool is available, ask it for the complete requirement bundle in one call before proceeding.
 - Phase state has two records: runtime context via `set_workflow_context`, and durable ticket markdown plus explicit approval validated by `deuk-agent-flow ticket guard`. Both must match before claiming progress.
 - Verification is mandatory and ticket-recorded before close.

@@ -60,3 +60,4 @@ architecture_docs: "docs/architecture.md"
 ## Ticket Guard Reminder
 
 - `ticket create` 직후 placeholder 상태(본문/APC/compact plan 미충족)는 미완료다. 실행 작업 전에 반드시 채워야 한다.
+- Do not add or expand tests until the implementation is functionally complete and explicitly approved. Tests are a final validation step, not a planning scaffold.
