@@ -1,6 +1,6 @@
 ---
-version: 46
-changelog: "v46: Use canonical deuk-agent-flow ticket command examples; clarify AgentFlow skill status checks."
+version: 47
+changelog: "v47: Require first-ticket one-shot create recipe with exact strict APC headings."
 ---
 
 # Agent Rules
@@ -17,7 +17,7 @@ changelog: "v46: Use canonical deuk-agent-flow ticket command examples; clarify 
 - Completion reports go in the ticket first; chat gets only a very simple report with the ticket link, outcome, and verification status.
 - During work, keep reminding the agent through terse TDW feedback only: ticket, approval, guard, context, verify.
 - Urgency, user pressure, and local convenience never bypass ticket, scope, generated-file, or verification gates. Use hotfix tooling only when appropriate.
-- Ticket creation failures are hard stops: if `deuk-agent-flow ticket create` rejects the request, do not call `set_workflow_context`, run investigation commands, edit files, or create/repair `.deuk-agent/tickets/**/*.md` manually. Follow the CLI error guidance, provide the missing parameters or `--plan-body` input, and rerun `deuk-agent-flow ticket create`.
+- Ticket creation failures are hard stops: if `deuk-agent-flow ticket create` rejects the request, do not call `set_workflow_context`, run investigation commands, edit files, or create/repair `.deuk-agent/tickets/**/*.md` manually. Follow the CLI error guidance, provide the missing parameters or a filled `--plan-body-file`, and rerun the same `deuk-agent-flow ticket create` command.
 
 ## Tone
 - Dry, concise, technical. No emojis/exclamation marks.
@@ -59,6 +59,36 @@ changelog: "v46: Use canonical deuk-agent-flow ticket command examples; clarify 
 1. Read this file (AGENTS.md) → internally note the version number and exact file path read. Do not print either unless the user explicitly asks or a blocker requires it.
 2. Read `PROJECT_RULE.md` in workspace root → internally identify applicable DC-* rules. Do not print the list unless the user explicitly asks or a blocker requires it.
 3. Find or create active ticket (1-CALL RULE below), ensure it contains cause, analysis, and design/approach, print one clickable ticket-start line, reopen and review the durable ticket body, and stop while approval is pending. After explicit user approval or correction, record that approval/correction in the ticket, re-check the ticket body, run `deuk-agent-flow ticket guard --topic <id> --ticket-started --ticket-reviewed --approval approved` against the durable ticket, call `set_workflow_context(project, ticket_id, phase)`, then continue.
+
+### First Ticket One-Shot Recipe
+
+Initial ticket creation MUST use this canonical one-shot recipe. Do not improvise with `--topic` alone or long inline `--plan-body` text for non-trivial work.
+
+1. Create a filled Phase 1 markdown file before running `ticket create`.
+2. The file MUST contain these exact headings before the first create attempt:
+   - `## Agent Permission Contract (APC)`
+   - `### [BOUNDARY]`
+   - `### [CONTRACT]`
+   - `### [PATCH PLAN]`
+   - `## Problem Analysis`
+   - `## Source Observations`
+   - `## Cause Hypotheses`
+   - `## Improvement Direction`
+   - `## Compact Plan`
+   - `## Audit Evidence`
+3. Run the canonical command:
+
+```bash
+tmp=$(mktemp /tmp/deuk-ticket.XXXXXX.md)
+$EDITOR "$tmp"
+deuk-agent-flow ticket create \
+  --topic <topic> \
+  --summary "<concrete summary>" \
+  --plan-body-file "$tmp" \
+  --non-interactive
+```
+
+If `ticket create` fails, do not inspect unrelated repo files, run implementation commands, call `set_workflow_context`, or manually write `.deuk-agent/tickets/**/*.md`. Fill only the CLI-reported missing fields in the same Phase 1 file and rerun the same create command. The APC markers are strict markdown headings; bare `[BOUNDARY]`, `[CONTRACT]`, or `[PATCH PLAN]` markers are incomplete.
 
 ### First-Turn Invariant
 

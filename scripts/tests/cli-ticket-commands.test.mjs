@@ -309,6 +309,56 @@ test("runTicketNext tells agents to inspect git history when no ticket exists", 
   rmSync(cwd, { recursive: true, force: true });
 });
 
+test("runTicketNext reports no-follow-up when the latest closed ticket explicitly ends the flow", async () => {
+  const ticketPath = ".deuk-agent/tickets/sub/002-closed-no-follow-up.md";
+  const { cwd, ticketDir } = makeTicketWorkspace([
+    makeEntry({
+      id: "002-closed-no-follow-up",
+      title: "closed no follow-up",
+      topic: "002-closed-no-follow-up",
+      fileName: "002-closed-no-follow-up.md",
+      path: ticketPath,
+      status: "closed",
+      updatedAt: "2026-05-07T12:10:00.000Z"
+    })
+  ]);
+
+  mkdirSync(join(ticketDir, "sub"), { recursive: true });
+  writeFileSync(join(cwd, ticketPath), [
+    "---",
+    "id: 002-closed-no-follow-up",
+    "title: closed no follow-up",
+    "phase: 4",
+    "status: closed",
+    "summary: closed ticket without extra improvement work",
+    "priority: P2",
+    "tags: [test]",
+    "---",
+    "# closed no follow-up",
+    "",
+    "## Follow-up Decision",
+    "",
+    "- no-follow-up: verification passed and no further work is required.",
+    ""
+  ].join("\n"), "utf8");
+
+  const originalLog = console.log;
+  const lines = [];
+  console.log = value => lines.push(String(value));
+  try {
+    const result = await runTicketNext({ cwd, pathOnly: true });
+    assert.deepStrictEqual(lines, ["no-follow-up:002-closed-no-follow-up"]);
+    assert.deepStrictEqual(result, {
+      status: "no-follow-up",
+      ticket: "002-closed-no-follow-up",
+      path: ticketPath
+    });
+  } finally {
+    console.log = originalLog;
+    rmSync(cwd, { recursive: true, force: true });
+  }
+});
+
 test("runTicketUse no-match error shows latest closed ticket and open tickets", async () => {
   const { cwd } = makeTicketWorkspace([
     makeEntry({
@@ -980,7 +1030,7 @@ test("runTicketMove ignores linked plan markdown and still moves ticket", async 
   ].join("\n"), "utf8");
 
   try {
-    await runTicketMove({ cwd, topic: "001", next: true, nonInteractive: true });
+    await runTicketMove({ cwd, topic: "001", next: true, nonInteractive: true, approval: "approved" });
 
     const body = readFileSync(join(cwd, ticketPath), "utf8");
     assert.match(body, /phase: 2/);
@@ -1270,11 +1320,97 @@ test("runTicketMove accepts audit ticket with main-ticket source observations", 
   ].join("\n"), "utf8");
 
   try {
-    await runTicketMove({ cwd, topic: "001", next: true, nonInteractive: true });
+    await runTicketMove({ cwd, topic: "001", next: true, nonInteractive: true, approval: "approved" });
 
     const body = readFileSync(join(cwd, ticketPath), "utf8");
     assert.match(body, /phase: 2/);
     assert.match(body, /status: active/);
+  } finally {
+    rmSync(cwd, { recursive: true, force: true });
+  }
+});
+
+test("runTicketMove requires explicit approval before Phase 2 execution", async () => {
+  const ticketPath = ".deuk-agent/tickets/sub/001-approval-gate.md";
+  const { cwd, ticketDir } = makeTicketWorkspace([
+    makeEntry({
+      id: "001-approval-gate",
+      title: "approval gate",
+      topic: "approval-gate",
+      fileName: "001-approval-gate.md",
+      path: ticketPath,
+      status: "open",
+      phase: 1
+    })
+  ]);
+
+  mkdirSync(join(ticketDir, "sub"), { recursive: true });
+  writeFileSync(join(cwd, ticketPath), [
+    "---",
+    "id: 001-approval-gate",
+    "title: approval gate",
+    "phase: 1",
+    "status: open",
+    "summary: require explicit review approval before execution",
+    "priority: P2",
+    "tags: [test]",
+    "---",
+    "# approval gate",
+    "",
+    "## Agent Permission Contract (APC)",
+    "### [BOUNDARY]",
+    "- Editable modules: source module",
+    "",
+    "### [CONTRACT]",
+    "- Input: source context",
+    "- Output: bounded implementation",
+    "- Side effects: source and test changes",
+    "",
+    "### [PATCH PLAN]",
+    "- Implement the reviewed bounded change.",
+    "",
+    "## Compact Plan",
+    "",
+    "- **Finding:** The ticket has complete planning evidence.",
+    "- **Root cause / hypothesis:** Planning completeness is separate from review approval.",
+    "- **Approach:** Require an explicit approval flag before execution.",
+    "- **Verification:** Move without approval is rejected.",
+    "",
+    "## Problem Analysis",
+    "",
+    "The lifecycle move path must not treat a complete plan as approval to execute.",
+    "",
+    "## Source Observations",
+    "",
+    "- runTicketMove can receive a complete ticket without an approval flag.",
+    "",
+    "## Cause Hypotheses",
+    "",
+    "- Planning completeness and review approval are currently separate lifecycle states.",
+    "",
+    "## Improvement Direction",
+    "",
+    "Keep Phase 2 blocked until the caller passes --workflow execute or --approval approved.",
+    "",
+    "## Audit Evidence",
+    "",
+    "- `scripts/cli-ticket-commands.mjs` must distinguish planning completeness from approval.",
+    ""
+  ].join("\n"), "utf8");
+
+  try {
+    await assert.rejects(
+      () => runTicketMove({ cwd, topic: "001", next: true, nonInteractive: true }),
+      err => {
+        assert.match(err.message, /APPROVAL REQUIRED/);
+        assert.match(err.message, /--approval approved/);
+        return true;
+      }
+    );
+
+    const body = readFileSync(join(cwd, ticketPath), "utf8");
+    assert.match(body, /phase: 1/);
+    assert.match(body, /status: open/);
   } finally {
     rmSync(cwd, { recursive: true, force: true });
   }
@@ -1438,7 +1574,8 @@ test("runTicketMove finds ticket owner repo by topic from sibling cwd", async ()
       cwd: wrong.cwd,
       topic: "014-sibling-owned-host",
       next: true,
-      nonInteractive: true
+      nonInteractive: true,
+      approval: "approved"
     });
 
     const body = readFileSync(join(owner.cwd, ticketPath), "utf8");
@@ -1551,7 +1688,7 @@ test("runTicketMove lints changed markdown outside the ticket", async () => {
     writeFileSync(join(cwd, "AGENTS.md"), "# Rules\n\nBroken [link](./missing.md)\n", "utf8");
 
     await assert.rejects(
-      () => runTicketMove({ cwd, topic: "003", next: true, nonInteractive: true }),
+      () => runTicketMove({ cwd, topic: "003", next: true, nonInteractive: true, approval: "approved" }),
       err => {
         assert.match(err.message, /markdown lint failed/);
         assert.match(err.message, /AGENTS\.md: broken relative link/);
@@ -1644,10 +1781,17 @@ test("runTicketMove auto-runs rules audit for changed rule files", async () => {
     "## Compact Kernel",
     "Tools own detail.",
     "No ticket, no writes.",
+    "User requirements are ticket-first",
+    "cause, analysis, and design/approach",
+    "approval or correction creates another ticket update loop",
+    "wait for explicit user approval",
     "Every phase must request and satisfy the tool-provided contract.",
     "Phase state has two records.",
     "ticket guard",
+    "explicit approval validated by `ticket guard`",
     "Verification is mandatory.",
+    "Completion reports go in the ticket first",
+    "terse TDW feedback only",
     "never bypass ticket, scope, generated-file, or verification gates",
     "Ticket creation failures are hard stops",
     "do not call `set_workflow_context`",
@@ -1661,11 +1805,17 @@ test("runTicketMove auto-runs rules audit for changed rule files", async () => {
     "## Boot Sequence (run once)",
     "Read this file (AGENTS.md)",
     "Read `PROJECT_RULE.md`",
-    "ticket guard --topic <id>",
+    "ticket-start line, and stop while approval is pending",
+    "approval/correction in the ticket",
+    "ticket guard --topic <id> --ticket-started --ticket-reviewed --approval approved",
     "set_workflow_context(project, ticket_id, phase)",
-    "clickable ticket-start line",
+    "explicit user approval",
     "",
     "## First-Turn Invariant",
+    "wait for explicit user approval",
+    "update the ticket with that new input",
+    "reopen and review the durable ticket body",
+    "ticket guard --ticket-started --ticket-reviewed --approval approved",
     "do not run repo inspection commands",
     "ticket create` or `ticket use",
     "## Ticket Discovery (1-CALL RULE)",
@@ -1682,8 +1832,9 @@ test("runTicketMove auto-runs rules audit for changed rule files", async () => {
     "## Ticket Lifecycle",
     "Phase 0",
     "Phase 4",
+    "cause, analysis, design/approach",
     "findings, hypotheses, scope, compact plan, and phase contract",
-    "affected files, and residual risk",
+    "verification outcome, completion report, residual risk, and a follow-up decision",
     "Keep chat compact once the ticket carries the durable record",
     "",
     "## Hard Stops",
@@ -1691,6 +1842,7 @@ test("runTicketMove auto-runs rules audit for changed rule files", async () => {
     "generated/source uncertainty",
     "shared-interface changes",
     "repo inspection started before ticket selection or creation",
+    "same TDW failure family appears twice",
     "read-only until the ticket records findings",
     "missing tests",
     "stabilization or root-cause ticket",
@@ -1719,7 +1871,7 @@ test("runTicketMove auto-runs rules audit for changed rule files", async () => {
 
   try {
     await assert.rejects(
-      () => runTicketMove({ cwd, topic: "004", next: true, nonInteractive: true }),
+      () => runTicketMove({ cwd, topic: "004", next: true, nonInteractive: true, approval: "approved" }),
       err => {
         assert.match(err.message, /rules audit failed/);
         assert.match(err.message, /DR-TOKEN-01|DR-BOOT-01|DR-CLI-01/);
@@ -1924,6 +2076,62 @@ test("runTicketClose rejects audit ticket without main-ticket durable evidence",
     const body = readFileSync(join(cwd, ticketPath), "utf8");
     assert.match(body, /phase: 2/);
     assert.match(body, /status: active/);
+  } finally {
+    rmSync(cwd, { recursive: true, force: true });
+  }
+});
+
+test("runTicketClose accepts explicit no-follow-up decision without improvement direction", async () => {
+  const ticketPath = ".deuk-agent/tickets/sub/002-no-follow-up-close.md";
+  const { cwd, ticketDir } = makeTicketWorkspace([
+    makeEntry({
+      id: "002-no-follow-up-close",
+      title: "no follow-up close",
+      topic: "no-follow-up-close",
+      fileName: "002-no-follow-up-close.md",
+      path: ticketPath,
+      status: "active",
+      phase: 2
+    })
+  ]);
+
+  mkdirSync(join(ticketDir, "sub"), { recursive: true });
+  writeFileSync(join(cwd, ticketPath), [
+    "---",
+    "id: 002-no-follow-up-close",
+    "title: no follow-up close",
+    "phase: 2",
+    "status: active",
+    "summary: workflow close should allow explicit no-follow-up",
+    "priority: P2",
+    "tags: [test]",
+    "---",
+    "# no follow-up close",
+    "",
+    "## Verification Outcome",
+    "",
+    "- Verified the workflow closes cleanly without a new follow-up ticket.",
+    "",
+    "## Problem Analysis",
+    "",
+    "This ticket should be closable when the result is complete and no extra work remains.",
+    "",
+    "## Follow-up Decision",
+    "",
+    "- no-follow-up: verification passed and no further work is required.",
+    "",
+    "## Audit Evidence",
+    "",
+    "- `scripts/cli-ticket-commands.mjs:1716` owns the close guard path.",
+    ""
+  ].join("\n"), "utf8");
+
+  try {
+    await runTicketClose({ cwd, topic: "002", nonInteractive: true });
+
+    const body = readFileSync(join(cwd, ticketPath), "utf8");
+    assert.match(body, /phase: 4/);
+    assert.match(body, /status: closed/);
   } finally {
     rmSync(cwd, { recursive: true, force: true });
   }
@@ -2377,9 +2585,10 @@ test("runTicketCreate rolls back when strict create rejects placeholder summary"
       err => {
         assert.match(err.message, /strict mode rejected incomplete Phase 1/);
         assert.match(err.message, /summary_missing_or_placeholder/);
-        assert.match(err.message, /Fix: provide `--summary` and a filled `--plan-body`/);
+        assert.match(err.message, /Fix: provide `--summary` and a filled `--plan-body-file <file>`/);
         assert.match(err.message, /Command: npx deuk-agent-flow ticket create/);
         assert.match(err.message, /Manual fallback is forbidden/);
+        assert.match(err.message, /exact markdown headings `### \[BOUNDARY\]`, `### \[CONTRACT\]`, and `### \[PATCH PLAN\]`/);
         return true;
       }
     );
@@ -2426,7 +2635,7 @@ test("runTicketCreate dry-run rejects incomplete strict Phase 1 before claiming 
       err => {
         assert.match(err.message, /strict mode rejected incomplete Phase 1/);
         assert.match(err.message, /compact_plan_placeholder_or_incomplete/);
-        assert.match(err.message, /Fix: provide `--summary` and a filled `--plan-body`/);
+        assert.match(err.message, /Fix: provide `--summary` and a filled `--plan-body-file <file>`/);
         assert.match(err.message, /Manual fallback is forbidden/);
         return true;
       }
@@ -2466,7 +2675,7 @@ test("runTicketCreate strict mode rejects scaffold-only compact plan drafts", as
       err => {
         assert.match(err.message, /strict mode rejected incomplete Phase 1/);
         assert.match(err.message, /compact_plan_placeholder_or_incomplete/);
-        assert.match(err.message, /Fix: provide `--summary` and a filled `--plan-body`/);
+        assert.match(err.message, /Fix: provide `--summary` and a filled `--plan-body-file <file>`/);
         assert.match(err.message, /Command: npx deuk-agent-flow ticket create/);
         assert.match(err.message, /Manual fallback is forbidden/);
         return true;
@@ -2739,12 +2948,130 @@ test("runTicketGuard accepts only complete CLI-created Phase 1 tickets", async (
     });
 
     lines.length = 0;
-    const out = await runTicketGuard({ cwd, topic: "guard-complete-ticket", nonInteractive: true });
+    const out = await runTicketGuard({
+      cwd,
+      topic: "guard-complete-ticket",
+      nonInteractive: true,
+      ticketStarted: true,
+      ticketReviewed: true,
+      approval: "approved"
+    });
 
     assert.match(out.id, /^001-guard-complete-ticket-/);
     assert.strictEqual(out.phase, 1);
     assert.strictEqual(lines.length, 1);
     assert.match(lines[0], /^ticket-context-ok 001-guard-complete-ticket-/);
+  } finally {
+    console.log = originalLog;
+    console.warn = originalWarn;
+    rmSync(cwd, { recursive: true, force: true });
+  }
+});
+
+test("runTicketGuard rejects complete Phase 1 tickets before ticket-start acknowledgement", async () => {
+  const { cwd } = makeTicketWorkspace([]);
+  const originalLog = console.log;
+  const originalWarn = console.warn;
+  console.log = () => {};
+  console.warn = () => {};
+
+  try {
+    await runTicketCreate({
+      cwd,
+      topic: "guard-needs-start",
+      summary: "guard requires ticket start acknowledgement before workflow context",
+      planBody: minimalEvidencePhase1Plan("guard needs start"),
+      nonInteractive: true,
+      docsLanguage: "en",
+      skipPhase0: true,
+      requireFilled: true
+    });
+
+    await assert.rejects(
+      () => runTicketGuard({ cwd, topic: "guard-needs-start", nonInteractive: true, ticketReviewed: true, approval: "approved" }),
+      err => {
+        assert.match(err.message, /ACK REQUIRED/);
+        assert.match(err.message, /--ticket-started/);
+        assert.match(err.message, /before set_workflow_context/);
+        return true;
+      }
+    );
+  } finally {
+    console.log = originalLog;
+    console.warn = originalWarn;
+    rmSync(cwd, { recursive: true, force: true });
+  }
+});
+
+test("runTicketGuard rejects complete Phase 1 tickets before durable ticket review", async () => {
+  const { cwd } = makeTicketWorkspace([]);
+  const originalLog = console.log;
+  const originalWarn = console.warn;
+  console.log = () => {};
+  console.warn = () => {};
+
+  try {
+    await runTicketCreate({
+      cwd,
+      topic: "guard-needs-review",
+      summary: "guard requires durable ticket review before workflow context",
+      planBody: minimalEvidencePhase1Plan("guard needs review"),
+      nonInteractive: true,
+      docsLanguage: "en",
+      skipPhase0: true,
+      requireFilled: true
+    });
+
+    await assert.rejects(
+      () => runTicketGuard({ cwd, topic: "guard-needs-review", nonInteractive: true, ticketStarted: true, approval: "approved" }),
+      err => {
+        assert.match(err.message, /REVIEW REQUIRED/);
+        assert.match(err.message, /--ticket-reviewed/);
+        assert.match(err.message, /before set_workflow_context/);
+        return true;
+      }
+    );
+  } finally {
+    console.log = originalLog;
+    console.warn = originalWarn;
+    rmSync(cwd, { recursive: true, force: true });
+  }
+});
+
+test("runTicketGuard rejects complete Phase 1 tickets without explicit user approval", async () => {
+  const { cwd } = makeTicketWorkspace([]);
+  const originalLog = console.log;
+  const originalWarn = console.warn;
+  console.log = () => {};
+  console.warn = () => {};
+
+  try {
+    await runTicketCreate({
+      cwd,
+      topic: "guard-needs-approval",
+      summary: "guard requires explicit user approval before workflow context",
+      planBody: minimalEvidencePhase1Plan("guard needs approval"),
+      nonInteractive: true,
+      docsLanguage: "en",
+      skipPhase0: true,
+      requireFilled: true
+    });
+
+    await assert.rejects(
+      () => runTicketGuard({
+        cwd,
+        topic: "guard-needs-approval",
+        nonInteractive: true,
+        ticketStarted: true,
+        ticketReviewed: true
+      }),
+      err => {
+        assert.match(err.message, /APPROVAL REQUIRED/);
+        assert.match(err.message, /--approval approved/);
+        assert.match(err.message, /before set_workflow_context/);
+        return true;
+      }
+    );
   } finally {
     console.log = originalLog;
     console.warn = originalWarn;
@@ -2784,7 +3111,7 @@ test("runTicketUse rejects manually written execution ticket without CLI provena
       () => runTicketUse({ cwd, topic: ticketId, nonInteractive: true }),
       err => {
         assert.match(err.message, /manual_ticket_lifecycle_provenance_missing/);
-        assert.match(err.message, /--plan-body/);
+        assert.match(err.message, /--plan-body-file/);
         return true;
       }
     );
@@ -3565,6 +3892,51 @@ test("runTicketCreate records inline content in the created ticket body", async 
   }
 });
 
+test("runTicketCreate reads plan body and content from files without losing backticks", async () => {
+  const cwd = mkdtempSync(join(tmpdir(), "deuk-ticket-file-backed-input-"));
+  const planPath = join(cwd, "phase1.md");
+  const contentPath = join(cwd, "context.md");
+  const planBody = [
+    minimalEvidencePhase1Plan("file backed ticket"),
+    "",
+    "## Shell Safety",
+    "",
+    "- Literal command text must remain `deuk-agent-flow ticket create` and must not execute.",
+    ""
+  ].join("\n");
+  writeFileSync(planPath, planBody, "utf8");
+  writeFileSync(contentPath, "Keep literal backticks: `echo should-not-run`.\n", "utf8");
+  const originalLog = console.log;
+  const originalWarn = console.warn;
+  console.log = () => {};
+  console.warn = () => {};
+
+  try {
+    await runTicketCreate({
+      cwd,
+      topic: "file-backed-ticket-input",
+      summary: "read ticket markdown from files safely",
+      planBodyFile: "phase1.md",
+      contentFile: "context.md",
+      nonInteractive: true,
+      docsLanguage: "en",
+      skipPhase0: true
+    });
+
+    const ticketDir = join(cwd, ".deuk-agent", "tickets");
+    const ticketFile = readNewestTicketMarkdown(ticketDir);
+    assert.ok(ticketFile, "ticket markdown should be created");
+
+    const ticketText = readFileSync(ticketFile, "utf8");
+    assert.match(ticketText, /`deuk-agent-flow ticket create`/);
+    assert.match(ticketText, /`echo should-not-run`/);
+  } finally {
+    console.log = originalLog;
+    console.warn = originalWarn;
+    rmSync(cwd, { recursive: true, force: true });
+  }
+});
+
 test("runTicketCreate auto-enables strict mode for investigation tickets", async () => {
   const { cwd } = makeTemplateWorkspace();
   const templateDir = join(cwd, ".deuk-agent", "templates");
@@ -3595,7 +3967,7 @@ test("runTicketCreate auto-enables strict mode for investigation tickets", async
       err => {
         assert.match(err.message, /strict mode rejected incomplete Phase 1/);
         assert.match(err.message, /compact_plan_placeholder_or_incomplete/);
-        assert.match(err.message, /Fix: provide `--summary` and a filled `--plan-body`/);
+        assert.match(err.message, /Fix: provide `--summary` and a filled `--plan-body-file <file>`/);
         assert.match(err.message, /Command: npx deuk-agent-flow ticket create/);
         assert.match(err.message, /Manual fallback is forbidden/);
         return true;

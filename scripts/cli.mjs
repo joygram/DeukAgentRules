@@ -205,8 +205,12 @@ Ticket Options:
   --claim <text>        Validate or report only from ticket evidence matching this claim
   --skip-phase0         Bypass Phase 0 RAG validation
   --plan-body <text>    Create ticket with filled Phase 1 markdown body
+  --plan-body-file <p>  Read filled Phase 1 markdown from a file, or '-' for stdin
+  --content-file <path> Read extra ticket context from a file, or '-' for stdin
   --require-filled      Enforce non-placeholder APC and compact plan content before create succeeds
   --allow-placeholder   Opt out of strict create guard (legacy behavior)
+  --ticket-started      Confirm the clickable ticket-start line was shared before guard/context
+  --ticket-reviewed     Confirm the durable ticket body was reopened and reviewed before guard/context
   --compact             Prefer one-line ticket outputs in automation flows
   --status-detail       Include detailed reasons in ticket status output
   --handoff             Emit compact handoff output for session continuation

@@ -4,7 +4,8 @@ import { basename, join, dirname, relative, resolve } from "path";
 import { 
   toSlug, toRepoRelativePath, toFileUri, inferRefTitleAndTopic, resolveReferencedTicketPath, toPosixPath, stringifyFrontMatter,
   resolveDocsLanguage, inferDocsLanguageFromText, normalizeDocsLanguage, isMcpActive, withReadline, parseFrontMatter,
-  AGENT_ROOT_DIR, TICKET_SUBDIR, TEMPLATE_SUBDIR, TICKET_DIR_NAME, TICKET_INDEX_FILENAME, detectConsumerTicketDir, loadInitConfig, computeTicketPath
+  AGENT_ROOT_DIR, TICKET_SUBDIR, TEMPLATE_SUBDIR, TICKET_DIR_NAME, TICKET_INDEX_FILENAME, WORKFLOW_MODE_EXECUTE,
+  detectConsumerTicketDir, loadInitConfig, computeTicketPath, normalizeWorkflowMode
 } from "./cli-utils.mjs";
 import { readTicketIndexJson, writeTicketIndexJson, syncActiveTicketId, generateTicketId, syncToPipeline } from "./cli-ticket-index.mjs";
 import { appendTicketEntry, rebuildTicketIndexFromTopicFilesIfNeeded, updateTicketEntryStatus } from "./cli-ticket-parser.mjs";
@@ -156,6 +157,15 @@ const ANALYSIS_DESIGN_SECTION_REQUIREMENTS = [
   }
 ];
 
+const FOLLOW_UP_DECISION_NO_FOLLOW_UP_PATTERNS = [
+  /\bno[- ]follow[- ]up\b/i,
+  /\bfollow[- ]up\s*:\s*none\b/i,
+  /\bno further action\b/i,
+  /\bnone required\b/i,
+  /후속(?:\s+작업)?\s*(?:없음|불필요)/,
+  /추가(?:\s+작업)?\s*(?:없음|불필요)/
+];
+
 const INVESTIGATION_ANALYSIS_SECTION_REQUIREMENTS = [
   {
     section: "Source Observations",
@@ -263,6 +273,39 @@ function getAnalysisDesignIncompleteReasons(meta, content) {
     if (!hasSubstantiveSectionContent(extractMarkdownSection(content, requirement.section), requirement.scaffolds)) {
       reasons.push(requirement.reason);
     }
+  }
+
+  if (shouldRequireMainTicketEvidence(meta, content)) {
+    for (const requirement of INVESTIGATION_ANALYSIS_SECTION_REQUIREMENTS) {
+      if (!hasSubstantiveSectionContent(extractMarkdownSection(content, requirement.section), requirement.scaffolds)) {
+        reasons.push(requirement.reason);
+      }
+    }
+  }
+
+  return reasons;
+}
+
+function hasSubstantiveFollowUpDecision(content) {
+  return hasSubstantiveSectionContent(extractMarkdownSection(content, "Follow-up Decision"), []);
+}
+
+function followUpDecisionMeansNoFollowUp(content) {
+  const text = extractMarkdownSection(content, "Follow-up Decision");
+  if (!hasSubstantiveSectionContent(text, [])) return false;
+  return FOLLOW_UP_DECISION_NO_FOLLOW_UP_PATTERNS.some(pattern => pattern.test(text));
+}
+
+function getCloseLifecycleReasons(meta, content) {
+  const reasons = [];
+  const problemAnalysis = extractMarkdownSection(content, "Problem Analysis");
+  if (!hasSubstantiveSectionContent(problemAnalysis, ANALYSIS_DESIGN_SECTION_REQUIREMENTS[0].scaffolds)) {
+    reasons.push("problem_analysis_missing");
+  }
+
+  if (!hasSubstantiveSectionContent(extractMarkdownSection(content, "Improvement Direction"), ANALYSIS_DESIGN_SECTION_REQUIREMENTS[1].scaffolds)
+    && !hasSubstantiveFollowUpDecision(content)) {
+    reasons.push("follow_up_decision_missing");
   }
 
   if (shouldRequireMainTicketEvidence(meta, content)) {
@@ -456,6 +499,26 @@ function buildTicketContentSection(ticketContent, docsLanguage) {
   if (!trimmed) return "";
   const heading = docsLanguage === "ko" ? "## 맥락" : "## Context";
   return `${heading}\n\n${trimmed}\n`;
+}
+
+function readCliTextInput(cwd, inputPath, label) {
+  const value = String(inputPath || "").trim();
+  if (!value) return "";
+  if (value === "-") return readFileSync(0, "utf8");
+  const absPath = resolve(cwd, value);
+  if (!existsSync(absPath)) throw new Error(`${label}: file not found ${value}`);
+  return readFileSync(absPath, "utf8");
+}
+
+function hydrateCreateTextInputs(opts) {
+  const next = { ...opts };
+  if (next.planBodyFile) {
+    next.planBody = readCliTextInput(next.cwd, next.planBodyFile, "ticket create --plan-body-file");
+  }
+  if (next.contentFile) {
+    next.content = readCliTextInput(next.cwd, next.contentFile, "ticket create --content-file");
+  }
+  return next;
 }
 
 function injectTicketContent(baseContent, ticketContent, docsLanguage) {
@@ -719,8 +782,8 @@ function buildStrictCreateFailureMessage(reasons) {
     "[VALIDATION FAILED] ticket create strict mode rejected incomplete Phase 1.",
     `Missing: ${uniqueReasons.join(", ")}`,
     "TDW hard stop: do not call set_workflow_context, run investigation commands, or edit files until ticket create succeeds.",
-    "Fix: provide `--summary` and a filled `--plan-body` with APC, Compact Plan, Problem Analysis, Source Observations, Cause Hypotheses, Improvement Direction, and Audit Evidence.",
-    "Command: npx deuk-agent-flow ticket create --topic <topic> --summary \"<concrete summary>\" --plan-body \"<filled phase 1 markdown>\" --non-interactive",
+    "Fix: provide `--summary` and a filled `--plan-body-file <file>` with APC, Compact Plan, Problem Analysis, Source Observations, Cause Hypotheses, Improvement Direction, and Audit Evidence.",
+    "Command: npx deuk-agent-flow ticket create --topic <topic> --summary \"<concrete summary>\" --plan-body-file <filled-phase-1.md> --non-interactive",
     "Manual fallback is forbidden: do not write .deuk-agent/tickets/**/*.md directly after this failure."
   ];
 
@@ -728,7 +791,7 @@ function buildStrictCreateFailureMessage(reasons) {
     lines.push("Summary fix: replace placeholder/TBD wording with a concrete `--summary` value.");
   }
   if (uniqueReasons.includes("missing_apc_block") || uniqueReasons.some(reason => reason.startsWith("apc_"))) {
-    lines.push("APC fix: include `## Agent Permission Contract (APC)` with `[BOUNDARY]`, `[CONTRACT]`, and `[PATCH PLAN]`.");
+    lines.push("APC fix: include `## Agent Permission Contract (APC)` with exact markdown headings `### [BOUNDARY]`, `### [CONTRACT]`, and `### [PATCH PLAN]`.");
   }
   if (uniqueReasons.includes("compact_plan_placeholder_or_incomplete")) {
     lines.push("Compact Plan fix: replace scaffold text with concrete finding, direction, and verification lines.");
@@ -750,6 +813,16 @@ function isExecutionTicketStatus(status) {
   return OPEN_TICKET_STATUSES.has(String(status || "open").toLowerCase());
 }
 
+function hasExplicitExecutionApproval(opts = {}) {
+  if (!Object.prototype.hasOwnProperty.call(opts, "workflowMode")
+    && !Object.prototype.hasOwnProperty.call(opts, "workflow")
+    && !Object.prototype.hasOwnProperty.call(opts, "approval")
+    && !Object.prototype.hasOwnProperty.call(opts, "approvalState")) {
+    return false;
+  }
+  return normalizeWorkflowMode(opts.workflowMode ?? opts.workflow ?? opts.approval ?? opts.approvalState) === WORKFLOW_MODE_EXECUTE;
+}
+
 function getTicketLifecycleProvenanceReasons(entry, meta = {}) {
   const reasons = [];
   if (!entry || String(entry.status || "").toLowerCase() === "archived") return reasons;
@@ -769,7 +842,7 @@ function assertTicketLifecycleProvenance(entry, meta = {}) {
     `[VALIDATION FAILED] Ticket ${entry?.id || entry?.topic || "unknown"} cannot be used as an execution ticket: ${reasons.join(", ")}.`,
     "This ticket file does not carry CLI creation provenance.",
     "Do not create or repair tickets by writing .deuk-agent/tickets/**/*.md directly.",
-    "Use: npx deuk-agent-flow ticket create --topic <topic> --summary <summary> --plan-body \"<filled phase 1 markdown>\" --non-interactive"
+    "Use: npx deuk-agent-flow ticket create --topic <topic> --summary <summary> --plan-body-file <filled-phase-1.md> --non-interactive"
   ].join("\n"));
 }
 
@@ -1153,6 +1226,7 @@ function buildCreateRollbackIndex(currentIndexJson, ticketId, previousIndexJson)
 }
 
 export async function runTicketCreate(opts) {
+  opts = hydrateCreateTextInputs(opts);
   if (!opts.topic && !opts.ref) throw new Error("ticket create requires --topic or --ref");
   const inferred = opts.ref ? inferRefTitleAndTopic(opts) : null;
   const topic = toSlug(opts.topic || inferred?.topic || "ticket");
@@ -1526,6 +1600,15 @@ export async function runTicketGuard(opts) {
   if (phase === 1 && reasons.length > 0) {
     throw new Error(`[VALIDATION FAILED] ticket guard rejected incomplete Phase 1 for ${found.id || found.topic}: ${reasons.join(", ")}. Do not call set_workflow_context until the durable ticket is complete.`);
   }
+  if (!opts.ticketStarted) {
+    throw new Error(`[ACK REQUIRED] ticket guard blocked ${found.id || found.topic}: print the clickable ticket-start line before set_workflow_context. Re-run with --ticket-started only after the ticket link has been shared with the user.`);
+  }
+  if (!opts.ticketReviewed) {
+    throw new Error(`[REVIEW REQUIRED] ticket guard blocked ${found.id || found.topic}: reopen and review the durable ticket body before set_workflow_context. Re-run with --ticket-reviewed only after checking the ticket scope, APC, plan, and verification criteria.`);
+  }
+  if (!hasExplicitExecutionApproval(opts)) {
+    throw new Error(`[APPROVAL REQUIRED] ticket guard blocked ${found.id || found.topic}: explicit user approval is required before set_workflow_context. Re-run with --approval approved only after the user approves the ticket scope and Phase 1 plan.`);
+  }
 
   const out = {
     id: found.id,
@@ -1725,7 +1808,7 @@ export async function runTicketClose(opts) {
   const previousBody = readFileSync(abs, "utf8");
   const parsedForClose = parseFrontMatter(previousBody);
   const closePlanningReasons = [
-    ...getAnalysisDesignIncompleteReasons(parsedForClose.meta, parsedForClose.content),
+    ...getCloseLifecycleReasons(parsedForClose.meta, parsedForClose.content),
     ...getMainTicketEvidenceReasons(parsedForClose.meta, parsedForClose.content)
   ];
   const implementationGuard = getImplementationClaimGuardResult(opts.cwd, { content: parsedForClose.content, changedFiles: opts.changedFiles });
@@ -2098,6 +2181,9 @@ export async function runTicketMove(opts) {
     if (reasons.length) {
       throw new Error(`[VALIDATION FAILED] Ticket ${entry.topic} has incomplete Phase 1 planning evidence: ${reasons.join(", ")}. Fill substantive APC and compact plan content before moving to Phase 2.`);
     }
+    if (!hasExplicitExecutionApproval(opts)) {
+      throw new Error(`[APPROVAL REQUIRED] Ticket ${entry.topic} cannot move from Phase 1 to Phase 2 without explicit review approval. Re-run with --workflow execute or --approval approved after the plan is reviewed.`);
+    }
   }
 
   meta.phase = nextPhase;
@@ -2155,6 +2241,26 @@ export async function runTicketNext(opts) {
   }
   
   if (!found) {
+    const latestClosed = filterTicketEntries(index.entries, opts)
+      .filter(entry => String(entry.status || "").toLowerCase() === "closed")
+      .sort((a, b) => String(b.updatedAt || b.createdAt || "").localeCompare(String(a.updatedAt || a.createdAt || "")))[0];
+    if (latestClosed) {
+      const latestClosedPath = join(opts.cwd, latestClosed.path || computeTicketPath(latestClosed));
+      if (existsSync(latestClosedPath)) {
+        const { content } = parseFrontMatter(readFileSync(latestClosedPath, "utf8"));
+        if (followUpDecisionMeansNoFollowUp(content)) {
+          const posixPath = toPosixPath(latestClosed.path || computeTicketPath(latestClosed));
+          const absPath = toPosixPath(latestClosedPath);
+          if (opts.pathOnly) {
+            console.log(`no-follow-up:${latestClosed.id}`);
+          } else {
+            console.log(`No follow-up required after ${latestClosed.id}`);
+            console.log(`Path: [${posixPath}](file://${absPath})`);
+          }
+          return { status: "no-follow-up", ticket: latestClosed.id, path: latestClosed.path || computeTicketPath(latestClosed) };
+        }
+      }
+    }
     throw new Error("No active or open tickets found to proceed with. Inspect recent git history before creating a follow-up ticket.");
   }
   
