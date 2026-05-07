@@ -8,7 +8,8 @@ import {
   normalizeWorkflowMode, resolveWorkflowMode, WORKFLOW_MODE_EXECUTE, WORKFLOW_MODE_PLAN,
   parseFrontMatter, stringifyFrontMatter, deriveTopicFromBaseName, toSlug, computeTicketPath,
   normalizeTicketGroup,
-  normalizeDocsLanguage, inferDocsLanguageFromText, resolveDocsLanguage, AGENT_ROOT_DIR, TICKET_SUBDIR, isMcpActive
+  normalizeDocsLanguage, inferDocsLanguageFromText, resolveDocsLanguage, AGENT_ROOT_DIR, TICKET_SUBDIR, isMcpActive,
+  detectConsumerTicketDir
 } from "../cli-utils.mjs";
 import { generateTicketId, computeNextTicketNumber } from "../cli-ticket-index.mjs";
 import { parseArgs, parseSkillArgs, parseTelemetryArgs, parseTicketArgs, parseUsageArgs } from "../cli-args.mjs";
@@ -152,6 +153,27 @@ test("cli-utils.mjs - computeTicketPath", (t) => {
     fileName: "001-legacy-dot-group-host.md"
   };
   assert.strictEqual(computeTicketPath(legacyDotGroupEntry), ".deuk-agent/tickets/archive/sub/001-legacy-dot-group-host.md");
+});
+
+test("cli-utils.mjs - detectConsumerTicketDir stops at agent rule boundary before parent workspace", (t) => {
+  const parent = mkdtempSync(join(tmpdir(), "deuk-ticket-root-"));
+  const repo = join(parent, "DeukFlow");
+  const nested = join(repo, "packages", "app");
+
+  try {
+    mkdirSync(join(parent, ".deuk-agent", "tickets", "sub"), { recursive: true });
+    mkdirSync(repo, { recursive: true });
+    writeFileSync(join(repo, "AGENTS.md"), "# boundary\n", "utf8");
+    writeFileSync(join(repo, "PROJECT_RULE.md"), "# boundary\n", "utf8");
+    mkdirSync(nested, { recursive: true });
+
+    assert.strictEqual(detectConsumerTicketDir(repo), null);
+    assert.strictEqual(detectConsumerTicketDir(nested), null);
+    assert.strictEqual(detectConsumerTicketDir(repo, { createIfMissing: true }), join(repo, ".deuk-agent", "tickets"));
+    assert.strictEqual(detectConsumerTicketDir(nested, { createIfMissing: true }), join(repo, ".deuk-agent", "tickets"));
+  } finally {
+    rmSync(parent, { recursive: true, force: true });
+  }
 });
 
 test("cli-utils.mjs - normalizeDocsLanguage", (t) => {

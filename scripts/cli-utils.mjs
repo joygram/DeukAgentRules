@@ -481,6 +481,9 @@ export function detectConsumerTicketDir(startDir, opts = {}) {
     const paths = resolveTicketSystemPaths(curr);
     if (existsSync(paths.primary)) return paths.primary;
     if (paths.legacy.length > 0) return paths.legacy[0];
+    if (existsSync(join(curr, "AGENTS.md")) || existsSync(join(curr, "PROJECT_RULE.md"))) {
+      return opts.createIfMissing ? resolveTicketSystemPaths(curr).primary : null;
+    }
     curr = dirname(curr);
   }
   return opts.createIfMissing ? resolveTicketSystemPaths(startDir).primary : null;

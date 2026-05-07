@@ -6,6 +6,10 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 
 ## [Unreleased]
 
+### Fixed
+
+- **cli:** stop ticket discovery at the current agent-rule boundary instead of inheriting the parent workspace.
+
 ## [4.0.12] - 2026-05-07
 
 ### Fixed
