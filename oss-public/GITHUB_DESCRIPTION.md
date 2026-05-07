@@ -9,19 +9,19 @@
 GitHub **About** description field (keep under ~350 characters if the UI enforces a limit):
 
 ```
-Deuk Agent Flow — stop losing AI coding work between chats. Repo-owned tickets, scope, verification, and memory for Codex, Copilot, Claude Code, Cursor, and more.
+Deuk Agent Flow — ticketed guardrails for AI coding agents. Keep scope, verification, and project memory across Codex, Copilot, Claude Code, Cursor, and more.
 ```
 
 ## Paste into GitHub — Korean (optional)
 
 ```
-Deuk Agent Flow — AI 코딩 작업이 대화창 밖으로 흘러내리지 않게. Codex, Copilot, Claude Code, Cursor 작업을 티켓, 범위, 검증, 기억으로 레포에 남깁니다.
+Deuk Agent Flow — AI 코딩 에이전트를 위한 티켓 기반 가드레일. Codex, Copilot, Claude Code, Cursor 작업에 범위, 검증, 프로젝트 기억을 남깁니다.
 ```
 
 ## Even shorter (topics / subtitle)
 
-- EN: `Deuk Agent Flow — AI coding work that survives the chat`
-- KO: `Deuk Agent Flow — 대화창 밖에 남는 AI 코딩 작업`
+- EN: `Deuk Agent Flow — ticketed guardrails for AI coding agents`
+- KO: `Deuk Agent Flow — AI 코딩 에이전트용 티켓 기반 가드레일`
 
 ## GitHub repository — Topics (recommended)
 

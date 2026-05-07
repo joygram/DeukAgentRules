@@ -10,7 +10,7 @@
 
 ### 수정됨 (Fixed)
 
-- **init/ticket:** 의도했던 month-only archive 정책을 복원했습니다. `init`가 legacy `archive/sub/YYYY-MM/DD/...` 티켓을 `archive/sub/YYYY-MM/...`로 정규화하고, `archiveDay` 없는 archive shard index를 다시 쓰며, 새 legacy import도 더 이상 day-depth 경로를 만들지 않도록 수정했습니다.
+- **init/ticket:** 의도했던 month-only archive 정책을 복원했습니다. `init`가 예전의 깊은 archive 레이아웃을 canonical month bucket 레이아웃으로 정규화하고, 낡은 archive depth metadata 없이 archive shard index를 다시 쓰며, 새 비정규 import가 생기지 않도록 수정했습니다.
 
 ## [3.3.3] - 2026-05-06
 
@@ -38,7 +38,7 @@
 ### 변경됨 (Changed)
 
 - **ticket:** 열린 티켓이 설정된 한도를 넘을 때 자동 정리 대신 사용자가 목록을 보고 결정할 수 있는 cleanup flow를 강화했습니다.
-- **ticket:** 닫힌 티켓은 자동 아카이브할 수 있게 하고, 아카이브된 티켓은 년월/일 단위로 정리되도록 했습니다.
+- **ticket:** 닫힌 티켓은 자동 아카이브할 수 있게 하고, 아카이브된 티켓은 년월 단위 버킷으로 정리되도록 했습니다.
 - **docs:** README 문서 목록과 GitHub topic 가이드를 agent guardrail, instruction hub, skill registry, project memory 포지셔닝에 맞게 갱신했습니다.
 
 ### 수정됨 (Fixed)
