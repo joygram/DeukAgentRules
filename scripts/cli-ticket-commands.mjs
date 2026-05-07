@@ -451,6 +451,22 @@ function buildApcDraft(summary) {
   };
 }
 
+function buildTicketContentSection(ticketContent, docsLanguage) {
+  const trimmed = String(ticketContent || "").trim();
+  if (!trimmed) return "";
+  const heading = docsLanguage === "ko" ? "## 맥락" : "## Context";
+  return `${heading}\n\n${trimmed}\n`;
+}
+
+function injectTicketContent(baseContent, ticketContent, docsLanguage) {
+  const section = buildTicketContentSection(ticketContent, docsLanguage);
+  if (!section) return baseContent;
+  if (/^## Tasks\b/m.test(baseContent)) {
+    return baseContent.replace(/^## Tasks\b/m, `${section}\n## Tasks`);
+  }
+  return `${String(baseContent || "").trimEnd()}\n\n${section}`;
+}
+
 function evaluateApcCompleteness(content) {
   const reasons = [];
   const apcMatch = String(content || "").match(/## Agent Permission Contract[\s\S]*?(?=\n## |$)/i);
@@ -1293,6 +1309,7 @@ export async function runTicketCreate(opts) {
     } else {
       finalContent = ejs.render(tplText, { meta, frontmatter, apcDraft });
     }
+    finalContent = injectTicketContent(finalContent, opts.content, docsLanguage);
 
     let rollbackIndexJson = indexJson;
 

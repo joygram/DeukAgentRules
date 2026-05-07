@@ -297,6 +297,12 @@ test("cli-args.mjs - parseTicketArgs supports inline plan body", () => {
   assert.strictEqual(opts.planBody, "# Demo\n\nbody");
 });
 
+test("cli-args.mjs - parseTicketArgs supports inline ticket content", () => {
+  const opts = parseTicketArgs(["--topic", "demo", "--content", "ticket body details"]);
+  assert.strictEqual(opts.topic, "demo");
+  assert.strictEqual(opts.content, "ticket body details");
+});
+
 test("cli-args.mjs - parseTicketArgs supports compact ticket output", () => {
   const opts = parseTicketArgs(["--topic", "demo", "--compact"]);
   assert.strictEqual(opts.compact, true);

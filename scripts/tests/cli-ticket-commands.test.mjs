@@ -3467,6 +3467,45 @@ test("runTicketCreate generates main-ticket compact plan by default", async () =
   }
 });
 
+test("runTicketCreate records inline content in the created ticket body", async () => {
+  const cwd = mkdtempSync(join(tmpdir(), "deuk-ticket-inline-content-"));
+  const content = [
+    "사용자 요청",
+    "- 보고는 최대한 간단하게 유지",
+    "- 상세 내용은 티켓 본문에 기록"
+  ].join("\n");
+  const originalLog = console.log;
+  const originalWarn = console.warn;
+  console.log = () => {};
+  console.warn = () => {};
+
+  try {
+    await runTicketCreate({
+      cwd,
+      topic: "inline-content-ticket",
+      summary: "record inline content inside ticket body",
+      content,
+      nonInteractive: true,
+      docsLanguage: "ko",
+      skipPhase0: true
+    });
+
+    const ticketDir = join(cwd, ".deuk-agent", "tickets");
+    const ticketFile = readNewestTicketMarkdown(ticketDir);
+    assert.ok(ticketFile, "ticket markdown should be created");
+
+    const ticketText = readFileSync(ticketFile, "utf8");
+    assert.match(ticketText, /## 맥락/);
+    assert.match(ticketText, /보고는 최대한 간단하게 유지/);
+    assert.match(ticketText, /상세 내용은 티켓 본문에 기록/);
+    assert.doesNotMatch(ticketText, /## Problem Analysis/);
+  } finally {
+    console.log = originalLog;
+    console.warn = originalWarn;
+    rmSync(cwd, { recursive: true, force: true });
+  }
+});
+
 test("runTicketCreate auto-enables strict mode for investigation tickets", async () => {
   const { cwd } = makeTemplateWorkspace();
   const templateDir = join(cwd, ".deuk-agent", "templates");
