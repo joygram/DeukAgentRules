@@ -146,8 +146,8 @@ test("telemetry summary separates internal workflow events from work logs", asyn
     mkdirSync(telemetryDir, { recursive: true });
     writeFileSync(join(telemetryDir, "telemetry.jsonl"), [
       JSON.stringify({ ts: 1, occurredAt: "2026-05-02T00:00:00.000Z", source: "manual", kind: "work", tokens: 100, tdw: 50, model: "m1", client: "Codex", ticket: "a", action: "work", file: "", synced: false }),
-      JSON.stringify({ ts: 2, occurredAt: "2026-05-02T00:00:00.000Z", source: "internal", kind: "workflow_event", event: "ticket_created", tokens: 0, tdw: 0, model: "workflow", client: "DeukAgentRules", ticket: "a", action: "ticket-create", file: "", synced: false }),
-      JSON.stringify({ ts: 3, occurredAt: "2026-05-02T00:01:00.000Z", source: "internal", kind: "workflow_event", event: "ticket_closed", tokens: 0, tdw: 0, model: "workflow", client: "DeukAgentRules", ticket: "a", action: "ticket-close", file: "", synced: false })
+      JSON.stringify({ ts: 2, occurredAt: "2026-05-02T00:00:00.000Z", source: "internal", kind: "workflow_event", event: "ticket_created", tokens: 0, tdw: 0, model: "workflow", client: "DeukAgentFlow", ticket: "a", action: "ticket-create", file: "", synced: false }),
+      JSON.stringify({ ts: 3, occurredAt: "2026-05-02T00:01:00.000Z", source: "internal", kind: "workflow_event", event: "ticket_closed", tokens: 0, tdw: 0, model: "workflow", client: "DeukAgentFlow", ticket: "a", action: "ticket-close", file: "", synced: false })
     ].join("\n") + "\n", "utf8");
 
     const originalArgv = process.argv;
@@ -184,9 +184,9 @@ test("telemetry summary surfaces phase move progress timing", async () => {
     const telemetryDir = join(cwd, ".deuk-agent");
     mkdirSync(telemetryDir, { recursive: true });
     writeFileSync(join(telemetryDir, "telemetry.jsonl"), [
-      JSON.stringify({ ts: 1, occurredAt: "2026-05-02T00:00:00.000Z", source: "internal", kind: "workflow_event", event: "ticket_created", tokens: 0, tdw: 0, model: "workflow", client: "DeukAgentRules", ticket: "a", action: "ticket-create", file: "", synced: false }),
-      JSON.stringify({ ts: 2, occurredAt: "2026-05-02T00:00:30.000Z", source: "internal", kind: "workflow_event", event: "ticket_phase_moved", tokens: 0, tdw: 0, model: "workflow", client: "DeukAgentRules", ticket: "a", action: "ticket-phase-moved", file: "", synced: false }),
-      JSON.stringify({ ts: 3, occurredAt: "2026-05-02T00:01:00.000Z", source: "internal", kind: "workflow_event", event: "ticket_closed", tokens: 0, tdw: 0, model: "workflow", client: "DeukAgentRules", ticket: "a", action: "ticket-close", file: "", synced: false })
+      JSON.stringify({ ts: 1, occurredAt: "2026-05-02T00:00:00.000Z", source: "internal", kind: "workflow_event", event: "ticket_created", tokens: 0, tdw: 0, model: "workflow", client: "DeukAgentFlow", ticket: "a", action: "ticket-create", file: "", synced: false }),
+      JSON.stringify({ ts: 2, occurredAt: "2026-05-02T00:00:30.000Z", source: "internal", kind: "workflow_event", event: "ticket_phase_moved", tokens: 0, tdw: 0, model: "workflow", client: "DeukAgentFlow", ticket: "a", action: "ticket-phase-moved", file: "", synced: false }),
+      JSON.stringify({ ts: 3, occurredAt: "2026-05-02T00:01:00.000Z", source: "internal", kind: "workflow_event", event: "ticket_closed", tokens: 0, tdw: 0, model: "workflow", client: "DeukAgentFlow", ticket: "a", action: "ticket-close", file: "", synced: false })
     ].join("\n") + "\n", "utf8");
 
     const originalArgv = process.argv;
@@ -282,7 +282,7 @@ test("telemetry migrate normalizes missing events in place", async () => {
     mkdirSync(telemetryDir, { recursive: true });
     writeFileSync(join(telemetryDir, "telemetry.jsonl"), [
       JSON.stringify({ ts: 1, occurredAt: "2026-05-02T00:00:00.000Z", source: "manual", kind: "analysis", event: "", tokens: 10, tdw: 0, model: "m1", client: "Codex", ticket: "a", action: "review", file: "", synced: true }),
-      JSON.stringify({ ts: 2, occurredAt: "2026-05-02T00:01:00.000Z", source: "internal", kind: "workflow_event", event: "", tokens: 0, tdw: 0, model: "workflow", client: "DeukAgentRules", ticket: "a", action: "ticket_created", file: "", synced: false })
+      JSON.stringify({ ts: 2, occurredAt: "2026-05-02T00:01:00.000Z", source: "internal", kind: "workflow_event", event: "", tokens: 0, tdw: 0, model: "workflow", client: "DeukAgentFlow", ticket: "a", action: "ticket_created", file: "", synced: false })
     ].join("\n") + "\n", "utf8");
 
     const originalArgv = process.argv;
@@ -328,7 +328,7 @@ test("telemetry summary surfaces knowledge origin categories", async () => {
         tokens: 0,
         tdw: 0,
         model: "workflow",
-        client: "DeukAgentRules",
+        client: "DeukAgentFlow",
         ticket: "a",
         action: "knowledge-distill",
         file: ".deuk-agent/tickets/sub/a.md",

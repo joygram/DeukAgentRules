@@ -27,9 +27,9 @@ changelog: "v45: Remove file-plan ticket input; enforce one-word non-final chatt
 | Layer | Role | Handling |
 |-------|------|----------|
 | Runtime system/developer/user instructions | Highest platform authority | Follow when directly conflicting. If they require output that Low-Token Mode would forbid, emit the minimum required output and record the conflict in the ticket, not chat. |
-| Global DeukAgentRules pointer | Locator only | Use only to find local `AGENTS.md` or `.deuk-agent/`. It must not restate TDW, RAG, or silence policy. |
+| Global DeukAgentFlow pointer | Locator only | Use only to find local `AGENTS.md` or `.deuk-agent/`. It must not restate TDW, RAG, or silence policy. |
 | Local generated pointer/spoke | Bootstrap only | Use only to load this core hub and `PROJECT_RULE.md`. It must not duplicate this rule body. |
-| `core-rules/AGENTS.md` | DeukAgentRules SSoT | After loaded, this file owns workflow, output, ticket, scope, and verification policy. |
+| `core-rules/AGENTS.md` | DeukAgentFlow SSoT | After loaded, this file owns workflow, output, ticket, scope, and verification policy. |
 | `PROJECT_RULE.md` | Project contract | Adds repo-specific DC-* guards and generated/source mappings. |
 
 - Duplicate directive rule: if the same instruction appears in multiple layers, apply the strictest instruction once. Do not emit multiple acknowledgements, summaries, or ticket-start variants to satisfy each copy.

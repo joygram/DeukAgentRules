@@ -1,10 +1,10 @@
-# DeukAgentRules 오가닉 유입 계획
+# DeukAgentFlow 오가닉 유입 계획
 
 작성일: 2026-05-02
 
 ## 목표
 
-DeukAgentRules의 오가닉 유입 목표는 npm 다운로드만 늘리는 것이 아니다. 목표는 다음 루프를 만드는 것이다.
+DeukAgentFlow의 오가닉 유입 목표는 npm 다운로드만 늘리는 것이 아니다. 목표는 다음 루프를 만드는 것이다.
 
 ```text
 문제 인식 → 에디터에서 발견 → 레포에 설치 → badge/report 노출 → 다른 개발자가 발견 → 재설치
@@ -75,7 +75,7 @@ README badge 예시:
 
 ### 3. Agent instruction hub loop
 
-사용자는 지침 파일을 매번 직접 관리하고 싶어 하지 않는다. DeukAgentRules는 “한 번 init하면 주요 에이전트 지침 파일이 연결된다”는 경험을 제공해야 한다.
+사용자는 지침 파일을 매번 직접 관리하고 싶어 하지 않는다. DeukAgentFlow는 “한 번 init하면 주요 에이전트 지침 파일이 연결된다”는 경험을 제공해야 한다.
 
 권장 명령:
 
@@ -98,7 +98,7 @@ npx deuk-agent-rule expose claude
 | Gemini | `GEMINI.md` |
 | Windsurf | `.windsurf/rules/*` |
 
-초기 구현은 thick sync가 아니라 pointer sync가 좋다. 각 spoke는 DeukAgentRules hub를 가리킨다.
+초기 구현은 thick sync가 아니라 pointer sync가 좋다. 각 spoke는 DeukAgentFlow hub를 가리킨다.
 
 ### 4. Skill registry loop
 
@@ -156,7 +156,7 @@ npx deuk-agent-rule init
 VS Code extension이 출시되면:
 
 ```text
-Install DeukAgentRules Companion for VS Code
+Install DeukAgentFlow Companion for VS Code
 ```
 
 ## 제품 로드맵

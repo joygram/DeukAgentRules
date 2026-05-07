@@ -117,7 +117,7 @@ claude mcp list
 | i | X | **등록 필요** |
 | DeukAgentContext | X | **등록 필요** |
 | DeukUI | X | **등록 필요** |
-| DeukAgentRules | X | **등록 필요** |
+| DeukAgentFlow | X | **등록 필요** |
 | apt-guard | X | **등록 필요** |
 
 ## 터미널 모드 vs VS Code 플러그인 모드

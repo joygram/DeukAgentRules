@@ -340,7 +340,7 @@ export function appendInternalWorkflowEvent(cwd, event = {}) {
     source: INTERNAL_SOURCE,
     kind: WORKFLOW_EVENT_KIND,
     model: event.model || "workflow",
-    client: event.client || "DeukAgentRules",
+    client: event.client || "DeukAgentFlow",
     tokens: 0,
     tdw: 0,
     action: event.action || event.event || "workflow-event"

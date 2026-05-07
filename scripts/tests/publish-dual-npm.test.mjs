@@ -6,9 +6,9 @@ test("buildAliasPackageJson syncs alias version and canonical dependency", () =>
   const rootPkg = {
     version: "4.5.6",
     license: "Apache-2.0",
-    repository: { type: "git", url: "git+https://github.com/joygram/DeukAgentRules.git" },
-    bugs: { url: "https://github.com/joygram/DeukAgentRules/issues" },
-    homepage: "https://github.com/joygram/DeukAgentRules#readme",
+    repository: { type: "git", url: "git+https://github.com/joygram/DeukAgentFlow.git" },
+    bugs: { url: "https://github.com/joygram/DeukAgentFlow/issues" },
+    homepage: "https://github.com/joygram/DeukAgentFlow#readme",
     engines: { node: ">=18" },
   };
 

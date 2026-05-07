@@ -15,7 +15,7 @@ ProjectPilot은 프로젝트에 설치되는 refactor-contract skill이다.
 그 프로젝트의 리팩터링 계약을 명시화한 뒤 이후 변경이 그 계약을 벗어나지
 않도록 돕는 것이다.
 
-ProjectPilot 공용 본체와 공용 템플릿의 소유권은 DeukAgentRules에 있다.
+ProjectPilot 공용 본체와 공용 템플릿의 소유권은 DeukAgentFlow에 있다.
 개별 프로젝트는 소비자이자 파일럿 검증 프로젝트일 수는 있지만 공용 본체의
 소유자는 아니다.
 
@@ -174,9 +174,9 @@ ProjectPilot 공용 자산은 아래 경로를 source of truth로 사용한다.
 
 소비 프로젝트는 다음 원칙을 따른다.
 
-- 공용 semantics는 DeukAgentRules 문서를 본다.
+- 공용 semantics는 DeukAgentFlow 문서를 본다.
 - 프로젝트 로컬에는 pilot evidence와 project-local reference만 둔다.
-- shared template 수정은 DeukAgentRules에서만 한다.
+- shared template 수정은 DeukAgentFlow에서만 한다.
 - consumer workspace는 공용 자산의 소유자가 아니다.
 
 ## Expected Outcome

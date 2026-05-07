@@ -50,7 +50,7 @@ Use the shared ProjectPilot semantics and templates when available:
 - `templates/project-pilot/CONFORMANCE_GATE_TEMPLATE.md`
 - `templates/project-pilot/REMEDIATION_PLAN_TEMPLATE.md`
 
-Consumer projects may keep only project-local pilot evidence and references. Shared ProjectPilot semantics and templates are owned by DeukAgentRules.
+Consumer projects may keep only project-local pilot evidence and references. Shared ProjectPilot semantics and templates are owned by DeukAgentFlow.
 
 ## Stop Conditions
 

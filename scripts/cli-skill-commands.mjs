@@ -88,11 +88,11 @@ function exposeCursor(cwd, ids, dryRun) {
   const target = join(cwd, ".cursor", "rules", "deuk-agent-skills.mdc");
   const body = [
     "---",
-    "description: \"DeukAgentRules skill pointers\"",
+    "description: \"DeukAgentFlow skill pointers\"",
     "globs: [\"**/*\"]",
     "alwaysApply: false",
     "---",
-    "# DeukAgentRules Skills",
+    "# DeukAgentFlow Skills",
     "",
     "These are thin behavior playbooks. They do not override `core-rules/AGENTS.md`, TDW, APC, Phase Gate, or PROJECT_RULE.md.",
     "",

@@ -125,7 +125,7 @@ Deuk Agent Flow가 선점해야 할 카테고리는 다음 중 하나다.
 
 ## 비전 문서의 외부 링크 사용 원칙
 
-외부 링크는 “DeukAgentRules가 어떤 생태계 위에 서 있는지”를 증명하는 근거다. 그러나 CTA는 외부 문서가 아니라 DeukAgentRules 액션이어야 한다.
+외부 링크는 “DeukAgentFlow가 어떤 생태계 위에 서 있는지”를 증명하는 근거다. 그러나 CTA는 외부 문서가 아니라 DeukAgentFlow 액션이어야 한다.
 
 좋은 패턴:
 

@@ -13,12 +13,12 @@
   "license": "Apache-2.0",
   "repository": {
     "type": "git",
-    "url": "https://github.com/joygram/DeukAgentRules.git"
+    "url": "https://github.com/joygram/DeukAgentFlow.git"
   },
   "bugs": {
-    "url": "https://github.com/joygram/DeukAgentRules/issues"
+    "url": "https://github.com/joygram/DeukAgentFlow/issues"
   },
-  "homepage": "https://github.com/joygram/DeukAgentRules#readme",
+  "homepage": "https://github.com/joygram/DeukAgentFlow#readme",
   "files": [
     "bin/**/*",
     "README.md"

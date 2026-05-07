@@ -149,10 +149,10 @@ If you manage many repos under one workspace, run `deuk-agent-flow init` in each
 This is where the effect compounds: use the workspace root as the shared entry point, each project root as an independent ticket/rule/verification boundary, and nested apps or servers as separate projects only when they have their own lifecycle.
 
 ### 2. Local Source Development (Maintainer/Power User)
-v3.0 introduces a **Global CLI Proxy**. If you are developing inside the `DeukAgentRules` workspace, the global command will automatically delegate execution to your local source.
+v3.0 introduces a **Global CLI Proxy**. If you are developing inside the `DeukAgentFlow` workspace, the global command will automatically delegate execution to your local source.
 
 ```bash
-cd ~/workspace/DeukAgentRules
+cd ~/workspace/DeukAgentFlow
 sudo npm link
 deuk-agent-flow init  # Routes to local scripts/cli.mjs automatically
 ```
@@ -170,6 +170,12 @@ Use dry-run mode before writing to the npm registry:
 
 ```bash
 npm run publish:dry
+```
+
+Before publishing, run the Docker consumer smoke test. It installs the packed packages into a clean Node container, so local `npm link` or global packages cannot hide missing dependencies.
+
+```bash
+npm run smoke:npm:docker
 ```
 
 The publish helper runs `npm test`, syncs the `deuk-agent-rule` compatibility package version to the root package version, publishes `deuk-agent-flow` first, and then publishes `deuk-agent-rule`.

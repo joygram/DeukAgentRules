@@ -197,7 +197,7 @@ Skill Options:
 Ticket Options:
   --topic, --id <name>  Ticket topic slug or ID
   --group <name>        Ticket group (sub|main|discussion)
-  --project <name>      Project filter (DeukUI|DeukAgentRules)
+  --project <name>      Project filter (DeukUI|DeukAgentFlow)
   --submodule <name>    Submodule filter (DeukPack|DeukUI)
   --docs-language <lang> auto | ko | en
   --evidence <text>     Provide Phase 0 RAG evidence summary

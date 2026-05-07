@@ -143,7 +143,7 @@ test("pickTicketEntry applies submodule and project filters before selecting lat
       id: "002-deukpack-host",
       title: "older DeukPack",
       topic: "002-deukpack-host",
-      project: "DeukAgentRules",
+      project: "DeukAgentFlow",
       submodule: "DeukPack",
       createdAt: "2026-05-01 09:00:00"
     })
@@ -151,7 +151,7 @@ test("pickTicketEntry applies submodule and project filters before selecting lat
 
   assert.strictEqual(pickTicketEntry({}, index).id, "001-global-host");
   assert.strictEqual(pickTicketEntry({ submodule: "DeukPack" }, index).id, "002-deukpack-host");
-  assert.strictEqual(pickTicketEntry({ project: "DeukAgentRules", submodule: "DeukPack" }, index).id, "002-deukpack-host");
+  assert.strictEqual(pickTicketEntry({ project: "DeukAgentFlow", submodule: "DeukPack" }, index).id, "002-deukpack-host");
   assert.strictEqual(pickTicketEntry({ project: "Other", submodule: "DeukPack" }, index), null);
 });
 
@@ -404,14 +404,13 @@ test("runTicketArchive updates index path to archived ticket location", async ()
     console.log = originalLog;
   }
 
-  const archivedPath = ".deuk-agent/tickets/archive/sub/2026-05/01/001-default-host.md";
+  const archivedPath = ".deuk-agent/tickets/archive/sub/2026-05/001-default-host.md";
   const index = readTicketIndexJson(cwd);
   const archiveIndexPath = join(ticketDir, "INDEX.archive.2026-05.json");
   const archiveIndex = JSON.parse(readFileSync(archiveIndexPath, "utf8"));
   assert.ok(existsSync(join(cwd, archivedPath)), "archived ticket file should exist");
   assert.strictEqual(index.entries.find(e => e.id === "001-default-host").status, "archived");
   assert.strictEqual(index.entries.find(e => e.id === "001-default-host").archiveYearMonth, "2026-05");
-  assert.strictEqual(index.entries.find(e => e.id === "001-default-host").archiveDay, "01");
   assert.strictEqual(JSON.parse(readFileSync(join(ticketDir, TICKET_INDEX_FILENAME), "utf8")).entries.length, 0);
   assert.ok(!existsSync(join(ticketDir, "INDEX.archive.json")), "legacy archive index should be removed");
   assert.strictEqual(archiveIndex.entries.find(e => e.id === "001-default-host").status, "archived");
@@ -1882,7 +1881,7 @@ test("runTicketCreate/next/archive roundtrip keeps ticket scaffold compact", asy
       assert.ok(output.some(line => line.endsWith(createdFileName)), "runTicketNext should resolve and print created ticket path");
 
       const archived = await runTicketArchive({ cwd, topic, nonInteractive: true });
-      assert.match(archived?.path || "", /^\.deuk-agent\/tickets\/archive\/sub\/\d{4}-\d{2}\/\d{2}\//);
+      assert.match(archived?.path || "", /^\.deuk-agent\/tickets\/archive\/sub\/\d{4}-\d{2}\//);
       assert.ok(archived.path.endsWith(`/${createdFileName}`));
 
       const archivedText = readFileSync(join(cwd, archived.path), "utf8");
@@ -1962,7 +1961,7 @@ test("runTicketCreate auto-archives oldest open tickets when open ticket limit i
     const oldest = index.entries.find(e => e.id === "001-old-open-host");
     assert.strictEqual(oldest.status, "archived");
     assert.ok(!existsSync(join(cwd, ".deuk-agent/tickets/sub/001-old-open-host.md")));
-    assert.ok(existsSync(join(cwd, ".deuk-agent/tickets/archive/sub/2026-04/01/001-old-open-host.md")));
+    assert.ok(existsSync(join(cwd, ".deuk-agent/tickets/archive/sub/2026-04/001-old-open-host.md")));
     const subFiles = readdirSync(srcDir);
     assert.ok(subFiles.some(name => name.includes("new-overflow-ticket")));
     assert.ok(warnings.some(line => line.includes("자동으로 티켓 정리를 진행하겠습니다.")));
@@ -2785,7 +2784,7 @@ test("runTicketHandoff compact mode emits current and next ticket summary", asyn
   assert.deepStrictEqual(lines, ["001-current-host | phase=2 | status=active | next=002-next-host:open | blockers=none"]);
 });
 
-test("runTicketCreate auto-archives closed tickets before enforcing open ticket limit", async () => {
+test("runTicketCreate leaves closed tickets in place before enforcing open ticket limit", async () => {
   const { cwd, ticketDir } = makeTemplateWorkspace();
   const srcDir = join(ticketDir, "sub");
   mkdirSync(srcDir, { recursive: true });
@@ -2853,7 +2852,7 @@ test("runTicketCreate auto-archives closed tickets before enforcing open ticket 
     await runTicketCreate({
       cwd,
       topic: "new-after-closed-cleanup",
-      summary: "create after archiving closed ticket",
+      summary: "create after keeping closed ticket in place",
       nonInteractive: true,
       docsLanguage: "en",
       skipPhase0: true
@@ -2864,11 +2863,8 @@ test("runTicketCreate auto-archives closed tickets before enforcing open ticket 
     assert.strictEqual(openCount, 20);
 
     const closed = index.entries.find(e => e.id === closedId);
-    assert.strictEqual(closed.status, "archived");
-    assert.strictEqual(closed.archiveYearMonth, "2026-04");
-    assert.strictEqual(closed.archiveDay, "20");
-    assert.ok(existsSync(join(cwd, ".deuk-agent/tickets/archive/sub/2026-04/20/020-closed-host.md")));
-    assert.ok(!existsSync(join(cwd, ".deuk-agent/tickets/sub/020-closed-host.md")));
+    assert.strictEqual(closed.status, "closed");
+    assert.ok(existsSync(join(cwd, ".deuk-agent/tickets/sub/020-closed-host.md")));
 
     const subFiles = readdirSync(srcDir);
     assert.ok(subFiles.some(name => name.includes("new-after-closed-cleanup")));
@@ -2944,7 +2940,7 @@ test("runTicketCreate normalizes stale closed archive metadata without requiring
     const index = readTicketIndexJson(cwd);
     const staleClosed = index.entries.find(e => e.id === staleClosedId);
     assert.ok(staleClosed);
-    assert.strictEqual(staleClosed.status, "archived");
+    assert.strictEqual(staleClosed.status, "closed");
 
     const ticketListPath = join(ticketDir, "TICKET_LIST.md");
     assert.ok(!existsSync(ticketListPath));
@@ -2955,7 +2951,78 @@ test("runTicketCreate normalizes stale closed archive metadata without requiring
   }
 });
 
-test("runTicketCreate preserves closed auto-archive and reclaims open-ticket capacity when new ticket exceeds open limit", async () => {
+test("runTicketCreate ignores stale closed archive metadata that still points at a sub ticket", async () => {
+  const { cwd, ticketDir } = makeTemplateWorkspace();
+  const srcDir = join(ticketDir, "sub");
+  mkdirSync(srcDir, { recursive: true });
+  mkdirSync(join(cwd, "benchmarks", "reports"), { recursive: true });
+
+  writeFileSync(join(cwd, "benchmarks", "reports", "BMT_PROTOCOL_MATRIX.md"), "# protocol matrix\n", "utf8");
+  writeFileSync(join(cwd, "benchmarks", "reports", "DEUKPACK_TEST_MATRIX.md"), "# test matrix\n", "utf8");
+
+  const staleClosedId = "280-bmt-034-history-host";
+  const staleClosedEntry = makeEntry({
+    id: staleClosedId,
+    title: "stale closed ticket",
+    topic: staleClosedId,
+    fileName: `${staleClosedId}.md`,
+    createdAt: "2026-04-28 00:00:00",
+    status: "closed",
+    phase: 4,
+    archiveYearMonth: "2026-04",
+    archiveDay: "28"
+  });
+
+  writeFileSync(join(srcDir, `${staleClosedId}.md`), [
+    "---",
+    `id: ${staleClosedId}`,
+    "title: stale closed ticket",
+    "phase: 4",
+    "status: closed",
+    "createdAt: 2026-04-28 00:00:00",
+    "summary: stale closed ticket",
+    "priority: P2",
+    "tags: [test]",
+    "---",
+    "# stale closed ticket",
+    "",
+    "[BMT_PROTOCOL_MATRIX.md](../../../benchmarks/reports/BMT_PROTOCOL_MATRIX.md)",
+    "[DEUKPACK_TEST_MATRIX.md](../../../benchmarks/reports/DEUKPACK_TEST_MATRIX.md)",
+    ""
+  ].join("\n"), "utf8");
+
+  writeArchiveShard(ticketDir, "2026-04", [staleClosedEntry]);
+  writeFileSync(join(ticketDir, TICKET_INDEX_FILENAME), JSON.stringify(makeIndex([]), null, 2) + "\n", "utf8");
+
+  const originalLog = console.log;
+  const originalWarn = console.warn;
+  console.log = () => {};
+  console.warn = () => {};
+
+  try {
+    await runTicketCreate({
+      cwd,
+      topic: "new-after-stale-archive-ignore",
+      summary: "create after stale archive metadata is ignored",
+      nonInteractive: true,
+      docsLanguage: "en",
+      skipPhase0: true
+    });
+
+    const index = readTicketIndexJson(cwd);
+    const staleClosed = index.entries.find(e => e.id === staleClosedId);
+    assert.ok(staleClosed);
+    assert.strictEqual(staleClosed.status, "closed");
+    assert.ok(existsSync(join(srcDir, `${staleClosedId}.md`)));
+    assert.ok(!existsSync(join(cwd, ".deuk-agent/tickets/archive/sub/2026-04", `${staleClosedId}.md`)));
+  } finally {
+    console.log = originalLog;
+    console.warn = originalWarn;
+    rmSync(cwd, { recursive: true, force: true });
+  }
+});
+
+test("runTicketCreate reclaims open-ticket capacity without archiving unrelated closed tickets", async () => {
   const { cwd, ticketDir } = makeTemplateWorkspace();
   const srcDir = join(ticketDir, "sub");
   mkdirSync(srcDir, { recursive: true });
@@ -3023,7 +3090,7 @@ test("runTicketCreate preserves closed auto-archive and reclaims open-ticket cap
     await runTicketCreate({
       cwd,
       topic: "new-overflow-after-closed-cleanup",
-      summary: "create should auto-clean and keep closed archive consistent",
+      summary: "create should reclaim open-ticket capacity without archiving closed tickets",
       planBody: minimalEvidencePhase1Plan("new overflow after closed cleanup"),
       nonInteractive: true,
       docsLanguage: "en",
@@ -3038,15 +3105,12 @@ test("runTicketCreate preserves closed auto-archive and reclaims open-ticket cap
     assert.ok(created);
 
     const closed = index.entries.find(e => e.id === closedId);
-    assert.strictEqual(closed.status, "archived");
-    assert.strictEqual(closed.archiveYearMonth, "2026-04");
-    assert.strictEqual(closed.archiveDay, "21");
-    assert.ok(existsSync(join(cwd, ".deuk-agent/tickets/archive/sub/2026-04/21/021-closed-host.md")));
-    assert.ok(!existsSync(join(cwd, ".deuk-agent/tickets/sub/021-closed-host.md")));
+    assert.strictEqual(closed.status, "closed");
+    assert.ok(existsSync(join(cwd, ".deuk-agent/tickets/sub/021-closed-host.md")));
 
     const oldest = index.entries.find(e => e.id === "001-old-open-host");
     assert.strictEqual(oldest.status, "archived");
-    assert.ok(existsSync(join(cwd, ".deuk-agent/tickets/archive/sub/2026-04/01/001-old-open-host.md")));
+    assert.ok(existsSync(join(cwd, ".deuk-agent/tickets/archive/sub/2026-04/001-old-open-host.md")));
     assert.ok(!existsSync(join(cwd, ".deuk-agent/tickets/sub/001-old-open-host.md")));
 
     assert.ok(existsSync(join(cwd, created.path)));
@@ -3060,7 +3124,7 @@ test("runTicketCreate preserves closed auto-archive and reclaims open-ticket cap
 test("runTicketCreate repairs closed index entry when ticket file is already archived", async () => {
   const { cwd, ticketDir } = makeTemplateWorkspace();
   const srcDir = join(ticketDir, "sub");
-  const archiveDir = join(ticketDir, "archive", "sub", "2026-04", "19");
+  const archiveDir = join(ticketDir, "archive", "sub", "2026-04");
   mkdirSync(srcDir, { recursive: true });
   mkdirSync(archiveDir, { recursive: true });
 
@@ -3108,10 +3172,9 @@ test("runTicketCreate repairs closed index entry when ticket file is already arc
 
     const index = readTicketIndexJson(cwd);
     const closed = index.entries.find(e => e.id === closedId);
-    assert.strictEqual(closed.status, "archived");
+    assert.strictEqual(closed.status, "closed");
     assert.strictEqual(closed.archiveYearMonth, "2026-04");
-    assert.strictEqual(closed.archiveDay, "19");
-    assert.ok(existsSync(join(cwd, ".deuk-agent/tickets/archive/sub/2026-04/19/001-already-archived-host.md")));
+    assert.ok(existsSync(join(cwd, ".deuk-agent/tickets/archive/sub/2026-04/001-already-archived-host.md")));
     assert.ok(index.entries.some(e => e.id.includes("new-after-repair")));
   } finally {
     console.log = originalLog;

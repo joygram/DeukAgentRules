@@ -165,10 +165,10 @@ deuk-agent-rule init
 ```
 
 ### 2. 로컬 소스 개발 (메인테이너/파워 유저)
-v3.0은 **Global CLI Proxy**를 도입했습니다. `DeukAgentRules` 워크스페이스 내부에서 개발 중이라면, 글로벌 명령이 자동으로 로컬 소스로 실행을 위임합니다.
+v3.0은 **Global CLI Proxy**를 도입했습니다. `DeukAgentFlow` 워크스페이스 내부에서 개발 중이라면, 글로벌 명령이 자동으로 로컬 소스로 실행을 위임합니다.
 
 ```bash
-cd ~/workspace/DeukAgentRules
+cd ~/workspace/DeukAgentFlow
 sudo npm link
 deuk-agent-flow init  # 자동으로 로컬 scripts/cli.mjs로 라우팅됨
 ```
@@ -186,6 +186,12 @@ npm registry에 쓰기 전에 dry-run으로 먼저 확인하세요.
 
 ```bash
 npm run publish:dry
+```
+
+배포 전에는 Docker consumer smoke test를 실행합니다. 이 검증은 깨끗한 Node 컨테이너에 packed package를 설치하므로, 로컬 `npm link`나 global package가 의존성 누락을 숨기지 못합니다.
+
+```bash
+npm run smoke:npm:docker
 ```
 
 publish helper는 `npm test`를 실행하고, `deuk-agent-rule` compatibility 패키지 버전을 루트 패키지 버전에 맞춘 뒤, `deuk-agent-flow`를 먼저 배포하고 `deuk-agent-rule`을 이어서 배포합니다.

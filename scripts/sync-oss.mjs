@@ -27,7 +27,7 @@ const PUBLIC_DOCS = [
 const OSS_REPO =
   process.env.DEUK_AGENT_FLOW_OSS_REPO
   || process.env.DEUK_AGENT_RULES_OSS_REPO
-  || "https://github.com/joygram/DeukAgentRules";
+  || "https://github.com/joygram/DeukAgentFlow";
 
 function gitBase() {
   let u = OSS_REPO.trim().replace(/\.git$/i, "").replace(/\/$/, "");
@@ -71,6 +71,7 @@ export function buildOssPackageJson(srcPkg, baseUrl = base, gitRemoteUrl = gitUr
       "templates/**/*",
       "scripts/cli.mjs",
       "scripts/cli-args.mjs",
+      "scripts/cli-usage-commands.mjs",
       "scripts/cli-init-commands.mjs",
       "scripts/cli-init-logic.mjs",
       "scripts/cli-prompts.mjs",
@@ -87,6 +88,7 @@ export function buildOssPackageJson(srcPkg, baseUrl = base, gitRemoteUrl = gitUr
       "scripts/merge-logic.mjs",
       "scripts/plan-parser.mjs",
       "scripts/publish-dual-npm.mjs",
+      "scripts/smoke-npm-docker.mjs",
       "scripts/update-download-badge.mjs",
       "README.md",
       "README.ko.md",
@@ -197,7 +199,7 @@ export function syncOssTree() {
   }
 
   console.log("deuk-agent-flow: synced OSS tree at " + ossRoot);
-  console.log("  Override repo URL: DEUK_AGENT_FLOW_OSS_REPO=https://github.com/joygram/DeukAgentRules");
+  console.log("  Override repo URL: DEUK_AGENT_FLOW_OSS_REPO=https://github.com/joygram/DeukAgentFlow");
 }
 
 if (process.argv[1] === fileURLToPath(import.meta.url)) {
