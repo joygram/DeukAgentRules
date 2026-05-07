@@ -2968,6 +2968,36 @@ test("runTicketGuard accepts only complete CLI-created Phase 1 tickets", async (
   }
 });
 
+test("runTicketCreate prints approval gate instructions immediately after creation", async () => {
+  const { cwd } = makeTicketWorkspace([]);
+  const originalLog = console.log;
+  const originalWarn = console.warn;
+  const lines = [];
+  console.log = value => { lines.push(String(value)); };
+  console.warn = () => {};
+
+  try {
+    await runTicketCreate({
+      cwd,
+      topic: "create-needs-approval",
+      summary: "ticket create should stop on approval pending",
+      planBody: minimalEvidencePhase1Plan("create needs approval"),
+      nonInteractive: true,
+      docsLanguage: "en",
+      skipPhase0: true,
+      requireFilled: true
+    });
+
+    assert.ok(lines.some(line => /^Ticket created: /.test(line)));
+    assert.ok(lines.some(line => /Approval pending: share the ticket-start line/i.test(line)));
+    assert.ok(lines.some(line => /After approval: deuk-agent-flow ticket guard --topic .* --ticket-started --ticket-reviewed --approval approved/.test(line)));
+  } finally {
+    console.log = originalLog;
+    console.warn = originalWarn;
+    rmSync(cwd, { recursive: true, force: true });
+  }
+});
+
 test("runTicketGuard rejects complete Phase 1 tickets before ticket-start acknowledgement", async () => {
   const { cwd } = makeTicketWorkspace([]);
   const originalLog = console.log;

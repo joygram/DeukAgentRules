@@ -466,6 +466,11 @@ function printUsageReminder(cwd) {
   }
 }
 
+function printCreateApprovalGate(ticketId) {
+  console.log("Approval pending: share the ticket-start line, review the durable ticket body, and stop here until the user explicitly approves.");
+  console.log(`After approval: deuk-agent-flow ticket guard --topic ${ticketId} --ticket-started --ticket-reviewed --approval approved`);
+}
+
 function getHandoffSummary(out) {
   const next = out.nextTicket ? `${out.nextTicket.id}:${out.nextTicket.status}` : "none";
   const blockers = out.reasons?.length ? out.reasons.join(",") : "none";
@@ -1462,6 +1467,9 @@ export async function runTicketCreate(opts) {
     }
 
     console.log(`${opts.dryRun ? "Ticket would be created" : "Ticket created"}: ${toFileUri(abs)}`);
+    if (!opts.dryRun) {
+      printCreateApprovalGate(ticketId);
+    }
     printUsageReminder(opts.cwd);
     if (!opts.dryRun) {
       appendTelemetryEvent(opts.cwd, {
