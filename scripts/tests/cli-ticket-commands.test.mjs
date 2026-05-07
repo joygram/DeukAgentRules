@@ -2334,6 +2334,80 @@ test("runTicketStatus compact mode emits one-line phase summary", async () => {
   assert.match(lines[0], /^001-compact-status-host \| phase=1 \| status=open \| ok$/);
 });
 
+test("runTicketStatus prints usage reminder when usage state exists", async () => {
+  const { cwd, ticketDir } = makeTemplateWorkspace();
+  const srcDir = join(ticketDir, "sub");
+  mkdirSync(srcDir, { recursive: true });
+  mkdirSync(join(cwd, ".deuk-agent", "docs", "plan"), { recursive: true });
+
+  const ticketId = "001-status-usage-host";
+  writeFileSync(join(srcDir, `${ticketId}.md`), [
+    "---",
+    `id: ${ticketId}`,
+    "title: status usage host",
+    "phase: 1",
+    "status: open",
+    "lifecycleSource: ticket-create",
+    "summary: status usage reminder test",
+    "---",
+    "",
+    "# status usage host",
+    "",
+    "## Agent Permission Contract",
+    "### [BOUNDARY]",
+    "- editable",
+    "### [CONTRACT]",
+    "- output",
+    "### [PATCH PLAN]",
+    "- plan",
+    "## Compact Plan",
+    "- **Problem:** status should include usage reminder when configured",
+    "- **Approach:** append one compact reminder line",
+    "- **Verification:** run status command",
+    "",
+    "## Problem Analysis",
+    "Status output should include one usage reminder line when usage state exists.",
+    "",
+    "## Improvement Direction",
+    "Append a compact usage reminder without changing lifecycle summary format.",
+    ""
+  ].join("\n"), "utf8");
+  writeFileSync(join(ticketDir, "INDEX.json"), JSON.stringify(makeIndex([makeEntry({
+    id: ticketId,
+    title: "status usage host",
+    topic: ticketId,
+    fileName: `${ticketId}.md`,
+    createdAt: "2026-05-03 00:00:00",
+    status: "open"
+  })]), null, 2) + "\n", "utf8");
+
+  writeFileSync(join(cwd, ".deuk-agent", "usage.json"), JSON.stringify({
+    version: 1,
+    platform: "copilot",
+    client: "Copilot",
+    agentId: "copilot-main",
+    weeklyRemainingPct: 64,
+    fiveHourRemainingPct: 31,
+    weeklyResetAt: "",
+    fiveHourResetAt: "",
+    updatedAt: "2026-05-07T00:00:00.000Z"
+  }, null, 2), "utf8");
+
+  const originalLog = console.log;
+  const lines = [];
+  console.log = value => { lines.push(String(value)); };
+  try {
+    await runTicketStatus({ cwd, topic: ticketId, compact: true });
+  } finally {
+    console.log = originalLog;
+    rmSync(cwd, { recursive: true, force: true });
+  }
+
+  assert.strictEqual(lines.length, 2);
+  assert.match(lines[0], /^001-status-usage-host \| phase=1 \| status=open \| ok$/);
+  assert.match(lines[1], /^usage reminder: Copilot weekly 64%, 5h 31% \| budget normal \| gate usage advise --task-grade A$/);
+});
+
 test("runTicketStatus rejects manually written execution ticket without CLI provenance", async () => {
   const { cwd, ticketDir } = makeTicketWorkspace([]);
   const srcDir = join(ticketDir, "sub");

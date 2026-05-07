@@ -11,7 +11,7 @@ import {
   normalizeDocsLanguage, inferDocsLanguageFromText, resolveDocsLanguage, AGENT_ROOT_DIR, TICKET_SUBDIR, isMcpActive
 } from "../cli-utils.mjs";
 import { generateTicketId, computeNextTicketNumber } from "../cli-ticket-index.mjs";
-import { parseArgs, parseSkillArgs, parseTelemetryArgs, parseTicketArgs } from "../cli-args.mjs";
+import { parseArgs, parseSkillArgs, parseTelemetryArgs, parseTicketArgs, parseUsageArgs } from "../cli-args.mjs";
 
 test("cli-utils.mjs - normalizeWorkflowMode", (t) => {
   assert.strictEqual(normalizeWorkflowMode(undefined), WORKFLOW_MODE_PLAN, "default is plan");
@@ -306,6 +306,33 @@ test("cli-args.mjs - parseArgs supports compact rule audit output", () => {
   const opts = parseArgs(["--cwd", "/tmp/demo", "--compact"]);
   assert.strictEqual(opts.cwd, "/tmp/demo");
   assert.strictEqual(opts.compact, true);
+});
+
+test("cli-args.mjs - parseUsageArgs supports usage inputs", () => {
+  const opts = parseUsageArgs([
+    "--cwd", "/tmp/demo",
+    "--platform", "codex",
+    "--client", "Codex",
+    "--agent-id", "codex-main",
+    "--weekly-remaining", "76",
+    "--five-hour-remaining", "42",
+    "--weekly-reset", "2026-05-12 07:30",
+    "--five-hour-reset", "2026-05-07 12:30",
+    "--task-grade", "A",
+    "--task", "refactor",
+    "--json"
+  ]);
+  assert.strictEqual(opts.cwd, "/tmp/demo");
+  assert.strictEqual(opts.platform, "codex");
+  assert.strictEqual(opts.client, "Codex");
+  assert.strictEqual(opts.agentId, "codex-main");
+  assert.strictEqual(opts.weeklyRemaining, 76);
+  assert.strictEqual(opts.fiveHourRemaining, 42);
+  assert.strictEqual(opts.weeklyReset, "2026-05-12 07:30");
+  assert.strictEqual(opts.fiveHourReset, "2026-05-07 12:30");
+  assert.strictEqual(opts.taskGrade, "A");
+  assert.strictEqual(opts.taskLabel, "refactor");
+  assert.strictEqual(opts.json, true);
 });
 
 test("cli-args.mjs - parseSkillArgs supports registry and expose flags", () => {

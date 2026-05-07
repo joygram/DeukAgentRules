@@ -88,6 +88,38 @@ export function parseSkillArgs(argv) {
   }
   return out;
 }
+
+export function parseUsageArgs(argv) {
+  const out = {
+    cwd: process.cwd(),
+    json: false,
+    platform: "",
+    client: "",
+    agentId: "",
+    weeklyRemaining: null,
+    fiveHourRemaining: null,
+    weeklyReset: "",
+    fiveHourReset: "",
+    taskGrade: "",
+    taskLabel: ""
+  };
+  for (let i = 0; i < argv.length; i++) {
+    const a = argv[i];
+    if (a === "--cwd") out.cwd = argv[++i];
+    else if (a === "--platform") out.platform = argv[++i];
+    else if (a === "--client") out.client = argv[++i];
+    else if (a === "--agent" || a === "--agent-id") out.agentId = argv[++i];
+    else if (a === "--weekly-remaining") out.weeklyRemaining = Number(argv[++i]);
+    else if (a === "--five-hour-remaining") out.fiveHourRemaining = Number(argv[++i]);
+    else if (a === "--weekly-reset") out.weeklyReset = argv[++i];
+    else if (a === "--five-hour-reset") out.fiveHourReset = argv[++i];
+    else if (a === "--task-grade") out.taskGrade = argv[++i];
+    else if (a === "--task" || a === "--task-label") out.taskLabel = argv[++i];
+    else if (a === "--json") out.json = true;
+  }
+  return out;
+}
+
 export function parseTelemetryArgs(argv) {
   const out = {
     cwd: process.cwd(),
@@ -95,6 +127,7 @@ export function parseTelemetryArgs(argv) {
     tdw: 0,
     model: "",
     client: "",
+    agentId: "",
     ticket: "",
     action: "",
     file: "",
@@ -126,6 +159,7 @@ export function parseTelemetryArgs(argv) {
     else if (a === "--tdw") out.tdw = Number(argv[++i]);
     else if (a === "--model") out.model = argv[++i];
     else if (a === "--client") out.client = argv[++i];
+    else if (a === "--agent" || a === "--agent-id") out.agentId = argv[++i];
     else if (a === "--ticket") out.ticket = argv[++i];
     else if (a === "--action") out.action = argv[++i];
     else if (a === "--file") out.file = argv[++i];

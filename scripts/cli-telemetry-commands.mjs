@@ -68,6 +68,7 @@ async function logAction(opts) {
     tdw: Number(opts.tdw || 0),
     model: opts.model || "UNKNOWN",
     client: resolvedClient,
+    agentId: opts.agentId || "",
     ticket: opts.ticket || "",
     action: opts.action || "work",
     file: opts.file || "",
@@ -159,6 +160,18 @@ async function summaryAction(opts) {
     acc[l.model] = (acc[l.model] || 0) + l.tokens;
     return acc;
   }, {});
+  const byClient = workLogs.reduce((acc, l) => {
+    const key = String(l.client || "").trim();
+    if (!key) return acc;
+    acc[key] = (acc[key] || 0) + l.tokens;
+    return acc;
+  }, {});
+  const byAgent = workLogs.reduce((acc, l) => {
+    const key = String(l.agentId || l.client || "").trim();
+    if (!key) return acc;
+    acc[key] = (acc[key] || 0) + l.tokens;
+    return acc;
+  }, {});
   const tdwEntryCount = workLogs.filter(l => Number(l.tdw || 0) > 0).length;
   const tdwAverageTokensPerEntry = tdwEntryCount > 0 ? totalTdwTokens / tdwEntryCount : 0;
   const byRagResult = countBy(workLogs, "ragResult");
@@ -187,6 +200,8 @@ async function summaryAction(opts) {
       missingEventCount,
       eventCoverageRate,
       byModel,
+      byClient,
+      byAgent,
       tdwEntryCount,
       tdwCoverageRate: rate(tdwEntryCount, workLogs.length),
       tdwTokenShare: rate(totalTdwTokens, totalTokens),
@@ -222,6 +237,8 @@ async function summaryAction(opts) {
   Object.entries(byModel).forEach(([m, t]) => {
     console.log(`  - ${m}: ${t}`);
   });
+  printCounts("By Client", byClient);
+  printCounts("By Agent", byAgent);
   console.log(`TDW:`);
   console.log(`  - Entries: ${tdwEntryCount}`);
   console.log(`  - Coverage Rate: ${formatRate(tdwEntryCount, workLogs.length)}`);
@@ -288,6 +305,7 @@ export function appendTelemetryRecord(cwd, entry = {}) {
     tdw: Number(entry.tdw || 0),
     model: entry.model || "UNKNOWN",
     client: entry.client || "",
+    agentId: entry.agentId || "",
     ticket: entry.ticket || "",
     action: entry.action || "work",
     file: entry.file || "",

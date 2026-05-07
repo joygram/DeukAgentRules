@@ -11,6 +11,7 @@ import { appendTicketEntry, rebuildTicketIndexFromTopicFilesIfNeeded, updateTick
 import { appendInternalWorkflowEvent } from "./cli-telemetry-commands.mjs";
 import { parsePlan } from "./plan-parser.mjs";
 import { collectChangedFiles, collectChangedMarkdownFiles, lintMarkdownPaths } from "./lint-md.mjs";
+import { getUsageReminderLine } from "./cli-usage-commands.mjs";
 import ejs from "ejs";
 import YAML from "yaml";
 
@@ -412,6 +413,13 @@ export function getImplementationClaimGuardResult(cwd, { claim = "", content = "
 
 function isCompactTicketOutput(opts = {}) {
   return Boolean(opts.compact || opts.nonInteractive);
+}
+
+function printUsageReminder(cwd) {
+  const reminder = getUsageReminderLine(cwd);
+  if (reminder) {
+    console.log(reminder);
+  }
 }
 
 function getHandoffSummary(out) {
@@ -1329,6 +1337,7 @@ export async function runTicketCreate(opts) {
     }
 
     console.log(`${opts.dryRun ? "Ticket would be created" : "Ticket created"}: ${toFileUri(abs)}`);
+    printUsageReminder(opts.cwd);
     if (!opts.dryRun) {
       appendTelemetryEvent(opts.cwd, {
         event: "ticket_created",
@@ -1425,6 +1434,7 @@ export async function runTicketStatus(opts) {
   if (isCompactTicketOutput(opts)) {
     const reasonText = out.reasons.length === 0 ? "ok" : out.reasons.join(", ");
     console.log(`${out.id} | phase=${out.phase} | status=${out.status} | ${reasonText}`);
+    printUsageReminder(opts.cwd);
     return;
   }
 
@@ -1436,6 +1446,7 @@ export async function runTicketStatus(opts) {
     if (out.reasons.length === 0) console.log("Reasons: none");
     else console.log(`Reasons: ${out.reasons.join(", ")}`);
   }
+  printUsageReminder(opts.cwd);
 }
 
 export async function runTicketHandoff(opts) {
@@ -1710,6 +1721,7 @@ export async function runTicketUse(opts) {
     console.log(`Active ticket: ${found.id}`);
     console.log(`Path: [${posixPath}](file://${absPath})`);
     if (opts.printContent) console.log("\n" + readFileSync(join(opts.cwd, found.path), "utf8"));
+    printUsageReminder(opts.cwd);
   }
 }
 
@@ -2026,6 +2038,7 @@ export async function runTicketMove(opts) {
       status: meta.status
     });
     console.log(`ticket: moved -> ${entry.topic} is now in Phase ${nextPhase} (${meta.status})`);
+    printUsageReminder(opts.cwd);
   } catch (err) {
     rollbackTicketLifecycleArtifacts(opts.cwd, previousIndex, body, abs, opts);
     throw err;

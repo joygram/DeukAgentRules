@@ -73,6 +73,41 @@ test("telemetry summary json exposes TDW metrics", async () => {
   }
 });
 
+test("telemetry summary json groups usage by client and agent", async () => {
+  const cwd = mkdtempSync(join(tmpdir(), "deuk-telemetry-agent-summary-"));
+  try {
+    const telemetryDir = join(cwd, ".deuk-agent");
+    mkdirSync(telemetryDir, { recursive: true });
+    writeFileSync(join(telemetryDir, "telemetry.jsonl"), [
+      JSON.stringify({ ts: 1, tokens: 60, tdw: 20, model: "m1", client: "Codex", agentId: "codex-main", ticket: "a", action: "work", file: "", synced: false }),
+      JSON.stringify({ ts: 2, tokens: 30, tdw: 10, model: "m1", client: "Codex", agentId: "codex-review", ticket: "b", action: "review", file: "", synced: false }),
+      JSON.stringify({ ts: 3, tokens: 10, tdw: 0, model: "m2", client: "ClaudeCode", agentId: "claude-docs", ticket: "c", action: "docs", file: "", synced: false })
+    ].join("\n") + "\n", "utf8");
+
+    const originalArgv = process.argv;
+    const originalLog = console.log;
+    const lines = [];
+    process.argv = ["node", "test", "telemetry", "summary"];
+    console.log = (value) => lines.push(String(value));
+
+    try {
+      await runTelemetry({ cwd, json: true });
+    } finally {
+      process.argv = originalArgv;
+      console.log = originalLog;
+    }
+
+    const payload = JSON.parse(lines.at(-1));
+    assert.strictEqual(payload.byClient.Codex, 90);
+    assert.strictEqual(payload.byClient.ClaudeCode, 10);
+    assert.strictEqual(payload.byAgent["codex-main"], 60);
+    assert.strictEqual(payload.byAgent["codex-review"], 30);
+    assert.strictEqual(payload.byAgent["claude-docs"], 10);
+  } finally {
+    rmSync(cwd, { recursive: true, force: true });
+  }
+});
+
 test("telemetry summary reports event coverage gaps", async () => {
   const cwd = mkdtempSync(join(tmpdir(), "deuk-telemetry-event-quality-"));
   try {
