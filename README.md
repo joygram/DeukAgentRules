@@ -16,11 +16,11 @@
 
 ---
 
-**Deuk Agent Flow** is the missing workbench layer for AI coding agents: short chat instructions go in, scoped repo work comes out, and the reasoning does not disappear when the chat ends.
+**Deuk Agent Flow** is the repo-owned workflow layer for AI coding agents: Codex, Copilot, Cursor, Claude Code, Gemini, Windsurf, or the next agent you adopt can enter the same ticketed flow.
 
-Most agent setups stop at instructions. Deuk Agent Flow turns those instructions into an operating loop: ticket, scope, execute, verify, archive. It keeps `AGENTS.md`, Copilot instructions, Cursor rules, Claude skills, and related agent surfaces aligned without asking you to type long commands.
+Most agent setups stop at instructions. Deuk Agent Flow turns short chat into an operating loop: ticket, scope, execute, verify, archive. It keeps `AGENTS.md`, Copilot instructions, Cursor rules, Claude skills, and related agent surfaces aligned without asking you to type long commands.
 
-The hook is simple: you can say "next", "inspect", or "clean this up", and the agent has a repo-owned place to remember what that means. Active work lives in `.deuk-agent/tickets/`; decisions, plans, and closeout evidence stay with the codebase instead of vanishing into a chat transcript.
+The hook is simple: you can say "next", "inspect", or "clean this up", and the current agent has a repo-owned place to know what that means. Active work lives in `.deuk-agent/tickets/`; decisions, plans, and closeout evidence stay with the codebase instead of vanishing into a chat transcript. **Deuk Agent Flow** is the workflow layer. Plug that flow into the separate companion product **Deuk AgentContext**, and the whole repo gains an expanded project brain: searchable memory, reusable decisions, and team patterns the next agent can actually use.
 
 ### Why Now
 
