@@ -1,5 +1,5 @@
 {
-  "name": "deuk-agent-rule",
+  "name": "deuk-agent-flow",
   "version": "4.0.0",
   "description": "Keep AI coding work from vanishing between chats: repo-owned tickets, scope, verification, and memory for AGENTS.md-powered agents.",
   "keywords": [
@@ -84,6 +84,8 @@
     "node": ">=18"
   },
   "bin": {
+    "deuk-agent-flow": "./bin/deuk-agent-flow.js",
+    "deukagentflow": "./bin/deuk-agent-flow.js",
     "deuk-agent-rule": "./bin/deuk-agent-rule.js",
     "deukagentrule": "./bin/deuk-agent-rule.js"
   },

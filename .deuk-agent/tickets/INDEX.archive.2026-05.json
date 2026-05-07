@@ -1,8 +1,37 @@
 {
   "version": 1,
-  "updatedAt": "2026-05-07T01:01:45.438Z",
+  "updatedAt": "2026-05-07T01:48:52.900Z",
   "activeTicketId": null,
   "entries": [
+    {
+      "id": "304-deukagentflow-primary-cli-packag-joy-nucb",
+      "title": "deukagentflow-primary-cli-package-switch",
+      "topic": "deukagentflow-primary-cli-package-switch",
+      "group": "sub",
+      "project": "DeukAgentRules",
+      "createdAt": "2026-05-07T01:41:24.589Z",
+      "source": "ticket-create",
+      "status": "closed",
+      "phase": 4,
+      "updatedAt": "2026-05-07T01:48:52.894Z",
+      "archiveYearMonth": "2026-05",
+      "archiveDay": "07"
+    },
+    {
+      "id": "240-deukagentcontext-ingestion-backu-joy-nucb",
+      "title": "deukagentcontext-ingestion-backup-archive-purge",
+      "topic": "240-deukagentcontext-ingestion-backu-joy-nucb",
+      "group": "sub",
+      "fileName": "240-deukagentcontext-ingestion-backu-joy-nucb.md",
+      "project": "global",
+      "submodule": "",
+      "createdAt": "2026-05-03 12:34:14",
+      "updatedAt": "2026-05-07T01:41:24.631Z",
+      "source": "ticket-sync",
+      "status": "archived",
+      "archiveYearMonth": "2026-05",
+      "archiveDay": "03"
+    },
     {
       "id": "231-validation-root-cause-joy-nucb",
       "title": "validation-root-cause",

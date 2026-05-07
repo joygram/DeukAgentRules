@@ -1,7 +1,6 @@
 {
   "version": 1,
-  "updatedAt": "2026-05-07T01:01:45.438Z",
-  "activeTicketId": "297-codex-usage-budget-advisor-joy-nucb",
+  "updatedAt": "2026-05-07T01:48:52.900Z",
   "entries": [
     {
       "id": "303-vscode-dashboard-cli-integration-joy-nucb",
@@ -234,19 +233,7 @@
       "updatedAt": "2026-05-03T13:31:53.596Z",
       "source": "ticket-sync",
       "status": "open"
-    },
-    {
-      "id": "240-deukagentcontext-ingestion-backu-joy-nucb",
-      "title": "deukagentcontext-ingestion-backup-archive-purge",
-      "topic": "240-deukagentcontext-ingestion-backu-joy-nucb",
-      "group": "sub",
-      "fileName": "240-deukagentcontext-ingestion-backu-joy-nucb.md",
-      "project": "global",
-      "submodule": "",
-      "createdAt": "2026-05-03 12:34:14",
-      "updatedAt": "2026-05-03T12:34:35.477Z",
-      "source": "ticket-sync",
-      "status": "open"
     }
-  ]
+  ],
+  "activeTicketId": "297-codex-usage-budget-advisor-joy-nucb"
 }

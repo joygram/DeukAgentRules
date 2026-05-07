@@ -68,7 +68,6 @@ Deuk Agent Flow
 
 > **현재 배포 기준:**
 > v4.0.0은 에이전트 기반 리포지토리에 배포해 사용할 수 있는 상태입니다. 현재는 **OpenAI Codex**와 **GitHub Copilot** 환경에서 가장 안정적으로 동작합니다. Cursor, Windsurf, Claude Code, MCP도 포인터 구조로 지원하지만, 워크스페이스별 검증을 권장합니다. MCP 서버 등록은 `init`에 딸려 들어가지 않고 별도로 설정합니다.
-
 > **아키텍처 기반:**
 > 거대하고 무거운 레거시 `.cursorrules` 방식을 공식적으로 폐기했습니다. v3.0은 `AGENTS.md`를 단일 진실 공급원으로 사용하는 **Hub-Spoke 모델**을 도입하여, IDE별 규칙은 얇은 진입점 포인터 역할만 수행합니다.
 
@@ -189,13 +188,13 @@ npm registry에 쓰기 전에 dry-run으로 먼저 확인하세요.
 npm run publish:dry
 ```
 
-publish helper는 `npm test`를 실행하고, `deuk-agent-flow` 패키지 버전을 루트 패키지 버전에 맞춘 뒤, `deuk-agent-rule`을 먼저 배포하고 Deuk Agent Flow 메인 패키지를 이어서 배포합니다.
+publish helper는 `npm test`를 실행하고, `deuk-agent-rule` compatibility 패키지 버전을 루트 패키지 버전에 맞춘 뒤, `deuk-agent-flow`를 먼저 배포하고 `deuk-agent-rule`을 이어서 배포합니다.
 
 전체 전환 절차는 [docs/internal/deukagentflow-migration-plan.ko.md](docs/internal/deukagentflow-migration-plan.ko.md)를 본다.
 
 호환 안내: `deuk-agent-rule`은 전환 기간 동안 사용할 수 있고, 합산 다운로드 배지는 두 패키지 다운로드를 함께 계산한다.
 
-현재 `deuk-agent-rule` 버전이 이미 배포되어 있고 wrapper 패키지만 처음 올리면 되는 상황에서는 bootstrap 명령을 사용합니다.
+현재 `deuk-agent-flow` 버전이 이미 배포되어 있고 legacy compatibility wrapper만 추가로 올리면 되는 상황에서는 bootstrap 명령을 사용합니다.
 
 ```bash
 npm run publish:bootstrap

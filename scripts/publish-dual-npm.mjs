@@ -6,15 +6,15 @@ import { fileURLToPath } from "url";
 
 const __dirname = dirname(fileURLToPath(import.meta.url));
 const rootDir = join(__dirname, "..");
-const aliasDir = join(rootDir, "packages", "deuk-agent-flow");
+const aliasDir = join(rootDir, "packages", "deuk-agent-rule");
 
 export function buildAliasPackageJson(rootPkg, currentAliasPkg = {}) {
   const version = rootPkg.version;
   return {
     ...currentAliasPkg,
-    name: "deuk-agent-flow",
+    name: "deuk-agent-rule",
     version,
-    description: "Primary Deuk Agent Flow package wrapper for the deuk-agent-rule compatibility CLI.",
+    description: "Compatibility wrapper for legacy deuk-agent-rule installs.",
     keywords: [
       "agents-md",
       "agent-flow",
@@ -29,12 +29,12 @@ export function buildAliasPackageJson(rootPkg, currentAliasPkg = {}) {
     homepage: rootPkg.homepage,
     files: ["bin/**/*", "README.md"],
     bin: {
-      "deuk-agent-flow": "./bin/deuk-agent-flow.js",
-      deukagentflow: "./bin/deuk-agent-flow.js",
+      "deuk-agent-rule": "./bin/deuk-agent-rule.js",
+      deukagentrule: "./bin/deuk-agent-rule.js",
     },
     engines: rootPkg.engines || currentAliasPkg.engines || { node: ">=18" },
     dependencies: {
-      "deuk-agent-rule": version,
+      "deuk-agent-flow": version,
     },
   };
 }
@@ -109,7 +109,7 @@ export function main(argv = process.argv.slice(2)) {
   const opts = parseArgs(argv);
   const aliasPkg = syncAliasPackageJson();
 
-  const packageLabel = opts.aliasOnly ? "deuk-agent-flow" : "deuk-agent-rule and deuk-agent-flow";
+  const packageLabel = opts.aliasOnly ? "deuk-agent-rule" : "deuk-agent-flow and deuk-agent-rule";
   console.log(`Publishing ${packageLabel} at ${aliasPkg.version}`);
   if (opts.dryRun) {
     console.log("Dry-run mode: npm will build and validate packages without registry writes.");

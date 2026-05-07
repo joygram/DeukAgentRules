@@ -66,7 +66,7 @@ function resolveTicketTemplate(cwd, docsLanguageInput, promptText = "") {
   ];
   const ticketTemplatePath = ticketTemplateCandidates.find(p => existsSync(p));
   if (!ticketTemplatePath) {
-    throw new Error("ticket create: Template not found. Please run 'npx deuk-agent-rule init' to deploy templates.");
+    throw new Error("ticket create: Template not found. Please run 'npx deuk-agent-flow init' to deploy templates.");
   }
   return { tplText: readFileSync(ticketTemplatePath, "utf8"), docsLanguage };
 }
@@ -669,7 +669,7 @@ function buildStrictCreateFailureMessage(reasons) {
     "[VALIDATION FAILED] ticket create strict mode rejected incomplete Phase 1.",
     `Missing: ${uniqueReasons.join(", ")}`,
     "Fix: provide `--summary` and a filled `--plan-body` with APC, Compact Plan, Problem Analysis, Source Observations, Cause Hypotheses, Improvement Direction, and Audit Evidence.",
-    "Command: npx deuk-agent-rule ticket create --topic <topic> --summary \"<concrete summary>\" --plan-body \"<filled phase 1 markdown>\" --non-interactive",
+    "Command: npx deuk-agent-flow ticket create --topic <topic> --summary \"<concrete summary>\" --plan-body \"<filled phase 1 markdown>\" --non-interactive",
     "Manual fallback is forbidden: do not write .deuk-agent/tickets/**/*.md directly after this failure."
   ];
 
@@ -718,7 +718,7 @@ function assertTicketLifecycleProvenance(entry, meta = {}) {
     `[VALIDATION FAILED] Ticket ${entry?.id || entry?.topic || "unknown"} cannot be used as an execution ticket: ${reasons.join(", ")}.`,
     "This ticket file does not carry CLI creation provenance.",
     "Do not create or repair tickets by writing .deuk-agent/tickets/**/*.md directly.",
-    "Use: npx deuk-agent-rule ticket create --topic <topic> --summary <summary> --plan-body \"<filled phase 1 markdown>\" --non-interactive"
+    "Use: npx deuk-agent-flow ticket create --topic <topic> --summary <summary> --plan-body \"<filled phase 1 markdown>\" --non-interactive"
   ].join("\n"));
 }
 
@@ -851,7 +851,7 @@ function buildUseNoMatchError(topic, candidates) {
 
   lines.push("");
   lines.push("Choose one explicitly:");
-  lines.push("  npx deuk-agent-rule ticket use --topic <ticket-id> --non-interactive");
+  lines.push("  npx deuk-agent-flow ticket use --topic <ticket-id> --non-interactive");
   return lines.join("\n");
 }
 
@@ -889,8 +889,8 @@ function buildOpenTicketLimitError(indexJson) {
     "Review the active ticket list, decide what can be archived, then create the ticket again.",
     "",
     "Commands:",
-    "  npx deuk-agent-rule ticket list --active --non-interactive",
-    "  npx deuk-agent-rule ticket archive --topic <ticket-id> --non-interactive",
+    "  npx deuk-agent-flow ticket list --active --non-interactive",
+    "  npx deuk-agent-flow ticket archive --topic <ticket-id> --non-interactive",
     "",
     "Oldest archive candidates:"
   ];
@@ -1362,7 +1362,7 @@ export async function runTicketCreate(opts) {
 export async function runTicketList(opts) {
   const ticketDir = detectConsumerTicketDir(opts.cwd);
   if (!ticketDir) {
-    throw new Error("No ticket system found. Please run 'npx deuk-agent-rule init' first.");
+    throw new Error("No ticket system found. Please run 'npx deuk-agent-flow init' first.");
   }
   const index = rebuildTicketIndexFromTopicFilesIfNeeded(opts.cwd, { ...opts, force: false });
   syncActiveTicketId(opts.cwd);

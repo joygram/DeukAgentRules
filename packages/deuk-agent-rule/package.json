@@ -1,7 +1,7 @@
 {
-  "name": "deuk-agent-flow",
+  "name": "deuk-agent-rule",
   "version": "4.0.0",
-  "description": "Keep AI coding work from vanishing between chats with Deuk Agent Flow.",
+  "description": "Compatibility wrapper for legacy deuk-agent-rule installs.",
   "keywords": [
     "agents-md",
     "agent-flow",
@@ -24,13 +24,13 @@
     "README.md"
   ],
   "bin": {
-    "deuk-agent-flow": "./bin/deuk-agent-flow.js",
-    "deukagentflow": "./bin/deuk-agent-flow.js"
+    "deuk-agent-rule": "./bin/deuk-agent-rule.js",
+    "deukagentrule": "./bin/deuk-agent-rule.js"
   },
   "engines": {
     "node": ">=18"
   },
   "dependencies": {
-    "deuk-agent-rule": "4.0.0"
+    "deuk-agent-flow": "4.0.0"
   }
 }

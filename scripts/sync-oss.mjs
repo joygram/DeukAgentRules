@@ -1,6 +1,6 @@
 /**
  * Populates ../DeukAgentFlowOSS for the public GitHub repo.
- * Run: cd deuk-agent-rule && npm run sync:oss
+ * Run: cd deuk-agent-flow && npm run sync:oss
  */
 import { cpSync, existsSync, mkdirSync, readFileSync, unlinkSync, writeFileSync, rmSync } from "fs";
 import { dirname, join } from "path";
@@ -196,7 +196,7 @@ export function syncOssTree() {
     unlinkSync(ossSyncScript);
   }
 
-  console.log("deuk-agent-rule: synced OSS tree at " + ossRoot);
+  console.log("deuk-agent-flow: synced OSS tree at " + ossRoot);
   console.log("  Override repo URL: DEUK_AGENT_FLOW_OSS_REPO=https://github.com/joygram/DeukAgentRules");
 }
 

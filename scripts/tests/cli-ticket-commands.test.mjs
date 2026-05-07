@@ -2132,7 +2132,7 @@ test("runTicketCreate rolls back when strict create rejects placeholder summary"
         assert.match(err.message, /strict mode rejected incomplete Phase 1/);
         assert.match(err.message, /summary_missing_or_placeholder/);
         assert.match(err.message, /Fix: provide `--summary` and a filled `--plan-body`/);
-        assert.match(err.message, /Command: npx deuk-agent-rule ticket create/);
+        assert.match(err.message, /Command: npx deuk-agent-flow ticket create/);
         assert.match(err.message, /Manual fallback is forbidden/);
         return true;
       }
@@ -2221,7 +2221,7 @@ test("runTicketCreate strict mode rejects scaffold-only compact plan drafts", as
         assert.match(err.message, /strict mode rejected incomplete Phase 1/);
         assert.match(err.message, /compact_plan_placeholder_or_incomplete/);
         assert.match(err.message, /Fix: provide `--summary` and a filled `--plan-body`/);
-        assert.match(err.message, /Command: npx deuk-agent-rule ticket create/);
+        assert.match(err.message, /Command: npx deuk-agent-flow ticket create/);
         assert.match(err.message, /Manual fallback is forbidden/);
         return true;
       }
@@ -3196,7 +3196,7 @@ test("runTicketCreate auto-enables strict mode for investigation tickets", async
         assert.match(err.message, /strict mode rejected incomplete Phase 1/);
         assert.match(err.message, /compact_plan_placeholder_or_incomplete/);
         assert.match(err.message, /Fix: provide `--summary` and a filled `--plan-body`/);
-        assert.match(err.message, /Command: npx deuk-agent-rule ticket create/);
+        assert.match(err.message, /Command: npx deuk-agent-flow ticket create/);
         assert.match(err.message, /Manual fallback is forbidden/);
         return true;
       }

@@ -68,7 +68,6 @@ Repo-owned work
 
 > **Current readiness:**
 > v4.0.0 is deployment-ready for agent-driven repositories. It is currently most reliable in **OpenAI Codex** and **GitHub Copilot** workflows. Cursor, Windsurf, Claude Code, and MCP remain supported through pointer-style integration, but they should be validated per workspace before rollout. MCP server registration is separate from `init`.
-
 > **Architecture foundation:**
 > We have officially deprecated monolithic `.cursorrules`. v3.0 introduces the **Hub-Spoke model** where `AGENTS.md` is the single source of truth, and IDE-specific rules act as thin entry-point pointers.
 
@@ -173,13 +172,13 @@ Use dry-run mode before writing to the npm registry:
 npm run publish:dry
 ```
 
-The publish helper runs `npm test`, syncs the `deuk-agent-flow` package version to the root package version, publishes `deuk-agent-rule` first, and then publishes `deuk-agent-flow`.
+The publish helper runs `npm test`, syncs the `deuk-agent-rule` compatibility package version to the root package version, publishes `deuk-agent-flow` first, and then publishes `deuk-agent-rule`.
 
 For the full migration sequence, see [docs/internal/deukagentflow-migration-plan.ko.md](docs/internal/deukagentflow-migration-plan.ko.md).
 
 Legacy note: `deuk-agent-rule` remains available for compatibility during the transition, and the combined downloads badge counts both packages.
 
-If the current `deuk-agent-rule` version is already published and you only need to introduce the wrapper package, use the bootstrap command:
+If the current `deuk-agent-flow` version is already published and you only need to publish the legacy compatibility wrapper, use the bootstrap command:
 
 ```bash
 npm run publish:bootstrap

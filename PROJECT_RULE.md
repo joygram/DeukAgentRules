@@ -17,10 +17,10 @@ architecture_docs: "docs/architecture.md"
 | `core-rules/AGENTS.md` | Core rules hub | Yes (source of truth) |
 | `templates/` | Distributed to consumers via `init` | Yes |
 | `scripts/` | CLI business logic | Yes |
-| `bin/deuk-agent-rule.js` | Global proxy only | No logic changes |
+| `bin/deuk-agent-flow.js`, `bin/deuk-agent-rule.js` | Global proxy only | No logic changes |
 
 ### CLI Proxy (Stale Tarball Prevention)
-- `bin/deuk-agent-rule.js` = global proxy. No business logic.
+- `bin/deuk-agent-flow.js` = primary global proxy. `bin/deuk-agent-rule.js` is a compatibility wrapper.
 - Real logic lives in `scripts/`. Proxy traces CWD upward to find local source.
 
 ## Workflow Pointer
@@ -31,8 +31,8 @@ architecture_docs: "docs/architecture.md"
 
 | Generated | Source | Build |
 |-----------|--------|-------|
-| Consumer `.cursor/rules/` spokes | `templates/rules.d/` | `npx deuk-agent-rule init` |
-| Consumer `AGENTS.md` | `core-rules/AGENTS.md` | `npx deuk-agent-rule init` |
+| Consumer `.cursor/rules/` spokes | `templates/rules.d/` | `npx deuk-agent-flow init` |
+| Consumer `AGENTS.md` | `core-rules/AGENTS.md` | `npx deuk-agent-flow init` |
 
 ## DC-* Guards
 
@@ -45,7 +45,7 @@ architecture_docs: "docs/architecture.md"
 
 | Action | Command |
 |--------|---------|
-| Lint rules | `npx deuk-agent-rule lint:md` |
+| Lint rules | `npx deuk-agent-flow lint:md` |
 | Run tests | `node --test scripts/tests/*.test.mjs` |
 | Sync OSS | `node scripts/sync-oss.mjs` |
 

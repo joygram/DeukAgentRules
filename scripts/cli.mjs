@@ -163,17 +163,17 @@ async function handleInit(opts, saved) {
 }
 
 function printHelp() {
-  console.log(`DeukAgentRules CLI - Generalization Rules & Ticket Management
+  console.log(`DeukAgentFlow CLI - Generalization Rules & Ticket Management
 
 Usage:
-  npx deuk-agent-rule init   [options]
-  npx deuk-agent-rule merge  [options]
-  npx deuk-agent-rule lint:md [--cwd <path>] [files...]
-  npx deuk-agent-rule rules audit [--compact|--json]
-  npx deuk-agent-rule skill <list|add|expose|lint> [options]
-  npx deuk-agent-rule ticket <create|evidence|list|status|handoff|continue|use|close|archive|reports|migrate|upgrade|meta|connect|move> [options]
-  npx deuk-agent-rule telemetry <log|sync|summary|migrate> [options]
-  npx deuk-agent-rule usage <set|status|advise> [options]
+  npx deuk-agent-flow init   [options]
+  npx deuk-agent-flow merge  [options]
+  npx deuk-agent-flow lint:md [--cwd <path>] [files...]
+  npx deuk-agent-flow rules audit [--compact|--json]
+  npx deuk-agent-flow skill <list|add|expose|lint> [options]
+  npx deuk-agent-flow ticket <create|evidence|list|status|handoff|continue|use|close|archive|reports|migrate|upgrade|meta|connect|move> [options]
+  npx deuk-agent-flow telemetry <log|sync|summary|migrate> [options]
+  npx deuk-agent-flow usage <set|status|advise> [options]
 
 Options:
   --cwd <path>          Target repo root

@@ -25,7 +25,7 @@ export async function runTelemetry(opts) {
     await migrateAction(opts);
   } else {
     console.error("Unknown telemetry action: " + action);
-    console.log("Usage: npx deuk-agent-rule telemetry <log|sync|summary|migrate> [options]");
+    console.log("Usage: npx deuk-agent-flow telemetry <log|sync|summary|migrate> [options]");
   }
 }
 

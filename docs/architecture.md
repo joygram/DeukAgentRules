@@ -20,7 +20,7 @@ In the v3 model, **`AGENTS.md`** acts as the global **Hub** (the single source o
 To solve the "Stale Tarball" problem common with `npx`, v3.0 implements a **Global Proxy**.
 
 ### How it works:
-1. When you run `npx deuk-agent-rule`, the package's global entry point (`bin/deuk-agent-rule.js`) is executed.
+1. When you run `npx deuk-agent-flow`, the package's primary global entry point (`bin/deuk-agent-flow.js`) is executed.
 2. It automatically scans the current directory and its parents for a **Local Workspace Source** (`DeukAgentFlow/scripts/cli.mjs`).
 3. If found, it **transparently routes** all commands to the local source.
 4. This ensures that agents always use the latest, uncommitted local rules instead of a cached version from the registry.

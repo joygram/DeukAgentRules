@@ -33,7 +33,7 @@ export async function runUsage(action, opts) {
     return runUsageAdvise(opts);
   }
   console.error("Unknown usage action: " + action);
-  console.log("Usage: npx deuk-agent-rule usage <set|status|advise> [options]");
+  console.log("Usage: npx deuk-agent-flow usage <set|status|advise> [options]");
 }
 
 export function loadUsageState(cwd) {

@@ -84,7 +84,7 @@ rename 직후 주의사항:
 권장 순서:
 
 1. `deuk-agent-flow` publish
-2. `deuk-agent-rule` publish 또는 republish
+2. `deuk-agent-rule` compatibility package publish 또는 republish
 3. 둘의 README/description을 새 브랜드 기준으로 정렬
 
 중요한 점:
