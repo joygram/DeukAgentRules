@@ -48,7 +48,7 @@ export function listSkills(cwd = process.cwd()) {
   const config = loadSkillConfig(cwd);
   return SKILL_IDS.map(id => ({
     id,
-    installed: config.installed.includes(id),
+    installed: config.installed.includes(id) || existsSync(repoSkillPath(cwd, id)),
     exposed: Object.entries(config.exposed || {})
       .filter(([, ids]) => Array.isArray(ids) && ids.includes(id))
       .map(([platform]) => platform)

@@ -8,10 +8,18 @@ const RULE_CHECKS = [
     test: (rules) => /## Compact Kernel/i.test(rules)
       && /Tools own detail/i.test(rules)
       && /No ticket, no writes/i.test(rules)
+      && /User requirements are ticket-first/i.test(rules)
+      && /cause, analysis, and design\/approach/i.test(rules)
+      && /approval or correction creates another ticket update loop/i.test(rules)
+      && /reopen and review the durable ticket body/i.test(rules)
+      && /wait for explicit user approval/i.test(rules)
       && /Every phase must request and satisfy the tool-provided contract/i.test(rules)
       && /Phase state has two records/i.test(rules)
-      && /ticket guard/i.test(rules)
+      && /deuk-agent-flow ticket guard/i.test(rules)
+      && /explicit approval validated by `deuk-agent-flow ticket guard`/i.test(rules)
       && /Verification is mandatory/i.test(rules)
+      && /Completion reports go in the ticket first/i.test(rules)
+      && /terse TDW feedback only/i.test(rules)
       && /never bypass ticket, scope, generated-file, or verification gates/i.test(rules)
       && /Ticket creation failures are hard stops/i.test(rules)
       && /do not call `set_workflow_context`/i.test(rules)
@@ -41,9 +49,11 @@ const RULE_CHECKS = [
     test: (rules) => /Boot Sequence \(run once\)/i.test(rules)
       && /Read this file \(AGENTS\.md\)/i.test(rules)
       && /Read `PROJECT_RULE\.md`/i.test(rules)
-      && /ticket guard --topic <id>/i.test(rules)
+      && /ticket-start line, reopen and review the durable ticket body, and stop while approval is pending/i.test(rules)
+      && /approval\/correction in the ticket/i.test(rules)
+      && /deuk-agent-flow ticket guard --topic <id> --ticket-started --ticket-reviewed --approval approved/i.test(rules)
       && /set_workflow_context\(project, ticket_id, phase\)/i.test(rules)
-      && /clickable ticket-start line/i.test(rules)
+      && /explicit user approval/i.test(rules)
   },
   {
     code: "DR-TICKET-01",
@@ -51,10 +61,14 @@ const RULE_CHECKS = [
     test: (rules) => /First-Turn Invariant/i.test(rules)
       && /Ticket Discovery \(1-CALL RULE\)/i.test(rules)
       && /create the ticket first/i.test(rules)
+      && /reopen and review the durable ticket body/i.test(rules)
+      && /wait for explicit user approval/i.test(rules)
+      && /update the ticket with that new input/i.test(rules)
+      && /deuk-agent-flow ticket guard --ticket-started --ticket-reviewed --approval approved/i.test(rules)
       && /do not run repo inspection commands/i.test(rules)
-      && /ticket create` or `ticket use/i.test(rules)
+      && /deuk-agent-flow ticket create` or `deuk-agent-flow ticket use/i.test(rules)
       && /Do not start with `git status`, `rg`, `find`, diffs, or broad help output/i.test(rules)
-      && /Do not use `ticket list` for discovery/i.test(rules)
+      && /Do not use `deuk-agent-flow ticket list` for discovery/i.test(rules)
   },
   {
     code: "DR-CHANGE-01",
@@ -71,8 +85,9 @@ const RULE_CHECKS = [
     test: (rules) => /Ticket Lifecycle/i.test(rules)
       && /Phase 0/i.test(rules)
       && /Phase 4/i.test(rules)
+      && /cause, analysis, design\/approach/i.test(rules)
       && /findings, hypotheses, scope, compact plan, and phase contract/i.test(rules)
-      && /affected files, and residual risk/i.test(rules)
+      && /verification outcome, completion report, residual risk, and a follow-up decision/i.test(rules)
       && /Keep chat compact once the ticket carries the durable record/i.test(rules)
   },
   {
@@ -83,6 +98,7 @@ const RULE_CHECKS = [
       && /generated\/source uncertainty/i.test(rules)
       && /shared-interface changes/i.test(rules)
       && /repo inspection started before ticket selection or creation/i.test(rules)
+      && /same TDW failure family appears twice/i.test(rules)
       && /read-only until the ticket records findings/i.test(rules)
   },
   {
@@ -106,6 +122,8 @@ const RULE_CHECKS = [
       && /Use `rg`\/`rg --files` first/i.test(rules)
       && /Use MCP\/RAG only when local evidence is insufficient/i.test(rules)
       && /Let CLI own lifecycle enforcement, claim checks, reports, and audits/i.test(rules)
+      && /AgentFlow Skill Status/i.test(rules)
+      && /deuk-agent-flow skill list/i.test(rules)
       && /rules audit/i.test(rules)
   }
 ];
