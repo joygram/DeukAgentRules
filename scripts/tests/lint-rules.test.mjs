@@ -12,6 +12,8 @@ test("rules audit includes explicit short-answer override for direct user reques
   const result = auditRules(process.cwd());
   assert.ok(result.ok, result.violations.map((v) => `${v.code}:${v.message}`).join(", "));
   const rulesText = result.path ? String(readFileSync(result.path, "utf8")) : "";
+  assert.match(rulesText, /When the user complains about verbosity, chatter, progress reports, or over-explaining/i);
+  assert.match(rulesText, /Do not switch into meta labeling, terminology lessons, or general explanation/i);
   assert.match(rulesText, /짧게|매우 짧게|한 줄로|간단히/i);
   assert.match(rulesText, /one-sentence or bullet-only/i);
 });

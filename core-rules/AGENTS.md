@@ -1,6 +1,6 @@
 ---
-version: 61
-changelog: "v61: Distinguish existing-ticket close actions from new-ticket triggers so commit/report/archive/close do not spawn new tickets."
+version: 62
+changelog: "v62: For user complaints about verbosity or chatter, require short acknowledgment and action-focused replies instead of meta labeling or term explanations."
 ---
 
 # Agent Rules
@@ -60,6 +60,7 @@ changelog: "v61: Distinguish existing-ticket close actions from new-ticket trigg
 - Final answers must be short but complete enough to answer the user.
 - After task completion, prefer: result, verification status, ticket link, then one short line saying which ticket section to read for details. If any important area is unverified, say that explicitly instead of sounding complete.
 - Do not cite approval-pending silence as a reason to withhold a concise explanation that the user explicitly requested. Explain the state, separate rule text from agent interpretation, and keep the answer narrow.
+- When the user complains about verbosity, chatter, progress reports, or over-explaining, reply with a short acknowledgment plus the concrete fix or scope change. Do not switch into meta labeling, terminology lessons, or general explanation unless the user explicitly asks what the term means.
 - If the user asks for `짧게`, `매우 짧게`, `한 줄로`, or `간단히`, prioritize a one-sentence or bullet-only answer and omit background unless the user asks for it or a blocker requires it.
 - Do not expand a short answer into explanation, examples, or rationale unless the user explicitly requests more detail.
 - Before drafting a user-facing reply, re-open the active ticket and this Output Mode section if the user asked for brevity or if substantial tool work changed the state.
