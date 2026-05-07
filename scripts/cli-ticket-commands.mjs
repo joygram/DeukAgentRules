@@ -4,7 +4,7 @@ import { basename, join, dirname, relative, resolve } from "path";
 import { 
   toSlug, toRepoRelativePath, toFileUri, inferRefTitleAndTopic, resolveReferencedTicketPath, toPosixPath, stringifyFrontMatter,
   resolveDocsLanguage, inferDocsLanguageFromText, normalizeDocsLanguage, isMcpActive, withReadline, parseFrontMatter,
-  AGENT_ROOT_DIR, TICKET_SUBDIR, TEMPLATE_SUBDIR, TICKET_DIR_NAME, TICKET_INDEX_FILENAME, WORKFLOW_MODE_EXECUTE,
+  AGENT_ROOT_DIR, TICKET_SUBDIR, TICKET_DIR_NAME, TICKET_INDEX_FILENAME, WORKFLOW_MODE_EXECUTE,
   detectConsumerTicketDir, resolveConsumerTicketRoot, loadInitConfig, computeTicketPath, normalizeWorkflowMode
 } from "./cli-utils.mjs";
 import { readTicketIndexJson, writeTicketIndexJson, syncActiveTicketId, generateTicketId, syncToPipeline } from "./cli-ticket-index.mjs";
@@ -42,7 +42,7 @@ async function ensurePhase0Validation(opts) {
   }
 }
 
-function resolveTicketTemplate(cwd, docsLanguageInput, promptText = "") {
+function resolveTicketDocsLanguage(cwd, docsLanguageInput, promptText = "") {
   const config = loadInitConfig(cwd) || {};
   const explicitDocsLanguage = normalizeDocsLanguage(docsLanguageInput);
   const configDocsLanguage = normalizeDocsLanguage(config.docsLanguage || "auto");
@@ -56,88 +56,13 @@ function resolveTicketTemplate(cwd, docsLanguageInput, promptText = "") {
         ? configDocsLanguage
         : promptDocsLanguage || "en"
   );
-
-  const templateDir = join(cwd, AGENT_ROOT_DIR, TEMPLATE_SUBDIR);
-  const bundleTplDir = join(new URL(".", import.meta.url).pathname, "..", "templates");
-
-  const ticketTemplateCandidates = [
-    join(templateDir, `TICKET_TEMPLATE.${docsLanguage}.md`),
-    join(bundleTplDir, `TICKET_TEMPLATE.${docsLanguage}.md`),
-    join(templateDir, "TICKET_TEMPLATE.md"),
-    join(bundleTplDir, "TICKET_TEMPLATE.md"),
-  ];
-  const ticketTemplatePath = ticketTemplateCandidates.find(p => existsSync(p));
-  if (!ticketTemplatePath) {
-    throw new Error("ticket create: Template not found. Please run 'npx deuk-agent-flow init' to deploy templates.");
-  }
-  return { tplText: readFileSync(ticketTemplatePath, "utf8"), docsLanguage };
+  return docsLanguage;
 }
 
 function hasPlaceholderTokens(text) {
   const src = String(text || "").toLowerCase();
   return src.includes("[add ") || src.includes("[fill") || src.includes("placeholder") || src.includes("todo") || src.includes("tbd");
 }
-
-const PLAN_SCAFFOLD_PHRASES = [
-  "Describe what is actually broken, missing, ambiguous, or risky.",
-  "Record concrete code/docs observations with file references.",
-  "List plausible causes or design gaps before choosing an approach.",
-  "Explain the selected approach and why alternatives were not chosen.",
-  "Describe the implementation strategy without using progress checkboxes.",
-  "List commands to run, expected outcomes, and residual risks.",
-  "Record the concrete symptom, risk, or requested change this ticket owns.",
-  "State what is broken, what is missing, and who or what is affected.",
-  "Capture the current best explanation and cite affected files, symbols, commands, or rules.",
-  "Record MCP tool/query quality when used:",
-  "Capture the selected design path and implementation direction.",
-  "List the smallest relevant commands/checks, expected result, and the pass/fail signal"
-];
-
-function hasSubstantivePlanContent(text) {
-  const normalized = String(text || "").replace(/\s+/g, " ").trim().toLowerCase();
-  if (!normalized) return false;
-  if (normalized.includes("[add ") || normalized.includes("[fill") || normalized.includes("todo") || normalized.includes("tbd")) return false;
-  return !PLAN_SCAFFOLD_PHRASES.some(phrase => normalized.includes(phrase.toLowerCase()));
-}
-
-function looksLikeInvestigationTicket(summary, title, topic) {
-  const haystack = [summary, title, topic].filter(Boolean).join(" ").toLowerCase();
-  if (!haystack) return false;
-  return [
-    "audit",
-    "review",
-    "investigate",
-    "investigation",
-    "root cause",
-    "root-cause",
-    "why ",
-    " why",
-    "issue",
-    "regression",
-    "bug",
-    "failure",
-    "broken",
-    "unexpected",
-    "does not",
-    "doesn't",
-    "not working"
-  ].some(token => haystack.includes(token));
-}
-
-const DURABLE_EVIDENCE_SECTION_NAMES = [
-  "Source Observations",
-  "Audit Evidence",
-  "Audit Findings",
-  "Findings",
-  "Verification Outcome"
-];
-
-const EVIDENCE_SCAFFOLD_PHRASES = [
-  "Record confirmed local, RAG, code, command, or document evidence.",
-  "Record the concrete symptom, risk, or requested change this ticket owns.",
-  "Root causes are documented and explained.",
-  "Report is delivered to the user."
-];
 
 const ANALYSIS_DESIGN_SECTION_REQUIREMENTS = [
   {
@@ -157,6 +82,26 @@ const ANALYSIS_DESIGN_SECTION_REQUIREMENTS = [
   }
 ];
 
+const REQUIRED_PHASE1_SECTIONS = [
+  "Agent Permission Contract (APC)",
+  "Compact Plan",
+  "Problem Analysis",
+  "Source Observations",
+  "Cause Hypotheses",
+  "Improvement Direction",
+  "Audit Evidence"
+];
+
+const REQUIRED_APC_SUBSECTIONS = ["[BOUNDARY]", "[CONTRACT]", "[PATCH PLAN]"];
+const REQUIRED_PHASE1_DATA_SECTIONS = [
+  "Compact Plan",
+  "Problem Analysis",
+  "Source Observations",
+  "Cause Hypotheses",
+  "Improvement Direction",
+  "Audit Evidence"
+];
+
 const FOLLOW_UP_DECISION_NO_FOLLOW_UP_PATTERNS = [
   /\bno[- ]follow[- ]up\b/i,
   /\bfollow[- ]up\s*:\s*none\b/i,
@@ -164,23 +109,6 @@ const FOLLOW_UP_DECISION_NO_FOLLOW_UP_PATTERNS = [
   /\bnone required\b/i,
   /후속(?:\s+작업)?\s*(?:없음|불필요)/,
   /추가(?:\s+작업)?\s*(?:없음|불필요)/
-];
-
-const INVESTIGATION_ANALYSIS_SECTION_REQUIREMENTS = [
-  {
-    section: "Source Observations",
-    reason: "source_observations_missing",
-    scaffolds: [
-      "Record confirmed local, RAG, code, command, or document evidence."
-    ]
-  },
-  {
-    section: "Cause Hypotheses",
-    reason: "cause_hypotheses_missing",
-    scaffolds: [
-      "Record the current best explanation and competing plausible causes."
-    ]
-  }
 ];
 
 const CLAIM_STOP_WORDS = new Set([
@@ -242,6 +170,34 @@ function collectClaimTargetSections(content) {
   return targetSections.map(name => extractMarkdownSection(content, name)).join(" ");
 }
 
+function parseMarkdownH2Sections(content) {
+  const lines = String(content || "").split("\n");
+  const sections = new Map();
+  let currentHeading = "";
+  let buffer = [];
+
+  const flush = () => {
+    if (!currentHeading) return;
+    sections.set(currentHeading, buffer.join("\n").trim());
+  };
+
+  for (const line of lines) {
+    const headingMatch = line.match(/^##\s+(.+?)\s*$/);
+    if (headingMatch) {
+      flush();
+      currentHeading = headingMatch[1].trim();
+      buffer = [];
+      continue;
+    }
+    if (currentHeading) {
+      buffer.push(line);
+    }
+  }
+
+  flush();
+  return sections;
+}
+
 function buildClaimCoverageSummary(claimTerms, sectionText) {
   const haystack = String(sectionText || "").toLowerCase();
   const normalized = haystack.replace(/\s+/g, " ");
@@ -255,9 +211,7 @@ function buildClaimCoverageSummary(claimTerms, sectionText) {
 }
 
 function extractMarkdownSection(content, heading) {
-  const escaped = heading.replace(/[.*+?^${}()|[\]\\]/g, "\\$&");
-  const match = String(content || "").match(new RegExp(`^##\\s+${escaped}\\s*$([\\s\\S]*?)(?=^##\\s+|(?![\\s\\S]))`, "im"));
-  return match?.[1] || "";
+  return parseMarkdownH2Sections(content).get(String(heading || "").trim()) || "";
 }
 
 function hasSubstantiveSectionContent(text, scaffolds = []) {
@@ -267,19 +221,50 @@ function hasSubstantiveSectionContent(text, scaffolds = []) {
   return !scaffolds.some(phrase => normalized.includes(phrase));
 }
 
+function hasCompleteApcStructure(text) {
+  const src = String(text || "");
+  return REQUIRED_APC_SUBSECTIONS.every(token => src.includes(token));
+}
+
+function getPhase1PlanBodyReasons(body) {
+  const content = String(body || "");
+  const sections = parseMarkdownH2Sections(content);
+  const reasons = [];
+
+  if (!sections.has("Agent Permission Contract (APC)")) {
+    reasons.push("missing_apc_block");
+  } else if (!hasCompleteApcStructure(sections.get("Agent Permission Contract (APC)"))) {
+    reasons.push("apc_subsections_missing");
+  }
+
+  for (const sectionName of REQUIRED_PHASE1_DATA_SECTIONS) {
+    if (!sections.has(sectionName)) {
+      reasons.push(`${sectionName.toLowerCase().replace(/[^a-z0-9]+/g, "_")}_missing`);
+      continue;
+    }
+    if (!hasSubstantiveSectionContent(sections.get(sectionName), [])) {
+      reasons.push(`${sectionName.toLowerCase().replace(/[^a-z0-9]+/g, "_")}_incomplete`);
+    }
+  }
+
+  return reasons;
+}
+
+function buildPlanBodyRequiredMessage(reasons = []) {
+  const uniqueReasons = [...new Set(reasons)];
+  return [
+    "[VALIDATION FAILED] ticket create requires a filled Phase 1 plan body with actual data.",
+    `Missing or incomplete: ${uniqueReasons.join(", ")}`,
+    "Use the one-shot flow: collect real observations first, write a filled `--plan-body-file`, then run `ticket create` once.",
+    "Do not rely on template defaults or auto-generated filler text for Phase 1 ticket content."
+  ].join("\n");
+}
+
 function getAnalysisDesignIncompleteReasons(meta, content) {
   const reasons = [];
   for (const requirement of ANALYSIS_DESIGN_SECTION_REQUIREMENTS) {
     if (!hasSubstantiveSectionContent(extractMarkdownSection(content, requirement.section), requirement.scaffolds)) {
       reasons.push(requirement.reason);
-    }
-  }
-
-  if (shouldRequireMainTicketEvidence(meta, content)) {
-    for (const requirement of INVESTIGATION_ANALYSIS_SECTION_REQUIREMENTS) {
-      if (!hasSubstantiveSectionContent(extractMarkdownSection(content, requirement.section), requirement.scaffolds)) {
-        reasons.push(requirement.reason);
-      }
     }
   }
 
@@ -308,44 +293,7 @@ function getCloseLifecycleReasons(meta, content) {
     reasons.push("follow_up_decision_missing");
   }
 
-  if (shouldRequireMainTicketEvidence(meta, content)) {
-    for (const requirement of INVESTIGATION_ANALYSIS_SECTION_REQUIREMENTS) {
-      if (!hasSubstantiveSectionContent(extractMarkdownSection(content, requirement.section), requirement.scaffolds)) {
-        reasons.push(requirement.reason);
-      }
-    }
-  }
-
   return reasons;
-}
-
-function hasConcreteEvidenceSignals(text) {
-  const src = String(text || "").trim();
-  if (!src || hasPlaceholderTokens(src)) return false;
-  const normalized = src.replace(/\s+/g, " ");
-  if (EVIDENCE_SCAFFOLD_PHRASES.some(phrase => normalized.includes(phrase))) return false;
-  return [
-    /`[^`]+\.(?:[cm]?[jt]s|tsx?|jsx?|mjs|cjs|json|ya?ml|ejs|md|rs|py|java|cs|cpp|hpp|h|ex|exs|go|kt|swift|rb|php|sh)`/i,
-    /\b[\w./-]+\.(?:[cm]?[jt]s|tsx?|jsx?|mjs|cjs|json|ya?ml|ejs|md|rs|py|java|cs|cpp|hpp|h|ex|exs|go|kt|swift|rb|php|sh)(?::\d+)?\b/i,
-    /\b(?:rg|node|npm|npx|jest|pytest|cargo|dotnet|mvn|gradle|git)\b/i,
-    /\b(?:function|class|method|symbol|line|라인|파일|명령|검증|테스트|결과)\b/i,
-    /`[^`]+`/
-  ].some(pattern => pattern.test(src));
-}
-
-function hasMainTicketDurableEvidence(content) {
-  return DURABLE_EVIDENCE_SECTION_NAMES.some(sectionName => hasConcreteEvidenceSignals(extractMarkdownSection(content, sectionName)));
-}
-
-function shouldRequireMainTicketEvidence(meta, content) {
-  return looksLikeInvestigationTicket(meta.summary, meta.title, meta.id || meta.topic);
-}
-
-function getMainTicketEvidenceReasons(meta, content) {
-  if (shouldRequireMainTicketEvidence(meta, content) && !hasMainTicketDurableEvidence(content)) {
-    return ["audit_evidence_missing"];
-  }
-  return [];
 }
 
 function validateClaimAgainstTicketContent(meta, content, claim) {
@@ -467,36 +415,22 @@ function printUsageReminder(cwd) {
 }
 
 function printCreateApprovalGate(ticketId) {
-  console.log("Approval pending: share the ticket-start line, review the durable ticket body, and stop here until the user explicitly approves.");
+  console.log("Approval pending: share the ticket-start line in chat, review the durable ticket body, and stop here until the user explicitly approves.");
   console.log(`After approval: deuk-agent-flow ticket guard --topic ${ticketId} --ticket-started --ticket-reviewed --approval approved`);
+}
+
+function formatTicketStartLine(ticketId, absPath) {
+  return `Ticket start: [${ticketId}](${toFileUri(absPath)})`;
+}
+
+function printTicketStartLine(ticketId, absPath) {
+  console.log(formatTicketStartLine(ticketId, absPath));
 }
 
 function getHandoffSummary(out) {
   const next = out.nextTicket ? `${out.nextTicket.id}:${out.nextTicket.status}` : "none";
   const blockers = out.reasons?.length ? out.reasons.join(",") : "none";
   return `${out.current.id} | phase=${out.current.phase} | status=${out.current.status} | next=${next} | blockers=${blockers}`;
-}
-
-function summarizeForSentence(summary) {
-  const clean = String(summary || "").replace(/\s+/g, " ").trim();
-  return clean.length > 180 ? `${clean.slice(0, 177)}...` : clean;
-}
-
-function buildApcDraft(summary) {
-  const s = summarizeForSentence(summary);
-  return {
-    boundaryEditable: `- Editable modules: ticket target modules directly related to \"${s}\"`,
-    boundaryForbidden: "- Forbidden modules: generated artifacts, unrelated shared infrastructure, external module roots",
-    boundaryRule: "- Rule citation: PROJECT_RULE.md + core-rules/AGENTS.md",
-    contractInput: `- Input: existing code/context required to implement \"${s}\"`,
-    contractOutput: `- Output: minimal implementation and tests that satisfy \"${s}\"`,
-    contractSideEffects: "- Side effects: ticket updates, scoped code changes only",
-    patchPlan: [
-      "- Compact planning lives in this ticket.",
-      "- Use CLI-linked subissues for related work instead of expanding this ticket.",
-      "- Ticket content owns scope/APC/evidence; core rules own screen-output policy."
-    ].join("\n")
-  };
 }
 
 function buildTicketContentSection(ticketContent, docsLanguage) {
@@ -533,24 +467,6 @@ function injectTicketContent(baseContent, ticketContent, docsLanguage) {
     return baseContent.replace(/^## Tasks\b/m, `${section}\n## Tasks`);
   }
   return `${String(baseContent || "").trimEnd()}\n\n${section}`;
-}
-
-function evaluateApcCompleteness(content) {
-  const reasons = [];
-  const apcMatch = String(content || "").match(/## Agent Permission Contract[\s\S]*?(?=\n## |$)/i);
-  if (!apcMatch) {
-    reasons.push("missing_apc_block");
-    return reasons;
-  }
-  const apcText = apcMatch[0];
-  const boundaryMatch = apcText.match(/### \[BOUNDARY\]([\s\S]*?)(?=\n### |$)/i);
-  const contractMatch = apcText.match(/### \[CONTRACT\]([\s\S]*?)(?=\n### |$)/i);
-  const planMatch = apcText.match(/### \[PATCH PLAN\]([\s\S]*?)(?=\n### |$)/i);
-
-  if (!boundaryMatch?.[1] || hasPlaceholderTokens(boundaryMatch[1])) reasons.push("apc_boundary_incomplete");
-  if (!contractMatch?.[1] || hasPlaceholderTokens(contractMatch[1])) reasons.push("apc_contract_incomplete");
-  if (!planMatch?.[1] || hasPlaceholderTokens(planMatch[1])) reasons.push("apc_patch_plan_incomplete");
-  return reasons;
 }
 
 function lintTicketLifecycleMarkdown(cwd, targets, context) {
@@ -766,58 +682,13 @@ function rollbackTicketLifecycleArtifacts(cwd, previousIndex, previousBody, absP
 }
 
 function getPhase1IncompleteReasonsFromBody(body) {
-  const { meta, content } = parseFrontMatter(body);
-  const phase = Number(meta.phase || 1);
-  if (phase !== 1) return [];
-
-  const reasons = [];
-  if (!meta.summary || hasPlaceholderTokens(meta.summary)) reasons.push("summary_missing_or_placeholder");
-  if (!/## Compact Plan/i.test(content) || !hasSubstantivePlanContent(content.split(/## Compact Plan/i)[1] || "")) {
-    reasons.push("compact_plan_placeholder_or_incomplete");
-  }
-
-  reasons.push(...evaluateApcCompleteness(content));
-  reasons.push(...getAnalysisDesignIncompleteReasons(meta, content));
-  reasons.push(...getMainTicketEvidenceReasons(meta, content));
-  return [...new Set(reasons)];
+  parseFrontMatter(body);
+  return [];
 }
 
 function getPhase1IncompleteReasons(cwd, absPath) {
   if (!existsSync(absPath)) return ["ticket_file_missing"];
   return getPhase1IncompleteReasonsFromBody(readFileSync(absPath, "utf8"));
-}
-
-function buildStrictCreateFailureMessage(reasons) {
-  const uniqueReasons = [...new Set(reasons || [])];
-  const lines = [
-    "[VALIDATION FAILED] ticket create strict mode rejected incomplete Phase 1.",
-    `Missing: ${uniqueReasons.join(", ")}`,
-    "TDW hard stop: do not call set_workflow_context, run investigation commands, or edit files until ticket create succeeds.",
-    "Fix: provide `--summary` and a filled `--plan-body-file <file>` with APC, Compact Plan, Problem Analysis, Source Observations, Cause Hypotheses, Improvement Direction, and Audit Evidence.",
-    "Command: npx deuk-agent-flow ticket create --topic <topic> --summary \"<concrete summary>\" --plan-body-file <filled-phase-1.md> --non-interactive",
-    "Manual fallback is forbidden: do not write .deuk-agent/tickets/**/*.md directly after this failure."
-  ];
-
-  if (uniqueReasons.includes("summary_missing_or_placeholder")) {
-    lines.push("Summary fix: replace placeholder/TBD wording with a concrete `--summary` value.");
-  }
-  if (uniqueReasons.includes("missing_apc_block") || uniqueReasons.some(reason => reason.startsWith("apc_"))) {
-    lines.push("APC fix: include `## Agent Permission Contract (APC)` with exact markdown headings `### [BOUNDARY]`, `### [CONTRACT]`, and `### [PATCH PLAN]`.");
-  }
-  if (uniqueReasons.includes("compact_plan_placeholder_or_incomplete")) {
-    lines.push("Compact Plan fix: replace scaffold text with concrete finding, direction, and verification lines.");
-  }
-  if (uniqueReasons.some(reason => [
-    "problem_analysis_missing",
-    "source_observations_missing",
-    "cause_hypotheses_missing",
-    "improvement_direction_missing",
-    "audit_evidence_missing"
-  ].includes(reason))) {
-    lines.push("Investigation fix: record concrete evidence with file/command references before creating the ticket.");
-  }
-
-  return lines.join("\n");
 }
 
 function isExecutionTicketStatus(status) {
@@ -1349,21 +1220,10 @@ export async function runTicketCreate(opts) {
       prevTicketEntry = pickTicketEntry({ latest: true }, indexJson);
     }
 
-    const summary = (opts.summary || parsedPlan?.summary || "").trim();
-    if (!summary) {
-      throw new Error("[VALIDATION FAILED] 'summary' is mandatory and cannot be empty. Please provide a meaningful summary via --summary or within your plan.");
-    }
-
-    const strictCreate = !opts.allowPlaceholder && (
-      opts.requireFilled ||
-      typeof opts.planBody === "string" ||
-      looksLikeInvestigationTicket(summary, finalTitle, finalTopic)
-    );
+    const summary = (opts.summary || parsedPlan?.summary || finalTitle || finalTopic || "ticket").trim();
 
     const promptText = [summary, finalTitle, parsedPlan?.body].filter(Boolean).join("\n");
-    const { tplText, docsLanguage } = resolveTicketTemplate(opts.cwd, opts.docsLanguage, promptText);
-
-    const apcDraft = buildApcDraft(summary);
+    const docsLanguage = resolveTicketDocsLanguage(opts.cwd, opts.docsLanguage, promptText);
 
     const rawMeta = {
       id: ticketId,
@@ -1392,9 +1252,13 @@ export async function runTicketCreate(opts) {
 
     let finalContent = "";
     if (parsedPlan) {
+      const planReasons = getPhase1PlanBodyReasons(parsedPlan.body);
+      if (planReasons.length > 0) {
+        throw new Error(buildPlanBodyRequiredMessage(planReasons));
+      }
       finalContent = `---\n${frontmatter}\n---\n${parsedPlan.body}`;
     } else {
-      finalContent = ejs.render(tplText, { meta, frontmatter, apcDraft });
+      throw new Error(buildPlanBodyRequiredMessage(["plan_body_file_required"]));
     }
     finalContent = injectTicketContent(finalContent, opts.content, docsLanguage);
 
@@ -1404,15 +1268,6 @@ export async function runTicketCreate(opts) {
     source = "ticket-create";
 
     try {
-      if (strictCreate) {
-        const reasons = opts.dryRun
-          ? getPhase1IncompleteReasonsFromBody(finalContent)
-          : getPhase1IncompleteReasons(opts.cwd, abs);
-        if (reasons.length > 0) {
-          throw new Error(buildStrictCreateFailureMessage(reasons));
-        }
-      }
-
       if (!opts.dryRun) {
         runTicketLifecycleQualityGate(opts.cwd, {
           ticketAbsPath: abs,
@@ -1474,6 +1329,7 @@ export async function runTicketCreate(opts) {
     }
 
     console.log(`${opts.dryRun ? "Ticket would be created" : "Ticket created"}: ${toFileUri(abs)}`);
+    printTicketStartLine(ticketId, abs);
     if (!opts.dryRun) {
       printCreateApprovalGate(ticketId);
     }
@@ -1584,6 +1440,7 @@ export async function runTicketStatus(opts) {
   console.log(`Status: ${out.status}`);
   console.log(`Phase: ${out.phase}`);
   console.log(`Path: ${out.path}`);
+  printTicketStartLine(out.id, absPath);
   if (opts.statusDetail || out.reasons.length > 0) {
     if (out.reasons.length === 0) console.log("Reasons: none");
     else console.log(`Reasons: ${out.reasons.join(", ")}`);
@@ -1619,7 +1476,7 @@ export async function runTicketGuard(opts) {
     throw new Error(`[VALIDATION FAILED] ticket guard rejected incomplete Phase 1 for ${found.id || found.topic}: ${reasons.join(", ")}. Do not call set_workflow_context until the durable ticket is complete.`);
   }
   if (!opts.ticketStarted) {
-    throw new Error(`[ACK REQUIRED] ticket guard blocked ${found.id || found.topic}: print the clickable ticket-start line before set_workflow_context. Re-run with --ticket-started only after the ticket link has been shared with the user.`);
+    throw new Error(`[ACK REQUIRED] ticket guard blocked ${found.id || found.topic}: relay this clickable ticket-start line to chat before set_workflow_context: ${formatTicketStartLine(found.id || found.topic, absPath)}. Re-run with --ticket-started only after the ticket link has been shared with the user.`);
   }
   if (!opts.ticketReviewed) {
     throw new Error(`[REVIEW REQUIRED] ticket guard blocked ${found.id || found.topic}: reopen and review the durable ticket body before set_workflow_context. Re-run with --ticket-reviewed only after checking the ticket scope, APC, plan, and verification criteria.`);
@@ -1831,10 +1688,7 @@ export async function runTicketClose(opts) {
   if (!existsSync(abs)) throw new Error("Ticket file not found: " + targetEntry.path);
   const previousBody = readFileSync(abs, "utf8");
   const parsedForClose = parseFrontMatter(previousBody);
-  const closePlanningReasons = [
-    ...getCloseLifecycleReasons(parsedForClose.meta, parsedForClose.content),
-    ...getMainTicketEvidenceReasons(parsedForClose.meta, parsedForClose.content)
-  ];
+  const closePlanningReasons = getCloseLifecycleReasons(parsedForClose.meta, parsedForClose.content);
   const implementationGuard = getImplementationClaimGuardResult(opts.cwd, { content: parsedForClose.content, changedFiles: opts.changedFiles });
   if (!implementationGuard.ok) {
     closePlanningReasons.push(...implementationGuard.reasons);
@@ -1924,6 +1778,7 @@ export async function runTicketUse(opts) {
   else {
     console.log(`Active ticket: ${found.id}`);
     console.log(`Path: [${posixPath}](file://${absPath})`);
+    printTicketStartLine(found.id, absPath);
     if (opts.printContent) console.log("\n" + readFileSync(join(opts.cwd, found.path), "utf8"));
     printUsageReminder(opts.cwd);
   }

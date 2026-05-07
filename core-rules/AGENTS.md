@@ -8,7 +8,7 @@ changelog: "v51: Add test-ticket approval and unapproved ticket discard policy."
 ## Compact Kernel
 
 - Tools own detail. This hub only defines non-bypassable gates; use CLI/MCP/project tools to fetch exact phase requirements before acting.
-- No ticket, no writes: before file changes, select or create one active ticket, share the ticket-start line, reopen and review the durable ticket body, wait for explicit user approval, complete Phase 1 in that ticket, run `deuk-agent-flow ticket guard --topic <id> --ticket-started --ticket-reviewed --approval approved` successfully, and call `set_workflow_context(project, ticket_id, phase)`.
+- No ticket, no writes: before file changes, select or create one active ticket, relay the CLI-provided ticket-start line in chat, reopen and review the durable ticket body, wait for explicit user approval, complete Phase 1 in that ticket, run `deuk-agent-flow ticket guard --topic <id> --ticket-started --ticket-reviewed --approval approved` successfully, and call `set_workflow_context(project, ticket_id, phase)`.
 - User requirements are ticket-first: every user request that implies investigation, change, verification, or judgment must first be represented in a ticket containing cause, analysis, and design/approach before work continues.
 - User approval or correction creates another ticket update loop: record the approval/correction in the ticket, re-check scope and plan, then continue only through `deuk-agent-flow ticket guard --ticket-started --ticket-reviewed --approval approved`.
 - Approval is mandatory for every ticket. A ticket may not progress without explicit user approval, regardless of urgency or convenience.
@@ -24,6 +24,7 @@ changelog: "v51: Add test-ticket approval and unapproved ticket discard policy."
 - During work, keep reminding the agent through terse TDW feedback only: ticket, approval, guard, context, verify.
 - Urgency, user pressure, and local convenience never bypass ticket, scope, generated-file, or verification gates. Use hotfix tooling only when appropriate.
 - Ticket creation failures are hard stops: if `deuk-agent-flow ticket create` rejects the request, do not call `set_workflow_context`, run investigation commands, edit files, or create/repair `.deuk-agent/tickets/**/*.md` manually. Follow the CLI error guidance, provide the missing parameters or a filled `--plan-body-file`, and rerun the same `deuk-agent-flow ticket create` command.
+- Default ticket creation must complete in one shot using actual collected data. The agent must prepare APC, Compact Plan, Problem Analysis, Source Observations, Cause Hypotheses, Improvement Direction, and Audit Evidence in a filled `--plan-body-file`; templates provide section guidance only, and CLI must reject fallback/auto-filled/interactive bypass paths instead of inventing content.
 
 ## Tone
 - Dry, concise, technical. No emojis/exclamation marks.
@@ -50,7 +51,8 @@ changelog: "v51: Add test-ticket approval and unapproved ticket discard policy."
 - Silent-by-default is mandatory.
 - Screen output is for the ticket-start line, final answers, blockers, or explicit command results only.
 - Non-final chatter is capped at one word. If more context is required, write it to the ticket unless it is a blocker or explicit user-requested output.
-- After selecting or creating the active ticket, print one concise ticket-start line and stop if approval is pending.
+- After selecting or creating the active ticket, print one concise ticket-start line in chat and stop if approval is pending.
+- Tool/CLI output does not count as user-facing ticket exposure. The agent must relay the CLI-provided `Ticket start: [...]` line to chat before using `--ticket-started`.
 - During execution, non-final feedback must be short TDW state only, such as ticket checked, approval checked, guard passed, context set, or verification running.
 - Keep chat compact; do not mirror ticket prose in screen output.
 - Final answers must be short but complete enough to answer the user.
@@ -64,14 +66,14 @@ changelog: "v51: Add test-ticket approval and unapproved ticket discard policy."
 
 1. Read this file (AGENTS.md) → internally note the version number and exact file path read. Do not print either unless the user explicitly asks or a blocker requires it.
 2. Read `PROJECT_RULE.md` in workspace root → internally identify applicable DC-* rules. Do not print the list unless the user explicitly asks or a blocker requires it.
-3. Find or create active ticket (1-CALL RULE below), ensure it contains cause, analysis, and design/approach, print one clickable ticket-start line, reopen and review the durable ticket body, and stop while approval is pending. After explicit user approval or correction, record that approval/correction in the ticket, re-check the ticket body, run `deuk-agent-flow ticket guard --topic <id> --ticket-started --ticket-reviewed --approval approved` against the durable ticket, call `set_workflow_context(project, ticket_id, phase)`, then continue.
+3. Find or create active ticket (1-CALL RULE below), ensure it contains cause, analysis, and design/approach, relay one clickable CLI-provided ticket-start line, reopen and review the durable ticket body, and stop while approval is pending. This ticket-start line must be printed in chat, because tool/CLI output alone does not count as user exposure. After explicit user approval or correction, record that approval/correction in the ticket, re-check the ticket body, run `deuk-agent-flow ticket guard --topic <id> --ticket-started --ticket-reviewed --approval approved` against the durable ticket, call `set_workflow_context(project, ticket_id, phase)`, then continue.
 
 ### First Ticket One-Shot Recipe
 
 Initial ticket creation MUST use this canonical one-shot recipe. Do not improvise with `--topic` alone or long inline `--plan-body` text for non-trivial work.
 
 1. Create a filled Phase 1 markdown file before running `ticket create`.
-2. The file MUST contain these exact headings before the first create attempt:
+2. The file MUST contain these Phase 1 sections before the first create attempt:
    - `## Agent Permission Contract (APC)`
    - `### [BOUNDARY]`
    - `### [CONTRACT]`
@@ -94,7 +96,7 @@ deuk-agent-flow ticket create \
   --non-interactive
 ```
 
-If `ticket create` fails, do not inspect unrelated repo files, run implementation commands, call `set_workflow_context`, or manually write `.deuk-agent/tickets/**/*.md`. Fill only the CLI-reported missing fields in the same Phase 1 file and rerun the same create command. The APC markers are strict markdown headings; bare `[BOUNDARY]`, `[CONTRACT]`, or `[PATCH PLAN]` markers are incomplete.
+If `ticket create` fails, do not inspect unrelated repo files, run implementation commands, call `set_workflow_context`, or manually write `.deuk-agent/tickets/**/*.md`. Fill only the CLI-reported missing fields in the same Phase 1 file and rerun the same create command. Interactive fallback, template-only fallback, and auto-generated filler text do not satisfy this requirement.
 
 ### First-Turn Invariant
 
