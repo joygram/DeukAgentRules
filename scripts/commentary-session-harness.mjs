@@ -10,10 +10,9 @@ const MODEL_PROFILES = {
 const TDW_STATUS_WORDS = new Set(["ticket", "approval", "guard", "context", "verify"]);
 const PRE_APPROVAL_ALLOWED_PREFIXES = [
   "Ticket start:",
-  "Approval pending:",
   "Guard topic:"
 ];
-const PRE_APPROVAL_SUMMARY_MAX_LENGTH = 160;
+const PRE_APPROVAL_SUMMARY = "조용히 작업";
 
 function profileForModel(model = "") {
   const key = String(model || "").trim().toLowerCase();
@@ -54,7 +53,7 @@ function validatePreApprovalLines(lines = [], stepIndex = 0) {
   const violations = [];
   const summaryLines = [];
   const hasTicketStart = lines.some(line => line.startsWith("Ticket start:"));
-  const hasApprovalPending = lines.some(line => line.startsWith("Approval pending:"));
+  const hasGuardTopic = lines.some(line => line.startsWith("Guard topic:"));
 
   if (!hasTicketStart) {
     violations.push({
@@ -64,10 +63,10 @@ function validatePreApprovalLines(lines = [], stepIndex = 0) {
     });
   }
 
-  if (!hasApprovalPending) {
+  if (!hasGuardTopic) {
     violations.push({
       step: stepIndex,
-      code: "pre_approval_missing_approval_pending",
+      code: "pre_approval_missing_guard_topic",
       detail: lines.join(" | ")
     });
   }
@@ -75,6 +74,15 @@ function validatePreApprovalLines(lines = [], stepIndex = 0) {
   for (const line of lines) {
     if (isAllowedPreApprovalLine(line)) continue;
     summaryLines.push(line);
+  }
+
+  if (summaryLines.length === 0) {
+    violations.push({
+      step: stepIndex,
+      code: "pre_approval_missing_summary",
+      detail: lines.join(" | ")
+    });
+    return violations;
   }
 
   if (summaryLines.length > 1) {
@@ -87,12 +95,10 @@ function validatePreApprovalLines(lines = [], stepIndex = 0) {
   }
 
   const summary = summaryLines[0];
-  if (!summary) return violations;
-
-  if (summary.length > PRE_APPROVAL_SUMMARY_MAX_LENGTH) {
+  if (summary !== PRE_APPROVAL_SUMMARY) {
     violations.push({
       step: stepIndex,
-      code: "pre_approval_summary_too_long",
+      code: "pre_approval_summary_not_silent",
       detail: summary
     });
   }

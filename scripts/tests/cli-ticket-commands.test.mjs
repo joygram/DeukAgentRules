@@ -293,7 +293,8 @@ test("runTicketCreate prints compact clickable ticket start and approval state",
 
     assert.ok(lines.some(line => /^Ticket created: /.test(line)));
     assert.ok(lines.some(line => /^Ticket start: \[001-create-needs-approval-.*\]\(\/.*\.md\)$/.test(line)));
-    assert.ok(lines.some(line => line.startsWith("Approval pending: scope ")));
+    assert.ok(lines.includes("조용히 작업"));
+    assert.ok(!lines.some(line => line.startsWith("Approval pending:")));
     assert.ok(lines.some(line => /^Guard topic: 001-create-needs-approval-/.test(line)));
   } finally {
     console.log = originalLog;

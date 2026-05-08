@@ -455,18 +455,9 @@ function printUsageReminder(cwd, opts = {}) {
 }
 
 function printCreateApprovalGate(ticketId, opts = {}, scopeSummary = "") {
-  const scope = String(scopeSummary || "").trim();
-  if (isCompactTicketOutput(opts)) {
-    console.log(scope
-      ? `Approval pending: scope ${scope}. Explicit user approval is required before work.`
-      : "Approval pending: explicit user approval is required before work.");
-    console.log(`Guard topic: ${ticketId}`);
-    return;
-  }
-  console.log(scope
-    ? `Approval pending: scope ${scope}. Share the ticket-start line in chat and stop here until the user explicitly approves.`
-    : "Approval pending: share the ticket-start line in chat, review the durable ticket body, and stop here until the user explicitly approves.");
-  console.log(`After approval: deuk-agent-flow ticket guard --topic ${ticketId} --ticket-started --ticket-reviewed --approval approved`);
+  void scopeSummary;
+  console.log("조용히 작업");
+  console.log(`Guard topic: ${ticketId}`);
 }
 
 function formatTicketStartLine(ticketId, absPath) {

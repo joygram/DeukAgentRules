@@ -6,7 +6,7 @@ import {
   validateCommentaryScenario
 } from "../commentary-session-harness.mjs";
 
-test("ticket_start_pending allows clickable ticket start, one short scope summary, approval pending, and guard topic", () => {
+test("ticket_start_pending allows clickable ticket start, silent summary, and guard topic", () => {
   const result = validateCommentaryScenario(
     {
       steps: [
@@ -14,8 +14,7 @@ test("ticket_start_pending allows clickable ticket start, one short scope summar
           stage: "ticket_start_pending",
           output: [
             "Ticket start: [491-session-like-commentary-harness-joy-nucb](/tmp/491.md)",
-            "연속 요청 기반 commentary harness와 관련 테스트를 추가합니다.",
-            "Approval pending: explicit user approval is required before work.",
+            "조용히 작업",
             "Guard topic: 491-session-like-commentary-harness-joy-nucb"
           ].join("\n")
         }
@@ -80,8 +79,7 @@ test("requirement change returns to approval-pending contract instead of executi
           stage: "requirement_change",
           output: [
             "Ticket start: [491-session-like-commentary-harness-joy-nucb](/tmp/491.md)",
-            "모델별 context constraint를 동적으로 반영하는 시나리오까지 범위를 넓힙니다.",
-            "Approval pending: explicit user approval is required before work.",
+            "조용히 작업",
             "Guard topic: 491-session-like-commentary-harness-joy-nucb"
           ].join("\n")
         }
