@@ -1,0 +1,32 @@
+{
+  "schemaVersion": 1,
+  "label": "deuk-flow downloads",
+  "message": "1.8K/last-month",
+  "color": "2f6fed",
+  "namedLogo": "npm",
+  "cacheSeconds": 86400,
+  "total": 1790,
+  "canonicalPackage": "deuk-agent-flow",
+  "canonicalDownloads": 0,
+  "aliasTotal": 1790,
+  "range": "last-month",
+  "packages": [
+    {
+      "package": "deuk-agent-flow",
+      "downloads": 0,
+      "missing": true
+    },
+    {
+      "package": "deuk-agent-rule",
+      "downloads": 1790,
+      "missing": false
+    }
+  ],
+  "aliases": [
+    {
+      "package": "deuk-agent-rule",
+      "downloads": 1790,
+      "missing": false
+    }
+  ]
+}
