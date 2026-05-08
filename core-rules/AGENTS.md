@@ -83,17 +83,7 @@ changelog: "v65: Collapse compact ticket-selection CLI output and running commen
 
 Initial ticket creation MUST use this canonical one-shot recipe. Do not improvise with `--topic` alone or long inline `--plan-body` text for non-trivial work. Only the durable ticket markdown under `.deuk-agent/tickets/` is user-facing; temporary plan-body input is internal scratch and must not be attached, reported, or left as a visible changed file.
 
-1. Prepare a filled Phase 1 markdown body before running `ticket create`, preferably via stdin (`--plan-body-file -`) or process substitution. It MUST contain:
-   - `## Agent Permission Contract (APC)`
-   - `### [BOUNDARY]`
-   - `### [CONTRACT]`
-   - `### [PATCH PLAN]`
-   - `## Problem Analysis`
-   - `## Source Observations`
-   - `## Cause Hypotheses`
-   - `## Improvement Direction`
-   - `## Compact Plan`
-   - `## Audit Evidence`
+1. Prepare a filled Phase 1 markdown body before running `ticket create`, preferably via stdin (`--plan-body-file -`) or process substitution. It MUST contain the actual APC, Compact Plan, Problem Analysis, Source Observations, Cause Hypotheses, Improvement Direction, and Audit Evidence content. APC uses `[BOUNDARY]`, `[CONTRACT]`, and `[PATCH PLAN]` markers from the template; validation checks that those marker bodies are not empty, not the markdown heading level.
 2. Run the canonical command:
 
 ```bash

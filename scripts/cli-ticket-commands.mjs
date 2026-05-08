@@ -92,7 +92,11 @@ const REQUIRED_PHASE1_SECTIONS = [
   "Audit Evidence"
 ];
 
-const REQUIRED_APC_SUBSECTIONS = ["[BOUNDARY]", "[CONTRACT]", "[PATCH PLAN]"];
+const REQUIRED_APC_MARKERS = [
+  { name: "boundary", marker: "[BOUNDARY]" },
+  { name: "contract", marker: "[CONTRACT]" },
+  { name: "patch_plan", marker: "[PATCH PLAN]" }
+];
 const REQUIRED_PHASE1_DATA_SECTIONS = [
   "Compact Plan",
   "Problem Analysis",
@@ -214,6 +218,15 @@ function extractMarkdownSection(content, heading) {
   return parseMarkdownH2Sections(content).get(String(heading || "").trim()) || "";
 }
 
+function extractMarkdownSectionByAliases(content, aliases) {
+  const sections = parseMarkdownH2Sections(content);
+  for (const alias of aliases) {
+    const value = sections.get(String(alias || "").trim());
+    if (value !== undefined) return value;
+  }
+  return "";
+}
+
 function hasSubstantiveSectionContent(text, scaffolds = []) {
   const src = String(text || "").trim();
   if (!src || hasPlaceholderTokens(src)) return false;
@@ -221,20 +234,44 @@ function hasSubstantiveSectionContent(text, scaffolds = []) {
   return !scaffolds.some(phrase => normalized.includes(phrase));
 }
 
-function hasCompleteApcStructure(text) {
-  const src = String(text || "");
-  return REQUIRED_APC_SUBSECTIONS.every(token => src.includes(token));
+function getMarkerBody(text, marker, nextMarkers) {
+  const lines = String(text || "").split("\n");
+  const start = lines.findIndex(line => line.includes(marker));
+  if (start < 0) return null;
+
+  const body = [];
+  for (const line of lines.slice(start + 1)) {
+    if (nextMarkers.some(nextMarker => line.includes(nextMarker))) break;
+    body.push(line);
+  }
+  return body.join("\n").trim();
+}
+
+function getMissingApcFields(text) {
+  return REQUIRED_APC_MARKERS
+    .filter(({ marker }, index) => {
+      const nextMarkers = REQUIRED_APC_MARKERS.slice(index + 1).map(item => item.marker);
+      return !hasSubstantiveSectionContent(getMarkerBody(text, marker, nextMarkers), []);
+    })
+    .map(field => field.name);
 }
 
 function getPhase1PlanBodyReasons(body) {
   const content = String(body || "");
   const sections = parseMarkdownH2Sections(content);
+  const apcSection = extractMarkdownSectionByAliases(content, [
+    "Agent Permission Contract (APC)",
+    "Agent Permission Contract",
+    "APC"
+  ]);
   const reasons = [];
 
-  if (!sections.has("Agent Permission Contract (APC)")) {
+  if (!apcSection) {
     reasons.push("missing_apc_block");
-  } else if (!hasCompleteApcStructure(sections.get("Agent Permission Contract (APC)"))) {
-    reasons.push("apc_subsections_missing");
+  } else {
+    for (const field of getMissingApcFields(apcSection)) {
+      reasons.push(`apc_${field}_missing`);
+    }
   }
 
   for (const sectionName of REQUIRED_PHASE1_DATA_SECTIONS) {

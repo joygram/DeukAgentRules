@@ -37,11 +37,11 @@ function minimalEvidencePhase1Plan(title = "dry-run validation ticket") {
     `# ${title}`,
     "",
     "## Agent Permission Contract (APC)",
-    "### [BOUNDARY]",
+    "[BOUNDARY]",
     "- Change only ticket-create dry-run validation behavior.",
-    "### [CONTRACT]",
+    "[CONTRACT]",
     "- Dry-run must fail on the same lifecycle blockers as real creation.",
-    "### [PATCH PLAN]",
+    "[PATCH PLAN]",
     "- Validate generated content in memory and simulate the open-ticket count.",
     "",
     "## Compact Plan",
@@ -1123,7 +1123,8 @@ test("runTicketCreate rolls back when markdown lint fails", async () => {
         topic: "lint-guard",
         summary: "lint guard",
         nonInteractive: true,
-        skipPhase0: true
+        skipPhase0: true,
+        planBody: `${minimalEvidencePhase1Plan("lint guard")}\n\n[broken](./missing.md)\n`
       }),
       err => {
         assert.match(err.message, /markdown lint failed/);
@@ -1327,7 +1328,7 @@ test("runTicketMove rejects scaffold-only compact plan before Phase 2", async ()
       () => runTicketMove({ cwd, topic: "001", next: true, nonInteractive: true }),
       err => {
         assert.match(err.message, /incomplete Phase 1 planning evidence/);
-        assert.match(err.message, /compact_plan_placeholder_or_incomplete/);
+        assert.match(err.message, /plan_body_file_required/);
         return true;
       }
     );
@@ -2813,12 +2814,10 @@ test("runTicketCreate rolls back when strict create rejects placeholder summary"
         requireFilled: true
       }),
       err => {
-        assert.match(err.message, /strict mode rejected incomplete Phase 1/);
-        assert.match(err.message, /summary_missing_or_placeholder/);
-        assert.match(err.message, /Fix: provide `--summary` and a filled `--plan-body-file <file>`/);
-        assert.match(err.message, /Command: npx deuk-agent-flow ticket create/);
-        assert.match(err.message, /Manual fallback is forbidden/);
-        assert.match(err.message, /exact markdown headings `### \[BOUNDARY\]`, `### \[CONTRACT\]`, and `### \[PATCH PLAN\]`/);
+        assert.match(err.message, /ticket create requires a filled Phase 1 plan body/);
+        assert.match(err.message, /plan_body_file_required/);
+        assert.match(err.message, /--plan-body-file -/);
+        assert.doesNotMatch(err.message, /exact markdown headings/);
         return true;
       }
     );
@@ -2863,10 +2862,9 @@ test("runTicketCreate dry-run rejects incomplete strict Phase 1 before claiming 
         dryRun: true
       }),
       err => {
-        assert.match(err.message, /strict mode rejected incomplete Phase 1/);
-        assert.match(err.message, /compact_plan_placeholder_or_incomplete/);
-        assert.match(err.message, /Fix: provide `--summary` and a filled `--plan-body-file <file>`/);
-        assert.match(err.message, /Manual fallback is forbidden/);
+        assert.match(err.message, /ticket create requires a filled Phase 1 plan body/);
+        assert.match(err.message, /plan_body_file_required/);
+        assert.match(err.message, /--plan-body-file -/);
         return true;
       }
     );
@@ -2903,11 +2901,9 @@ test("runTicketCreate strict mode rejects scaffold-only compact plan drafts", as
         requireFilled: true
       }),
       err => {
-        assert.match(err.message, /strict mode rejected incomplete Phase 1/);
-        assert.match(err.message, /compact_plan_placeholder_or_incomplete/);
-        assert.match(err.message, /Fix: provide `--summary` and a filled `--plan-body-file <file>`/);
-        assert.match(err.message, /Command: npx deuk-agent-flow ticket create/);
-        assert.match(err.message, /Manual fallback is forbidden/);
+        assert.match(err.message, /ticket create requires a filled Phase 1 plan body/);
+        assert.match(err.message, /plan_body_file_required/);
+        assert.match(err.message, /--plan-body-file -/);
         return true;
       }
     );
@@ -4227,11 +4223,9 @@ test("runTicketCreate auto-enables strict mode for investigation tickets", async
         skipPhase0: true
       }),
       err => {
-        assert.match(err.message, /strict mode rejected incomplete Phase 1/);
-        assert.match(err.message, /compact_plan_placeholder_or_incomplete/);
-        assert.match(err.message, /Fix: provide `--summary` and a filled `--plan-body-file <file>`/);
-        assert.match(err.message, /Command: npx deuk-agent-flow ticket create/);
-        assert.match(err.message, /Manual fallback is forbidden/);
+        assert.match(err.message, /ticket create requires a filled Phase 1 plan body/);
+        assert.match(err.message, /plan_body_file_required/);
+        assert.match(err.message, /--plan-body-file -/);
         return true;
       }
     );
