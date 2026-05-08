@@ -38,7 +38,6 @@
     "docs/principles.md",
     "docs/principles.ko.md",
     "docs/npm-publish-guide.ko.md",
-    "docs/internal/deukagentflow-migration-plan.ko.md",
     "docs/usage-guide.ko.md",
     "docs/assets/**/*",
     "templates/**/*",

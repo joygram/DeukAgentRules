@@ -258,8 +258,10 @@ export function generateTicketId(topicSlug, existingEntries) {
 
 export function syncActiveTicketId(cwd, opts = {}) {
   const index = readTicketIndexJson(cwd);
-  const activeEntry = index.entries.find(e => e.status === "active") || 
-                       index.entries.find(e => e.status === "open");
+  const activeEntries = index.entries.filter(e => e.status === "active");
+  const openEntries = index.entries.filter(e => e.status === "open");
+  const newestFirst = (a, b) => String(b.updatedAt || b.createdAt || "").localeCompare(String(a.updatedAt || a.createdAt || ""));
+  const activeEntry = activeEntries.sort(newestFirst)[0] || openEntries.sort(newestFirst)[0] || null;
   
   const ticketDir = detectConsumerTicketDir(cwd);
   if (!ticketDir) return;

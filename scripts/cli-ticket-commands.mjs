@@ -9,7 +9,7 @@ import {
 } from "./cli-utils.mjs";
 import { readTicketIndexJson, writeTicketIndexJson, syncActiveTicketId, generateTicketId, syncToPipeline } from "./cli-ticket-index.mjs";
 import { appendTicketEntry, rebuildTicketIndexFromTopicFilesIfNeeded, updateTicketEntryStatus } from "./cli-ticket-parser.mjs";
-import { appendInternalWorkflowEvent } from "./cli-telemetry-commands.mjs";
+import { appendInternalWorkflowEvent, buildTelemetrySummary, getTelemetryCompactSummary } from "./cli-telemetry-commands.mjs";
 import { parsePlan } from "./plan-parser.mjs";
 import { collectChangedFiles, lintMarkdownPaths } from "./lint-md.mjs";
 import { auditRules } from "./lint-rules.mjs";
@@ -487,7 +487,8 @@ function printTicketSelectionLine(ticketId, absPath, opts = {}) {
 function getHandoffSummary(out) {
   const next = out.nextTicket ? `${out.nextTicket.id}:${out.nextTicket.status}` : "none";
   const blockers = out.reasons?.length ? out.reasons.join(",") : "none";
-  return `${out.current.id} | phase=${out.current.phase} | status=${out.current.status} | next=${next} | blockers=${blockers}`;
+  const telemetry = out.telemetrySummary || "telemetry none";
+  return `${out.current.id} | phase=${out.current.phase} | status=${out.current.status} | next=${next} | blockers=${blockers} | ${telemetry}`;
 }
 
 function buildTicketContentSection(ticketContent, docsLanguage) {
@@ -1595,7 +1596,18 @@ export async function runTicketHandoff(opts) {
       status: nextTicket.status,
       path: nextTicket.path
     } : null,
-    nextAction: nextTicket ? "continue-ticket" : "inspect-git-history"
+    nextAction: nextTicket ? "continue-ticket" : "inspect-git-history",
+    telemetry: (() => {
+      const summary = buildTelemetrySummary(opts.cwd);
+      if (!summary) return null;
+      return {
+        logEntries: summary.logEntries,
+        coverageRate: summary.eventCoverageRate,
+        tdwCoverageRate: summary.tdwCoverageRate,
+        totalTokens: summary.totalTokens
+      };
+    })(),
+    telemetrySummary: getTelemetryCompactSummary(opts.cwd)
   };
 
   if (opts.json) {
@@ -1758,21 +1770,38 @@ export async function runTicketClose(opts) {
 
   try {
     const entry = updateTicketEntryStatus(opts.cwd, opts);
-    const { meta } = parseFrontMatter(previousBody);
     runTicketLifecycleQualityGate(opts.cwd, {
       ticketAbsPath: abs,
       context: `ticket close ${entry.topic}`
     });
-    syncActiveTicketId(opts.cwd);
+
+    let archiveResult = null;
+    if (String(opts.status || "").toLowerCase() === "closed") {
+      const ticketDir = detectConsumerTicketDir(opts.cwd);
+      const currentIndex = readTicketIndexJson(opts.cwd);
+      archiveResult = archiveTicketEntry({
+        cwd: opts.cwd,
+        ticketDir,
+        indexJson: currentIndex,
+        found: entry,
+        opts,
+        report: null
+      });
+      writeTicketIndexJson(opts.cwd, currentIndex, opts);
+      syncActiveTicketId(opts.cwd);
+    }
+
+    const finalPath = archiveResult?.path || entry.path;
     appendTelemetryEvent(opts.cwd, {
       event: "ticket_closed",
       action: "ticket-close",
       ticket: entry.id || entry.topic,
-      file: entry.path,
+      file: finalPath,
       phase: 4,
       status: opts.status
     });
-    console.log(`ticket: ${opts.status} -> ${entry.topic} (${entry.path})`);
+    console.log(`ticket: ${opts.status} -> ${entry.topic} (${finalPath})`);
+    return archiveResult || { status: opts.status, ticket: entry.topic, path: finalPath };
   } catch (err) {
     rollbackTicketLifecycleArtifacts(opts.cwd, previousIndex, previousBody, abs, opts);
     throw err;

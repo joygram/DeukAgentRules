@@ -4,7 +4,8 @@
   <br />
   <h1>Deuk Agent Flow v4.0.0</h1>
   <p>
-    <a href="https://www.npmjs.com/package/deuk-agent-flow"><img src="https://img.shields.io/npm/v/deuk-agent-flow.svg?label=deuk-agent-flow" alt="deuk-agent-flow npm version" /></a>
+    <a href="https://www.npmjs.com/package/deuk-agent-flow"><img src="https://img.shields.io/npm/v/deuk-agent-flow.svg?label=deuk-flow" alt="deuk-flow npm version" /></a>
+    <a href="https://www.npmjs.com/package/deuk-agent-flow"><img src="https://img.shields.io/endpoint?url=https%3A%2F%2Fraw.githubusercontent.com%2Fjoygram%2FDeukAgentFlow%2Fmaster%2Fdocs%2Fbadges%2Fnpm-downloads.json" alt="deuk-flow combined npm downloads" /></a>
   </p>
   <p><b>Stop losing AI coding work between chats.</b></p>
   <p><i>Say "next" or "ship it"; Deuk Agent Flow keeps the ticket, scope, verification, and memory attached to your repo.</i></p>
@@ -140,12 +141,12 @@ If you manage many repos under one workspace, run `deuk-agent-flow init` in each
 This is where the effect compounds: use the workspace root as the shared entry point, each project root as an independent ticket/rule/verification boundary, and nested apps or servers as separate projects only when they have their own lifecycle.
 
 ### 2. Local Source Development (Maintainer/Power User)
-v3.0 introduces a **Global CLI Proxy**. If you are developing inside the `DeukAgentFlow` workspace, the global command will automatically delegate execution to your local source.
+The global command runs the installed package by default. If you are developing against a local checkout from another project directory, opt into local source routing explicitly.
 
 ```bash
 cd ~/workspace/DeukAgentFlow
 sudo npm link
-deuk-agent-flow init  # Routes to local scripts/cli.mjs automatically
+DEUK_AGENT_FLOW_USE_LOCAL=1 deuk-agent-flow init  # Routes to local scripts/cli.mjs
 ```
 
 If you primarily work in Codex or Copilot, this is the recommended day-to-day setup. Those clients currently have the smoothest behavior with the hub-spoke and ticket-driven workflow.
@@ -156,6 +157,13 @@ Maintainers can publish from the root command:
 ```bash
 npm run publish
 ```
+
+This flow must register both npm packages in one run under the `deuk-flow` release surface:
+
+- `deuk-flow` canonical package: `deuk-agent-flow`
+- `deuk-flow` legacy compatibility alias package: `deuk-agent-rule`
+
+The publish script syncs the alias package version/dependency first, then publishes the canonical package before the alias package.
 
 Use dry-run mode before writing to the npm registry:
 
@@ -168,6 +176,14 @@ Before publishing, run the Docker consumer smoke test. It installs the packed pa
 ```bash
 npm run smoke:npm:docker
 ```
+
+After publish, refresh the combined downloads badge when needed:
+
+```bash
+npm run badge:downloads
+```
+
+The badge should display `deuk-flow` while still summing downloads from both `deuk-agent-flow` and `deuk-agent-rule`.
 
 ---
 

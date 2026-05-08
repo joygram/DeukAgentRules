@@ -4,7 +4,8 @@
   <br />
   <h1>Deuk Agent Flow v4.0.0</h1>
   <p>
-    <a href="https://www.npmjs.com/package/deuk-agent-flow"><img src="https://img.shields.io/npm/v/deuk-agent-flow.svg?label=deuk-agent-flow" alt="deuk-agent-flow npm version" /></a>
+    <a href="https://www.npmjs.com/package/deuk-agent-flow"><img src="https://img.shields.io/npm/v/deuk-agent-flow.svg?label=deuk-flow" alt="deuk-flow npm version" /></a>
+    <a href="https://www.npmjs.com/package/deuk-agent-flow"><img src="https://img.shields.io/endpoint?url=https%3A%2F%2Fraw.githubusercontent.com%2Fjoygram%2FDeukAgentFlow%2Fmaster%2Fdocs%2Fbadges%2Fnpm-downloads.json" alt="deuk-flow combined npm downloads" /></a>
   </p>
   <p><b>AI 코딩 작업이 대화창 밖으로 흘러내리지 않게.</b></p>
   <p><i>"다음", "진행", "정리"처럼 짧게 말해도 티켓, 범위, 검증, 기억이 레포에 붙어 있게 만듭니다.</i></p>
@@ -156,12 +157,12 @@ deuk-agent-flow init
 ```
 
 ### 2. 로컬 소스 개발 (메인테이너/파워 유저)
-v3.0은 **Global CLI Proxy**를 도입했습니다. `DeukAgentFlow` 워크스페이스 내부에서 개발 중이라면, 글로벌 명령이 자동으로 로컬 소스로 실행을 위임합니다.
+글로벌 명령은 기본적으로 설치된 패키지를 실행합니다. 다른 프로젝트 디렉터리에서 로컬 checkout 소스를 실행해야 하는 개발자는 명시적으로 로컬 소스 라우팅을 켜야 합니다.
 
 ```bash
 cd ~/workspace/DeukAgentFlow
 sudo npm link
-deuk-agent-flow init  # 자동으로 로컬 scripts/cli.mjs로 라우팅됨
+DEUK_AGENT_FLOW_USE_LOCAL=1 deuk-agent-flow init  # 로컬 scripts/cli.mjs로 라우팅됨
 ```
 
 Codex나 Copilot을 주로 사용한다면 이 구성이 일상 운영에 가장 적합합니다. 현재는 이 두 환경에서 Hub-Spoke와 티켓 기반 워크플로우가 가장 부드럽게 동작합니다.
@@ -172,6 +173,13 @@ Codex나 Copilot을 주로 사용한다면 이 구성이 일상 운영에 가장
 ```bash
 npm run publish
 ```
+
+이 흐름은 한 번의 실행으로 `deuk-flow` 릴리스 표면 아래 npm 패키지 두 개를 모두 등록해야 합니다.
+
+- `deuk-flow` canonical 패키지: `deuk-agent-flow`
+- `deuk-flow` 레거시 호환 alias 패키지: `deuk-agent-rule`
+
+배포 스크립트는 먼저 alias 패키지의 version/dependency를 동기화하고, 그 다음 canonical 패키지를 publish한 뒤 alias 패키지를 publish합니다.
 
 npm registry에 쓰기 전에 dry-run으로 먼저 확인하세요.
 
@@ -184,6 +192,14 @@ npm run publish:dry
 ```bash
 npm run smoke:npm:docker
 ```
+
+배포 후 필요하면 통합 다운로드 배지를 갱신합니다.
+
+```bash
+npm run badge:downloads
+```
+
+이 배지는 표기상 `deuk-flow`를 사용하되, `deuk-agent-flow`와 `deuk-agent-rule` 다운로드 수를 같은 total에 합산합니다.
 
 ---
 

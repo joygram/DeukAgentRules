@@ -571,8 +571,11 @@ test("runTicketClose accepts explicit no-follow-up decision without improvement 
   ]);
 
   try {
-    await runTicketClose({ cwd, topic: "002", nonInteractive: true });
-    const body = readFileSync(join(cwd, ticketPath), "utf8");
+    const result = await runTicketClose({ cwd, topic: "002", nonInteractive: true });
+    assert.ok(result.path.includes("archive/"));
+    assert.ok(!existsSync(join(cwd, ticketPath)));
+    assert.ok(existsSync(join(cwd, result.path)));
+    const body = readFileSync(join(cwd, result.path), "utf8");
     assert.match(body, /phase: 4/);
     assert.match(body, /status: closed/);
   } finally {

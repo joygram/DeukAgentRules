@@ -126,6 +126,25 @@ test("runInit migrates nested legacy AGENTS surfaces through init", async () => 
   }
 });
 
+test("enforceCanonicalAgentLayout preserves runtime skill and usage state files", () => {
+  const cwd = mkdtempSync(join(tmpdir(), "deuk-agent-layout-state-"));
+  try {
+    const agentRoot = join(cwd, ".deuk-agent");
+    mkdirSync(agentRoot, { recursive: true });
+    writeFileSync(join(agentRoot, "skills.json"), JSON.stringify({ installed: ["project-pilot"] }, null, 2) + "\n", "utf8");
+    writeFileSync(join(agentRoot, "usage.json"), JSON.stringify({ platform: "codex" }, null, 2) + "\n", "utf8");
+
+    enforceCanonicalAgentLayout(cwd, false);
+
+    assert.ok(existsSync(join(agentRoot, "skills.json")));
+    assert.ok(existsSync(join(agentRoot, "usage.json")));
+    assert.strictEqual(JSON.parse(readFileSync(join(agentRoot, "skills.json"), "utf8")).installed[0], "project-pilot");
+    assert.strictEqual(JSON.parse(readFileSync(join(agentRoot, "usage.json"), "utf8")).platform, "codex");
+  } finally {
+    rmSync(cwd, { recursive: true, force: true });
+  }
+});
+
 test("runInit replaces legacy generated spoke content and rewrites gitignore marker", async () => {
   const cwd = mkdtempSync(join(tmpdir(), "deuk-init-legacy-spoke-"));
   try {

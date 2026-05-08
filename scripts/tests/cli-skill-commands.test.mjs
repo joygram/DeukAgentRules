@@ -88,3 +88,32 @@ test("skill list treats installed skill files as installed when registry is miss
     rmSync(cwd, { recursive: true, force: true });
   }
 });
+
+test("skill list detects actual exposure pointers even when registry state is missing", () => {
+  const cwd = mkdtempSync(join(tmpdir(), "deuk-skill-exposed-"));
+  try {
+    const skillDir = join(cwd, ".deuk-agent", "skills", "project-pilot");
+    mkdirSync(skillDir, { recursive: true });
+    writeFileSync(join(skillDir, "SKILL.md"), "# ProjectPilot\n", "utf8");
+
+    const claudeDir = join(cwd, ".claude", "skills", "project-pilot");
+    mkdirSync(claudeDir, { recursive: true });
+    writeFileSync(join(claudeDir, "SKILL.md"), "# ProjectPilot\n", "utf8");
+
+    const cursorDir = join(cwd, ".cursor", "rules");
+    mkdirSync(cursorDir, { recursive: true });
+    writeFileSync(join(cursorDir, "deuk-agent-skills.mdc"), [
+      "---",
+      "description: skills",
+      "---",
+      "- project-pilot: .deuk-agent/skills/project-pilot/SKILL.md",
+      ""
+    ].join("\n"), "utf8");
+
+    const rows = listSkills(cwd);
+    const row = rows.find(candidate => candidate.id === "project-pilot");
+    assert.deepStrictEqual(row?.exposed.sort(), ["claude", "cursor"]);
+  } finally {
+    rmSync(cwd, { recursive: true, force: true });
+  }
+});

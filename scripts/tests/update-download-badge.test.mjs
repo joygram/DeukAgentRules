@@ -22,12 +22,10 @@ test("downloads badge keeps deuk-agent-flow canonical while summing legacy alias
       range: "last-month",
     });
 
-    assert.equal(badge.label, "deuk-agent-flow downloads");
-    assert.equal(badge.total, 150);
-    assert.equal(badge.canonicalPackage, "deuk-agent-flow");
-    assert.equal(badge.canonicalDownloads, 120);
-    assert.equal(badge.aliasTotal, 30);
-    assert.deepEqual(badge.aliases.map((pkg) => pkg.package), ["deuk-agent-rule"]);
+    assert.equal(badge.label, "deuk-flow downloads");
+    assert.equal(badge.message, "150/last-month");
+    assert.equal(badge.namedLogo, "npm");
+    assert.equal(badge.cacheSeconds, 86400);
   } finally {
     globalThis.fetch = originalFetch;
   }
@@ -50,10 +48,8 @@ test("downloads badge treats missing alias package as zero without hiding canoni
       range: "last-week",
     });
 
-    assert.equal(badge.total, 12);
-    assert.equal(badge.canonicalDownloads, 12);
-    assert.equal(badge.aliasTotal, 0);
-    assert.equal(badge.aliases[0].missing, true);
+    assert.equal(badge.message, "12/last-week");
+    assert.equal(badge.color, "2f6fed");
   } finally {
     globalThis.fetch = originalFetch;
   }

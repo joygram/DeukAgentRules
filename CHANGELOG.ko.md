@@ -8,6 +8,20 @@
 
 ## [Unreleased]
 
+## [4.0.21] - 2026-05-08
+
+### 수정됨 (Fixed)
+
+- **docs:** Shields가 허용하는 형식으로 커스텀 다운로드 배지 JSON을 복구하고, 영문/한글 README 상단의 통합 `deuk-flow` 다운로드 배지를 다시 노출했습니다.
+- **release:** `docs/badges/npm-downloads.json`를 공개 미러에도 동기화하고 npm 공개 패키지 표면에서 내부 전용 payload 유입을 제거했습니다.
+
+## [4.0.20] - 2026-05-08
+
+### 수정됨 (Fixed)
+
+- **docs:** 영문/한글 README 상단에 통합 npm 다운로드 배지를 복구하고, 공개 표기는 `deuk-flow` 라벨로 유지했습니다.
+- **release:** `docs/badges/`를 공개 미러에도 동기화하도록 보강해 README 다운로드 배지가 OSS sync와 patch 재배포 뒤에도 유지되게 했습니다.
+
 ## [4.0.12] - 2026-05-07
 
 ### 수정됨 (Fixed)
@@ -203,3 +217,21 @@
 
 - **docs:** 외부 공개용 릴리즈 가이드 및 동기화 스크립트 주석 갱신
 - **docs:** 리드미(README)에 토큰 비용 차단 메커니즘 설정 및 제로 터치 스캐폴딩 문서 개편
+## [4.0.19] - 2026-05-08
+
+### 수정됨 (Fixed)
+
+- **publish:** init 시 레거시 DeukAgentRules 포인터가 새 DeukAgentFlow managed block 옆에 남지 않도록 generated spoke 교체 경로를 복구했습니다.
+- **telemetry:** release 검증의 architecture guard를 통과하도록 client label 정규화를 공용 `toSlug` 유틸로 통일했습니다.
+
+### 변경됨 (Changed)
+
+- **docs:** 영문/한글 메인테이너 배포 섹션을 dual-package npm 배포 흐름과 통합 다운로드 배지 설명 기준으로 맞췄습니다.
+
+## [4.0.18] - 2026-05-08
+
+### 수정됨 (Fixed)
+
+- **skills:** `init` 정리 단계가 `.deuk-agent/skills.json`과 `usage.json`을 오배치 파일로 이동시키던 회귀를 막고, 실제 Claude/Cursor 노출 파일도 `skill list`에 반영하도록 보강
+- **telemetry:** 모델/클라이언트 표기를 정규화해 대소문자·공백 차이로 분석 결과가 분산되던 문제 수정
+- **ticket:** active ticket 동기화가 가장 최근 open ticket 대신 오래된 open ticket을 유지해 `ticket continue`가 잘못된 티켓을 가리키던 문제 수정

@@ -71,21 +71,17 @@ export async function buildDownloadsBadge(opts) {
   const canonical = packages.find((pkg) => pkg.package === canonicalPackage) || packages[0];
   const aliases = packages.filter((pkg) => pkg.package !== canonical.package);
   const aliasTotal = aliases.reduce((sum, pkg) => sum + pkg.downloads, 0);
+  void canonical;
+  void aliasTotal;
+  void aliases;
 
   return {
     schemaVersion: 1,
-    label: `${canonical.package} downloads`,
+    label: "deuk-flow downloads",
     message: `${formatDownloads(total)}/${opts.range}`,
     color: "2f6fed",
     namedLogo: "npm",
     cacheSeconds: 86400,
-    total,
-    canonicalPackage: canonical.package,
-    canonicalDownloads: canonical.downloads,
-    aliasTotal,
-    range: opts.range,
-    packages,
-    aliases,
   };
 }
 

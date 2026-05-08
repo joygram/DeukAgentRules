@@ -23,6 +23,29 @@ const PUBLIC_DOCS = [
   "usage-guide.ko.md",
 ];
 
+const OSS_RESET_PATHS = [
+  ".aiassistant",
+  ".claude",
+  ".codex",
+  ".cursor",
+  ".github/workflows",
+  ".windsurf",
+  "AGENTS.md",
+  ".npmrc",
+  ".versionrc.cjs",
+  "bin",
+  "changelog-templates",
+  "core-rules",
+  "docs",
+  "packages",
+  "PROJECT_RULE.md",
+  "RELEASING.md",
+  "RELEASING.ko.md",
+  "GITHUB_DESCRIPTION.md",
+  "publish",
+  "scripts",
+];
+
 /** Set DEUK_AGENT_FLOW_OSS_REPO to override, e.g. https://github.com/you/DeukAgentFlow */
 const OSS_REPO =
   process.env.DEUK_AGENT_FLOW_OSS_REPO
@@ -60,8 +83,10 @@ export function buildOssPackageJson(srcPkg, baseUrl = base, gitRemoteUrl = gitUr
     files: [
       "LICENSE",
       "bin/**/*",
+      "core-rules/**/*",
       "docs/architecture.md",
       "docs/architecture.ko.md",
+      "docs/badges/**/*",
       "docs/how-it-works.md",
       "docs/how-it-works.ko.md",
       "docs/principles.md",
@@ -119,88 +144,75 @@ export function buildOssPackageJson(srcPkg, baseUrl = base, gitRemoteUrl = gitUr
   return outPkg;
 }
 
-mkdirSync(join(ossRoot, "scripts"), { recursive: true });
-mkdirSync(join(ossRoot, "templates"), { recursive: true });
-
-export function syncOssTree() {
-  const agentRoot = join(ossRoot, AGENT_ROOT_DIR);
+export function syncOssTree(paths = {}) {
+  const sourceRoot = paths.pkgRoot || pkgRoot;
+  const mirrorRoot = paths.ossRoot || ossRoot;
+  const publicRoot = paths.ossPublic || ossPublic;
+  const agentRoot = join(mirrorRoot, AGENT_ROOT_DIR);
   if (existsSync(agentRoot)) {
     rmSync(agentRoot, { recursive: true, force: true });
   }
-  if (existsSync(join(ossRoot, "TICKET_LIST.md"))) {
-    unlinkSync(join(ossRoot, "TICKET_LIST.md"));
+  if (existsSync(join(mirrorRoot, "TICKET_LIST.md"))) {
+    unlinkSync(join(mirrorRoot, "TICKET_LIST.md"));
   }
-  for (const rel of [
-    ".aiassistant",
-    ".claude",
-    ".codex",
-    ".cursor",
-    ".github/workflows",
-    ".windsurf",
-    "AGENTS.md",
-    ".npmrc",
-    ".versionrc.cjs",
-    "changelog-templates",
-    "docs",
-    "packages",
-    "PROJECT_RULE.md",
-    "RELEASING.md",
-    "RELEASING.ko.md",
-    "GITHUB_DESCRIPTION.md",
-    "publish",
-    "scripts/sync-oss.mjs"
-  ]) {
-    const abs = join(ossRoot, rel);
+  for (const rel of OSS_RESET_PATHS) {
+    const abs = join(mirrorRoot, rel);
     if (existsSync(abs)) {
       rmSync(abs, { recursive: true, force: true });
     }
   }
-  cpSync(join(pkgRoot, "templates"), join(ossRoot, "templates"), { recursive: true, force: true });
-  cpSync(join(pkgRoot, "packages"), join(ossRoot, "packages"), { recursive: true, force: true });
-  mkdirSync(join(ossRoot, "docs"), { recursive: true });
+  mkdirSync(join(mirrorRoot, "scripts"), { recursive: true });
+  mkdirSync(join(mirrorRoot, "bin"), { recursive: true });
+  mkdirSync(join(mirrorRoot, "templates"), { recursive: true });
+  mkdirSync(join(mirrorRoot, "core-rules"), { recursive: true });
+  cpSync(join(sourceRoot, "bin"), join(mirrorRoot, "bin"), { recursive: true, force: true });
+  cpSync(join(sourceRoot, "templates"), join(mirrorRoot, "templates"), { recursive: true, force: true });
+  cpSync(join(sourceRoot, "core-rules"), join(mirrorRoot, "core-rules"), { recursive: true, force: true });
+  cpSync(join(sourceRoot, "packages"), join(mirrorRoot, "packages"), { recursive: true, force: true });
+  mkdirSync(join(mirrorRoot, "docs"), { recursive: true });
   for (const doc of PUBLIC_DOCS) {
-    cpSync(join(pkgRoot, "docs", doc), join(ossRoot, "docs", doc), { force: true });
+    cpSync(join(sourceRoot, "docs", doc), join(mirrorRoot, "docs", doc), { force: true });
   }
-  cpSync(join(pkgRoot, "docs", "assets"), join(ossRoot, "docs", "assets"), { recursive: true, force: true });
-  const copilotInstructions = join(pkgRoot, ".github", "copilot-instructions.md");
+  const sourceBadge = join(sourceRoot, "docs", "badges", "npm-downloads.json");
+  if (existsSync(sourceBadge)) {
+    mkdirSync(join(mirrorRoot, "docs", "badges"), { recursive: true });
+    cpSync(sourceBadge, join(mirrorRoot, "docs", "badges", "npm-downloads.json"), { force: true });
+  }
+  cpSync(join(sourceRoot, "docs", "assets"), join(mirrorRoot, "docs", "assets"), { recursive: true, force: true });
+  const copilotInstructions = join(sourceRoot, ".github", "copilot-instructions.md");
   if (existsSync(copilotInstructions)) {
-    mkdirSync(join(ossRoot, ".github"), { recursive: true });
-    cpSync(copilotInstructions, join(ossRoot, ".github", "copilot-instructions.md"), { force: true });
+    mkdirSync(join(mirrorRoot, ".github"), { recursive: true });
+    cpSync(copilotInstructions, join(mirrorRoot, ".github", "copilot-instructions.md"), { force: true });
   }
-  cpSync(join(pkgRoot, "scripts"), join(ossRoot, "scripts"), { recursive: true, force: true });
+  cpSync(join(sourceRoot, "scripts"), join(mirrorRoot, "scripts"), { recursive: true, force: true });
 
-  if (!existsSync(ossPublic)) {
-    throw new Error("Missing oss-public/: " + ossPublic);
+  if (!existsSync(publicRoot)) {
+    throw new Error("Missing oss-public/: " + publicRoot);
   }
-  cpSync(join(pkgRoot, "README.md"), join(ossRoot, "README.md"), { force: true });
-  cpSync(join(pkgRoot, "README.ko.md"), join(ossRoot, "README.ko.md"), { force: true });
-  if (existsSync(join(pkgRoot, "CHANGELOG.md"))) {
-    cpSync(join(pkgRoot, "CHANGELOG.md"), join(ossRoot, "CHANGELOG.md"), { force: true });
+  cpSync(join(sourceRoot, "README.md"), join(mirrorRoot, "README.md"), { force: true });
+  cpSync(join(sourceRoot, "README.ko.md"), join(mirrorRoot, "README.ko.md"), { force: true });
+  if (existsSync(join(sourceRoot, "CHANGELOG.md"))) {
+    cpSync(join(sourceRoot, "CHANGELOG.md"), join(mirrorRoot, "CHANGELOG.md"), { force: true });
   }
-  if (existsSync(join(pkgRoot, "CHANGELOG.ko.md"))) {
-    cpSync(join(pkgRoot, "CHANGELOG.ko.md"), join(ossRoot, "CHANGELOG.ko.md"), { force: true });
+  if (existsSync(join(sourceRoot, "CHANGELOG.ko.md"))) {
+    cpSync(join(sourceRoot, "CHANGELOG.ko.md"), join(mirrorRoot, "CHANGELOG.ko.md"), { force: true });
   }
-  if (existsSync(join(pkgRoot, "package-lock.json"))) {
-    cpSync(join(pkgRoot, "package-lock.json"), join(ossRoot, "package-lock.json"), { force: true });
+  if (existsSync(join(sourceRoot, "package-lock.json"))) {
+    cpSync(join(sourceRoot, "package-lock.json"), join(mirrorRoot, "package-lock.json"), { force: true });
   }
-  if (existsSync(join(pkgRoot, "LICENSE"))) {
-    cpSync(join(pkgRoot, "LICENSE"), join(ossRoot, "LICENSE"), { force: true });
+  if (existsSync(join(sourceRoot, "LICENSE"))) {
+    cpSync(join(sourceRoot, "LICENSE"), join(mirrorRoot, "LICENSE"), { force: true });
   }
-  const srcPkg = JSON.parse(readFileSync(join(pkgRoot, "package.json"), "utf8"));
+  const srcPkg = JSON.parse(readFileSync(join(sourceRoot, "package.json"), "utf8"));
   const outPkg = buildOssPackageJson(srcPkg);
 
-  writeFileSync(join(ossRoot, "package.json"), JSON.stringify(outPkg, null, 2) + "\n", "utf8");
+  writeFileSync(join(mirrorRoot, "package.json"), JSON.stringify(outPkg, null, 2) + "\n", "utf8");
 
-  const ossPolish = join(ossRoot, "scripts", "changelog-polish.mjs");
+  const ossPolish = join(mirrorRoot, "scripts", "changelog-polish.mjs");
   if (existsSync(ossPolish)) {
     unlinkSync(ossPolish);
   }
-  const ossSyncScript = join(ossRoot, "scripts", "sync-oss.mjs");
-  if (existsSync(ossSyncScript)) {
-    unlinkSync(ossSyncScript);
-  }
-
-  console.log("deuk-agent-flow: synced OSS tree at " + ossRoot);
+  console.log("deuk-agent-flow: synced OSS tree at " + mirrorRoot);
   console.log("  Override repo URL: DEUK_AGENT_FLOW_OSS_REPO=https://github.com/joygram/DeukAgentFlow");
 }
 

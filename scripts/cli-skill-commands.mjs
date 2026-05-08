@@ -33,6 +33,28 @@ function loadSkillConfig(cwd) {
   return JSON.parse(readFileSync(path, "utf8"));
 }
 
+function detectExposedPlatforms(cwd, id) {
+  const platforms = [];
+  const claudePath = join(cwd, ".claude", "skills", id, "SKILL.md");
+  if (existsSync(claudePath)) {
+    platforms.push("claude");
+  }
+
+  const cursorPath = join(cwd, ".cursor", "rules", "deuk-agent-skills.mdc");
+  if (existsSync(cursorPath)) {
+    try {
+      const body = readFileSync(cursorPath, "utf8");
+      if (body.includes(`.deuk-agent/skills/${id}/SKILL.md`)) {
+        platforms.push("cursor");
+      }
+    } catch {
+      // Ignore pointer read failures and fall back to config-based exposure only.
+    }
+  }
+
+  return platforms;
+}
+
 function writeSkillConfig(cwd, config, dryRun) {
   if (dryRun) return;
   const path = join(cwd, CONFIG_FILE);
@@ -49,9 +71,12 @@ export function listSkills(cwd = process.cwd()) {
   return SKILL_IDS.map(id => ({
     id,
     installed: config.installed.includes(id) || existsSync(repoSkillPath(cwd, id)),
-    exposed: Object.entries(config.exposed || {})
+    exposed: Array.from(new Set([
+      ...Object.entries(config.exposed || {})
       .filter(([, ids]) => Array.isArray(ids) && ids.includes(id))
-      .map(([platform]) => platform)
+      .map(([platform]) => platform),
+      ...detectExposedPlatforms(cwd, id)
+    ]))
   }));
 }
 
