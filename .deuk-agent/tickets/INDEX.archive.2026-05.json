@@ -1,8 +1,62 @@
 {
   "version": 1,
-  "updatedAt": "2026-05-07T20:29:21.592Z",
+  "updatedAt": "2026-05-08T03:10:28.914Z",
   "activeTicketId": null,
   "entries": [
+    {
+      "id": "343-prune-unnecessary-cli-ticket-tes-joy-nucb",
+      "title": "prune-unnecessary-cli-ticket-tests",
+      "topic": "prune-unnecessary-cli-ticket-tests",
+      "group": "sub",
+      "project": "global",
+      "createdAt": "2026-05-08T03:04:24.355Z",
+      "source": "ticket-create",
+      "status": "closed",
+      "phase": 4,
+      "updatedAt": "2026-05-08T03:10:28.905Z",
+      "archiveYearMonth": "2026-05"
+    },
+    {
+      "id": "342-related-md-only-ticket-lifecycle-joy-nucb",
+      "title": "related-md-only-ticket-lifecycle-lint",
+      "topic": "related-md-only-ticket-lifecycle-lint",
+      "group": "sub",
+      "project": "global",
+      "createdAt": "2026-05-08T02:54:00.457Z",
+      "source": "ticket-create",
+      "status": "closed",
+      "phase": 4,
+      "updatedAt": "2026-05-08T03:02:33.094Z",
+      "archiveYearMonth": "2026-05"
+    },
+    {
+      "id": "300-deukagentflow-brand-migration-ri-joy-nucb",
+      "title": "DeukAgentFlow brand migration risk review",
+      "topic": "300-deukagentflow-brand-migration-ri-joy-nucb",
+      "group": "sub",
+      "fileName": "300-deukagentflow-brand-migration-ri-joy-nucb.md",
+      "project": "global",
+      "submodule": "",
+      "createdAt": "2026-05-07 00:35:11",
+      "updatedAt": "2026-05-08T02:54:00.508Z",
+      "source": "ticket-sync",
+      "status": "archived",
+      "archiveYearMonth": "2026-05"
+    },
+    {
+      "id": "299-conversation-split-advisor-joy-nucb",
+      "title": "conversation-split-advisor",
+      "topic": "299-conversation-split-advisor-joy-nucb",
+      "group": "sub",
+      "fileName": "299-conversation-split-advisor-joy-nucb.md",
+      "project": "DeukAgentRules",
+      "submodule": "",
+      "createdAt": "2026-05-07 00:28:10",
+      "updatedAt": "2026-05-08T00:18:38.613Z",
+      "source": "ticket-sync",
+      "status": "archived",
+      "archiveYearMonth": "2026-05"
+    },
     {
       "id": "335-npm-login-joy-nucb",
       "title": "npm-login",

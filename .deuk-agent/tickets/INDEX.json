@@ -1,8 +1,18 @@
 {
   "version": 1,
-  "updatedAt": "2026-05-07T20:29:21.592Z",
-  "activeTicketId": "308-archive-yearmonth-workspace-sync-joy-nucb",
+  "updatedAt": "2026-05-08T03:10:28.914Z",
+  "activeTicketId": "343-prune-unnecessary-cli-ticket-tes-joy-nucb",
   "entries": [
+    {
+      "id": "341-improve-agent-rules-cli-surface-joy-nucb",
+      "title": "improve-agent-rules-cli-surface",
+      "topic": "improve-agent-rules-cli-surface",
+      "group": "sub",
+      "project": "global",
+      "createdAt": "2026-05-08T00:18:38.579Z",
+      "source": "ticket-create",
+      "status": "open"
+    },
     {
       "id": "340-rank-approval-guard-joy-nucb",
       "title": "rank-approval-guard",
@@ -215,32 +225,6 @@
       "submodule": "",
       "createdAt": "2026-05-07 00:45:34",
       "updatedAt": "2026-05-07T00:49:14.746Z",
-      "source": "ticket-sync",
-      "status": "open"
-    },
-    {
-      "id": "300-deukagentflow-brand-migration-ri-joy-nucb",
-      "title": "DeukAgentFlow brand migration risk review",
-      "topic": "300-deukagentflow-brand-migration-ri-joy-nucb",
-      "group": "sub",
-      "fileName": "300-deukagentflow-brand-migration-ri-joy-nucb.md",
-      "project": "global",
-      "submodule": "",
-      "createdAt": "2026-05-07 00:35:11",
-      "updatedAt": "2026-05-07T00:45:10.037Z",
-      "source": "ticket-sync",
-      "status": "open"
-    },
-    {
-      "id": "299-conversation-split-advisor-joy-nucb",
-      "title": "conversation-split-advisor",
-      "topic": "299-conversation-split-advisor-joy-nucb",
-      "group": "sub",
-      "fileName": "299-conversation-split-advisor-joy-nucb.md",
-      "project": "DeukAgentRules",
-      "submodule": "",
-      "createdAt": "2026-05-07 00:28:10",
-      "updatedAt": "2026-05-07T00:28:10.237Z",
       "source": "ticket-sync",
       "status": "open"
     },

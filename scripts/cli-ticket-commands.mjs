@@ -11,7 +11,7 @@ import { readTicketIndexJson, writeTicketIndexJson, syncActiveTicketId, generate
 import { appendTicketEntry, rebuildTicketIndexFromTopicFilesIfNeeded, updateTicketEntryStatus } from "./cli-ticket-parser.mjs";
 import { appendInternalWorkflowEvent } from "./cli-telemetry-commands.mjs";
 import { parsePlan } from "./plan-parser.mjs";
-import { collectChangedFiles, collectChangedMarkdownFiles, lintMarkdownPaths } from "./lint-md.mjs";
+import { collectChangedFiles, lintMarkdownPaths } from "./lint-md.mjs";
 import { auditRules } from "./lint-rules.mjs";
 import { getUsageReminderLine } from "./cli-usage-commands.mjs";
 import ejs from "ejs";
@@ -691,20 +691,19 @@ function applyTicketRootContext(opts = {}, options = {}) {
   return opts;
 }
 
+function normalizeMarkdownLintTargets(cwd, targets = []) {
+  return Array.from(new Set(
+    (targets || [])
+      .filter(Boolean)
+      .map(target => resolve(cwd, target))
+  ));
+}
+
 function collectTicketLifecycleMarkdownTargets(cwd, ticketAbsPath, extraTargets = []) {
-  const targets = [];
-  if (ticketAbsPath) targets.push(ticketAbsPath);
-
-  for (const relPath of collectChangedMarkdownFiles(cwd)) {
-    targets.push(join(cwd, relPath));
-  }
-
-  for (const target of extraTargets || []) {
-    if (!target) continue;
-    targets.push(target);
-  }
-
-  return Array.from(new Set(targets));
+  return normalizeMarkdownLintTargets(cwd, [
+    ticketAbsPath,
+    ...(extraTargets || [])
+  ]);
 }
 
 function shouldRunLifecycleRulesAudit(changedFiles = []) {
