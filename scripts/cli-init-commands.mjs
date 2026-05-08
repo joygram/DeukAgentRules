@@ -860,7 +860,7 @@ function canonicalizeAgentRootLayout(cwd, dryRun) {
   const agentRoot = join(cwd, AGENT_ROOT_DIR);
   if (!existsSync(agentRoot)) return;
   const allowedDirs = new Set(["docs", "knowledge", "tickets", "templates", "skill-templates", "skills"]);
-  const allowedFiles = new Set(["config.json", "telemetry.jsonl"]);
+  const allowedFiles = new Set(["config.json", "telemetry.jsonl", "skills.json", "usage.json"]);
 
   for (const entry of sortedDirEntries(agentRoot, { withFileTypes: true })) {
     const sourceAbs = join(agentRoot, entry.name);
@@ -1428,6 +1428,7 @@ function canonicalizeLegacyDeukAgentText(content, bundleRoot) {
 function normalizeExistingSpokeContent(existingContent, managedContent, bundleRoot) {
   const current = String(existingContent || "");
   if (!current.trim()) return current;
+  if (isGeneratedDeukPointer(current)) return "";
 
   const normalizedManaged = String(managedContent || "").trim();
   const canonicalize = (value) => canonicalizeLegacyDeukAgentText(value, bundleRoot).trim();
@@ -1464,7 +1465,7 @@ function splitProjectDoc(content) {
 
 function isGeneratedDeukPointer(content) {
   const src = String(content || "");
-  return /Managed by DeukAgent(?:Rules|Flow)/.test(src)
+  return (/Managed by DeukAgent(?:Rules|Flow)/.test(src) || /# Deuk Agent Rules\b|# Deuk Agent Flow\b/.test(src))
     && /Core rules are at:/i.test(src)
     && /thin bootstrap, not a second workflow contract/i.test(src);
 }
