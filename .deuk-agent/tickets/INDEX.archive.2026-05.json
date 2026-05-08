@@ -1,8 +1,22 @@
 {
   "version": 1,
-  "updatedAt": "2026-05-08T20:43:25.291Z",
+  "updatedAt": "2026-05-08T20:44:49.439Z",
   "activeTicketId": null,
   "entries": [
+    {
+      "id": "348-bundle-existing-patch-changes-co-joy-nucb",
+      "title": "bundle-existing-patch-changes-commit",
+      "topic": "bundle-existing-patch-changes-commit",
+      "group": "sub",
+      "project": "global",
+      "createdAt": "2026-05-08T20:43:25.288Z",
+      "source": "ticket-create",
+      "status": "archived",
+      "phase": 4,
+      "updatedAt": "2026-05-08T20:44:49.482Z",
+      "archiveYearMonth": "2026-05",
+      "fileName": "348-bundle-existing-patch-changes-co-joy-nucb.md"
+    },
     {
       "id": "347-ticket-close-archive-normalizati-joy-nucb",
       "title": "ticket-close-archive-normalization",
