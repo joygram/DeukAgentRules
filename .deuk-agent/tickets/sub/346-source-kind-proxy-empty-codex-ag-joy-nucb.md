@@ -108,4 +108,4 @@ createdAt: 2026-05-08 20:29:28
 - Residual risk: several files had pre-existing dirty changes; commit staging must avoid unrelated hunks where possible.
 - Follow-up decision: no-follow-up.
 - Commit: `4554cb3 fix agentflow source-mode proxy gating`.
-- Commit: `pending` source-kind init gating follow-up for `scripts/cli-init-commands.mjs`.
+- Commit: `62ba204 fix source-kind init gating`.
