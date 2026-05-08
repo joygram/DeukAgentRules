@@ -3,7 +3,7 @@ import { basename, dirname, join, resolve } from "path";
 import { hostname as osHostname } from "os";
 import { 
   AGENT_ROOT_DIR, TICKET_SUBDIR, TICKET_INDEX_FILENAME,
-  toSlug, findFileRecursively, toRepoRelativePath, detectConsumerTicketDir, computeTicketPath, normalizeTicketGroup
+  requireNonEmptySlug, findFileRecursively, toRepoRelativePath, detectConsumerTicketDir, computeTicketPath, normalizeTicketGroup
 } from "./cli-utils.mjs";
 
 const TICKET_ARCHIVE_INDEX_FILENAME = "INDEX.archive.json";
@@ -243,7 +243,7 @@ export function computeNextTicketNumber(existingEntries) {
 
 export function generateTicketId(topicSlug, existingEntries) {
   const hostname = getHostnameSlug();
-  const slug = toSlug(topicSlug || 'ticket');
+  const slug = requireNonEmptySlug(topicSlug, "ticket topic");
   const match = slug.match(/^(\d{3,4})-(.*)/);
   if (match) {
     const numStr = match[1];

@@ -302,6 +302,39 @@ test("runTicketCreate prints compact clickable ticket start and approval state",
   }
 });
 
+test("runTicketCreate rejects non-ascii topic instead of creating a generic fallback slug", async () => {
+  const { cwd, ticketDir } = makeTemplateWorkspace();
+
+  try {
+    await assert.rejects(
+      () => runTicketCreate({
+        cwd,
+        topic: "기본 프로토콜 동작 테스트 재정의",
+        summary: "reject generic fallback slug",
+        planBody: minimalEvidencePhase1Plan("basic protocol pack unpack test redefinition"),
+        nonInteractive: true,
+        docsLanguage: "ko",
+        skipPhase0: true,
+        requireFilled: true
+      }),
+      err => {
+        assert.match(err.message, /ticket topic must produce a non-empty ASCII slug/);
+        return true;
+      }
+    );
+
+    const index = readTicketIndexJson(cwd);
+    assert.strictEqual(index.entries.length, 0);
+    const ticketSubDir = join(ticketDir, "sub");
+    const ticketFiles = existsSync(ticketSubDir)
+      ? readdirSync(ticketSubDir).filter(name => name.endsWith(".md"))
+      : [];
+    assert.strictEqual(ticketFiles.length, 0);
+  } finally {
+    rmSync(cwd, { recursive: true, force: true });
+  }
+});
+
 test("runTicketGuard accepts only complete CLI-created Phase 1 tickets", async () => {
   const { cwd } = makeTicketWorkspace([]);
   const originalLog = console.log;

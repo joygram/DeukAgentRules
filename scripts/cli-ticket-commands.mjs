@@ -2,7 +2,7 @@ import { existsSync, mkdirSync, readFileSync, writeFileSync, unlinkSync, copyFil
 import { hostname } from "os";
 import { basename, join, dirname, relative, resolve } from "path";
 import { 
-  toSlug, toRepoRelativePath, toFileUri, inferRefTitleAndTopic, resolveReferencedTicketPath, toPosixPath, stringifyFrontMatter,
+  toSlug, toSnakeCaseKey, requireNonEmptySlug, toRepoRelativePath, toFileUri, inferRefTitleAndTopic, resolveReferencedTicketPath, toPosixPath, stringifyFrontMatter,
   resolveDocsLanguage, inferDocsLanguageFromText, normalizeDocsLanguage, isMcpActive, withReadline, parseFrontMatter,
   AGENT_ROOT_DIR, TICKET_SUBDIR, TICKET_DIR_NAME, TICKET_INDEX_FILENAME, WORKFLOW_MODE_EXECUTE,
   detectConsumerTicketDir, resolveConsumerTicketRoot, loadInitConfig, computeTicketPath, normalizeWorkflowMode
@@ -275,12 +275,13 @@ function getPhase1PlanBodyReasons(body) {
   }
 
   for (const sectionName of REQUIRED_PHASE1_DATA_SECTIONS) {
+    const sectionKey = toSnakeCaseKey(sectionName);
     if (!sections.has(sectionName)) {
-      reasons.push(`${sectionName.toLowerCase().replace(/[^a-z0-9]+/g, "_")}_missing`);
+      reasons.push(`${sectionKey}_missing`);
       continue;
     }
     if (!hasSubstantiveSectionContent(sections.get(sectionName), [])) {
-      reasons.push(`${sectionName.toLowerCase().replace(/[^a-z0-9]+/g, "_")}_incomplete`);
+      reasons.push(`${sectionKey}_incomplete`);
     }
   }
 
@@ -1170,8 +1171,8 @@ export async function runTicketCreate(opts) {
   opts = hydrateCreateTextInputs(opts);
   if (!opts.topic && !opts.ref) throw new Error("ticket create requires --topic or --ref");
   const inferred = opts.ref ? inferRefTitleAndTopic(opts) : null;
-  const topic = toSlug(opts.topic || inferred?.topic || "ticket");
   const title = opts.topic || inferred?.title || "ticket";
+  const topic = requireNonEmptySlug(opts.topic || inferred?.topic || title, "ticket topic");
   const group = toSlug(opts.group || "sub");
 
   await ensurePhase0Validation(opts);
@@ -1192,7 +1193,7 @@ export async function runTicketCreate(opts) {
       parsedPlan = parsePlan("inline-plan-body.md", opts.planBody);
 
       finalTitle = opts.topic || parsedPlan.title || title;
-      finalTopic = toSlug(finalTitle);
+      finalTopic = requireNonEmptySlug(finalTitle, "ticket topic");
     }
 
     const indexJson = readTicketIndexJson(opts.cwd);

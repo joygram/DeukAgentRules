@@ -6,7 +6,7 @@ import { join } from "node:path";
 import http from "node:http";
 import { 
   normalizeWorkflowMode, resolveWorkflowMode, WORKFLOW_MODE_EXECUTE, WORKFLOW_MODE_PLAN,
-  parseFrontMatter, stringifyFrontMatter, deriveTopicFromBaseName, toSlug, computeTicketPath,
+  parseFrontMatter, stringifyFrontMatter, deriveTopicFromBaseName, toSlug, requireNonEmptySlug, computeTicketPath,
   normalizeTicketGroup,
   normalizeDocsLanguage, inferDocsLanguageFromText, resolveDocsLanguage, AGENT_ROOT_DIR, TICKET_SUBDIR, isMcpActive,
   detectConsumerTicketDir
@@ -89,8 +89,16 @@ test("cli-utils.mjs - toSlug", (t) => {
   assert.strictEqual(toSlug("Hello World! 123"), "hello-world-123");
   assert.strictEqual(toSlug("  spaced  "), "spaced");
   assert.strictEqual(toSlug("Crème Brûlée"), "creme-brulee");
-  assert.strictEqual(toSlug("한글 티켓 생성"), "ticket");
-  assert.strictEqual(toSlug("!@#$"), "ticket"); // fallback
+  assert.strictEqual(toSlug("한글 티켓 생성"), "");
+  assert.strictEqual(toSlug("!@#$"), "");
+});
+
+test("cli-utils.mjs - requireNonEmptySlug", () => {
+  assert.strictEqual(requireNonEmptySlug("Hello World", "ticket topic"), "hello-world");
+  assert.throws(
+    () => requireNonEmptySlug("한글 티켓 생성", "ticket topic"),
+    /ticket topic must produce a non-empty ASCII slug/
+  );
 });
 
 test("cli-ticket-index.mjs - computeNextTicketNumber", (t) => {
@@ -109,6 +117,11 @@ test("cli-ticket-index.mjs - generateTicketId", (t) => {
 
   const id3 = generateTicketId("new topic", [{id: "008-something-host"}]);
   assert.ok(id3.startsWith("009-new-topic-"));
+
+  assert.throws(
+    () => generateTicketId("한글 티켓 생성", []),
+    /ticket topic must produce a non-empty ASCII slug/
+  );
 });
 
 test("cli-utils.mjs - computeTicketPath", (t) => {
