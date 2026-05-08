@@ -1,8 +1,18 @@
 {
   "version": 1,
-  "updatedAt": "2026-05-08T20:48:40.330Z",
+  "updatedAt": "2026-05-08T20:49:30.347Z",
   "activeTicketId": "308-archive-yearmonth-workspace-sync-joy-nucb",
   "entries": [
+    {
+      "id": "350-commentary-silent-work-unificati-joy-nucb",
+      "title": "commentary-silent-work-unification",
+      "topic": "commentary-silent-work-unification",
+      "group": "sub",
+      "project": "global",
+      "createdAt": "2026-05-08T20:49:30.343Z",
+      "source": "ticket-create",
+      "status": "open"
+    },
     {
       "id": "344-package-dependency-status-yaml-joy-nucb",
       "title": "package-dependency-status-yaml",
