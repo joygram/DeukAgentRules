@@ -408,7 +408,8 @@ function isCompactTicketOutput(opts = {}) {
   return Boolean(opts.compact || opts.nonInteractive);
 }
 
-function printUsageReminder(cwd) {
+function printUsageReminder(cwd, opts = {}) {
+  if (isCompactTicketOutput(opts) || opts.pathOnly) return;
   const reminder = getUsageReminderLine(cwd);
   if (reminder) {
     console.log(reminder);
@@ -431,6 +432,18 @@ function formatTicketStartLine(ticketId, absPath) {
 
 function printTicketStartLine(ticketId, absPath) {
   console.log(formatTicketStartLine(ticketId, absPath));
+}
+
+function printTicketSelectionLine(ticketId, absPath, opts = {}) {
+  if (opts.pathOnly) {
+    console.log(absPath);
+    return;
+  }
+  if (isCompactTicketOutput(opts)) {
+    printTicketStartLine(ticketId, absPath);
+    return;
+  }
+  printTicketStartLine(ticketId, absPath);
 }
 
 function getHandoffSummary(out) {
@@ -574,10 +587,10 @@ function collectNearbyTicketRoots(cwd) {
   return [...roots];
 }
 
-function matchingTicketEntriesForTopic(indexJson, topic) {
+function matchingTicketEntriesForTopic(indexJson, topic, opts = {}) {
   const key = String(topic || "").toLowerCase();
   if (!key) return [];
-  const rows = indexJson.entries || [];
+  const rows = filterTicketEntries(indexJson.entries, opts);
   const exact = rows.filter(entry =>
     String(entry.topic || "").toLowerCase() === key ||
     String(entry.id || "").toLowerCase() === key
@@ -598,6 +611,9 @@ function applyTicketTopicContext(opts = {}) {
     if (pickTicketEntry(opts, currentIndex)) return opts;
   }
 
+  const hasProjectScope = Boolean(opts.project || opts.submodule);
+  if (hasProjectScope) return opts;
+
   const matches = [];
   for (const root of collectNearbyTicketRoots(opts.cwd)) {
     if (resolve(root) === resolve(opts.cwd)) continue;
@@ -607,7 +623,7 @@ function applyTicketTopicContext(opts = {}) {
     } catch {
       continue;
     }
-    for (const entry of matchingTicketEntriesForTopic(indexJson, opts.topic)) {
+    for (const entry of matchingTicketEntriesForTopic(indexJson, opts.topic, opts)) {
       matches.push({ root, entry });
     }
   }
@@ -827,8 +843,8 @@ function formatTicketChoice(entry) {
   return `${entry.id} | ${status} | ${createdAt} | ${title}`;
 }
 
-function buildUseFallbackCandidates(indexJson) {
-  const entries = indexJson.entries || [];
+function buildUseFallbackCandidates(indexJson, opts = {}) {
+  const entries = filterTicketEntries(indexJson.entries, opts);
   const lastClosed = latestTicketByStatus(entries, ["closed"]);
   const openRows = entries
     .filter(e => OPEN_TICKET_STATUSES.has(String(e.status || "open")))
@@ -1339,7 +1355,7 @@ export async function runTicketCreate(opts) {
     if (!opts.dryRun) {
       printCreateApprovalGate(ticketId, opts);
     }
-    printUsageReminder(opts.cwd);
+    printUsageReminder(opts.cwd, opts);
     if (!opts.dryRun) {
       appendTelemetryEvent(opts.cwd, {
         event: "ticket_created",
@@ -1438,7 +1454,7 @@ export async function runTicketStatus(opts) {
   if (isCompactTicketOutput(opts)) {
     const reasonText = out.reasons.length === 0 ? "ok" : out.reasons.join(", ");
     console.log(`${out.id} | phase=${out.phase} | status=${out.status} | ${reasonText}`);
-    printUsageReminder(opts.cwd);
+    printUsageReminder(opts.cwd, opts);
     return;
   }
 
@@ -1451,7 +1467,7 @@ export async function runTicketStatus(opts) {
     if (out.reasons.length === 0) console.log("Reasons: none");
     else console.log(`Reasons: ${out.reasons.join(", ")}`);
   }
-  printUsageReminder(opts.cwd);
+  printUsageReminder(opts.cwd, opts);
 }
 
 export async function runTicketGuard(opts) {
@@ -1730,6 +1746,7 @@ export async function runTicketUse(opts) {
   applyTicketRootContext(opts);
   applyTicketContext(opts);
   const index = rebuildTicketIndexFromTopicFilesIfNeeded(opts.cwd, { ...opts, force: false });
+  const scopedEntries = filterTicketEntries(index.entries, opts);
   
   let targetTopic = opts.topic;
   if (!targetTopic && !opts.latest) {
@@ -1737,7 +1754,7 @@ export async function runTicketUse(opts) {
       throw new Error("ticket use: --topic or --latest is required in non-interactive mode.");
     }
     await withReadline(async (rl) => {
-      const choices = index.entries
+      const choices = scopedEntries
         .map(e => ({ label: `${e.status === 'closed' ? '✓ ' : ''}[${e.group}] ${e.title}`, value: e.topic }));
       if (choices.length > 0) {
         targetTopic = await selectOne(rl, "Choose a ticket to use:", choices);
@@ -1745,12 +1762,12 @@ export async function runTicketUse(opts) {
     });
   }
 
-  const found = opts.latest ? index.entries[0] : index.entries.find(e =>
+  const found = opts.latest ? scopedEntries[0] : scopedEntries.find(e =>
     String(e.topic || "").includes(targetTopic) ||
     String(e.id || "").includes(targetTopic)
   );
   if (!found) {
-    const candidates = buildUseFallbackCandidates(index);
+    const candidates = buildUseFallbackCandidates(index, opts);
     if (!opts.nonInteractive && candidates.length > 0) {
       await withReadline(async (rl) => {
         targetTopic = await selectOne(
@@ -1778,15 +1795,16 @@ export async function runTicketUse(opts) {
     writeTicketIndexJson(opts.cwd, { ...index, activeTicketId: found.id });
   }
 
-  const posixPath = toPosixPath(found.path);
   const absPath = toPosixPath(join(opts.cwd, found.path));
-  if (opts.pathOnly) console.log(absPath);
-  else {
+  if (isCompactTicketOutput(opts) || opts.pathOnly) {
+    printTicketSelectionLine(found.id, absPath, opts);
+  } else {
+    const posixPath = toPosixPath(found.path);
     console.log(`Active ticket: ${found.id}`);
     console.log(`Path: [${posixPath}](file://${absPath})`);
     printTicketStartLine(found.id, absPath);
     if (opts.printContent) console.log("\n" + readFileSync(join(opts.cwd, found.path), "utf8"));
-    printUsageReminder(opts.cwd);
+    printUsageReminder(opts.cwd, opts);
   }
 }
 
@@ -2173,7 +2191,7 @@ export async function runTicketMove(opts) {
       status: meta.status
     });
     console.log(`ticket: moved -> ${entry.topic} is now in Phase ${nextPhase} (${meta.status})`);
-    printUsageReminder(opts.cwd);
+    printUsageReminder(opts.cwd, opts);
   } catch (err) {
     rollbackTicketLifecycleArtifacts(opts.cwd, previousIndex, body, abs, opts);
     throw err;
@@ -2201,11 +2219,13 @@ export async function runTicketNext(opts) {
       if (existsSync(latestClosedPath)) {
         const { content } = parseFrontMatter(readFileSync(latestClosedPath, "utf8"));
         if (followUpDecisionMeansNoFollowUp(content)) {
-          const posixPath = toPosixPath(latestClosed.path || computeTicketPath(latestClosed));
           const absPath = toPosixPath(latestClosedPath);
           if (opts.pathOnly) {
             console.log(`no-follow-up:${latestClosed.id}`);
+          } else if (isCompactTicketOutput(opts)) {
+            console.log(`no-follow-up:${latestClosed.id}`);
           } else {
+            const posixPath = toPosixPath(latestClosed.path || computeTicketPath(latestClosed));
             console.log(`No follow-up required after ${latestClosed.id}`);
             console.log(`Path: [${posixPath}](file://${absPath})`);
           }
@@ -2220,11 +2240,11 @@ export async function runTicketNext(opts) {
     writeTicketIndexJson(opts.cwd, { ...index, activeTicketId: found.id });
   }
 
-  const posixPath = toPosixPath(found.path);
   const absPath = toPosixPath(join(opts.cwd, found.path));
-  if (opts.pathOnly) {
-    console.log(absPath);
+  if (isCompactTicketOutput(opts) || opts.pathOnly) {
+    printTicketSelectionLine(found.id, absPath, opts);
   } else {
+    const posixPath = toPosixPath(found.path);
     console.log(`Next ticket: ${found.id}`);
     console.log(`Path: [${posixPath}](file://${absPath})`);
     if (opts.printContent) console.log("\n" + readFileSync(join(opts.cwd, found.path), "utf8"));

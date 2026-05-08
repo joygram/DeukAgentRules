@@ -82,34 +82,69 @@ function validatePreApprovalLines(lines = [], stepIndex = 0) {
   return violations;
 }
 
+function validateRunningSurface(lines = [], stepIndex = 0) {
+  const violations = [];
+
+  for (const line of lines) {
+    if (isSingleWordStatus(line)) continue;
+    violations.push({
+      step: stepIndex,
+      code: "execution_narration_forbidden",
+      detail: line
+    });
+  }
+
+  return violations;
+}
+
 export function validateCommentaryScenario(scenario = {}, options = {}) {
   const constraint = resolveCommentaryConstraint(options);
   const steps = Array.isArray(scenario.steps) ? scenario.steps : [];
   const violations = [];
   let executionStatusCount = 0;
+  let interrupted = false;
 
   for (const [index, step] of steps.entries()) {
     const stage = String(step.stage || "").trim();
     const output = String(step.output || "");
     const lines = countNonEmptyLines(output);
 
+    if (interrupted) {
+      violations.push({
+        step: index,
+        code: "post_interrupt_output_forbidden",
+        detail: stage || "<empty>"
+      });
+      continue;
+    }
+
     if (stage === "ticket_start_pending" || stage === "requirement_change_pending" || stage === "requirement_change") {
       violations.push(...validatePreApprovalLines(lines, index));
       continue;
     }
 
-    if (stage === "approved_execution") {
+    if (stage === "approved_execution" || stage === "command_running" || stage === "search_running") {
+      violations.push(...validateRunningSurface(lines, index));
       for (const line of lines) {
         if (isSingleWordStatus(line)) {
           executionStatusCount += 1;
-          continue;
         }
-        violations.push({
-          step: index,
-          code: "execution_narration_forbidden",
-          detail: line
-        });
       }
+      continue;
+    }
+
+    if (stage === "user_correction_interrupt") {
+      if (lines.length > 0) {
+        const nonAllowed = lines.filter(line => !TDW_STATUS_WORDS.has(String(line).trim().toLowerCase()));
+        if (nonAllowed.length > 0) {
+          violations.push({
+            step: index,
+            code: "interrupt_narration_forbidden",
+            detail: nonAllowed.join(" | ")
+          });
+        }
+      }
+      interrupted = true;
       continue;
     }
 

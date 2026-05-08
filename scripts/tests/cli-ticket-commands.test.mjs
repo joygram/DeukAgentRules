@@ -3,7 +3,7 @@ import assert from "node:assert";
 import { spawnSync } from "node:child_process";
 import { existsSync, mkdtempSync, mkdirSync, readFileSync, readdirSync, rmSync, writeFileSync } from "node:fs";
 import { tmpdir } from "node:os";
-import { join } from "node:path";
+import { dirname, join } from "node:path";
 import { getImplementationClaimGuardResult, pickTicketEntry, runTicketArchive, runTicketCreate, runTicketClose, runTicketMove, runTicketNext, runTicketStatus, runTicketGuard, runTicketUse, runTicketHandoff, runTicketEvidenceCheck, runTicketEvidenceReport } from "../cli-ticket-commands.mjs";
 import { readTicketIndexJson } from "../cli-ticket-index.mjs";
 import { lintMarkdownPaths } from "../lint-md.mjs";
@@ -131,6 +131,28 @@ function readNewestTicketMarkdown(ticketDir) {
   return join(subDir, candidates.at(-1));
 }
 
+function writeCliTicketFile(cwd, entry, overrides = {}) {
+  const relPath = entry.path || join(".deuk-agent", "tickets", "sub", entry.fileName || `${entry.id}.md`);
+  const absPath = join(cwd, relPath);
+  mkdirSync(dirname(absPath), { recursive: true });
+  writeFileSync(absPath, [
+    "---",
+    `id: ${entry.id}`,
+    `topic: ${entry.topic || entry.id}`,
+    `title: ${entry.title || entry.topic || entry.id}`,
+    `phase: ${overrides.phase || 1}`,
+    `status: ${overrides.status || entry.status || "open"}`,
+    "lifecycleSource: ticket-create",
+    `project: ${entry.project || "global"}`,
+    `submodule: ${entry.submodule || ""}`,
+    `summary: ${overrides.summary || "cli-created ticket"}`,
+    "---",
+    `# ${entry.title || entry.topic || entry.id}`,
+    ""
+  ].join("\n"), "utf8");
+  return relPath;
+}
+
 test("pickTicketEntry applies submodule and project filters before selecting latest", () => {
   const index = makeIndex([
     makeEntry({
@@ -178,6 +200,127 @@ test("pickTicketEntry applies filters before topic matching", () => {
   );
 });
 
+test("runTicketUse applies project and submodule filters before latest fallback", async () => {
+  const scopedEntry = makeEntry({
+    id: "001-scoped-host",
+    topic: "001-scoped-host",
+    title: "scoped host",
+    fileName: "001-scoped-host.md",
+    path: ".deuk-agent/tickets/sub/001-scoped-host.md",
+    project: "DeukPack",
+    submodule: "core",
+    createdAt: "2026-05-01 08:00:00",
+    status: "open"
+  });
+  const rootEntry = makeEntry({
+    id: "002-root-host",
+    topic: "002-root-host",
+    title: "root host",
+    fileName: "002-root-host.md",
+    path: ".deuk-agent/tickets/sub/002-root-host.md",
+    project: "RootWorkspace",
+    createdAt: "2026-05-01 10:00:00",
+    status: "open"
+  });
+  const { cwd } = makeTicketWorkspace([rootEntry, scopedEntry]);
+  writeCliTicketFile(cwd, rootEntry);
+  writeCliTicketFile(cwd, scopedEntry);
+
+  const originalLog = console.log;
+  const lines = [];
+  console.log = value => lines.push(String(value));
+  try {
+    await runTicketUse({ cwd, latest: true, project: "DeukPack", submodule: "core", pathOnly: true });
+  } finally {
+    console.log = originalLog;
+    rmSync(cwd, { recursive: true, force: true });
+  }
+
+  assert.deepStrictEqual(lines, [join(cwd, scopedEntry.path)]);
+});
+
+test("runTicketUse does not borrow root workspace tickets when project filter excludes them", async () => {
+  const parent = mkdtempSync(join(tmpdir(), "deuk-ticket-parent-"));
+  const rootEntry = makeEntry({
+    id: "001-shared-topic-root",
+    topic: "shared-topic",
+    title: "root shared topic",
+    fileName: "001-shared-topic-root.md",
+    path: ".deuk-agent/tickets/sub/001-shared-topic-root.md",
+    project: "RootWorkspace",
+    createdAt: "2026-05-01 10:00:00",
+    status: "open"
+  });
+  const childEntry = makeEntry({
+    id: "002-child-other",
+    topic: "child-other",
+    title: "child other",
+    fileName: "002-child-other.md",
+    path: ".deuk-agent/tickets/sub/002-child-other.md",
+    project: "DeukPack",
+    createdAt: "2026-05-01 09:00:00",
+    status: "open"
+  });
+  const root = makeTicketWorkspaceAt(parent, "root", [rootEntry]);
+  const child = makeTicketWorkspaceAt(parent, "root/child", [childEntry]);
+  writeCliTicketFile(root.cwd, rootEntry);
+  writeCliTicketFile(child.cwd, childEntry);
+
+  try {
+    await assert.rejects(
+      () => runTicketUse({ cwd: child.cwd, topic: "shared-topic", project: "DeukPack", nonInteractive: true }),
+      err => {
+        assert.match(err.message, /No matching ticket found for "shared-topic"/);
+        assert.doesNotMatch(err.message, /001-shared-topic-root/);
+        return true;
+      }
+    );
+  } finally {
+    rmSync(parent, { recursive: true, force: true });
+  }
+});
+
+test("runTicketUse skips sibling-root discovery when project scope is explicit", async () => {
+  const parent = mkdtempSync(join(tmpdir(), "deuk-ticket-parent-"));
+  const rootEntry = makeEntry({
+    id: "001-shared-topic-root",
+    topic: "shared-topic",
+    title: "root shared topic",
+    fileName: "001-shared-topic-root.md",
+    path: ".deuk-agent/tickets/sub/001-shared-topic-root.md",
+    project: "RootWorkspace",
+    createdAt: "2026-05-01 10:00:00",
+    status: "open"
+  });
+  const childEntry = makeEntry({
+    id: "002-child-other",
+    topic: "child-other",
+    title: "child other",
+    fileName: "002-child-other.md",
+    path: ".deuk-agent/tickets/sub/002-child-other.md",
+    project: "DeukPack",
+    createdAt: "2026-05-01 09:00:00",
+    status: "open"
+  });
+  const root = makeTicketWorkspaceAt(parent, "root", [rootEntry]);
+  const child = makeTicketWorkspaceAt(parent, "root/child", [childEntry]);
+  writeCliTicketFile(root.cwd, rootEntry);
+  writeCliTicketFile(child.cwd, childEntry);
+
+  try {
+    await assert.rejects(
+      () => runTicketUse({ cwd: child.cwd, topic: "shared-topic", project: "DeukPack", submodule: "core", nonInteractive: true }),
+      err => {
+        assert.match(err.message, /No matching ticket found for "shared-topic"/);
+        assert.doesNotMatch(err.message, /001-shared-topic-root/);
+        return true;
+      }
+    );
+  } finally {
+    rmSync(parent, { recursive: true, force: true });
+  }
+});
+
 test("runTicketNext selects first active/open ticket within submodule filter", async () => {
   const { cwd, ticketDir } = makeTicketWorkspace([
     makeEntry({
@@ -208,6 +351,93 @@ test("runTicketNext selects first active/open ticket within submodule filter", a
   }
 
   assert.deepStrictEqual(lines, [join(ticketDir, "sub", "002-deukpack-open-host.md")]);
+});
+
+test("runTicketNext applies project filter before active fallback", async () => {
+  const { cwd, ticketDir } = makeTicketWorkspace([
+    makeEntry({
+      id: "001-root-active-host",
+      topic: "001-root-active-host",
+      fileName: "001-root-active-host.md",
+      status: "active",
+      project: "RootWorkspace",
+      createdAt: "2026-05-01 08:00:00"
+    }),
+    makeEntry({
+      id: "002-deukpack-open-host",
+      topic: "002-deukpack-open-host",
+      fileName: "002-deukpack-open-host.md",
+      project: "DeukPack",
+      status: "open",
+      createdAt: "2026-05-01 07:00:00"
+    })
+  ]);
+
+  const originalLog = console.log;
+  const lines = [];
+  console.log = value => lines.push(String(value));
+  try {
+    await runTicketNext({ cwd, project: "DeukPack", pathOnly: true });
+  } finally {
+    console.log = originalLog;
+    rmSync(cwd, { recursive: true, force: true });
+  }
+
+  assert.deepStrictEqual(lines, [join(ticketDir, "sub", "002-deukpack-open-host.md")]);
+});
+
+test("runTicketUse compact output is only one clickable ticket-start line", async () => {
+  const entry = makeEntry({
+    id: "001-compact-use-host",
+    topic: "001-compact-use-host",
+    title: "compact use",
+    fileName: "001-compact-use-host.md",
+    path: ".deuk-agent/tickets/sub/001-compact-use-host.md",
+    project: "DeukPack",
+    status: "open"
+  });
+  const { cwd } = makeTicketWorkspace([entry]);
+  writeCliTicketFile(cwd, entry);
+
+  const originalLog = console.log;
+  const lines = [];
+  console.log = value => lines.push(String(value));
+  try {
+    await runTicketUse({ cwd, topic: "001-compact", nonInteractive: true });
+  } finally {
+    console.log = originalLog;
+    rmSync(cwd, { recursive: true, force: true });
+  }
+
+  assert.deepStrictEqual(lines, [`Ticket start: [${entry.id}](${join(cwd, entry.path)})`]);
+  assert.ok(lines.every(line => !/Active ticket|Path:|file:\/\/|Usage|deuk-agent-flow/i.test(line)));
+});
+
+test("runTicketNext compact output is only one clickable ticket-start line", async () => {
+  const entry = makeEntry({
+    id: "001-compact-next-host",
+    topic: "001-compact-next-host",
+    title: "compact next",
+    fileName: "001-compact-next-host.md",
+    path: ".deuk-agent/tickets/sub/001-compact-next-host.md",
+    project: "DeukPack",
+    status: "active"
+  });
+  const { cwd } = makeTicketWorkspace([entry]);
+  writeCliTicketFile(cwd, entry, { status: "active", phase: 2 });
+
+  const originalLog = console.log;
+  const lines = [];
+  console.log = value => lines.push(String(value));
+  try {
+    await runTicketNext({ cwd, project: "DeukPack", nonInteractive: true });
+  } finally {
+    console.log = originalLog;
+    rmSync(cwd, { recursive: true, force: true });
+  }
+
+  assert.deepStrictEqual(lines, [`Ticket start: [${entry.id}](${join(cwd, entry.path)})`]);
+  assert.ok(lines.every(line => !/Next ticket|Path:|file:\/\/|Usage|deuk-agent-flow/i.test(line)));
 });
 
 test("runTicketNext preserves unfiltered active-first behavior", async () => {

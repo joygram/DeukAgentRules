@@ -376,7 +376,7 @@ test("generated agent spoke is a thin bootstrap with clear precedence", () => {
   assert.match(content, /core-rules\/AGENTS\.md` is the DeukAgentFlow SSoT/);
   assert.match(content, /Do not print pointer\/core metadata/);
   assert.match(content, /only the single required ticket-start line, blockers, explicit user-requested output, or explicit command results may appear/i);
-  assert.match(content, /After approval, do not narrate progress unless the user explicitly asks for live narration/i);
+  assert.match(content, /During approved_execution, command_running, or search_running, stay silent unless the user explicitly asks for live narration/i);
 });
 
 test("global codex instructions stay locator-only", () => {

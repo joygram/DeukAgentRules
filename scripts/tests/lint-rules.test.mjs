@@ -12,6 +12,9 @@ test("rules audit includes explicit short-answer override for direct user reques
   const result = auditRules(process.cwd());
   assert.ok(result.ok, result.violations.map((v) => `${v.code}:${v.message}`).join(", "));
   const rulesText = result.path ? String(readFileSync(result.path, "utf8")) : "";
+  assert.match(rulesText, /Commentary surface map/i);
+  assert.match(rulesText, /Running-surface contract/i);
+  assert.match(rulesText, /Shared interrupt contract/i);
   assert.match(rulesText, /When the user complains about verbosity, chatter, progress reports, or over-explaining/i);
   assert.match(rulesText, /Do not switch into meta labeling, terminology lessons, or general explanation/i);
   assert.match(rulesText, /짧게|매우 짧게|한 줄로|간단히/i);
@@ -74,4 +77,24 @@ test("rules audit keeps commit and close requests inside the approved active tic
   assert.match(rulesText, /If the user asks only for commit\/report\/archive\/close/i);
   assert.match(rulesText, /reuse that ticket and continue through Phase 4/i);
   assert.match(rulesText, /create a new ticket only if the user adds new implementation, new investigation, or a broader scope/i);
+});
+
+test("rules audit requires running-surface correction interrupts", () => {
+  const result = auditRules(process.cwd());
+  assert.ok(result.ok, result.violations.map((v) => `${v.code}:${v.message}`).join(", "));
+  const rulesText = result.path ? String(readFileSync(result.path, "utf8")) : "";
+  assert.match(rulesText, /If that correction arrives during `approved_execution`, `command_running`, or `search_running`, treat it as an immediate interrupt/i);
+  assert.match(rulesText, /CLI running-output contract/i);
+  assert.match(rulesText, /must not print narrative labels, usage reminders, `file:\/\/` links, or progress text/i);
+});
+
+test("rules audit blocks shortcut regressions and semantic shrinkage", () => {
+  const result = auditRules(process.cwd());
+  assert.ok(result.ok, result.violations.map((v) => `${v.code}:${v.message}`).join(", "));
+  const rulesText = result.path ? String(readFileSync(result.path, "utf8")) : "";
+  assert.match(rulesText, /Shortcut regression guard/i);
+  assert.match(rulesText, /temporary passes, bypasses, semantic shrinkage, and language-specific patch branches/i);
+  assert.match(rulesText, /Shared-contract guard/i);
+  assert.match(rulesText, /Stop for shortcut regressions/i);
+  assert.match(rulesText, /verification that proves only the workaround instead of the shared contract/i);
 });
