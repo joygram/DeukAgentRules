@@ -191,6 +191,7 @@ export function writeInitConfig(cwd, opts) {
     workflowMode,
     approvalState: workflowMode === WORKFLOW_MODE_EXECUTE ? "approved" : "pending",
     stack: opts.stack ?? existing.stack,
+    kind: opts.kind ?? existing.kind,
     agentTools: opts.agentTools ?? existing.agentTools,
     docsLanguage: normalizeDocsLanguage(opts.docsLanguage ?? existing.docsLanguage ?? "auto"),
     shareTickets: opts.shareTickets ?? existing.shareTickets ?? false,

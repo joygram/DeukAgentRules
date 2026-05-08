@@ -53,6 +53,24 @@ function isAllowedPreApprovalLine(line = "") {
 function validatePreApprovalLines(lines = [], stepIndex = 0) {
   const violations = [];
   const summaryLines = [];
+  const hasTicketStart = lines.some(line => line.startsWith("Ticket start:"));
+  const hasApprovalPending = lines.some(line => line.startsWith("Approval pending:"));
+
+  if (!hasTicketStart) {
+    violations.push({
+      step: stepIndex,
+      code: "pre_approval_missing_ticket_start",
+      detail: lines.join(" | ")
+    });
+  }
+
+  if (!hasApprovalPending) {
+    violations.push({
+      step: stepIndex,
+      code: "pre_approval_missing_approval_pending",
+      detail: lines.join(" | ")
+    });
+  }
 
   for (const line of lines) {
     if (isAllowedPreApprovalLine(line)) continue;
@@ -118,7 +136,7 @@ export function validateCommentaryScenario(scenario = {}, options = {}) {
       continue;
     }
 
-    if (stage === "ticket_start_pending" || stage === "requirement_change_pending" || stage === "requirement_change") {
+    if (stage === "ticket_start_pending" || stage === "approval_pending" || stage === "requirement_change_pending" || stage === "requirement_change") {
       violations.push(...validatePreApprovalLines(lines, index));
       continue;
     }

@@ -72,6 +72,7 @@ export function parseArgs(argv) {
     else if (a === "--approval") out.approval = argv[++i];
     else if (a === "--json") out.json = true;
     else if (a === "--remote") out.remote = argv[++i];
+    else if (a === "--kind") out.kind = argv[++i];
     else if (a === "--sync") out.sync = true;
     else if (a === "--no-sync") out.sync = false;
     else if (a === "--docs-language") out.docsLanguage = argv[++i];

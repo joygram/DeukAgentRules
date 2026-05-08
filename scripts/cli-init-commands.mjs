@@ -114,6 +114,15 @@ export function ensureSourceModeCommandShims(bundleRoot, opts = {}) {
   return { created, skipped, binDir, onPath };
 }
 
+function isSourceKind(value) {
+  return String(value || "").trim().toLowerCase() === "source";
+}
+
+export function shouldEnsureSourceModeCommandShims(opts = {}, savedConfig = {}) {
+  if (opts.sourceShims === false) return false;
+  return isSourceKind(opts.kind) || isSourceKind(opts.sourceKind) || isSourceKind(savedConfig.kind) || isSourceKind(savedConfig.sourceKind);
+}
+
 function wrapManagedBlock(content) {
   return `${MANAGED_BLOCK_BEGIN}\n${String(content || "").trimEnd()}\n${MANAGED_BLOCK_END}`;
 }
@@ -1699,7 +1708,7 @@ export async function runInit(opts, bundleRoot) {
     );
   }
 
-  if (opts.sourceShims !== false) {
+  if (shouldEnsureSourceModeCommandShims(opts, savedConfig)) {
     const sourceShimResult = ensureSourceModeCommandShims(bundleRoot, { dryRun: opts.dryRun });
     if (sourceShimResult.created.length > 0) {
       console.log(`[SOURCE MODE] Installed command shims in ${sourceShimResult.binDir}: ${sourceShimResult.created.join(", ")}`);

@@ -70,6 +70,11 @@ function isTicketPath(repoRoot, absPath) {
   }
 }
 
+function isImplicitUpwardEvidenceLink(target) {
+  const normalized = String(target || "").replace(/\\/g, "/");
+  return normalized.startsWith("../") && !normalized.includes(`${TICKET_DIR_NAME}/`);
+}
+
 function looksLikeYamlFrontmatter(content) {
   if (!(content.startsWith("---\n") || content.startsWith("---\r\n"))) return false;
   const afterOpening = content.replace(/^---\r?\n/, "");
@@ -186,6 +191,8 @@ function lintFile(absPath, repoRoot) {
     }
     const pathOnly = target.split("#")[0].split("?")[0];
     if (!pathOnly) continue;
+    if (isImplicitUpwardEvidenceLink(pathOnly)) continue;
+
     const resolved = join(dirname(absPath), pathOnly);
 
     if (!isTicketPath(repoRoot, resolved)) {
