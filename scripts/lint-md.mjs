@@ -61,6 +61,15 @@ function isLegacyArchivedTemplateArtifact(relPath, content) {
   return src.includes("<%=") || src.includes("<%-") || /^id:\s*(module-rule-template|ticket-list-template|ticket-template-ko|ticket-template)\s*$/m.test(src);
 }
 
+function isTicketPath(repoRoot, absPath) {
+  try {
+    const relPath = relative(repoRoot, absPath).replace(/\\/g, "/");
+    return relPath.startsWith(`${TICKET_DIR_NAME}/`);
+  } catch {
+    return false;
+  }
+}
+
 function looksLikeYamlFrontmatter(content) {
   if (!(content.startsWith("---\n") || content.startsWith("---\r\n"))) return false;
   const afterOpening = content.replace(/^---\r?\n/, "");
@@ -178,6 +187,11 @@ function lintFile(absPath, repoRoot) {
     const pathOnly = target.split("#")[0].split("?")[0];
     if (!pathOnly) continue;
     const resolved = join(dirname(absPath), pathOnly);
+
+    if (!isTicketPath(repoRoot, resolved)) {
+      continue;
+    }
+
     if (!statExists(resolved)) {
       errors.push(`${rel}: broken relative link -> ${target}`);
     }

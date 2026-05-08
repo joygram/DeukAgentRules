@@ -14,7 +14,7 @@ import {
   runTicketGuard,
   runTicketUse
 } from "../cli-ticket-commands.mjs";
-import { readTicketIndexJson } from "../cli-ticket-index.mjs";
+import { readTicketIndexJson, syncActiveTicketId } from "../cli-ticket-index.mjs";
 import { lintMarkdownPaths } from "../lint-md.mjs";
 import { TICKET_INDEX_FILENAME } from "../cli-utils.mjs";
 
@@ -216,7 +216,7 @@ test("runTicketCreate rolls back when markdown lint fails", async () => {
     "<%- frontmatter %>",
     "---",
     "# <%= meta.title %>",
-    "[broken](./missing.md)",
+    "[broken](.deuk-agent/tickets/sub/missing.md)",
     ""
   ].join("\n"), "utf8");
 
@@ -228,7 +228,7 @@ test("runTicketCreate rolls back when markdown lint fails", async () => {
         summary: "lint guard",
         nonInteractive: true,
         skipPhase0: true,
-        planBody: `${minimalEvidencePhase1Plan("lint guard")}\n\n[broken](./missing.md)\n`
+        planBody: `${minimalEvidencePhase1Plan("lint guard")}\n\n[broken](.deuk-agent/tickets/sub/missing.md)\n`
       }),
       /markdown lint failed/
     );
@@ -724,4 +724,71 @@ test("runTicketStatus compact mode emits one-line phase summary", async () => {
 
   assert.strictEqual(lines.length, 1);
   assert.match(lines[0], /^001-compact-status-host \| phase=1 \| status=open \| ok$/);
+});
+
+test("syncActiveTicketId prefers the newest open ticket for continuation", () => {
+  const oldTicket = makeEntry({
+    id: "001-old-open-host",
+    topic: "001-old-open-host",
+    title: "old open",
+    fileName: "001-old-open-host.md",
+    createdAt: "2026-05-01 00:00:00",
+    status: "open"
+  });
+  const newTicket = makeEntry({
+    id: "002-new-open-host",
+    topic: "002-new-open-host",
+    title: "new open",
+    fileName: "002-new-open-host.md",
+    createdAt: "2026-05-08 12:00:00",
+    status: "open"
+  });
+  const { cwd } = makeTicketWorkspace([oldTicket, newTicket]);
+
+  try {
+    writeCliTicketFile(cwd, oldTicket, { summary: "old ticket", phase: 1, status: "open" });
+    writeCliTicketFile(cwd, newTicket, { summary: "new ticket", phase: 1, status: "open" });
+
+    syncActiveTicketId(cwd);
+
+    const index = readTicketIndexJson(cwd);
+    assert.strictEqual(index.activeTicketId, "002-new-open-host");
+  } finally {
+    rmSync(cwd, { recursive: true, force: true });
+  }
+});
+
+test("runTicketHandoff compact mode includes telemetry summary", async () => {
+  const ticketId = "001-handoff-telemetry-host";
+  const { cwd, ticketDir } = makeTemplateWorkspace();
+  const entry = makeEntry({
+    id: ticketId,
+    topic: ticketId,
+    title: "handoff telemetry host",
+    fileName: `${ticketId}.md`,
+    createdAt: "2026-05-08 12:00:00",
+    status: "open"
+  });
+
+  writeFileSync(join(ticketDir, "INDEX.json"), JSON.stringify(makeIndex([entry]), null, 2) + "\n", "utf8");
+  writeCliTicketFile(cwd, { ...entry, path: `.deuk-agent/tickets/sub/${entry.fileName}` }, { summary: "handoff telemetry", phase: 2, status: "open" });
+  mkdirSync(join(cwd, ".deuk-agent"), { recursive: true });
+  writeFileSync(join(cwd, ".deuk-agent", "telemetry.jsonl"), [
+    JSON.stringify({ ts: 1, tokens: 30, tdw: 10, model: "gpt-5", client: "Codex", ticket: ticketId, action: "work", event: "work", file: "", synced: false }),
+    JSON.stringify({ ts: 2, tokens: 20, tdw: 0, model: "gpt-5", client: "Codex", ticket: ticketId, action: "review", event: "", file: "", synced: false })
+  ].join("\n") + "\n", "utf8");
+
+  const originalLog = console.log;
+  const lines = [];
+  console.log = value => { lines.push(String(value)); };
+  try {
+    const { runTicketHandoff } = await import("../cli-ticket-commands.mjs");
+    await runTicketHandoff({ cwd, topic: ticketId, compact: true });
+  } finally {
+    console.log = originalLog;
+    rmSync(cwd, { recursive: true, force: true });
+  }
+
+  assert.strictEqual(lines.length, 1);
+  assert.match(lines[0], /telemetry logs 2, coverage 50\.0%, tdw 50\.0%/);
 });

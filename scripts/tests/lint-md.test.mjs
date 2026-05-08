@@ -89,3 +89,41 @@ test("lintMarkdownPaths treats generated pointer docs as markdown, not YAML fron
     rmSync(cwd, { recursive: true, force: true });
   }
 });
+
+test("lintMarkdownPaths ignores broken non-ticket relative links", () => {
+  const cwd = mkdtempSync(join(tmpdir(), "deuk-lint-nonticket-link-"));
+  try {
+    const rel = ".deuk-agent/docs/notes.md";
+    mkdirSync(join(cwd, ".deuk-agent", "docs"), { recursive: true });
+    writeFileSync(join(cwd, ".deuk-agent", "docs", "notes.md"), [
+      "# Notes",
+      "",
+      "[missing source](./deleted-file.ts)",
+      ""
+    ].join("\n"), "utf8");
+
+    const result = lintMarkdownPaths([rel], cwd);
+    assert.deepStrictEqual(result.errors, []);
+  } finally {
+    rmSync(cwd, { recursive: true, force: true });
+  }
+});
+
+test("lintMarkdownPaths still validates broken ticket-relative links", () => {
+  const cwd = mkdtempSync(join(tmpdir(), "deuk-lint-ticket-link-"));
+  try {
+    const rel = ".deuk-agent/tickets/sub/001-broken-ticket-link.md";
+    mkdirSync(join(cwd, ".deuk-agent", "tickets", "sub"), { recursive: true });
+    writeFileSync(join(cwd, rel), [
+      "# Ticket note",
+      "",
+      "[missing ticket](./missing-ticket.md)",
+      ""
+    ].join("\n"), "utf8");
+
+    const result = lintMarkdownPaths([rel], cwd);
+    assert.ok(result.errors.some(err => err.includes("broken relative link -> ./missing-ticket.md")));
+  } finally {
+    rmSync(cwd, { recursive: true, force: true });
+  }
+});
