@@ -1,8 +1,18 @@
 {
   "version": 1,
-  "updatedAt": "2026-05-08T03:10:28.914Z",
-  "activeTicketId": "343-prune-unnecessary-cli-ticket-tes-joy-nucb",
+  "updatedAt": "2026-05-08T20:40:54.155Z",
+  "activeTicketId": "308-archive-yearmonth-workspace-sync-joy-nucb",
   "entries": [
+    {
+      "id": "344-package-dependency-status-yaml-joy-nucb",
+      "title": "package-dependency-status-yaml",
+      "topic": "package-dependency-status-yaml",
+      "group": "sub",
+      "project": "global",
+      "createdAt": "2026-05-08T12:07:13.462Z",
+      "source": "ticket-create",
+      "status": "open"
+    },
     {
       "id": "341-improve-agent-rules-cli-surface-joy-nucb",
       "title": "improve-agent-rules-cli-surface",
@@ -212,19 +222,6 @@
       "submodule": "",
       "createdAt": "2026-05-07 00:47:10",
       "updatedAt": "2026-05-07T01:29:58.812Z",
-      "source": "ticket-sync",
-      "status": "open"
-    },
-    {
-      "id": "301-projectpilot-skill-cli-registrat-joy-nucb",
-      "title": "projectpilot-skill-cli-registration",
-      "topic": "301-projectpilot-skill-cli-registrat-joy-nucb",
-      "group": "sub",
-      "fileName": "301-projectpilot-skill-cli-registrat-joy-nucb.md",
-      "project": "DeukAgentRules",
-      "submodule": "",
-      "createdAt": "2026-05-07 00:45:34",
-      "updatedAt": "2026-05-07T00:49:14.746Z",
       "source": "ticket-sync",
       "status": "open"
     },
