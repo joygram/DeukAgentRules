@@ -482,7 +482,7 @@ export async function checkUpdateNotifier() {
       // Only notify when registry version is strictly newer than local (handles local dev symlink case)
       if (data.version && semverLt(currentVersion, data.version)) {
         console.warn(`\n\x1b[33m💡 Update available! ${currentVersion} → ${data.version}\x1b[0m`);
-        console.warn(`\x1b[36mRun 'npm install -g deuk-agent-flow', then 'deuk-agent-flow init --workflow execute' from the repo or workspace root.\x1b[0m\n`);
+        console.warn(`\x1b[36mRun 'npm install -g deuk-agent-flow', then 'deuk-agent-flow init' from the repo or workspace root.\x1b[0m\n`);
       }
     }
   } catch(e) {
