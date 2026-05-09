@@ -210,7 +210,8 @@ test("runTicketCreate strict mode rejects scaffold-only compact plan drafts", as
         assert.match(err.message, /plan_body_file_required/);
         assert.match(err.message, /AGENTS\.md self-serve recipe/);
         assert.match(err.message, /do not ask the user, call help, or search for templates/);
-        assert.match(err.message, /Required sections: APC/);
+        assert.match(err.message, /Use these exact H2 headings:/);
+        assert.match(err.message, /Agent Permission Contract \(APC\)/);
         return true;
       }
     );

@@ -64,8 +64,9 @@ changelog: "v70: Compress Compact Kernel into an actionable checklist."
 ### First Ticket Recipe
 Use this recipe directly. Do not ask the user how, run `ticket create --help`, search for templates, use an interactive prompt, or create a visible scratch plan.
 
-1. Fill a real Phase 1 body with these sections: APC (`[BOUNDARY]`, `[CONTRACT]`, `[PATCH PLAN]`), Compact Plan, Problem Analysis, Source Observations, Cause Hypotheses, Improvement Direction, Audit Evidence.
-2. Run this exact stdin command:
+1. Fill a real Phase 1 body with these exact H2 headings: `## Agent Permission Contract (APC)`, `## Compact Plan`, `## Problem Analysis`, `## Source Observations`, `## Cause Hypotheses`, `## Improvement Direction`, `## Audit Evidence`.
+2. Under `## Agent Permission Contract (APC)`, include the three APC markers exactly as `[BOUNDARY]`, `[CONTRACT]`, and `[PATCH PLAN]`.
+3. Run this exact stdin command:
 
 ```bash
 deuk-agent-flow ticket create \

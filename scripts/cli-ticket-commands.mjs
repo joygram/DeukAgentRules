@@ -295,7 +295,8 @@ function buildPlanBodyRequiredMessage(reasons = []) {
     `Missing or incomplete: ${uniqueReasons.join(", ")}`,
     "Use the AGENTS.md self-serve recipe: do not ask the user, call help, or search for templates.",
     "Run with stdin: `deuk-agent-flow ticket create --topic <topic> --summary \"<summary>\" --plan-body-file - --non-interactive`.",
-    "Required sections: APC ([BOUNDARY], [CONTRACT], [PATCH PLAN]), Compact Plan, Problem Analysis, Source Observations, Cause Hypotheses, Improvement Direction, Audit Evidence.",
+    "Use these exact H2 headings: `## Agent Permission Contract (APC)`, `## Compact Plan`, `## Problem Analysis`, `## Source Observations`, `## Cause Hypotheses`, `## Improvement Direction`, `## Audit Evidence`.",
+    "Under `## Agent Permission Contract (APC)`, include `[BOUNDARY]`, `[CONTRACT]`, and `[PATCH PLAN]`.",
     "If a scratch plan-body file is unavoidable, keep it outside the workspace, delete it after create, and never present it as a ticket artifact.",
     "Do not rely on template defaults or auto-generated filler text for Phase 1 ticket content."
   ].join("\n");

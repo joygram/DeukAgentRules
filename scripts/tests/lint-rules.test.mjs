@@ -33,7 +33,7 @@ test("rules audit keeps ticket creation ahead of repo inspection for bug and reg
   assert.ok(compactKernelLineCount <= 10, `Compact Kernel is too long: ${compactKernelLineCount} non-empty lines`);
   assert.match(rulesText, /Use this recipe directly/i);
   assert.match(rulesText, /Do not ask the user how/i);
-  assert.match(rulesText, /run `ticket create --help`/i);
+  assert.match(rulesText, /## Agent Permission Contract \(APC\)/i);
   assert.match(rulesText, /Run this exact stdin command/i);
 });
 
