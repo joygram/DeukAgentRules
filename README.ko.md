@@ -169,6 +169,8 @@ deuk-agent-flow init --workflow execute
 
 여러 DeukAgentFlow 프로젝트를 포함한 루트 워크스페이스라면 그 워크스페이스 루트에서 같은 명령을 실행합니다. `init`은 루트 포인터와 자체 `PROJECT_RULE.md` / `.deuk-agent/` 상태를 가진 하위 워크스페이스를 함께 갱신하므로, 일반 사용자도 새 패키지 버전을 설치한 뒤 자신의 개인 워크스페이스 루트에서 AI agent rule을 갱신할 수 있습니다.
 
+사용하는 AI client 선택은 한 번으로 고정되지 않습니다. 나중에 다른 client를 쓰게 되면 `deuk-agent-flow init --workflow execute`를 다시 실행하고 추가할 AI client를 선택하면 됩니다.
+
 ### 2. 로컬 소스 개발 (메인테이너/파워 유저)
 글로벌 명령은 기본적으로 설치된 패키지를 실행합니다. 다른 프로젝트 디렉터리에서 로컬 checkout 소스를 실행해야 하는 개발자는 명시적으로 로컬 소스 라우팅을 켜야 합니다.
 

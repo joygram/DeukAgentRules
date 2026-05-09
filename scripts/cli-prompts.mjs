@@ -48,7 +48,11 @@ export async function runInteractive(opts) {
 
     const workspaceKind = await selectOne(rl, "What kind of workspace is this?", WORKSPACE_KINDS);
     const stack = await selectOne(rl, "What technical surface should tickets assume?", STACKS);
-    const tools = await selectMany(rl, "Which AI clients should receive thin workflow pointers?", AGENT_TOOLS);
+    const tools = await selectMany(
+      rl,
+      "Which AI clients should receive thin workflow pointers? You can rerun init later to add more.",
+      AGENT_TOOLS
+    );
     const docsLanguage = await selectOne(rl, "What document language should generated tickets/plans use?", DOC_LANGUAGE_CHOICES);
     const workflowMode = opts.workflowMode
       ? normalizeWorkflowMode(opts.workflowMode)

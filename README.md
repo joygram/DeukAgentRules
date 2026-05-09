@@ -149,6 +149,8 @@ For a single repo, run `deuk-agent-flow init --workflow execute` from that repo 
 
 For a root workspace that contains multiple DeukAgentFlow projects, run the same command from the workspace root. `init` updates the root pointer and discovered child workspaces that own their own `PROJECT_RULE.md` / `.deuk-agent/` state, so ordinary users can refresh their AI agent rules from their personal workspace root after installing a new package version.
 
+Agent client pointers are not a one-time decision. If you start using another client later, rerun `deuk-agent-flow init --workflow execute` and select the additional AI client.
+
 This is where the effect compounds: use the workspace root as the shared entry point, each project root as an independent ticket/rule/verification boundary, and nested apps or servers as separate projects only when they have their own lifecycle.
 
 ### 2. Local Source Development (Maintainer/Power User)
