@@ -44,10 +44,10 @@ architecture_docs: "docs/architecture.md"
 
 | Guard | Rule |
 |-------|------|
-| DC-OSS-EDIT | OSS repositories are public release surfaces only. Never edit them directly; make changes in the main workspace source repo and propagate them through the sync script flow. |
+| DC-PUBLIC-EDIT | Public repositories are release surfaces only. Never edit them directly; make changes in the main workspace source repo and propagate them through the public export flow. |
 | DC-LEGACY | No v1/v2 HTML markers (`<!-- deuk-agent-flow:begin -->`). Templates use copy-only distribution. |
-| DC-OSS | `scripts/sync-oss.mjs` controls public distribution. `.internal.` files and `ticket/` dir are auto-excluded. |
-| DC-OSS-NAMING | During OSS sync, treat the OSS repo as the public OSS release surface. Public OSS commit messages must describe the released change itself and must not use `sync` as the main semantic label. Reserve `sync` wording for mechanical tree synchronization only. |
+| DC-PUBLIC | `scripts/sync-oss.mjs` controls public distribution. `.internal.` files and `ticket/` dir are auto-excluded. |
+| DC-PUBLIC-NAMING | During public export, treat the public repository as a release surface. Public commit messages must describe the released feature/fix/docs/release change itself, not the transport step. Do not use `sync` as the main semantic label or subject. |
 
 ## Build & Test
 
@@ -55,7 +55,7 @@ architecture_docs: "docs/architecture.md"
 |--------|---------|
 | Lint rules | `npx deuk-agent-flow lint:md` |
 | Run tests | `node --test scripts/tests/*.test.mjs` |
-| Sync OSS | `node scripts/sync-oss.mjs` |
+| Publish public tree | `node scripts/sync-oss.mjs` |
 
 ## Ticket Guard Reminder
 

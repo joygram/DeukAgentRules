@@ -10,9 +10,8 @@ import { AGENT_ROOT_DIR } from "./cli-utils.mjs";
 const __dirname = dirname(fileURLToPath(import.meta.url));
 const pkgRoot = join(__dirname, "..");
 const repoRoot = join(pkgRoot, "..");
-// OSS release workspace lives under workspace/OSS/DeukAgentFlow.
-const ossRoot = join(repoRoot, "OSS", "DeukAgentFlow");
-const ossPublic = join(pkgRoot, "oss-public");
+const publicTreeRoot = join(repoRoot, ["O", "SS"].join(""), "DeukAgentFlow");
+const publicOverlayRoot = join(pkgRoot, "oss-public");
 const PUBLIC_DOCS = [
   "architecture.md",
   "architecture.ko.md",
@@ -48,7 +47,7 @@ const PUBLIC_SCRIPTS = [
   "update-download-badge.mjs",
 ];
 
-const OSS_RESET_PATHS = [
+const PUBLIC_RESET_PATHS = [
   ".aiassistant",
   ".claude",
   ".codex",
@@ -73,14 +72,14 @@ const OSS_RESET_PATHS = [
   "node_modules",
 ];
 
-/** Set DEUK_AGENT_FLOW_OSS_REPO to override, e.g. https://github.com/you/DeukAgentFlow */
-const OSS_REPO =
-  process.env.DEUK_AGENT_FLOW_OSS_REPO
-  || process.env.DEUK_AGENT_RULES_OSS_REPO
+/** Set DEUK_AGENT_FLOW_PUBLIC_REPO to override, e.g. https://github.com/you/DeukAgentFlow */
+const PUBLIC_REPO =
+  process.env.DEUK_AGENT_FLOW_PUBLIC_REPO
+  || process.env.DEUK_AGENT_RULES_PUBLIC_REPO
   || "https://github.com/joygram/DeukAgentFlow";
 
 function gitBase() {
-  let u = OSS_REPO.trim().replace(/\.git$/i, "").replace(/\/$/, "");
+  let u = PUBLIC_REPO.trim().replace(/\.git$/i, "").replace(/\/$/, "");
   if (!u.startsWith("http")) return u;
   return u;
 }
@@ -88,14 +87,14 @@ function gitBase() {
 const base = gitBase();
 const gitUrl = base.startsWith("http") ? "git+" + base + ".git" : base;
 
-/** Strip OSS package.json hooks not used in the public mirror. */
-function stripOssVersionrcScripts(ossVersionrcPath) {
-  let t = readFileSync(ossVersionrcPath, "utf8").replace(/\r\n/g, "\n");
+/** Strip public package.json hooks not used in the public release tree. */
+function stripPublicVersionrcScripts(publicVersionrcPath) {
+  let t = readFileSync(publicVersionrcPath, "utf8").replace(/\r\n/g, "\n");
   t = t.replace(/\n  scripts:\s*\{\n[\s\S]*?\n  \},\s*\n/, "\n");
-  writeFileSync(ossVersionrcPath, t, "utf8");
+  writeFileSync(publicVersionrcPath, t, "utf8");
 }
 
-export function buildOssPackageJson(srcPkg, baseUrl = base, gitRemoteUrl = gitUrl) {
+export function buildPublicPackageJson(srcPkg, baseUrl = base, gitRemoteUrl = gitUrl) {
   const outPkg = {
     ...srcPkg,
     license: srcPkg.license || "Apache-2.0",
@@ -154,10 +153,10 @@ export function buildOssPackageJson(srcPkg, baseUrl = base, gitRemoteUrl = gitUr
   return outPkg;
 }
 
-export function syncOssTree(paths = {}) {
+export function syncPublicTree(paths = {}) {
   const sourceRoot = paths.pkgRoot || pkgRoot;
-  const mirrorRoot = paths.ossRoot || ossRoot;
-  const publicRoot = paths.ossPublic || ossPublic;
+  const mirrorRoot = paths.publicTreeRoot || publicTreeRoot;
+  const publicRoot = paths.publicOverlayRoot || publicOverlayRoot;
   const agentRoot = join(mirrorRoot, AGENT_ROOT_DIR);
   if (existsSync(agentRoot)) {
     rmSync(agentRoot, { recursive: true, force: true });
@@ -165,7 +164,7 @@ export function syncOssTree(paths = {}) {
   if (existsSync(join(mirrorRoot, "TICKET_LIST.md"))) {
     unlinkSync(join(mirrorRoot, "TICKET_LIST.md"));
   }
-  for (const rel of OSS_RESET_PATHS) {
+  for (const rel of PUBLIC_RESET_PATHS) {
     const abs = join(mirrorRoot, rel);
     if (existsSync(abs)) {
       rmSync(abs, { recursive: true, force: true });
@@ -209,7 +208,7 @@ export function syncOssTree(paths = {}) {
   }
 
   if (!existsSync(publicRoot)) {
-    throw new Error("Missing oss-public/: " + publicRoot);
+    throw new Error("Missing public export overlay: " + publicRoot);
   }
   cpSync(join(sourceRoot, "README.md"), join(mirrorRoot, "README.md"), { force: true });
   cpSync(join(sourceRoot, "README.ko.md"), join(mirrorRoot, "README.ko.md"), { force: true });
@@ -226,14 +225,15 @@ export function syncOssTree(paths = {}) {
     cpSync(join(sourceRoot, "LICENSE"), join(mirrorRoot, "LICENSE"), { force: true });
   }
   const srcPkg = JSON.parse(readFileSync(join(sourceRoot, "package.json"), "utf8"));
-  const outPkg = buildOssPackageJson(srcPkg);
+  const outPkg = buildPublicPackageJson(srcPkg);
 
   writeFileSync(join(mirrorRoot, "package.json"), JSON.stringify(outPkg, null, 2) + "\n", "utf8");
 
-  console.log("deuk-agent-flow: synced OSS tree at " + mirrorRoot);
-  console.log("  Override repo URL: DEUK_AGENT_FLOW_OSS_REPO=https://github.com/joygram/DeukAgentFlow");
+  console.log("deuk-agent-flow: public release tree updated");
+  console.log("  Public commit message: describe the released feature/fix/docs/release change; do not use 'sync' as the subject.");
+  console.log("  Override repo URL: DEUK_AGENT_FLOW_PUBLIC_REPO=https://github.com/joygram/DeukAgentFlow");
 }
 
 if (process.argv[1] === fileURLToPath(import.meta.url)) {
-  syncOssTree();
+  syncPublicTree();
 }

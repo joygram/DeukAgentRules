@@ -3,9 +3,9 @@ import assert from "node:assert";
 import { mkdtempSync, mkdirSync, readFileSync, rmSync, writeFileSync } from "node:fs";
 import { join } from "node:path";
 import { tmpdir } from "node:os";
-import { buildOssPackageJson, syncOssTree } from "../sync-oss.mjs";
+import { buildPublicPackageJson, syncPublicTree } from "../sync-oss.mjs";
 
-test("OSS mirror package payload stays public-only and excludes telemetry internals", () => {
+test("public tree package payload stays public-only and excludes telemetry internals", () => {
   const srcPkg = {
     name: "deuk-agent-rule",
     version: "3.3.0",
@@ -22,7 +22,7 @@ test("OSS mirror package payload stays public-only and excludes telemetry intern
     }
   };
 
-  const outPkg = buildOssPackageJson(srcPkg, "https://github.com/joygram/DeukAgentFlow", "git+https://github.com/joygram/DeukAgentFlow.git");
+  const outPkg = buildPublicPackageJson(srcPkg, "https://github.com/joygram/DeukAgentFlow", "git+https://github.com/joygram/DeukAgentFlow.git");
 
   assert.strictEqual(outPkg.license, "Apache-2.0");
   assert.strictEqual(outPkg.repository.url, "git+https://github.com/joygram/DeukAgentFlow.git");
@@ -77,11 +77,11 @@ test("OSS mirror package payload stays public-only and excludes telemetry intern
   assert.ok(!JSON.stringify(outPkg).includes("telemetry.jsonl"));
 });
 
-test("syncOssTree removes stale OSS scripts before copying current sources", () => {
-  const tempRoot = mkdtempSync(join(tmpdir(), "deuk-sync-oss-"));
+test("syncPublicTree removes stale public scripts before copying current sources", () => {
+  const tempRoot = mkdtempSync(join(tmpdir(), "deuk-public-export-"));
   const srcRoot = join(tempRoot, "src");
-  const ossRoot = join(tempRoot, "oss");
-  const ossPublic = join(srcRoot, "oss-public");
+  const publicTreeRoot = join(tempRoot, "public");
+  const publicOverlayRoot = join(srcRoot, "public-export");
 
   try {
     mkdirSync(join(srcRoot, "templates"), { recursive: true });
@@ -92,10 +92,10 @@ test("syncOssTree removes stale OSS scripts before copying current sources", () 
     mkdirSync(join(srcRoot, "docs", "assets"), { recursive: true });
     mkdirSync(join(srcRoot, ".github"), { recursive: true });
     mkdirSync(join(srcRoot, "scripts"), { recursive: true });
-    mkdirSync(ossPublic, { recursive: true });
-    mkdirSync(join(ossRoot, "scripts"), { recursive: true });
-    mkdirSync(join(ossRoot, "node_modules"), { recursive: true });
-    mkdirSync(join(ossRoot, "bundle"), { recursive: true });
+    mkdirSync(publicOverlayRoot, { recursive: true });
+    mkdirSync(join(publicTreeRoot, "scripts"), { recursive: true });
+    mkdirSync(join(publicTreeRoot, "node_modules"), { recursive: true });
+    mkdirSync(join(publicTreeRoot, "bundle"), { recursive: true });
 
     writeFileSync(join(srcRoot, "README.md"), "src readme\n");
     writeFileSync(join(srcRoot, "README.ko.md"), "src ko readme\n");
@@ -122,20 +122,62 @@ test("syncOssTree removes stale OSS scripts before copying current sources", () 
     writeFileSync(join(srcRoot, "docs", "principles.ko.md"), "principles ko\n");
     writeFileSync(join(srcRoot, "docs", "usage-guide.ko.md"), "usage ko\n");
 
-    writeFileSync(join(ossRoot, "scripts", "cli-ticket-logic.mjs"), "stale\n");
-    writeFileSync(join(ossRoot, "deuk-agent-flow-1.2.2.tgz"), "stale package\n");
-    writeFileSync(join(ossRoot, "node_modules", "stale.txt"), "stale deps\n");
-    writeFileSync(join(ossRoot, "bundle", "stale.txt"), "stale bundle\n");
+    writeFileSync(join(publicTreeRoot, "scripts", "cli-ticket-logic.mjs"), "stale\n");
+    writeFileSync(join(publicTreeRoot, "deuk-agent-flow-1.2.2.tgz"), "stale package\n");
+    writeFileSync(join(publicTreeRoot, "node_modules", "stale.txt"), "stale deps\n");
+    writeFileSync(join(publicTreeRoot, "bundle", "stale.txt"), "stale bundle\n");
 
-    syncOssTree({ pkgRoot: srcRoot, ossRoot, ossPublic });
+    syncPublicTree({ pkgRoot: srcRoot, publicTreeRoot, publicOverlayRoot });
 
-    assert.strictEqual(readFileSync(join(ossRoot, "scripts", "cli.mjs"), "utf8"), "export const cli = true;\n");
-    assert.throws(() => readFileSync(join(ossRoot, "scripts", "cli-ticket-logic.mjs"), "utf8"));
-    assert.throws(() => readFileSync(join(ossRoot, "scripts", "sync-oss.mjs"), "utf8"));
-    assert.throws(() => readFileSync(join(ossRoot, "deuk-agent-flow-1.2.2.tgz"), "utf8"));
-    assert.throws(() => readFileSync(join(ossRoot, "node_modules", "stale.txt"), "utf8"));
-    assert.throws(() => readFileSync(join(ossRoot, "bundle", "stale.txt"), "utf8"));
+    assert.strictEqual(readFileSync(join(publicTreeRoot, "scripts", "cli.mjs"), "utf8"), "export const cli = true;\n");
+    assert.throws(() => readFileSync(join(publicTreeRoot, "scripts", "cli-ticket-logic.mjs"), "utf8"));
+    assert.throws(() => readFileSync(join(publicTreeRoot, "scripts", "sync-oss.mjs"), "utf8"));
+    assert.throws(() => readFileSync(join(publicTreeRoot, "deuk-agent-flow-1.2.2.tgz"), "utf8"));
+    assert.throws(() => readFileSync(join(publicTreeRoot, "node_modules", "stale.txt"), "utf8"));
+    assert.throws(() => readFileSync(join(publicTreeRoot, "bundle", "stale.txt"), "utf8"));
   } finally {
+    rmSync(tempRoot, { recursive: true, force: true });
+  }
+});
+
+test("syncPublicTree reminds maintainers to use semantic public commit messages", () => {
+  const tempRoot = mkdtempSync(join(tmpdir(), "deuk-public-message-"));
+  const srcRoot = join(tempRoot, "src");
+  const publicTreeRoot = join(tempRoot, "public");
+  const publicOverlayRoot = join(srcRoot, "public-export");
+  const originalLog = console.log;
+  const logs = [];
+
+  try {
+    console.log = (msg = "") => logs.push(String(msg));
+    mkdirSync(join(srcRoot, "templates"), { recursive: true });
+    mkdirSync(join(srcRoot, "bin"), { recursive: true });
+    mkdirSync(join(srcRoot, "core-rules"), { recursive: true });
+    mkdirSync(join(srcRoot, "packages", "deuk-agent-rule"), { recursive: true });
+    mkdirSync(join(srcRoot, "docs", "assets"), { recursive: true });
+    mkdirSync(join(srcRoot, ".github"), { recursive: true });
+    mkdirSync(join(srcRoot, "scripts"), { recursive: true });
+    mkdirSync(publicOverlayRoot, { recursive: true });
+
+    writeFileSync(join(srcRoot, "README.md"), "src readme\n");
+    writeFileSync(join(srcRoot, "README.ko.md"), "src ko readme\n");
+    writeFileSync(join(srcRoot, "LICENSE"), "license\n");
+    writeFileSync(join(srcRoot, "package.json"), JSON.stringify({ name: "deuk-agent-flow", version: "1.2.3" }, null, 2));
+    writeFileSync(join(srcRoot, "scripts", "cli.mjs"), "export const cli = true;\n");
+    writeFileSync(join(srcRoot, "scripts", "cli-utils.mjs"), "export const AGENT_ROOT_DIR = '.deuk-agent';\n");
+    writeFileSync(join(srcRoot, "bin", "deuk-agent-flow.js"), "#!/usr/bin/env node\n");
+    writeFileSync(join(srcRoot, "core-rules", "AGENTS.md"), "core rules\n");
+    writeFileSync(join(srcRoot, ".github", "copilot-instructions.md"), "copilot\n");
+    for (const doc of ["architecture.md", "architecture.ko.md", "how-it-works.md", "how-it-works.ko.md", "principles.md", "principles.ko.md", "usage-guide.ko.md"]) {
+      writeFileSync(join(srcRoot, "docs", doc), doc + "\n");
+    }
+
+    syncPublicTree({ pkgRoot: srcRoot, publicTreeRoot, publicOverlayRoot });
+
+    assert.ok(logs.some(line => /Public commit message: describe the released feature\/fix\/docs\/release change/i.test(line)));
+    assert.ok(logs.some(line => /do not use 'sync' as the subject/i.test(line)));
+  } finally {
+    console.log = originalLog;
     rmSync(tempRoot, { recursive: true, force: true });
   }
 });
