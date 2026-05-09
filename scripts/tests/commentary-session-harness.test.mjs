@@ -93,6 +93,29 @@ test("command and search running surfaces reuse the same narration ban", () => {
   assert.deepEqual(searchResult.violations.map(v => v.code), ["execution_narration_forbidden"]);
 });
 
+test("external progress pressure still allows only one-word TDW status", () => {
+  const okResult = validateCommentaryScenario(
+    {
+      steps: [
+        { stage: "command_running", output: "verify" }
+      ]
+    },
+    { model: "gpt-5.5", externalProgressRequired: true }
+  );
+  const badResult = validateCommentaryScenario(
+    {
+      steps: [
+        { stage: "command_running", output: "명령은 계속 진행 중이고 곧 결과를 확인하겠습니다." }
+      ]
+    },
+    { model: "gpt-5.5", externalProgressRequired: true }
+  );
+
+  assert.equal(okResult.ok, true);
+  assert.equal(badResult.ok, false);
+  assert.deepEqual(badResult.violations.map(v => v.code), ["execution_narration_forbidden"]);
+});
+
 test("requirement change returns to approval-pending contract instead of execution chatter", () => {
   const result = validateCommentaryScenario(
     {
