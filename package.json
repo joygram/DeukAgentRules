@@ -1,6 +1,6 @@
 {
   "name": "deuk-agent-flow",
-  "version": "4.0.35",
+  "version": "4.0.36",
   "description": "Keep AI coding work from vanishing between chats: repo-owned tickets, scope, verification, and memory for AGENTS.md-powered agents.",
   "keywords": [
     "agents-md",
@@ -40,6 +40,7 @@
     "docs/npm-publish-guide.ko.md",
     "docs/usage-guide.ko.md",
     "docs/assets/**/*",
+    "NOTICE.md",
     "templates/**/*",
     "scripts/cli.mjs",
     "scripts/cli-args.mjs",

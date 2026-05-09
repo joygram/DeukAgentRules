@@ -13,6 +13,7 @@ import {
 } from "../cli-utils.mjs";
 import { generateTicketId, computeNextTicketNumber } from "../cli-ticket-index.mjs";
 import { parseArgs, parseSkillArgs, parseTelemetryArgs, parseTicketArgs, parseUsageArgs } from "../cli-args.mjs";
+import { inferInitDefaults } from "../cli-prompts.mjs";
 
 test("cli-utils.mjs - normalizeWorkflowMode", (t) => {
   assert.strictEqual(normalizeWorkflowMode(undefined), WORKFLOW_MODE_PLAN, "default is plan");
@@ -26,6 +27,30 @@ test("cli-utils.mjs - normalizeWorkflowMode", (t) => {
   assert.strictEqual(normalizeWorkflowMode("pending"), WORKFLOW_MODE_PLAN, "pending maps to plan");
   assert.strictEqual(normalizeWorkflowMode("review"), WORKFLOW_MODE_PLAN, "review maps to plan");
   assert.strictEqual(normalizeWorkflowMode("unknown-val"), WORKFLOW_MODE_PLAN, "unknown fallback to plan");
+});
+
+test("cli-prompts.mjs - interactive init defaults are inferred without extra setup choices", () => {
+  const dir = mkdtempSync(join(tmpdir(), "deuk-init-defaults-"));
+  try {
+    mkdirSync(join(dir, ".codex"), { recursive: true });
+    writeFileSync(join(dir, "package.json"), JSON.stringify({
+      dependencies: {
+        vite: "^5.0.0",
+        react: "^18.0.0"
+      }
+    }, null, 2), "utf8");
+
+    const defaults = inferInitDefaults(dir, {});
+
+    assert.strictEqual(defaults.stack, "web");
+    assert.deepStrictEqual(defaults.agentTools, ["codex"]);
+    assert.strictEqual(defaults.workflowMode, WORKFLOW_MODE_EXECUTE);
+    assert.strictEqual(defaults.shareTickets, false);
+    assert.strictEqual(defaults.contextMcp, "skip");
+    assert.strictEqual(defaults.remoteSync, false);
+  } finally {
+    rmSync(dir, { recursive: true, force: true });
+  }
 });
 
 test("parseTicketArgs preserves explicit workflow approval for ticket lifecycle commands", () => {
