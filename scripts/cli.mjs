@@ -145,7 +145,7 @@ async function handleInit(opts, saved) {
   if (opts.clean && !opts.dryRun) {
     console.log(`[CLEAN] Removing runtime template copies, legacy templates, and config...`);
     const templatesDir = join(opts.cwd, LEGACY_TEMPLATE_DIR);
-    const runtimeTemplatesDir = join(opts.cwd, ".deuk-agent", "templates");
+    const runtimeTemplatesDir = join(opts.cwd, AGENT_ROOT_DIR, "templates");
     const configFile = join(opts.cwd, LEGACY_CONFIG_FILE);
     if (existsSync(templatesDir)) rmSync(templatesDir, { recursive: true, force: true });
     if (existsSync(runtimeTemplatesDir)) rmSync(runtimeTemplatesDir, { recursive: true, force: true });

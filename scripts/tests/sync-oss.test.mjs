@@ -30,9 +30,7 @@ test("OSS mirror package payload stays public-only and excludes telemetry intern
   assert.strictEqual(outPkg.homepage, "https://github.com/joygram/DeukAgentFlow#readme");
   assert.ok(!Object.prototype.hasOwnProperty.call(outPkg, "private"));
   assert.ok(!Object.prototype.hasOwnProperty.call(outPkg, "devDependencies"));
-  assert.deepStrictEqual(outPkg.scripts, {
-    test: "node --test scripts/tests/*.test.mjs"
-  });
+  assert.deepStrictEqual(outPkg.scripts, {});
   assert.deepStrictEqual(outPkg.files, [
     "LICENSE",
     "bin/**/*",
@@ -96,6 +94,8 @@ test("syncOssTree removes stale OSS scripts before copying current sources", () 
     mkdirSync(join(srcRoot, "scripts"), { recursive: true });
     mkdirSync(ossPublic, { recursive: true });
     mkdirSync(join(ossRoot, "scripts"), { recursive: true });
+    mkdirSync(join(ossRoot, "node_modules"), { recursive: true });
+    mkdirSync(join(ossRoot, "bundle"), { recursive: true });
 
     writeFileSync(join(srcRoot, "README.md"), "src readme\n");
     writeFileSync(join(srcRoot, "README.ko.md"), "src ko readme\n");
@@ -109,6 +109,7 @@ test("syncOssTree removes stale OSS scripts before copying current sources", () 
     }, null, 2));
     writeFileSync(join(srcRoot, "scripts", "cli.mjs"), "export const cli = true;\n");
     writeFileSync(join(srcRoot, "scripts", "cli-utils.mjs"), "export const AGENT_ROOT_DIR = '.deuk-agent';\n");
+    writeFileSync(join(srcRoot, "scripts", "sync-oss.mjs"), "internal sync\n");
     writeFileSync(join(srcRoot, "bin", "deuk-agent-flow.js"), "#!/usr/bin/env node\n");
     writeFileSync(join(srcRoot, "core-rules", "AGENTS.md"), "core rules\n");
     writeFileSync(join(srcRoot, ".github", "copilot-instructions.md"), "copilot\n");
@@ -122,11 +123,18 @@ test("syncOssTree removes stale OSS scripts before copying current sources", () 
     writeFileSync(join(srcRoot, "docs", "usage-guide.ko.md"), "usage ko\n");
 
     writeFileSync(join(ossRoot, "scripts", "cli-ticket-logic.mjs"), "stale\n");
+    writeFileSync(join(ossRoot, "deuk-agent-flow-1.2.2.tgz"), "stale package\n");
+    writeFileSync(join(ossRoot, "node_modules", "stale.txt"), "stale deps\n");
+    writeFileSync(join(ossRoot, "bundle", "stale.txt"), "stale bundle\n");
 
     syncOssTree({ pkgRoot: srcRoot, ossRoot, ossPublic });
 
     assert.strictEqual(readFileSync(join(ossRoot, "scripts", "cli.mjs"), "utf8"), "export const cli = true;\n");
     assert.throws(() => readFileSync(join(ossRoot, "scripts", "cli-ticket-logic.mjs"), "utf8"));
+    assert.throws(() => readFileSync(join(ossRoot, "scripts", "sync-oss.mjs"), "utf8"));
+    assert.throws(() => readFileSync(join(ossRoot, "deuk-agent-flow-1.2.2.tgz"), "utf8"));
+    assert.throws(() => readFileSync(join(ossRoot, "node_modules", "stale.txt"), "utf8"));
+    assert.throws(() => readFileSync(join(ossRoot, "bundle", "stale.txt"), "utf8"));
   } finally {
     rmSync(tempRoot, { recursive: true, force: true });
   }

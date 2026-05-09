@@ -2,7 +2,7 @@
  * Populates ../DeukAgentFlow for the public GitHub repo.
  * Run: cd deuk-agent-flow && npm run sync:oss
  */
-import { cpSync, existsSync, mkdirSync, readFileSync, unlinkSync, writeFileSync, rmSync } from "fs";
+import { cpSync, existsSync, mkdirSync, readFileSync, readdirSync, unlinkSync, writeFileSync, rmSync } from "fs";
 import { dirname, join } from "path";
 import { fileURLToPath } from "url";
 import { AGENT_ROOT_DIR } from "./cli-utils.mjs";
@@ -21,6 +21,31 @@ const PUBLIC_DOCS = [
   "principles.md",
   "principles.ko.md",
   "usage-guide.ko.md",
+];
+
+const PUBLIC_SCRIPTS = [
+  "cli.mjs",
+  "cli-args.mjs",
+  "cli-usage-commands.mjs",
+  "cli-init-commands.mjs",
+  "cli-init-logic.mjs",
+  "cli-prompts.mjs",
+  "cli-rule-compiler.mjs",
+  "cli-skill-commands.mjs",
+  "cli-telemetry-commands.mjs",
+  "cli-ticket-commands.mjs",
+  "cli-ticket-index.mjs",
+  "cli-ticket-migration.mjs",
+  "cli-ticket-parser.mjs",
+  "cli-utils.mjs",
+  "lint-md.mjs",
+  "lint-rules.mjs",
+  "merge-logic.mjs",
+  "plan-parser.mjs",
+  "publish-dual-npm.mjs",
+  "smoke-npm-local.mjs",
+  "smoke-npm-docker.mjs",
+  "update-download-badge.mjs",
 ];
 
 const OSS_RESET_PATHS = [
@@ -44,6 +69,8 @@ const OSS_RESET_PATHS = [
   "GITHUB_DESCRIPTION.md",
   "publish",
   "scripts",
+  "bundle",
+  "node_modules",
 ];
 
 /** Set DEUK_AGENT_FLOW_OSS_REPO to override, e.g. https://github.com/you/DeukAgentFlow */
@@ -95,28 +122,7 @@ export function buildOssPackageJson(srcPkg, baseUrl = base, gitRemoteUrl = gitUr
       "docs/usage-guide.ko.md",
       "docs/assets/**/*",
       "templates/**/*",
-      "scripts/cli.mjs",
-      "scripts/cli-args.mjs",
-      "scripts/cli-usage-commands.mjs",
-      "scripts/cli-init-commands.mjs",
-      "scripts/cli-init-logic.mjs",
-      "scripts/cli-prompts.mjs",
-      "scripts/cli-rule-compiler.mjs",
-      "scripts/cli-skill-commands.mjs",
-      "scripts/cli-telemetry-commands.mjs",
-      "scripts/cli-ticket-commands.mjs",
-      "scripts/cli-ticket-index.mjs",
-      "scripts/cli-ticket-migration.mjs",
-      "scripts/cli-ticket-parser.mjs",
-      "scripts/cli-utils.mjs",
-      "scripts/lint-md.mjs",
-      "scripts/lint-rules.mjs",
-      "scripts/merge-logic.mjs",
-      "scripts/plan-parser.mjs",
-      "scripts/publish-dual-npm.mjs",
-      "scripts/smoke-npm-local.mjs",
-      "scripts/smoke-npm-docker.mjs",
-      "scripts/update-download-badge.mjs",
+      ...PUBLIC_SCRIPTS.map((script) => "scripts/" + script),
       "README.md",
       "README.ko.md",
       "CHANGELOG.md",
@@ -141,6 +147,10 @@ export function buildOssPackageJson(srcPkg, baseUrl = base, gitRemoteUrl = gitUr
     }
   }
   delete outPkg.devDependencies;
+  if (outPkg.scripts && outPkg.scripts.test) {
+    const { test: _drop, ...rest } = outPkg.scripts;
+    outPkg.scripts = rest;
+  }
   return outPkg;
 }
 
@@ -159,6 +169,13 @@ export function syncOssTree(paths = {}) {
     const abs = join(mirrorRoot, rel);
     if (existsSync(abs)) {
       rmSync(abs, { recursive: true, force: true });
+    }
+  }
+  if (existsSync(mirrorRoot)) {
+    for (const ent of readdirSync(mirrorRoot)) {
+      if (/\.tgz$/i.test(ent)) {
+        rmSync(join(mirrorRoot, ent), { recursive: true, force: true });
+      }
     }
   }
   mkdirSync(join(mirrorRoot, "scripts"), { recursive: true });
@@ -184,7 +201,12 @@ export function syncOssTree(paths = {}) {
     mkdirSync(join(mirrorRoot, ".github"), { recursive: true });
     cpSync(copilotInstructions, join(mirrorRoot, ".github", "copilot-instructions.md"), { force: true });
   }
-  cpSync(join(sourceRoot, "scripts"), join(mirrorRoot, "scripts"), { recursive: true, force: true });
+  for (const script of PUBLIC_SCRIPTS) {
+    const src = join(sourceRoot, "scripts", script);
+    if (existsSync(src)) {
+      cpSync(src, join(mirrorRoot, "scripts", script), { force: true });
+    }
+  }
 
   if (!existsSync(publicRoot)) {
     throw new Error("Missing oss-public/: " + publicRoot);
@@ -208,10 +230,6 @@ export function syncOssTree(paths = {}) {
 
   writeFileSync(join(mirrorRoot, "package.json"), JSON.stringify(outPkg, null, 2) + "\n", "utf8");
 
-  const ossPolish = join(mirrorRoot, "scripts", "changelog-polish.mjs");
-  if (existsSync(ossPolish)) {
-    unlinkSync(ossPolish);
-  }
   console.log("deuk-agent-flow: synced OSS tree at " + mirrorRoot);
   console.log("  Override repo URL: DEUK_AGENT_FLOW_OSS_REPO=https://github.com/joygram/DeukAgentFlow");
 }
