@@ -77,6 +77,28 @@ test("public tree package payload stays public-only and excludes telemetry inter
   assert.ok(!JSON.stringify(outPkg).includes("telemetry.jsonl"));
 });
 
+test("public package publish scripts skip source-only tests", () => {
+  const srcPkg = {
+    name: "deuk-agent-flow",
+    version: "4.0.35",
+    scripts: {
+      publish: "node scripts/publish-dual-npm.mjs",
+      "publish:dry": "node scripts/publish-dual-npm.mjs --dry-run",
+      "publish:bootstrap": "node scripts/publish-dual-npm.mjs --alias-only",
+      "publish:bootstrap:dry": "node scripts/publish-dual-npm.mjs --alias-only --dry-run",
+      test: "node --test scripts/tests/*.test.mjs"
+    }
+  };
+
+  const outPkg = buildPublicPackageJson(srcPkg);
+
+  assert.strictEqual(outPkg.scripts.publish, "node scripts/publish-dual-npm.mjs --skip-tests");
+  assert.strictEqual(outPkg.scripts["publish:dry"], "node scripts/publish-dual-npm.mjs --dry-run --skip-tests");
+  assert.strictEqual(outPkg.scripts["publish:bootstrap"], "node scripts/publish-dual-npm.mjs --alias-only --skip-tests");
+  assert.strictEqual(outPkg.scripts["publish:bootstrap:dry"], "node scripts/publish-dual-npm.mjs --alias-only --dry-run --skip-tests");
+  assert.ok(!Object.prototype.hasOwnProperty.call(outPkg.scripts, "test"));
+});
+
 test("syncPublicTree removes stale public scripts before copying current sources", () => {
   const tempRoot = mkdtempSync(join(tmpdir(), "deuk-public-export-"));
   const srcRoot = join(tempRoot, "src");

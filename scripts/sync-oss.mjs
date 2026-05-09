@@ -94,6 +94,11 @@ function stripPublicVersionrcScripts(publicVersionrcPath) {
   writeFileSync(publicVersionrcPath, t, "utf8");
 }
 
+function withSkipTests(command) {
+  if (!command || command.includes("--skip-tests")) return command;
+  return command + " --skip-tests";
+}
+
 export function buildPublicPackageJson(srcPkg, baseUrl = base, gitRemoteUrl = gitUrl) {
   const outPkg = {
     ...srcPkg,
@@ -149,6 +154,11 @@ export function buildPublicPackageJson(srcPkg, baseUrl = base, gitRemoteUrl = gi
   if (outPkg.scripts && outPkg.scripts.test) {
     const { test: _drop, ...rest } = outPkg.scripts;
     outPkg.scripts = rest;
+  }
+  for (const key of ["publish", "publish:dry", "publish:bootstrap", "publish:bootstrap:dry"]) {
+    if (outPkg.scripts && outPkg.scripts[key]) {
+      outPkg.scripts[key] = withSkipTests(outPkg.scripts[key]);
+    }
   }
   return outPkg;
 }

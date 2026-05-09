@@ -1,7 +1,18 @@
 {
   "version": 1,
-  "updatedAt": "2026-05-09T01:49:44.552Z",
+  "updatedAt": "2026-05-09T02:47:10.372Z",
+  "activeTicketId": "308-archive-yearmonth-workspace-sync-joy-nucb",
   "entries": [
+    {
+      "id": "354-public-release-publish-script-fi-joy-nucb",
+      "title": "public-release-publish-script-fix",
+      "topic": "public-release-publish-script-fix",
+      "group": "sub",
+      "project": "global",
+      "createdAt": "2026-05-09T02:47:10.368Z",
+      "source": "ticket-create",
+      "status": "open"
+    },
     {
       "id": "353-rule-based-ticket-create-check-3-joy-nucb",
       "title": "rule-based-ticket-create-check-3",
@@ -249,6 +260,5 @@
       "source": "ticket-sync",
       "status": "active"
     }
-  ],
-  "activeTicketId": "308-archive-yearmonth-workspace-sync-joy-nucb"
+  ]
 }
