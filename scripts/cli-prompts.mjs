@@ -57,18 +57,7 @@ export function inferInitDefaults(cwd, opts = {}) {
     || (packageJson ? "backend" : null)
     || "none";
 
-  const tools = AGENT_TOOLS
-    .filter((tool) => {
-      if (tool.value === "codex") return hasAny(cwd, [".codex"]);
-      if (tool.value === "copilot") return hasAny(cwd, [".github"]);
-      if (tool.value === "claude") return hasAny(cwd, [".claude", "CLAUDE.md"]);
-      if (tool.value === "cursor") return hasAny(cwd, [".cursor", ".cursorrules"]);
-      if (tool.value === "gemini") return hasAny(cwd, [".gemini", "GEMINI.md", ".mcp.json"]);
-      if (tool.value === "windsurf") return hasAny(cwd, [".windsurf", ".windsurfrules"]);
-      if (tool.value === "jetbrains") return hasAny(cwd, [".aiassistant", ".idea"]);
-      return false;
-    })
-    .map((tool) => tool.value);
+  const tools = AGENT_TOOLS.map((tool) => tool.value);
 
   return {
     stack,
@@ -118,7 +107,7 @@ export async function runInteractive(opts) {
 
     console.log("\n  Workspace Kind: " + workspaceKind);
     console.log("  Technical Surface: " + opts.stack);
-    console.log("  AI Clients: " + (opts.agentTools.join(", ") || "auto/root pointer"));
+    console.log("  AI Clients: " + (opts.agentTools.join(", ") || "all supported clients"));
     console.log("  Docs Language: " + opts.docsLanguage);
     console.log("  Workflow Mode: " + opts.workflowMode);
     console.log("  Share Tickets: " + (opts.shareTickets ? "Yes (Shared)" : "No (Private)"));

@@ -43,7 +43,15 @@ test("cli-prompts.mjs - interactive init defaults are inferred without extra set
     const defaults = inferInitDefaults(dir, {});
 
     assert.strictEqual(defaults.stack, "web");
-    assert.deepStrictEqual(defaults.agentTools, ["codex"]);
+    assert.deepStrictEqual(defaults.agentTools, [
+      "codex",
+      "copilot",
+      "claude",
+      "cursor",
+      "gemini",
+      "windsurf",
+      "jetbrains"
+    ]);
     assert.strictEqual(defaults.workflowMode, WORKFLOW_MODE_EXECUTE);
     assert.strictEqual(defaults.shareTickets, false);
     assert.strictEqual(defaults.contextMcp, "skip");
