@@ -3,7 +3,7 @@ import assert from "node:assert";
 import { existsSync, lstatSync, mkdtempSync, mkdirSync, readFileSync, readdirSync, rmSync, writeFileSync } from "node:fs";
 import { tmpdir } from "node:os";
 import { join } from "node:path";
-import { buildGlobalCodexInstructions, canonicalizeDocsArchiveBuckets, enforceCanonicalAgentLayout, ensureSourceModeCommandShims, generateSpokeContent, mergeManagedRuleContent, migrateLegacyStructure, runInit } from "../cli-init-commands.mjs";
+import { buildGlobalCodexInstructions, canonicalizeDocsArchiveBuckets, enforceCanonicalAgentLayout, ensureSourceModeCommandShims, generateSpokeContent, mergeManagedRuleContent, migrateLegacyStructure, runInit, runMerge } from "../cli-init-commands.mjs";
 
 test("source mode creates installed-command shims when CLI commands are not on PATH", () => {
   const root = mkdtempSync(join(tmpdir(), "deuk-source-mode-"));
@@ -54,6 +54,55 @@ test("source mode skips shim creation when installed command already exists on P
     assert.ok(existsSync(join(shimBin, "deuk-agent-rule")));
   } finally {
     rmSync(root, { recursive: true, force: true });
+  }
+});
+
+test("runMerge removes runtime template copies and keeps package templates as SSoT", () => {
+  const cwd = mkdtempSync(join(tmpdir(), "deuk-merge-templates-"));
+  try {
+    mkdirSync(join(cwd, ".deuk-agent", "templates", "legacy"), { recursive: true });
+    mkdirSync(join(cwd, ".deuk-agent-templates"), { recursive: true });
+    writeFileSync(join(cwd, ".deuk-agent", "templates", "legacy", "ticket-template.md"), "# legacy\n", "utf8");
+    writeFileSync(join(cwd, ".deuk-agent-templates", "TICKET_TEMPLATE.md"), "# legacy\n", "utf8");
+
+    runMerge({
+      cwd,
+      dryRun: false,
+      workflow: "execute",
+      approval: "approved"
+    }, "/home/joy/workspace/DeukAgentFlow");
+
+    assert.ok(!existsSync(join(cwd, ".deuk-agent", "templates")));
+    assert.ok(!existsSync(join(cwd, ".deuk-agent-templates")));
+    assert.ok(existsSync(join("/home/joy/workspace/DeukAgentFlow", "templates", "TICKET_TEMPLATE.md")));
+  } finally {
+    rmSync(cwd, { recursive: true, force: true });
+  }
+});
+
+test("runInit removes runtime and legacy template folders", async () => {
+  const cwd = mkdtempSync(join(tmpdir(), "deuk-init-template-cleanup-"));
+  try {
+    mkdirSync(join(cwd, ".deuk-agent", "templates"), { recursive: true });
+    mkdirSync(join(cwd, ".deuk-agent-templates"), { recursive: true });
+    writeFileSync(join(cwd, ".deuk-agent", "templates", "TICKET_TEMPLATE.md"), "# stale runtime template\n", "utf8");
+    writeFileSync(join(cwd, ".deuk-agent-templates", "TICKET_TEMPLATE.md"), "# stale legacy template\n", "utf8");
+
+    await runInit({
+      cwd,
+      dryRun: false,
+      nonInteractive: true,
+      workflow: "execute",
+      approval: "approved",
+      agents: "skip",
+      sourceShims: false
+    }, "/home/joy/workspace/DeukAgentFlow");
+
+    assert.ok(!existsSync(join(cwd, ".deuk-agent", "templates")));
+    assert.ok(!existsSync(join(cwd, ".deuk-agent-templates")));
+    assert.ok(existsSync(join(cwd, "PROJECT_RULE.md")));
+  } finally {
+    rmSync(cwd, { recursive: true, force: true });
   }
 });
 
@@ -773,7 +822,7 @@ test("init enforces canonical docs knowledge tickets layout", () => {
     assert.ok(existsSync(join(cwd, ".deuk-agent", "tickets", "sub", "201-open.md")));
     assert.ok(existsSync(join(cwd, ".deuk-agent", "skills", "safe-refactor", "SKILL.md")));
     assert.ok(existsSync(join(cwd, ".deuk-agent", "skill-templates", "context-recall", "SKILL.md")));
-    assert.ok(existsSync(join(cwd, ".deuk-agent", "templates", "PROJECT_RULE.md")));
+    assert.ok(!existsSync(join(cwd, ".deuk-agent", "templates")));
     assert.ok(existsSync(join(cwd, ".deuk-agent", "knowledge", "legacy-distilled.json")), "legacy distilled knowledge should remain knowledge");
     assert.ok(!existsSync(join(cwd, ".deuk-agent", "legacy")));
     assert.ok(!existsSync(join(cwd, ".deuk-agent", "notes")));

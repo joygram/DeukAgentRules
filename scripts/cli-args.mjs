@@ -73,7 +73,9 @@ export function parseArgs(argv) {
     else if (a === "--approval") out.approval = argv[++i];
     else if (a === "--json") out.json = true;
     else if (a === "--remote") out.remote = argv[++i];
-    else if (a === "--kind") out.kind = argv[++i];
+    else if (a === "--kind" || a === "--workspace-kind") out.workspaceKind = argv[++i];
+    else if (a === "--stack" || a === "--technical-surface") out.stack = argv[++i];
+    else if (a === "--context-mcp") out.contextMcp = argv[++i];
     else if (a === "--sync") out.sync = true;
     else if (a === "--no-sync") out.sync = false;
     else if (a === "--docs-language") out.docsLanguage = argv[++i];

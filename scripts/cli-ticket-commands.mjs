@@ -202,6 +202,22 @@ function parseMarkdownH2Sections(content) {
   return sections;
 }
 
+const PHASE1_HEADING_ALIASES = new Map([
+  ["apc", "Agent Permission Contract (APC)"],
+  ["agent permission contract", "Agent Permission Contract (APC)"],
+  ["agent permission contract (apc)", "Agent Permission Contract (APC)"],
+  ...REQUIRED_PHASE1_DATA_SECTIONS.map(section => [section.toLowerCase(), section])
+]);
+
+function normalizePhase1PlanBodyHeadings(body) {
+  return String(body || "").split("\n").map((line) => {
+    const match = line.match(/^\s{0,3}#{1,6}\s+(.+?)\s*#*\s*$/);
+    if (!match) return line;
+    const normalized = PHASE1_HEADING_ALIASES.get(match[1].trim().toLowerCase());
+    return normalized ? `## ${normalized}` : line;
+  }).join("\n");
+}
+
 function buildClaimCoverageSummary(claimTerms, sectionText) {
   const haystack = String(sectionText || "").toLowerCase();
   const normalized = haystack.replace(/\s+/g, " ");
@@ -1190,7 +1206,7 @@ export async function runTicketCreate(opts) {
     let finalTopic = topic;
     
     if (typeof opts.planBody === "string" && opts.planBody.trim()) {
-      parsedPlan = parsePlan("inline-plan-body.md", opts.planBody);
+      parsedPlan = parsePlan("inline-plan-body.md", normalizePhase1PlanBodyHeadings(opts.planBody));
 
       finalTitle = opts.topic || parsedPlan.title || title;
       finalTopic = requireNonEmptySlug(finalTitle, "ticket topic");

@@ -45,22 +45,6 @@ function isPlanReport(relPath) {
   return relPath.includes(`${AGENT_ROOT_DIR}/docs/plan/`) && relPath.endsWith("-report.md");
 }
 
-const LEGACY_ARCHIVED_TEMPLATE_NAMES = new Set([
-  "module-rule-template.md",
-  "ticket-list-template.md",
-  "ticket-template-ko.md",
-  "ticket-template.md"
-]);
-
-function isLegacyArchivedTemplateArtifact(relPath, content) {
-  const normalized = relPath.replace(/\\/g, "/");
-  if (!normalized.includes(`${TICKET_DIR_NAME}/archive/`)) return false;
-  if (!LEGACY_ARCHIVED_TEMPLATE_NAMES.has(normalized.split("/").pop())) return false;
-
-  const src = String(content || "");
-  return src.includes("<%=") || src.includes("<%-") || /^id:\s*(module-rule-template|ticket-list-template|ticket-template-ko|ticket-template)\s*$/m.test(src);
-}
-
 function isTicketPath(repoRoot, absPath) {
   try {
     const relPath = relative(repoRoot, absPath).replace(/\\/g, "/");
@@ -131,10 +115,6 @@ function lintFile(absPath, repoRoot) {
   const rel = relative(repoRoot, absPath);
   const content = readFileSync(absPath, "utf8");
   const errors = [];
-
-  if (isLegacyArchivedTemplateArtifact(rel, content)) {
-    return errors;
-  }
 
   const lines = content.split(/\r?\n/);
   lines.forEach((line, idx) => {

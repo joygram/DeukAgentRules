@@ -1,66 +1,70 @@
 {
   "version": 1,
-  "updatedAt": "2026-05-08T23:19:29.952Z",
-  "activeTicketId": "308-archive-yearmonth-workspace-sync-joy-nucb",
+  "updatedAt": "2026-05-09T01:49:44.552Z",
   "entries": [
+    {
+      "id": "353-rule-based-ticket-create-check-3-joy-nucb",
+      "title": "rule-based-ticket-create-check-3",
+      "topic": "353-rule-based-ticket-create-check-3-joy-nucb",
+      "group": "sub",
+      "fileName": "353-rule-based-ticket-create-check-3-joy-nucb.md",
+      "project": "global",
+      "submodule": "",
+      "createdAt": "2026-05-09 01:31:29",
+      "updatedAt": "2026-05-09T01:31:29.284Z",
+      "source": "ticket-sync",
+      "status": "open"
+    },
+    {
+      "id": "352-rule-based-ticket-create-check-2-joy-nucb",
+      "title": "rule-based-ticket-create-check-2",
+      "topic": "352-rule-based-ticket-create-check-2-joy-nucb",
+      "group": "sub",
+      "fileName": "352-rule-based-ticket-create-check-2-joy-nucb.md",
+      "project": "global",
+      "submodule": "",
+      "createdAt": "2026-05-09 01:29:31",
+      "updatedAt": "2026-05-09T01:29:31.499Z",
+      "source": "ticket-sync",
+      "status": "open"
+    },
     {
       "id": "351-claude-ticket-create-issue-agent-joy-nucb",
       "title": "claude-ticket-create-issue-agent-flow",
-      "topic": "claude-ticket-create-issue-agent-flow",
+      "topic": "351-claude-ticket-create-issue-agent-joy-nucb",
       "group": "sub",
+      "fileName": "351-claude-ticket-create-issue-agent-joy-nucb.md",
       "project": "global",
-      "createdAt": "2026-05-08T23:19:29.949Z",
-      "source": "ticket-create",
+      "submodule": "",
+      "createdAt": "2026-05-08 23:19:29",
+      "updatedAt": "2026-05-09T01:27:11.845Z",
+      "source": "ticket-sync",
       "status": "open"
     },
     {
       "id": "350-commentary-silent-work-unificati-joy-nucb",
       "title": "commentary-silent-work-unification",
-      "topic": "commentary-silent-work-unification",
+      "topic": "350-commentary-silent-work-unificati-joy-nucb",
       "group": "sub",
+      "fileName": "350-commentary-silent-work-unificati-joy-nucb.md",
       "project": "global",
-      "createdAt": "2026-05-08T20:49:30.343Z",
-      "source": "ticket-create",
+      "submodule": "",
+      "createdAt": "2026-05-08 20:49:30",
+      "updatedAt": "2026-05-08T20:52:03.703Z",
+      "source": "ticket-sync",
       "status": "open"
     },
     {
       "id": "344-package-dependency-status-yaml-joy-nucb",
       "title": "package-dependency-status-yaml",
-      "topic": "package-dependency-status-yaml",
+      "topic": "344-package-dependency-status-yaml-joy-nucb",
       "group": "sub",
+      "fileName": "344-package-dependency-status-yaml-joy-nucb.md",
       "project": "global",
-      "createdAt": "2026-05-08T12:07:13.462Z",
-      "source": "ticket-create",
-      "status": "open"
-    },
-    {
-      "id": "341-improve-agent-rules-cli-surface-joy-nucb",
-      "title": "improve-agent-rules-cli-surface",
-      "topic": "improve-agent-rules-cli-surface",
-      "group": "sub",
-      "project": "global",
-      "createdAt": "2026-05-08T00:18:38.579Z",
-      "source": "ticket-create",
-      "status": "open"
-    },
-    {
-      "id": "340-rank-approval-guard-joy-nucb",
-      "title": "rank-approval-guard",
-      "topic": "rank-approval-guard",
-      "group": "sub",
-      "project": "global",
-      "createdAt": "2026-05-07T20:29:21.589Z",
-      "source": "ticket-create",
-      "status": "open"
-    },
-    {
-      "id": "339-ticket-delete-cli-joy-nucb",
-      "title": "ticket-delete-cli",
-      "topic": "ticket-delete-cli",
-      "group": "sub",
-      "project": "global",
-      "createdAt": "2026-05-07T20:25:05.166Z",
-      "source": "ticket-create",
+      "submodule": "",
+      "createdAt": "2026-05-08 12:07:13",
+      "updatedAt": "2026-05-08T12:27:02.655Z",
+      "source": "ticket-sync",
       "status": "open"
     },
     {
@@ -77,6 +81,32 @@
       "status": "open"
     },
     {
+      "id": "340-rank-approval-guard-joy-nucb",
+      "title": "rank-approval-guard",
+      "topic": "340-rank-approval-guard-joy-nucb",
+      "group": "sub",
+      "fileName": "340-rank-approval-guard-joy-nucb.md",
+      "project": "global",
+      "submodule": "",
+      "createdAt": "2026-05-07 20:29:21",
+      "updatedAt": "2026-05-07T20:33:09.270Z",
+      "source": "ticket-sync",
+      "status": "open"
+    },
+    {
+      "id": "339-ticket-delete-cli-joy-nucb",
+      "title": "ticket-delete-cli",
+      "topic": "339-ticket-delete-cli-joy-nucb",
+      "group": "sub",
+      "fileName": "339-ticket-delete-cli-joy-nucb.md",
+      "project": "global",
+      "submodule": "",
+      "createdAt": "2026-05-07 20:25:05",
+      "updatedAt": "2026-05-07T20:25:05.132Z",
+      "source": "ticket-sync",
+      "status": "open"
+    },
+    {
       "id": "332-fix-ticket-command-prefix-joy-nucb",
       "title": "fix-ticket-command-prefix",
       "topic": "332-fix-ticket-command-prefix-joy-nucb",
@@ -85,7 +115,7 @@
       "project": "global",
       "submodule": "",
       "createdAt": "2026-05-07 13:59:06",
-      "updatedAt": "2026-05-07T14:11:52.666Z",
+      "updatedAt": "2026-05-07T14:13:32.676Z",
       "source": "ticket-sync",
       "status": "open"
     },
@@ -194,19 +224,6 @@
       "status": "open"
     },
     {
-      "id": "312-packaging-install-failure-all-pl-joy-nucb",
-      "title": "packaging-install-failure-all-platforms",
-      "topic": "312-packaging-install-failure-all-pl-joy-nucb",
-      "group": "sub",
-      "fileName": "312-packaging-install-failure-all-pl-joy-nucb.md",
-      "project": "global",
-      "submodule": "",
-      "createdAt": "2026-05-07 09:29:36",
-      "updatedAt": "2026-05-07T09:29:36.734Z",
-      "source": "ticket-sync",
-      "status": "open"
-    },
-    {
       "id": "308-archive-yearmonth-workspace-sync-joy-nucb",
       "title": "archive-yearmonth-workspace-sync",
       "topic": "308-archive-yearmonth-workspace-sync-joy-nucb",
@@ -218,19 +235,6 @@
       "updatedAt": "2026-05-07T05:53:51.320Z",
       "source": "ticket-sync",
       "status": "active"
-    },
-    {
-      "id": "303-vscode-dashboard-cli-integration-joy-nucb",
-      "title": "vscode-dashboard-cli-integration-extension",
-      "topic": "303-vscode-dashboard-cli-integration-joy-nucb",
-      "group": "sub",
-      "fileName": "303-vscode-dashboard-cli-integration-joy-nucb.md",
-      "project": "DeukAgentRules",
-      "submodule": "",
-      "createdAt": "2026-05-07 01:01:45",
-      "updatedAt": "2026-05-07T01:01:45.428Z",
-      "source": "ticket-sync",
-      "status": "open"
     },
     {
       "id": "297-codex-usage-budget-advisor-joy-nucb",
@@ -245,5 +249,6 @@
       "source": "ticket-sync",
       "status": "active"
     }
-  ]
+  ],
+  "activeTicketId": "308-archive-yearmonth-workspace-sync-joy-nucb"
 }

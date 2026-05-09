@@ -262,7 +262,7 @@ test("runTicketCreate rolls back when markdown lint fails", async () => {
   }
 });
 
-test("markdown lint ignores legacy archived ticket template artifacts", () => {
+test("markdown lint rejects legacy archived ticket template artifacts", () => {
   const { cwd } = makeTemplateWorkspace();
   const legacyDir = join(cwd, ".deuk-agent", "tickets", "archive", "sub", "2026-05", "05");
   mkdirSync(legacyDir, { recursive: true });
@@ -282,7 +282,8 @@ test("markdown lint ignores legacy archived ticket template artifacts", () => {
 
   try {
     const result = lintMarkdownPaths([legacyPath], cwd);
-    assert.deepStrictEqual(result.errors, []);
+    assert.ok(result.errors.length > 0);
+    assert.match(result.errors.join("\n"), /broken relative link/);
   } finally {
     rmSync(cwd, { recursive: true, force: true });
   }
@@ -316,6 +317,61 @@ test("runTicketCreate prints compact clickable ticket start and approval state",
   } finally {
     console.log = originalLog;
     console.warn = originalWarn;
+    rmSync(cwd, { recursive: true, force: true });
+  }
+});
+
+test("runTicketCreate normalizes phase1 heading levels before strict validation", async () => {
+  const { cwd } = makeTemplateWorkspace();
+  const originalLog = console.log;
+  console.log = () => {};
+
+  try {
+    await runTicketCreate({
+      cwd,
+      topic: "heading-normalization",
+      summary: "validate phase1 heading normalization",
+      nonInteractive: true,
+      skipPhase0: true,
+      planBody: [
+        "# phase1 ticket",
+        "",
+        "# APC",
+        "[BOUNDARY]",
+        "- Change only the ticket lifecycle behavior under test.",
+        "[CONTRACT]",
+        "- Keep ticket validation aligned with the runtime contract.",
+        "[PATCH PLAN]",
+        "- Use the smallest ticket fixture that exercises the requested guard.",
+        "",
+        "# Compact Plan",
+        "- Finding: the ticket owns a single lifecycle contract.",
+        "",
+        "# Problem Analysis",
+        "- The lifecycle command must enforce the intended ticket contract.",
+        "",
+        "# Source Observations",
+        "- `scripts/cli-ticket-commands.mjs` owns the command behavior.",
+        "",
+        "# Cause Hypotheses",
+        "- The lifecycle path can drift when guard logic is not exercised directly.",
+        "",
+        "# Improvement Direction",
+        "- Keep one durable test per important lifecycle contract.",
+        "",
+        "# Audit Evidence",
+        "- The compact lifecycle suite verifies this behavior."
+      ].join("\n")
+    });
+
+    const entry = readTicketIndexJson(cwd).entries.find(item => item.topic === "heading-normalization");
+    assert.ok(entry, "ticket index entry exists");
+    const content = readFileSync(join(cwd, entry.path), "utf8");
+    assert.match(content, /^## Agent Permission Contract \(APC\)$/m);
+    assert.match(content, /^## Compact Plan$/m);
+    assert.doesNotMatch(content, /^# APC$/m);
+  } finally {
+    console.log = originalLog;
     rmSync(cwd, { recursive: true, force: true });
   }
 });

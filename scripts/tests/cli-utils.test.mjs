@@ -371,6 +371,17 @@ test("cli-args.mjs - parseArgs supports compact rule audit output", () => {
   assert.strictEqual(opts.compact, true);
 });
 
+test("cli-args.mjs - parseArgs supports init workspace profile inputs", () => {
+  const opts = parseArgs([
+    "--workspace-kind", "planning",
+    "--stack", "none",
+    "--context-mcp", "later"
+  ]);
+  assert.strictEqual(opts.workspaceKind, "planning");
+  assert.strictEqual(opts.stack, "none");
+  assert.strictEqual(opts.contextMcp, "later");
+});
+
 test("cli-args.mjs - parseUsageArgs supports usage inputs", () => {
   const opts = parseUsageArgs([
     "--cwd", "/tmp/demo",

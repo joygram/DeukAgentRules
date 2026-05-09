@@ -1,6 +1,6 @@
 ---
-version: 70
-changelog: "v70: Compress Compact Kernel into an actionable checklist."
+version: 71
+changelog: "v71: Make ticket template canonical and allow CLI heading normalization for one-shot create."
 ---
 
 # Agent Rules
@@ -64,8 +64,8 @@ changelog: "v70: Compress Compact Kernel into an actionable checklist."
 ### First Ticket Recipe
 Use this recipe directly. Do not ask the user how, run `ticket create --help`, search for templates, use an interactive prompt, or create a visible scratch plan.
 
-1. Fill a real Phase 1 body with these exact H2 headings: `## Agent Permission Contract (APC)`, `## Compact Plan`, `## Problem Analysis`, `## Source Observations`, `## Cause Hypotheses`, `## Improvement Direction`, `## Audit Evidence`.
-2. Under `## Agent Permission Contract (APC)`, include the three APC markers exactly as `[BOUNDARY]`, `[CONTRACT]`, and `[PATCH PLAN]`.
+1. Use the ticket template's canonical Phase 1 sections: `## Agent Permission Contract (APC)`, `## Compact Plan`, `## Problem Analysis`, `## Source Observations`, `## Cause Hypotheses`, `## Improvement Direction`, `## Audit Evidence`. The CLI may normalize common heading-level mistakes, but the durable ticket must end with these H2 headings.
+2. Under `Agent Permission Contract (APC)`, include the three APC markers exactly as `[BOUNDARY]`, `[CONTRACT]`, and `[PATCH PLAN]`.
 3. Run this exact stdin command:
 
 ```bash
