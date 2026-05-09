@@ -3,7 +3,7 @@ import assert from "node:assert";
 import { existsSync, lstatSync, mkdtempSync, mkdirSync, readFileSync, readdirSync, rmSync, writeFileSync } from "node:fs";
 import { tmpdir } from "node:os";
 import { join } from "node:path";
-import { buildGlobalCodexInstructions, canonicalizeDocsArchiveBuckets, enforceCanonicalAgentLayout, ensureSourceModeCommandShims, generateSpokeContent, mergeManagedRuleContent, migrateLegacyStructure, runInit, runMerge } from "../cli-init-commands.mjs";
+import { buildGlobalCodexInstructions, canonicalizeDocsArchiveBuckets, enforceCanonicalAgentLayout, ensureSourceModeCommandShims, formatInitCompletionMessage, generateSpokeContent, mergeManagedRuleContent, migrateLegacyStructure, runInit, runMerge } from "../cli-init-commands.mjs";
 
 test("source mode creates installed-command shims when CLI commands are not on PATH", () => {
   const root = mkdtempSync(join(tmpdir(), "deuk-source-mode-"));
@@ -104,6 +104,17 @@ test("runInit removes runtime and legacy template folders", async () => {
   } finally {
     rmSync(cwd, { recursive: true, force: true });
   }
+});
+
+test("formatInitCompletionMessage restores visible completion feedback after init", () => {
+  assert.strictEqual(
+    formatInitCompletionMessage("/tmp/demo-repo", false),
+    "[DONE] Init complete for demo-repo. Rules and pointers are ready. `이슈분석 티켓`이라고 해보세요."
+  );
+  assert.strictEqual(
+    formatInitCompletionMessage("/tmp/demo-repo", true),
+    "[DONE] Dry-run complete for demo-repo. Rules and pointers are ready. `이슈분석 티켓`이라고 해보세요."
+  );
 });
 
 test("runInit replaces broken DeukAgentRules AGENTS pointer with DeukAgentFlow canonical pointer", async () => {
