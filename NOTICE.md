@@ -9,3 +9,7 @@ The Deuk AgentContext MCP choice is hidden during first setup. MCP remains an op
 This hotfix also avoids the post-choice stall that could leave setup incomplete after the user answered an init prompt.
 
 Ticket creation/use surfaces must keep the clickable `Ticket start` line visible before asking for approval. Approval-only replies are treated as a hidden-ticket regression.
+
+## v4.0.37 init completion feedback
+
+Successful `init` now ends with a visible completion line and a short first-use prompt guide so terminal-first installs do not appear to finish silently.
