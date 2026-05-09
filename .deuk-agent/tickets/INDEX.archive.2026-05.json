@@ -1,8 +1,22 @@
 {
   "version": 1,
-  "updatedAt": "2026-05-08T20:49:30.347Z",
+  "updatedAt": "2026-05-08T23:19:29.952Z",
   "activeTicketId": null,
   "entries": [
+    {
+      "id": "302-deukagentflow-migration-executio-joy-nucb",
+      "title": "DeukAgentFlow migration execution",
+      "topic": "302-deukagentflow-migration-executio-joy-nucb",
+      "group": "sub",
+      "fileName": "302-deukagentflow-migration-executio-joy-nucb.md",
+      "project": "global",
+      "submodule": "",
+      "createdAt": "2026-05-07 00:47:10",
+      "updatedAt": "2026-05-08T23:19:29.985Z",
+      "source": "ticket-sync",
+      "status": "archived",
+      "archiveYearMonth": "2026-05"
+    },
     {
       "id": "349-version-bump-chain-consistency-joy-nucb",
       "title": "version-bump-chain-consistency",

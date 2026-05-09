@@ -28,6 +28,13 @@ test("rules audit keeps ticket creation ahead of repo inspection for bug and reg
   assert.match(rulesText, /do not run repo inspection commands/i);
   assert.match(rulesText, /deuk-agent-flow ticket create` or `deuk-agent-flow ticket use/i);
   assert.match(rulesText, /Do not start with `git status`, `rg`, `find`, diffs, or broad help output/i);
+  const compactKernel = rulesText.match(/^## Compact Kernel\n[\s\S]*?(?=^## )/m)?.[0] || "";
+  const compactKernelLineCount = compactKernel.split(/\r?\n/).filter(line => line.trim()).length;
+  assert.ok(compactKernelLineCount <= 10, `Compact Kernel is too long: ${compactKernelLineCount} non-empty lines`);
+  assert.match(rulesText, /Use this recipe directly/i);
+  assert.match(rulesText, /Do not ask the user how/i);
+  assert.match(rulesText, /run `ticket create --help`/i);
+  assert.match(rulesText, /Run this exact stdin command/i);
 });
 
 test("rules audit requires explicit approval before ticket guard context preflight", () => {

@@ -1,8 +1,18 @@
 {
   "version": 1,
-  "updatedAt": "2026-05-08T20:49:30.347Z",
+  "updatedAt": "2026-05-08T23:19:29.952Z",
   "activeTicketId": "308-archive-yearmonth-workspace-sync-joy-nucb",
   "entries": [
+    {
+      "id": "351-claude-ticket-create-issue-agent-joy-nucb",
+      "title": "claude-ticket-create-issue-agent-flow",
+      "topic": "claude-ticket-create-issue-agent-flow",
+      "group": "sub",
+      "project": "global",
+      "createdAt": "2026-05-08T23:19:29.949Z",
+      "source": "ticket-create",
+      "status": "open"
+    },
     {
       "id": "350-commentary-silent-work-unificati-joy-nucb",
       "title": "commentary-silent-work-unification",
@@ -219,19 +229,6 @@
       "submodule": "",
       "createdAt": "2026-05-07 01:01:45",
       "updatedAt": "2026-05-07T01:01:45.428Z",
-      "source": "ticket-sync",
-      "status": "open"
-    },
-    {
-      "id": "302-deukagentflow-migration-executio-joy-nucb",
-      "title": "DeukAgentFlow migration execution",
-      "topic": "302-deukagentflow-migration-executio-joy-nucb",
-      "group": "sub",
-      "fileName": "302-deukagentflow-migration-executio-joy-nucb.md",
-      "project": "global",
-      "submodule": "",
-      "createdAt": "2026-05-07 00:47:10",
-      "updatedAt": "2026-05-07T01:29:58.812Z",
       "source": "ticket-sync",
       "status": "open"
     },

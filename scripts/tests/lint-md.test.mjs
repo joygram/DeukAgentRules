@@ -96,6 +96,12 @@ test("lintMarkdownPaths ignores broken non-ticket relative links", () => {
     const rel = ".deuk-agent/docs/notes.md";
     mkdirSync(join(cwd, ".deuk-agent", "docs"), { recursive: true });
     writeFileSync(join(cwd, ".deuk-agent", "docs", "notes.md"), [
+      "---",
+      "summary: Non-ticket link fixture",
+      "status: active",
+      "priority: P2",
+      "tags: []",
+      "---",
       "# Notes",
       "",
       "[missing source](./deleted-file.ts)",

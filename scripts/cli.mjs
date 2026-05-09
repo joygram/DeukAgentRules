@@ -28,6 +28,10 @@ async function main() {
   if (sub === "ticket") {
     const action = rest[0];
     const opts = parseTicketArgs(rest.slice(1));
+    if (!action || action === "-h" || action === "--help" || action === "help" || opts.help) {
+      printHelp();
+      return;
+    }
     if (action === "create") await runTicketCreate(opts);
     else if (action === "list") await runTicketList(opts);
     else if (action === "use") await runTicketUse(opts);

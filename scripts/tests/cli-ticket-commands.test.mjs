@@ -4,6 +4,7 @@ import { spawnSync } from "node:child_process";
 import { existsSync, mkdtempSync, mkdirSync, readFileSync, readdirSync, rmSync, writeFileSync } from "node:fs";
 import { tmpdir } from "node:os";
 import { dirname, join } from "node:path";
+import { fileURLToPath } from "node:url";
 import {
   pickTicketEntry,
   runTicketArchive,
@@ -78,6 +79,18 @@ function makeTicketWorkspace(entries) {
   writeFileSync(join(ticketDir, TICKET_INDEX_FILENAME), JSON.stringify(makeIndex(entries), null, 2) + "\n", "utf8");
   return { cwd, ticketDir };
 }
+
+test("ticket action help exits before create validation", () => {
+  const repoRoot = dirname(dirname(dirname(fileURLToPath(import.meta.url))));
+  const result = spawnSync(process.execPath, ["scripts/cli.mjs", "ticket", "create", "--help"], {
+    cwd: repoRoot,
+    encoding: "utf8"
+  });
+
+  assert.equal(result.status, 0);
+  assert.match(result.stdout, /DeukAgentFlow CLI/);
+  assert.doesNotMatch(result.stderr + result.stdout, /ticket create requires a filled Phase 1 plan body/);
+});
 
 function makeTemplateWorkspace() {
   const { cwd, ticketDir } = makeTicketWorkspace([]);
@@ -195,6 +208,9 @@ test("runTicketCreate strict mode rejects scaffold-only compact plan drafts", as
       err => {
         assert.match(err.message, /ticket create requires a filled Phase 1 plan body/);
         assert.match(err.message, /plan_body_file_required/);
+        assert.match(err.message, /AGENTS\.md self-serve recipe/);
+        assert.match(err.message, /do not ask the user, call help, or search for templates/);
+        assert.match(err.message, /Required sections: APC/);
         return true;
       }
     );
@@ -291,8 +307,8 @@ test("runTicketCreate prints compact clickable ticket start and approval state",
       requireFilled: true
     });
 
-    assert.ok(lines.some(line => /^Ticket created: /.test(line)));
-    assert.ok(lines.some(line => /^Ticket start: \[001-create-needs-approval-.*\]\(\/.*\.md\)$/.test(line)));
+    assert.ok(!lines.some(line => /^Ticket created: /.test(line)));
+    assert.match(lines[0], /^Ticket start: \[001-create-needs-approval-.*\]\(\/.*\.md\)$/);
     assert.ok(lines.includes("조용히 작업"));
     assert.ok(!lines.some(line => line.startsWith("Approval pending:")));
     assert.ok(lines.some(line => /^Guard topic: 001-create-needs-approval-/.test(line)));

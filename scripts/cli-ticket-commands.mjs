@@ -293,7 +293,9 @@ function buildPlanBodyRequiredMessage(reasons = []) {
   return [
     "[VALIDATION FAILED] ticket create requires a filled Phase 1 plan body with actual data.",
     `Missing or incomplete: ${uniqueReasons.join(", ")}`,
-    "Use the one-shot flow: collect real observations first, pass a filled body with `--plan-body-file -`, then run `ticket create` once.",
+    "Use the AGENTS.md self-serve recipe: do not ask the user, call help, or search for templates.",
+    "Run with stdin: `deuk-agent-flow ticket create --topic <topic> --summary \"<summary>\" --plan-body-file - --non-interactive`.",
+    "Required sections: APC ([BOUNDARY], [CONTRACT], [PATCH PLAN]), Compact Plan, Problem Analysis, Source Observations, Cause Hypotheses, Improvement Direction, Audit Evidence.",
     "If a scratch plan-body file is unavoidable, keep it outside the workspace, delete it after create, and never present it as a ticket artifact.",
     "Do not rely on template defaults or auto-generated filler text for Phase 1 ticket content."
   ].join("\n");
@@ -1384,7 +1386,9 @@ export async function runTicketCreate(opts) {
       }
     }
 
-    console.log(`${opts.dryRun ? "Ticket would be created" : "Ticket created"}: ${toFileUri(abs)}`);
+    if (!isCompactTicketOutput(opts)) {
+      console.log(`${opts.dryRun ? "Ticket would be created" : "Ticket created"}: ${toFileUri(abs)}`);
+    }
     printTicketStartLine(ticketId, abs);
     if (!opts.dryRun) {
       printCreateApprovalGate(ticketId, opts, summary);

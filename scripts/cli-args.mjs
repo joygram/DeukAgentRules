@@ -48,6 +48,7 @@ export function parseTicketArgs(argv) {
     else if (a === "--allow-placeholder") out.allowPlaceholder = true;
     else if (a === "--compact") out.compact = true;
     else if (a === "--status-detail") out.statusDetail = true;
+    else if (a === "-h" || a === "--help") out.help = true;
   }
   return out;
 }

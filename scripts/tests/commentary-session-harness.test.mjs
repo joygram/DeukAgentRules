@@ -27,6 +27,28 @@ test("ticket_start_pending allows clickable ticket start, silent summary, and gu
   assert.deepEqual(result.violations, []);
 });
 
+test("ticket_start_pending requires ticket start as the first visible assistant line", () => {
+  const result = validateCommentaryScenario(
+    {
+      steps: [
+        {
+          stage: "ticket_start_pending",
+          output: [
+            "승인 대기 중입니다.",
+            "Ticket start: [491-session-like-commentary-harness-joy-nucb](/tmp/491.md)",
+            "조용히 작업",
+            "Guard topic: 491-session-like-commentary-harness-joy-nucb"
+          ].join("\n")
+        }
+      ]
+    },
+    { model: "gpt-5.5" }
+  );
+
+  assert.equal(result.ok, false);
+  assert.ok(result.violations.some(v => v.code === "pre_approval_ticket_start_not_first_visible_line"));
+});
+
 test("approved execution rejects narrative commentary", () => {
   const result = validateCommentaryScenario(
     {

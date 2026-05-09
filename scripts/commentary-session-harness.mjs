@@ -63,6 +63,14 @@ function validatePreApprovalLines(lines = [], stepIndex = 0) {
     });
   }
 
+  if (lines[0] && !lines[0].startsWith("Ticket start:")) {
+    violations.push({
+      step: stepIndex,
+      code: "pre_approval_ticket_start_not_first_visible_line",
+      detail: lines[0]
+    });
+  }
+
   if (!hasGuardTopic) {
     violations.push({
       step: stepIndex,
