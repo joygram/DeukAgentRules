@@ -1,9 +1,37 @@
 {
   "version": 1,
-  "updatedAt": "2026-05-10T23:25:16.276Z",
+  "updatedAt": "2026-05-10T23:55:46.634Z",
   "activeTicketId": null,
-  "nextTicketSequence": 367,
+  "nextTicketSequence": 368,
   "entries": [
+    {
+      "id": "367-investigate-api-secret-exposure-joy-nucb",
+      "title": "investigate-api-secret-exposure",
+      "topic": "investigate-api-secret-exposure",
+      "group": "sub",
+      "project": "global",
+      "createdAt": "2026-05-10T23:50:15.273Z",
+      "source": "ticket-create",
+      "status": "archived",
+      "phase": 4,
+      "updatedAt": "2026-05-10T23:55:46.688Z",
+      "archiveYearMonth": "2026-05",
+      "fileName": "367-investigate-api-secret-exposure-joy-nucb.md"
+    },
+    {
+      "id": "316-tdw-approval-gate-enforcement-joy-nucb",
+      "title": "tdw-approval-gate-enforcement",
+      "topic": "316-tdw-approval-gate-enforcement-joy-nucb",
+      "group": "sub",
+      "fileName": "316-tdw-approval-gate-enforcement-joy-nucb.md",
+      "project": "global",
+      "submodule": "",
+      "createdAt": "2026-05-07 10:01:59",
+      "updatedAt": "2026-05-10T23:50:15.292Z",
+      "source": "ticket-sync",
+      "status": "archived",
+      "archiveYearMonth": "2026-05"
+    },
     {
       "id": "365-archived-ticket-reuse-after-path-joy-nucb",
       "title": "archived-ticket-reuse-after-path-miss",

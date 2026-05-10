@@ -1,6 +1,6 @@
 {
   "name": "deuk-agent-rule",
-  "version": "4.1.0",
+  "version": "4.2.7",
   "description": "Compatibility wrapper for legacy deuk-agent-rule installs.",
   "keywords": [
     "agents-md",
@@ -31,6 +31,6 @@
     "node": ">=18"
   },
   "dependencies": {
-    "deuk-agent-flow": "4.1.0"
+    "deuk-agent-flow": "4.2.7"
   }
 }
