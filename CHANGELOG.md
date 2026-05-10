@@ -10,7 +10,7 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 
 ### Fixed
 
-- _Nothing to release yet._
+- **skills:** remove DeukAgentFlow-specific wording from shared skill summaries and ownership notes so consumer-facing templates stay generic.
 
 ## [4.2.2] - 2026-05-10
 

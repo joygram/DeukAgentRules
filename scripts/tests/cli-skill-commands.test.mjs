@@ -49,6 +49,16 @@ test("skill add/expose writes repo registry and thin platform wrappers", () => {
   }
 });
 
+test("shared skill templates keep project-specific wording out of consumer-facing summaries", () => {
+  const safeRefactor = readFileSync(join(process.cwd(), "templates", "skills", "safe-refactor", "SKILL.md"), "utf8");
+  const projectPilot = readFileSync(join(process.cwd(), "templates", "skills", "project-pilot", "SKILL.md"), "utf8");
+
+  assert.doesNotMatch(safeRefactor, /DeukAgentFlow TDW/);
+  assert.match(safeRefactor, /summary: Keep refactors small, scoped, and test-backed\./);
+  assert.doesNotMatch(projectPilot, /owned by DeukAgentFlow/);
+  assert.match(projectPilot, /owned by the upstream source of truth\./);
+});
+
 test("project-pilot is a first-party installable skill", () => {
   const cwd = process.cwd();
   const rows = listSkills(cwd);

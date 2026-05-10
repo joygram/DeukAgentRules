@@ -1,8 +1,18 @@
 {
   "version": 1,
-  "updatedAt": "2026-05-09T02:47:10.372Z",
-  "activeTicketId": "308-archive-yearmonth-workspace-sync-joy-nucb",
+  "updatedAt": "2026-05-10T09:21:41.206Z",
   "entries": [
+    {
+      "id": "355-ticket-gate-format-regression-joy-nucb",
+      "title": "ticket-gate-format-regression",
+      "topic": "ticket-gate-format-regression",
+      "group": "sub",
+      "project": "global",
+      "createdAt": "2026-05-10T09:17:40.482Z",
+      "source": "ticket-create",
+      "status": "active",
+      "updatedAt": "2026-05-10T09:21:41.205Z"
+    },
     {
       "id": "354-public-release-publish-script-fi-joy-nucb",
       "title": "public-release-publish-script-fix",
@@ -222,19 +232,6 @@
       "status": "open"
     },
     {
-      "id": "313-tdw-hard-stop-enforcement-joy-nucb",
-      "title": "tdw-hard-stop-enforcement",
-      "topic": "313-tdw-hard-stop-enforcement-joy-nucb",
-      "group": "sub",
-      "fileName": "313-tdw-hard-stop-enforcement-joy-nucb.md",
-      "project": "global",
-      "submodule": "",
-      "createdAt": "2026-05-07 09:36:28",
-      "updatedAt": "2026-05-07T09:39:29.139Z",
-      "source": "ticket-sync",
-      "status": "open"
-    },
-    {
       "id": "308-archive-yearmonth-workspace-sync-joy-nucb",
       "title": "archive-yearmonth-workspace-sync",
       "topic": "308-archive-yearmonth-workspace-sync-joy-nucb",
@@ -260,5 +257,7 @@
       "source": "ticket-sync",
       "status": "active"
     }
-  ]
+  ],
+  "nextTicketSequence": 356,
+  "activeTicketId": "355-ticket-gate-format-regression-joy-nucb"
 }

@@ -763,8 +763,13 @@ function rollbackTicketLifecycleArtifacts(cwd, previousIndex, previousBody, absP
 }
 
 function getPhase1IncompleteReasonsFromBody(body) {
-  parseFrontMatter(body);
-  return [];
+  let parsed = { meta: {}, content: "" };
+  try {
+    parsed = parseFrontMatter(body);
+  } catch (err) {
+    return ["frontmatter_parse_failed"];
+  }
+  return getPhase1PlanBodyReasons(normalizePhase1PlanBodyHeadings(parsed.content || ""));
 }
 
 function getPhase1IncompleteReasons(cwd, absPath) {
@@ -2216,8 +2221,13 @@ export async function runTicketMove(opts) {
 
   const previousIndex = readTicketIndexJson(opts.cwd);
   const body = readFileSync(abs, "utf8");
-  const currentPhase = parsedMeta.phase || 1;
-  let nextPhase = opts.next ? currentPhase + 1 : (opts.phase || currentPhase + 1);
+  const currentPhase = Number(parsedMeta.phase || 1);
+  const requestedPhase = Number(opts.phase);
+  let nextPhase = opts.next
+    ? currentPhase + 1
+    : Number.isFinite(requestedPhase)
+      ? requestedPhase
+      : currentPhase + 1;
 
   if (currentPhase === 1 && nextPhase >= 2) {
     const reasons = getPhase1IncompleteReasons(opts.cwd, abs);

@@ -629,9 +629,18 @@ test("runTicketMove ignores unrelated dirty markdown during lifecycle lint", asy
     "",
     "Lifecycle moves should not depend on unrelated dirty markdown elsewhere in the worktree.",
     "",
+    "## Source Observations",
+    "- Lifecycle moves should read only lifecycle-adjacent markdown evidence.",
+    "",
+    "## Cause Hypotheses",
+    "- Dirty markdown outside ticket scope can exist in working trees with active change flows.",
+    "",
     "## Improvement Direction",
     "",
     "Validate main-ticket planning first, then lint only the lifecycle-related markdown.",
+    "",
+    "## Audit Evidence",
+    "- `scripts/cli-ticket-commands.mjs` + `runTicketMove`",
     ""
   ]);
 
@@ -650,6 +659,126 @@ test("runTicketMove ignores unrelated dirty markdown during lifecycle lint", asy
   } finally {
     rmSync(cwd, { recursive: true, force: true });
   }
+});
+
+test("runTicketMove converts phase transition arithmetic to numeric when phase metadata is a string", async () => {
+  const ticketPath = ".deuk-agent/tickets/sub/007-string-phase.md";
+  const { cwd } = makeTicketWorkspace([
+    makeEntry({
+      id: "007-string-phase",
+      title: "string phase move",
+      topic: "string-phase-move",
+      fileName: "007-string-phase.md",
+      path: ticketPath,
+      status: "open",
+      phase: 1
+    })
+  ]);
+
+  writeTicketFile(cwd, ticketPath, [
+    "---",
+    "id: 007-string-phase",
+    "title: string phase move",
+    "phase: \"1\"",
+    "status: open",
+    "summary: phase conversion guard",
+    "lifecycleSource: ticket-create",
+    "priority: P2",
+    "tags: [test]",
+    "---",
+    "# string phase move",
+    "",
+    "## Agent Permission Contract (APC)",
+    "### [BOUNDARY]",
+    "- Scope: string phase transition regression",
+    "### [CONTRACT]",
+    "- Input: ticket-move numeric coercion path",
+    "- Output: numeric phase value",
+    "### [PATCH PLAN]",
+    "- Convert string phase metadata into numbers before move arithmetic.",
+    "## Compact Plan",
+    "- **Finding:** phase fields can be serialized as strings in legacy tickets.",
+    "- **Root cause / hypothesis:** addition on strings can concatenate and skip guards.",
+    "- **Approach:** coerce phase values through Number before arithmetic.",
+    "- **Verification:** moving with --next should yield phase 2.",
+    "## Problem Analysis",
+    "- The move routine should only use numeric arithmetic.",
+    "## Source Observations",
+    "- `scripts/cli-ticket-commands.mjs`",
+    "## Cause Hypotheses",
+    "- String phases bypass numeric arithmetic and may hit string concatenation.",
+    "## Improvement Direction",
+    "- Keep phase conversion centralized in move command.",
+    "## Audit Evidence",
+    "- numeric move path now asserts phase 2 for string phase metadata."
+  ]);
+
+  try {
+    await runTicketMove({
+      cwd,
+      topic: "007",
+      next: true,
+      nonInteractive: true,
+      approval: "approved"
+    });
+
+    const body = readFileSync(join(cwd, ticketPath), "utf8");
+    assert.match(body, /phase: 2/);
+    assert.doesNotMatch(body, /phase: 11/);
+  } finally {
+    rmSync(cwd, { recursive: true, force: true });
+  }
+});
+
+test("runTicketStatus marks incomplete Phase 1 when APC/plan body is missing", async () => {
+  const ticketPath = ".deuk-agent/tickets/sub/008-phase1-incomplete.md";
+  const { cwd } = makeTicketWorkspace([
+    makeEntry({
+      id: "008-phase1-incomplete",
+      title: "phase1 incomplete",
+      topic: "phase1-incomplete",
+      fileName: "008-phase1-incomplete.md",
+      path: ticketPath,
+      status: "open",
+      phase: 1
+    })
+  ]);
+
+  writeTicketFile(cwd, ticketPath, [
+    "---",
+    "id: 008-phase1-incomplete",
+    "title: phase1 incomplete",
+    "phase: 1",
+    "status: open",
+    "lifecycleSource: ticket-create",
+    "summary: incomplete ticket should be blocked",
+    "---",
+    "# phase1 incomplete",
+    "",
+    "## Agent Permission Contract (APC)",
+    "### [BOUNDARY]",
+    "- [todo]",
+    "## Compact Plan",
+    "- todo",
+    "## Problem Analysis",
+    "- todo",
+    "## Improvement Direction",
+    "- todo",
+    ""
+  ]);
+
+  const originalLog = console.log;
+  const lines = [];
+  console.log = value => { lines.push(String(value)); };
+  try {
+    await runTicketStatus({ cwd, topic: "008", compact: true });
+  } finally {
+    console.log = originalLog;
+    rmSync(cwd, { recursive: true, force: true });
+  }
+
+  assert.strictEqual(lines.length, 1);
+  assert.match(lines[0], /^008-phase1-incomplete \| phase=1 \| status=phase1_incomplete \| /);
 });
 
 test("runTicketMove updates phase/status when INDEX entry path is missing", async () => {
@@ -869,8 +998,17 @@ test("runTicketStatus compact mode emits one-line phase summary", async () => {
     "## Problem Analysis",
     "Compact status should report one concise lifecycle line for complete tickets.",
     "",
+    "## Source Observations",
+    "- `scripts/cli-ticket-commands.mjs` contains phase guards and status logic.",
+    "",
+    "## Cause Hypotheses",
+    "- The status command was previously showing `ok` for incomplete phase-1 tickets.",
+    "",
     "## Improvement Direction",
     "Keep compact status output terse while surfacing incomplete planning reasons.",
+    "",
+    "## Audit Evidence",
+    "- `node --test scripts/tests/cli-ticket-commands.test.mjs`",
     ""
   ]);
   writeTicketFile(cwd, join(".deuk-agent", "docs", "plan", `${ticketId}-plan.md`), [
