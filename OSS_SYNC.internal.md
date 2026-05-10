@@ -11,7 +11,7 @@ cd deuk-agent-rule
 npm run sync:oss
 ```
 
-선택: `DEUK_AGENT_RULES_OSS_REPO=https://github.com/ORG/REPO`  
+선택: `DEUK_AGENT_RULES_OSS_REPO=https://github.com/ORG/REPO`
 **공개 GitHub**([joygram/DeukAgentRules](https://github.com/joygram/DeukAgentRules) 등)는 서브모듈 `origin`(gplat)과 **자동 연동되지 않는다.** 미러 반영 후 해당 저장소에 **`main` 또는 `master`를 푸시**해야 하며, 기본 브랜치가 `master`면 워크플로도 `master` 푸시를 받도록 맞춰 둔다.
 
 ## 산출물

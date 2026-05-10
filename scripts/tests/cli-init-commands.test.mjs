@@ -80,22 +80,25 @@ test("runMerge removes runtime template copies and keeps package templates as SS
   }
 });
 
-test("runInit removes runtime and legacy template folders", async () => {
+test("runInit removes duplicated runtime templates and local skill copies with real package content", async () => {
   const cwd = mkdtempSync(join(tmpdir(), "deuk-init-template-cleanup-"));
   try {
+    const bundleRoot = "/home/joy/workspace/DeukAgentFlow";
+    const ticketTemplate = readFileSync(join(bundleRoot, "templates", "TICKET_TEMPLATE.md"), "utf8");
+    const projectPilotSkill = readFileSync(join(bundleRoot, "templates", "skills", "project-pilot", "SKILL.md"), "utf8");
     mkdirSync(join(cwd, ".deuk-agent", "templates"), { recursive: true });
     mkdirSync(join(cwd, ".deuk-agent", "skill-templates", "project-pilot"), { recursive: true });
     mkdirSync(join(cwd, ".deuk-agent", "skills", "project-pilot"), { recursive: true });
     mkdirSync(join(cwd, ".claude", "skills", "project-pilot"), { recursive: true });
     mkdirSync(join(cwd, ".cursor", "rules"), { recursive: true });
     mkdirSync(join(cwd, ".deuk-agent-templates"), { recursive: true });
-    writeFileSync(join(cwd, ".deuk-agent", "templates", "TICKET_TEMPLATE.md"), "# stale runtime template\n", "utf8");
-    writeFileSync(join(cwd, ".deuk-agent", "skill-templates", "project-pilot", "SKILL.md"), "# stale skill template\n", "utf8");
-    writeFileSync(join(cwd, ".deuk-agent", "skills", "project-pilot", "SKILL.md"), "# stale installed skill\n", "utf8");
+    writeFileSync(join(cwd, ".deuk-agent", "templates", "TICKET_TEMPLATE.md"), ticketTemplate, "utf8");
+    writeFileSync(join(cwd, ".deuk-agent", "skill-templates", "project-pilot", "SKILL.md"), projectPilotSkill, "utf8");
+    writeFileSync(join(cwd, ".deuk-agent", "skills", "project-pilot", "SKILL.md"), projectPilotSkill, "utf8");
     writeFileSync(join(cwd, ".deuk-agent", "skills.json"), JSON.stringify({ installed: ["project-pilot"] }, null, 2) + "\n", "utf8");
-    writeFileSync(join(cwd, ".claude", "skills", "project-pilot", "SKILL.md"), "# stale exposed skill\n", "utf8");
+    writeFileSync(join(cwd, ".claude", "skills", "project-pilot", "SKILL.md"), projectPilotSkill, "utf8");
     writeFileSync(join(cwd, ".cursor", "rules", "deuk-agent-skills.mdc"), "- project-pilot: .deuk-agent/skills/project-pilot/SKILL.md\n", "utf8");
-    writeFileSync(join(cwd, ".deuk-agent-templates", "TICKET_TEMPLATE.md"), "# stale legacy template\n", "utf8");
+    writeFileSync(join(cwd, ".deuk-agent-templates", "TICKET_TEMPLATE.md"), ticketTemplate, "utf8");
 
     await runInit({
       cwd,
@@ -105,7 +108,7 @@ test("runInit removes runtime and legacy template folders", async () => {
       approval: "approved",
       agents: "skip",
       sourceShims: false
-    }, "/home/joy/workspace/DeukAgentFlow");
+    }, bundleRoot);
 
     assert.ok(!existsSync(join(cwd, ".deuk-agent", "templates")));
     assert.ok(!existsSync(join(cwd, ".deuk-agent", "skill-templates")));
@@ -554,7 +557,7 @@ test("init migration removes duplicate scratch reports and moves legacy archive 
   }
 });
 
-test("init migration skips empty legacy docs instead of creating placeholder tickets", async () => {
+test("runInit merges real legacy docs into canonical archived tickets without leaving legacy-docs residue", async () => {
   const cwd = mkdtempSync(join(tmpdir(), "deuk-init-empty-legacy-doc-"));
   try {
     const docsRoot = join(cwd, ".deuk-agent", "docs", "plan");
@@ -573,17 +576,23 @@ test("init migration skips empty legacy docs instead of creating placeholder tic
 
     writeFileSync(join(docsRoot, "124-nonempty-legacy.md"), [
       "---",
-      "summary: nonempty legacy doc",
-      "status: draft",
+      "summary: init cleanup regression analysis",
+      "status: archived",
       "priority: P3",
       "createdAt: 2026-05-03 10:00:00",
       "tags:",
       "  - legacy",
       "---",
       "",
-      "# Legacy Note",
+      "# Init cleanup regression analysis",
       "",
-      "Useful historical content.",
+      "## Problem Analysis",
+      "",
+      "A consumer workspace still contains copied `.deuk-agent/templates`, `.deuk-agent/skills`, and `.cursor/rules/deuk-agent-skills.mdc` content after init.",
+      "",
+      "## Improvement Direction",
+      "",
+      "Treat package `templates/` as the only template SSoT and merge separated docs into archived tickets without leaving `legacy-docs` buckets behind.",
       ""
     ].join("\n"), "utf8");
 
@@ -607,10 +616,14 @@ test("init migration skips empty legacy docs instead of creating placeholder tic
       sourceShims: false
     }, "/home/joy/workspace/DeukAgentFlow");
 
-    const emptyTicketPath = join(cwd, ".deuk-agent", "tickets", "archive", "sub", "legacy-docs", "123.md");
-    const nonEmptyTicketPath = join(cwd, ".deuk-agent", "tickets", "archive", "sub", "legacy-docs", "124.md");
+    const emptyTicketPath = join(cwd, ".deuk-agent", "tickets", "archive", "sub", "2026-05", "123.md");
+    const nonEmptyTicketPath = join(cwd, ".deuk-agent", "tickets", "archive", "sub", "2026-05", "124.md");
     assert.ok(!existsSync(emptyTicketPath), "empty legacy doc should not become a ticket");
-    assert.ok(existsSync(nonEmptyTicketPath), "non-empty legacy doc should still be merged");
+    assert.ok(existsSync(nonEmptyTicketPath), "non-empty legacy doc should be merged into a canonical month bucket");
+    assert.ok(!existsSync(join(cwd, ".deuk-agent", "tickets", "archive", "sub", "legacy-docs")), "legacy-docs residue should be pruned after init");
+    const mergedTicket = readFileSync(nonEmptyTicketPath, "utf8");
+    assert.match(mergedTicket, /Init cleanup regression analysis/);
+    assert.match(mergedTicket, /template SSoT/);
   } finally {
     rmSync(cwd, { recursive: true, force: true });
   }

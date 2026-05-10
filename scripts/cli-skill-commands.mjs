@@ -7,13 +7,28 @@ const SKILL_IDS = ["safe-refactor", "generated-file-guard", "context-recall", "p
 const SKILL_ROOT = "templates/skills";
 const CONFIG_FILE = `${AGENT_ROOT_DIR}/skills.json`;
 const PACKAGE_ROOT = join(dirname(fileURLToPath(import.meta.url)), "..");
+const SKILL_PATHS = {
+  installedRoot: join(AGENT_ROOT_DIR, "skills"),
+  templateRoot: SKILL_ROOT,
+  claudeRoot: join(".claude", "skills"),
+  cursorPointer: join(".cursor", "rules", "deuk-agent-skills.mdc"),
+};
+
+function safeReadJson(absPath, fallback = null) {
+  if (!existsSync(absPath)) return fallback;
+  try {
+    return JSON.parse(readFileSync(absPath, "utf8"));
+  } catch {
+    return fallback;
+  }
+}
 
 function repoSkillPath(cwd, id) {
-  return join(cwd, AGENT_ROOT_DIR, "skills", id, "SKILL.md");
+  return join(cwd, SKILL_PATHS.installedRoot, id, "SKILL.md");
 }
 
 function sourceSkillPath(cwd, id) {
-  const repoTemplate = join(cwd, SKILL_ROOT, id, "SKILL.md");
+  const repoTemplate = join(cwd, SKILL_PATHS.templateRoot, id, "SKILL.md");
   if (existsSync(repoTemplate)) return repoTemplate;
   return join(PACKAGE_ROOT, SKILL_ROOT, id, "SKILL.md");
 }
@@ -26,18 +41,17 @@ function loadSkillSource(cwd, id) {
 
 function loadSkillConfig(cwd) {
   const path = join(cwd, CONFIG_FILE);
-  if (!existsSync(path)) return { version: 1, installed: [], exposed: {} };
-  return JSON.parse(readFileSync(path, "utf8"));
+  return safeReadJson(path, { version: 1, installed: [], exposed: {} });
 }
 
 function detectExposedPlatforms(cwd, id) {
   const platforms = [];
-  const claudePath = join(cwd, ".claude", "skills", id, "SKILL.md");
+  const claudePath = join(cwd, SKILL_PATHS.claudeRoot, id, "SKILL.md");
   if (existsSync(claudePath)) {
     platforms.push("claude");
   }
 
-  const cursorPath = join(cwd, ".cursor", "rules", "deuk-agent-skills.mdc");
+  const cursorPath = join(cwd, SKILL_PATHS.cursorPointer);
   if (existsSync(cursorPath)) {
     try {
       const body = readFileSync(cursorPath, "utf8");
@@ -98,7 +112,7 @@ export function addSkill(opts = {}) {
 function exposeClaude(cwd, ids, dryRun) {
   for (const id of ids) {
     const body = readFileSync(repoSkillPath(cwd, id), "utf8");
-    const target = join(cwd, ".claude", "skills", id, "SKILL.md");
+    const target = join(cwd, SKILL_PATHS.claudeRoot, id, "SKILL.md");
     if (!dryRun) {
       mkdirSync(dirname(target), { recursive: true });
       writeFileSync(target, body, "utf8");
@@ -107,7 +121,7 @@ function exposeClaude(cwd, ids, dryRun) {
 }
 
 function exposeCursor(cwd, ids, dryRun) {
-  const target = join(cwd, ".cursor", "rules", "deuk-agent-skills.mdc");
+  const target = join(cwd, SKILL_PATHS.cursorPointer);
   const body = [
     "---",
     "description: \"DeukAgentFlow skill pointers\"",
@@ -150,7 +164,7 @@ export function exposeSkills(opts = {}) {
 
 export function lintSkills(cwd = process.cwd()) {
   const paths = [];
-  for (const root of [join(cwd, SKILL_ROOT), join(cwd, AGENT_ROOT_DIR, "skills")]) {
+  for (const root of [join(cwd, SKILL_ROOT), join(cwd, SKILL_PATHS.installedRoot)]) {
     if (!existsSync(root)) continue;
     for (const id of readdirSync(root)) {
       const path = join(root, id, "SKILL.md");

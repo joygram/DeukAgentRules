@@ -23,6 +23,7 @@ import { selectOne } from "./cli-prompts.mjs";
 const MAX_OPEN_TICKETS = 20;
 const OPEN_TICKET_STATUSES = new Set(["open", "active"]);
 const AUTO_ARCHIVE_DONE_STATUSES = new Set(["closed", "cancelled", "wontfix"]);
+const TICKET_REPORTS_SUBDIR = "plan";
 
 async function ensurePhase0Validation(opts) {
   if (!opts.evidence && !opts.skipPhase0) {
@@ -586,6 +587,26 @@ function findTicketRepoRootFromPath(absPath) {
   }
 }
 
+function resolveTicketReportDir(cwd) {
+  return join(cwd, AGENT_ROOT_DIR, "docs", TICKET_REPORTS_SUBDIR);
+}
+
+function resolveTicketPath(cwd, relPath) {
+  return join(cwd, String(relPath || ""));
+}
+
+function resolveTicketEntryPath(cwd, entry) {
+  return resolveTicketPath(cwd, entry?.path || "");
+}
+
+function resolveTicketEntryOrComputedPath(cwd, entry) {
+  return resolveTicketPath(cwd, entry?.path || computeTicketPath(entry));
+}
+
+function resolveTicketKnowledgeDir(cwd) {
+  return join(cwd, AGENT_ROOT_DIR, "knowledge");
+}
+
 function applyTicketPathContext(opts = {}) {
   const rawTicketPath = opts.ticketPath || (looksLikeTicketMarkdownPath(opts.topic) ? opts.topic : "");
   if (!rawTicketPath) return opts;
@@ -984,14 +1005,14 @@ function buildOpenTicketLimitError(indexJson) {
 function resolveArchiveReport(cwd, fileName, report) {
   if (report) return resolve(cwd, report);
 
-  const reportDir = join(cwd, AGENT_ROOT_DIR, "docs", "plan");
+  const reportDir = resolveTicketReportDir(cwd);
   const potentialReport = fileName.replace(/\.md$/i, "-report.md");
   const potentialPath = join(reportDir, potentialReport);
   return existsSync(potentialPath) ? potentialPath : null;
 }
 
 function archiveTicketEntry({ cwd, ticketDir, indexJson, found, opts = {}, report }) {
-  const absPath = join(cwd, found.path);
+  const absPath = resolveTicketPath(cwd, found.path);
   const fileName = found.path.split(/[/\\]/).pop();
   if (!existsSync(absPath)) {
     const archivedAbsPath = findExistingArchivedTicketPath(ticketDir, found, fileName);
@@ -1039,11 +1060,11 @@ function archiveTicketEntry({ cwd, ticketDir, indexJson, found, opts = {}, repor
   const reportSrc = resolveArchiveReport(cwd, fileName, report);
   let reportDest = null;
 
-    if (reportSrc) {
-      if (!existsSync(reportSrc)) {
-        throw new Error("ticket archive: report file not found " + report);
-      }
-      const reportDir = join(cwd, AGENT_ROOT_DIR, "docs", "plan");
+  if (reportSrc) {
+    if (!existsSync(reportSrc)) {
+      throw new Error("ticket archive: report file not found " + report);
+    }
+    const reportDir = resolveTicketReportDir(cwd);
     if (!opts.dryRun) mkdirSync(reportDir, { recursive: true });
 
     const reportBaseName = fileName.replace(/\.md$/i, "-report.md");
@@ -1219,7 +1240,7 @@ export async function runTicketCreate(opts) {
     if (activeId) {
       const activeEntry = indexJson.entries.find(e => e.id === activeId && (e.status === "open" || e.status === "active"));
       if (activeEntry) {
-        const absPath = join(opts.cwd, activeEntry.path);
+        const absPath = resolveTicketEntryPath(opts.cwd, activeEntry);
         let shouldClose = false;
         let reason = "";
 
@@ -1480,7 +1501,7 @@ export async function runTicketStatus(opts) {
   const found = pickTicketEntry(opts, index);
   if (!found) throw new Error("ticket status: no matching ticket found");
 
-  const absPath = join(opts.cwd, found.path);
+  const absPath = resolveTicketEntryPath(opts.cwd, found);
   const fileMissing = !existsSync(absPath);
   const body = fileMissing ? "" : readFileSync(absPath, "utf8");
   const parsed = fileMissing ? { meta: {}, content: "" } : parseFrontMatter(body);
@@ -1538,7 +1559,7 @@ export async function runTicketGuard(opts) {
     throw new Error("ticket guard: no matching durable ticket found; do not call set_workflow_context.");
   }
 
-  const absPath = join(opts.cwd, found.path);
+  const absPath = resolveTicketEntryPath(opts.cwd, found);
   if (!existsSync(absPath)) {
     throw new Error(`ticket guard: durable ticket file missing for ${found.id || found.topic}; do not call set_workflow_context.`);
   }
@@ -1585,7 +1606,7 @@ export async function runTicketHandoff(opts) {
   const current = pickTicketEntry(opts, index);
   if (!current) throw new Error("ticket handoff: no matching ticket found");
 
-  const currentAbs = join(opts.cwd, current.path);
+  const currentAbs = resolveTicketEntryPath(opts.cwd, current);
   const currentMissing = !existsSync(currentAbs);
   const currentBody = currentMissing ? "" : readFileSync(currentAbs, "utf8");
   const currentParsed = currentMissing ? { meta: {}, content: "" } : parseFrontMatter(currentBody);
@@ -1686,7 +1707,7 @@ export async function runTicketEvidenceCheck(opts) {
     throw new Error("ticket evidence: no matching ticket found.");
   }
 
-  const absPath = join(opts.cwd, target.path);
+  const absPath = resolveTicketEntryPath(opts.cwd, target);
   if (!existsSync(absPath)) throw new Error("Ticket file not found: " + target.path);
   const { meta, content } = parseFrontMatter(readFileSync(absPath, "utf8"));
   const result = getClaimEvidenceResult(target, meta, content, opts.claim);
@@ -1717,7 +1738,7 @@ export async function runTicketEvidenceReport(opts) {
     throw new Error("ticket report: no matching ticket found.");
   }
 
-  const absPath = join(opts.cwd, target.path);
+  const absPath = resolveTicketEntryPath(opts.cwd, target);
   if (!existsSync(absPath)) throw new Error("Ticket file not found: " + target.path);
   const { meta, content } = parseFrontMatter(readFileSync(absPath, "utf8"));
   const result = getClaimEvidenceResult(target, meta, content, opts.claim);
@@ -1772,7 +1793,7 @@ export async function runTicketClose(opts) {
     throw new Error("No matching ticket found to update status");
   }
 
-  const abs = join(opts.cwd, targetEntry.path);
+  const abs = resolveTicketEntryPath(opts.cwd, targetEntry);
   if (!existsSync(abs)) throw new Error("Ticket file not found: " + targetEntry.path);
   const previousBody = readFileSync(abs, "utf8");
   const parsedForClose = parseFrontMatter(previousBody);
@@ -1868,7 +1889,7 @@ export async function runTicketUse(opts) {
     throw new Error(buildUseNoMatchError(targetTopic, candidates));
   }
 
-  const foundAbsPath = join(opts.cwd, found.path);
+  const foundAbsPath = resolveTicketEntryPath(opts.cwd, found);
   if (!existsSync(foundAbsPath)) throw new Error("Ticket file not found: " + found.path);
   const foundParsed = parseFrontMatter(readFileSync(foundAbsPath, "utf8"));
   assertTicketLifecycleProvenance(found, foundParsed.meta);
@@ -1878,7 +1899,7 @@ export async function runTicketUse(opts) {
     writeTicketIndexJson(opts.cwd, { ...index, activeTicketId: found.id });
   }
 
-  const absPath = toPosixPath(join(opts.cwd, found.path));
+  const absPath = toPosixPath(resolveTicketEntryPath(opts.cwd, found));
   if (isCompactTicketOutput(opts) || opts.pathOnly) {
     printTicketSelectionLine(found.id, absPath, opts);
   } else {
@@ -1886,7 +1907,7 @@ export async function runTicketUse(opts) {
     console.log(`Active ticket: ${found.id}`);
     console.log(`Path: [${posixPath}](file://${absPath})`);
     printTicketStartLine(found.id, absPath);
-    if (opts.printContent) console.log("\n" + readFileSync(join(opts.cwd, found.path), "utf8"));
+    if (opts.printContent) console.log("\n" + readFileSync(resolveTicketEntryPath(opts.cwd, found), "utf8"));
     printUsageReminder(opts.cwd, opts);
   }
 }
@@ -1920,7 +1941,7 @@ function distillKnowledge(absPath, ticketId, cwd, sourceBody = null) {
       "Design Decisions",
       "Analysis & Constraints"
     ]);
-    const knowledgeDir = join(cwd, AGENT_ROOT_DIR, "knowledge");
+    const knowledgeDir = resolveTicketKnowledgeDir(cwd);
     if (!existsSync(knowledgeDir)) mkdirSync(knowledgeDir, { recursive: true });
 
     const dest = join(knowledgeDir, `${ticketId}.json`);
@@ -2039,7 +2060,7 @@ export async function runTicketArchive(opts) {
   // Auto-search for report if not provided
   let report = opts.report;
   if (!opts.report) {
-    const reportDir = join(opts.cwd, AGENT_ROOT_DIR, "docs", "plan");
+    const reportDir = resolveTicketReportDir(opts.cwd);
     const potentialReport = fileName.replace(/\.md$/i, "-report.md");
     const potentialPath = join(reportDir, potentialReport);
     if (existsSync(potentialPath)) {
@@ -2089,7 +2110,7 @@ export async function runTicketDiscard(opts) {
   const found = pickTicketEntry(opts, indexJson);
   if (!found) throw new Error("ticket discard: no matching entry");
 
-  const absPath = join(opts.cwd, found.path);
+  const absPath = resolveTicketEntryPath(opts.cwd, found);
   if (!existsSync(absPath)) throw new Error("Ticket file not found: " + found.path);
 
   const body = readFileSync(absPath, "utf8");
@@ -2129,7 +2150,7 @@ export async function runTicketReports(opts) {
   applyTicketRootContext(opts);
   const ticketDir = detectConsumerTicketDir(opts.cwd);
   if (!ticketDir) throw new Error("No ticket system found.");
-  const reportDir = join(opts.cwd, AGENT_ROOT_DIR, "docs", "plan");
+  const reportDir = resolveTicketReportDir(opts.cwd);
   console.log("\n📄 Agent Reports:");
   if (!existsSync(reportDir)) {
     console.log("  No reports found.");
@@ -2164,13 +2185,13 @@ export async function runTicketReportAttach(opts) {
   const found = pickTicketEntry(opts, index);
   if (!found) throw new Error("ticket report attach: no matching ticket found");
 
-  const absTicketPath = join(opts.cwd, found.path);
+  const absTicketPath = resolveTicketPath(opts.cwd, found.path);
   if (!existsSync(absTicketPath)) throw new Error("Ticket file not found: " + found.path);
 
   const reportSrc = resolve(opts.cwd, opts.report);
   if (!existsSync(reportSrc)) throw new Error("Report file not found: " + opts.report);
 
-  const reportDir = join(opts.cwd, AGENT_ROOT_DIR, "docs", "plan");
+  const reportDir = resolveTicketReportDir(opts.cwd);
   if (!opts.dryRun) mkdirSync(reportDir, { recursive: true });
 
   const ticketFileName = found.path.split(/[/\\]/).pop();
@@ -2214,7 +2235,7 @@ export async function runTicketMove(opts) {
   
   if (!entry) throw new Error("No matching ticket found to move.");
 
-  const abs = join(opts.cwd, entry.path);
+  const abs = resolveTicketEntryPath(opts.cwd, entry);
   if (!existsSync(abs)) throw new Error("Ticket file not found: " + entry.path);
 
   const previousIndex = readTicketIndexJson(opts.cwd);
@@ -2298,7 +2319,7 @@ export async function runTicketNext(opts) {
       .filter(entry => String(entry.status || "").toLowerCase() === "closed")
       .sort((a, b) => String(b.updatedAt || b.createdAt || "").localeCompare(String(a.updatedAt || a.createdAt || "")))[0];
     if (latestClosed) {
-      const latestClosedPath = join(opts.cwd, latestClosed.path || computeTicketPath(latestClosed));
+      const latestClosedPath = resolveTicketEntryOrComputedPath(opts.cwd, latestClosed);
       if (existsSync(latestClosedPath)) {
         const { content } = parseFrontMatter(readFileSync(latestClosedPath, "utf8"));
         if (followUpDecisionMeansNoFollowUp(content)) {
@@ -2308,7 +2329,7 @@ export async function runTicketNext(opts) {
           } else if (isCompactTicketOutput(opts)) {
             console.log(`no-follow-up:${latestClosed.id}`);
           } else {
-            const posixPath = toPosixPath(latestClosed.path || computeTicketPath(latestClosed));
+            const posixPath = toPosixPath(toRepoRelativePath(opts.cwd, latestClosedPath));
             console.log(`No follow-up required after ${latestClosed.id}`);
             console.log(`Path: [${posixPath}](file://${absPath})`);
           }
@@ -2323,20 +2344,19 @@ export async function runTicketNext(opts) {
     writeTicketIndexJson(opts.cwd, { ...index, activeTicketId: found.id });
   }
 
-  const absPath = toPosixPath(join(opts.cwd, found.path));
+  const absPath = toPosixPath(resolveTicketEntryPath(opts.cwd, found));
   if (isCompactTicketOutput(opts) || opts.pathOnly) {
     printTicketSelectionLine(found.id, absPath, opts);
   } else {
     const posixPath = toPosixPath(found.path);
     console.log(`Next ticket: ${found.id}`);
     console.log(`Path: [${posixPath}](file://${absPath})`);
-    if (opts.printContent) console.log("\n" + readFileSync(join(opts.cwd, found.path), "utf8"));
+    if (opts.printContent) console.log("\n" + readFileSync(resolveTicketEntryPath(opts.cwd, found), "utf8"));
   }
 }
 
 function isTicketNextRunnableCandidate(cwd, entry) {
-  const entryPath = entry.path || computeTicketPath(entry);
-  const absPath = join(cwd, entryPath);
+  const absPath = resolveTicketEntryOrComputedPath(cwd, entry);
   if (!existsSync(absPath)) return true;
 
   const { meta } = parseFrontMatter(readFileSync(absPath, "utf8"));
@@ -2378,7 +2398,7 @@ export async function runTicketHotfix(opts) {
   
   if (!entry) throw new Error("No matching ticket found for hotfix.");
 
-  const abs = join(opts.cwd, entry.path);
+  const abs = resolveTicketEntryPath(opts.cwd, entry);
   if (!existsSync(abs)) throw new Error("Ticket file not found: " + entry.path);
 
   const body = readFileSync(abs, "utf8");

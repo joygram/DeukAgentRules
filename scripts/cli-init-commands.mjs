@@ -44,6 +44,29 @@ const SOURCE_MODE_COMMANDS = [
   ["deuk-agent-rule", "deuk-agent-rule.js"],
   ["deukagentrule", "deuk-agent-rule.js"]
 ];
+const CANONICAL_INIT_CLEANUP_PATHS = {
+  runtimeTemplateCopies: [join(AGENT_ROOT_DIR, "templates"), LEGACY_TEMPLATE_DIR],
+  localSkillCopies: [
+    join(AGENT_ROOT_DIR, "skill-templates"),
+    join(AGENT_ROOT_DIR, "skills"),
+    join(AGENT_ROOT_DIR, "skills.json"),
+    join(".claude", "skills"),
+    join(".cursor", "rules", "deuk-agent-skills.mdc")
+  ],
+  duplicateRuleCopies: [join(AGENT_ROOT_DIR, "rules"), join(".cursor", "rules", "deuk-agent-rule-multi-ai-workflow.mdc")],
+};
+
+function removeLegacyPaths(cwd, dryRun, paths, label) {
+  let removed = 0;
+  for (const relPath of paths) {
+    const target = join(cwd, relPath);
+    if (!existsSync(target)) continue;
+    if (!dryRun) rmSync(target, { recursive: true, force: true });
+    console.log(`[CLEANUP] removed ${label}: ${toRepoRelativePath(cwd, target)}`);
+    removed += 1;
+  }
+  return removed;
+}
 
 function pathEntries(pathEnv = process.env.PATH || "", platform = process.platform) {
   return String(pathEnv || "").split(platform === "win32" ? ";" : ":").filter(Boolean);
@@ -1336,28 +1359,11 @@ function canonicalizeRecursiveInitSurfaces(cwd, bundleRoot, dryRun) {
 }
 
 function removeRuntimeTemplateCopies(cwd, dryRun) {
-  const runtimeTemplates = join(cwd, AGENT_ROOT_DIR, "templates");
-  const legacyTemplates = join(cwd, LEGACY_TEMPLATE_DIR);
-  for (const target of [runtimeTemplates, legacyTemplates]) {
-    if (!existsSync(target)) continue;
-    if (!dryRun) rmSync(target, { recursive: true, force: true });
-    console.log(`[CLEANUP] removed runtime template copy: ${toRepoRelativePath(cwd, target)}`);
-  }
+  removeLegacyPaths(cwd, dryRun, CANONICAL_INIT_CLEANUP_PATHS.runtimeTemplateCopies, "runtime template copy");
 }
 
 function removeLocalSkillCopies(cwd, dryRun) {
-  const targets = [
-    join(cwd, AGENT_ROOT_DIR, "skill-templates"),
-    join(cwd, AGENT_ROOT_DIR, "skills"),
-    join(cwd, AGENT_ROOT_DIR, "skills.json"),
-    join(cwd, ".claude", "skills"),
-    join(cwd, ".cursor", "rules", "deuk-agent-skills.mdc")
-  ];
-  for (const target of targets) {
-    if (!existsSync(target)) continue;
-    if (!dryRun) rmSync(target, { recursive: true, force: true });
-    console.log(`[CLEANUP] removed local skill copy: ${toRepoRelativePath(cwd, target)}`);
-  }
+  removeLegacyPaths(cwd, dryRun, CANONICAL_INIT_CLEANUP_PATHS.localSkillCopies, "local skill copy");
 }
 
 function canonicalizeLegacyDeukAgentText(content, bundleRoot) {
@@ -1523,6 +1529,18 @@ function migrateMissingFrontmatter(cwd, dryRun) {
   }
 }
 
+function runInitArchiveNormalizationPasses(cwd, dryRun) {
+  const passes = [
+    () => canonicalizeTicketArchivePath(cwd, dryRun),
+    () => canonicalizeDocsArchiveBuckets(cwd, dryRun),
+    () => enforceCanonicalAgentLayout(cwd, dryRun),
+    () => mergeSeparatedDocsIntoTickets(cwd, dryRun),
+    () => canonicalizeTicketArchivePath(cwd, dryRun),
+    () => enforceCanonicalAgentLayout(cwd, dryRun),
+  ];
+  for (const pass of passes) pass();
+}
+
 export function buildGlobalCodexInstructions() {
   return `---
 
@@ -1624,16 +1642,7 @@ function removeDuplicateRuleCopies(cwd, dryRun) {
   // Note: AGENTS.md is now the Antigravity spoke target — do NOT delete it here.
   // CLAUDE.md/GEMINI.md legacy cleanup is handled by deploySpokePointers (spoke.legacy field).
   // .gemini is the Antigravity platform directory — preserve it.
-  const duplicatePaths = [
-    join(cwd, AGENT_ROOT_DIR, "rules"),
-    join(cwd, ".cursor", "rules", "deuk-agent-rule-multi-ai-workflow.mdc"),
-  ];
-
-  for (const p of duplicatePaths) {
-    if (!existsSync(p)) continue;
-    if (!dryRun) rmSync(p, { recursive: true, force: true });
-    console.log(`[CLEANUP] removed legacy/duplicate: ${toRepoRelativePath(cwd, p)}`);
-  }
+  removeLegacyPaths(cwd, dryRun, CANONICAL_INIT_CLEANUP_PATHS.duplicateRuleCopies, "legacy/duplicate");
 }
 
 export async function runInit(opts, bundleRoot) {
@@ -1708,10 +1717,7 @@ async function initSingleWorkspace(subCwd, opts, bundleRoot, selectedTools) {
   migrateMissingFrontmatter(subCwd, opts.dryRun);
 
   // 2.6. Deterministic archive/docs normalization
-  canonicalizeTicketArchivePath(subCwd, opts.dryRun);
-  canonicalizeDocsArchiveBuckets(subCwd, opts.dryRun);
-  enforceCanonicalAgentLayout(subCwd, opts.dryRun);
-  mergeSeparatedDocsIntoTickets(subCwd, opts.dryRun);
+  runInitArchiveNormalizationPasses(subCwd, opts.dryRun);
   if (!opts.dryRun) {
     const rebuiltIndex = rebuildTicketIndexFromTopicFilesIfNeeded(subCwd, { force: true });
     writeTicketIndexJson(subCwd, rebuiltIndex, { force: true });
