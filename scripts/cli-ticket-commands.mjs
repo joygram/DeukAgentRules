@@ -1,12 +1,18 @@
 import { existsSync, mkdirSync, readFileSync, writeFileSync, unlinkSync, copyFileSync, readdirSync, rmSync, statSync } from "fs";
 import { hostname } from "os";
 import { basename, join, dirname, relative, resolve } from "path";
-import { 
+import {
   toSlug, toSnakeCaseKey, requireNonEmptySlug, toRepoRelativePath, toFileUri, inferRefTitleAndTopic, resolveReferencedTicketPath, toPosixPath, stringifyFrontMatter,
   resolveDocsLanguage, inferDocsLanguageFromText, normalizeDocsLanguage, isMcpActive, withReadline, parseFrontMatter,
   AGENT_ROOT_DIR, TICKET_SUBDIR, TICKET_DIR_NAME, TICKET_INDEX_FILENAME, WORKFLOW_MODE_EXECUTE,
   detectConsumerTicketDir, resolveConsumerTicketRoot, loadInitConfig, computeTicketPath, normalizeWorkflowMode
 } from "./cli-utils.mjs";
+import {
+  readTicketDocument,
+  resolveTicketEntryOrComputedPath,
+  resolveTicketKnowledgeDir,
+  resolveTicketReportDir
+} from "./cli-ticket-command-shared.mjs";
 import { readTicketIndexJson, writeTicketIndexJson, syncActiveTicketId, generateTicketId, syncToPipeline } from "./cli-ticket-index.mjs";
 import { appendTicketEntry, rebuildTicketIndexFromTopicFilesIfNeeded, updateTicketEntryStatus } from "./cli-ticket-parser.mjs";
 import { appendInternalWorkflowEvent, buildTelemetrySummary, getTelemetryCompactSummary } from "./cli-telemetry-commands.mjs";
@@ -23,7 +29,6 @@ import { selectOne } from "./cli-prompts.mjs";
 const MAX_OPEN_TICKETS = 20;
 const OPEN_TICKET_STATUSES = new Set(["open", "active"]);
 const AUTO_ARCHIVE_DONE_STATUSES = new Set(["closed", "cancelled", "wontfix"]);
-const TICKET_REPORTS_SUBDIR = "plan";
 
 async function ensurePhase0Validation(opts) {
   if (!opts.evidence && !opts.skipPhase0) {
@@ -587,26 +592,6 @@ function findTicketRepoRootFromPath(absPath) {
   }
 }
 
-function resolveTicketReportDir(cwd) {
-  return join(cwd, AGENT_ROOT_DIR, "docs", TICKET_REPORTS_SUBDIR);
-}
-
-function resolveTicketPath(cwd, relPath) {
-  return join(cwd, String(relPath || ""));
-}
-
-function resolveTicketEntryPath(cwd, entry) {
-  return resolveTicketPath(cwd, entry?.path || "");
-}
-
-function resolveTicketEntryOrComputedPath(cwd, entry) {
-  return resolveTicketPath(cwd, entry?.path || computeTicketPath(entry));
-}
-
-function resolveTicketKnowledgeDir(cwd) {
-  return join(cwd, AGENT_ROOT_DIR, "knowledge");
-}
-
 function applyTicketPathContext(opts = {}) {
   const rawTicketPath = opts.ticketPath || (looksLikeTicketMarkdownPath(opts.topic) ? opts.topic : "");
   if (!rawTicketPath) return opts;
@@ -1012,8 +997,9 @@ function resolveArchiveReport(cwd, fileName, report) {
 }
 
 function archiveTicketEntry({ cwd, ticketDir, indexJson, found, opts = {}, report }) {
-  const absPath = resolveTicketPath(cwd, found.path);
-  const fileName = found.path.split(/[/\\]/).pop();
+  const absPath = resolveTicketEntryOrComputedPath(cwd, found);
+  const fileName = (found.path || computeTicketPath(found)).split(/[/\\]/).pop();
+  const resolvedRelPath = found.path || computeTicketPath(found);
   if (!existsSync(absPath)) {
     const archivedAbsPath = findExistingArchivedTicketPath(ticketDir, found, fileName);
     if (archivedAbsPath) {
@@ -1048,7 +1034,7 @@ function archiveTicketEntry({ cwd, ticketDir, indexJson, found, opts = {}, repor
       }
       return { id: found.id, path: archivedRelativePath, normalized: true };
     }
-    throw new Error("ticket archive: file not found " + found.path);
+    throw new Error("ticket archive: file not found " + resolvedRelPath);
   }
 
   const originalBody = readFileSync(absPath, "utf8");
@@ -1240,14 +1226,15 @@ export async function runTicketCreate(opts) {
     if (activeId) {
       const activeEntry = indexJson.entries.find(e => e.id === activeId && (e.status === "open" || e.status === "active"));
       if (activeEntry) {
-        const absPath = resolveTicketEntryPath(opts.cwd, activeEntry);
+        const activeDoc = readTicketDocument(opts.cwd, activeEntry, { action: "ticket create", requireExists: false });
+        const absPath = activeDoc.absPath;
         let shouldClose = false;
         let reason = "";
 
-        if (existsSync(absPath)) {
+        if (activeDoc.exists) {
           try {
-            const body = readFileSync(absPath, "utf8");
-            const { meta, content } = parseFrontMatter(body);
+            const body = activeDoc.body;
+            const { meta, content } = activeDoc;
 
             // Count checklist items
             const checked = (content.match(/- \[x\]/gi) || []).length;
@@ -1304,7 +1291,7 @@ export async function runTicketCreate(opts) {
 
 
 
-    const ticketId = generateTicketId(finalTopic, indexJson.entries);
+    const ticketId = generateTicketId(finalTopic, indexJson);
     const finalFileName = `${ticketId}.md`;
 
     const abs = join(ticketDir, group, finalFileName);
@@ -1501,11 +1488,10 @@ export async function runTicketStatus(opts) {
   const found = pickTicketEntry(opts, index);
   if (!found) throw new Error("ticket status: no matching ticket found");
 
-  const absPath = resolveTicketEntryPath(opts.cwd, found);
-  const fileMissing = !existsSync(absPath);
-  const body = fileMissing ? "" : readFileSync(absPath, "utf8");
-  const parsed = fileMissing ? { meta: {}, content: "" } : parseFrontMatter(body);
-  if (!fileMissing) assertTicketLifecycleProvenance(found, parsed.meta);
+  const ticketDoc = readTicketDocument(opts.cwd, found, { action: "ticket status", requireExists: false });
+  const absPath = ticketDoc.absPath;
+  const parsed = { meta: ticketDoc.meta, content: ticketDoc.content };
+  if (ticketDoc.exists) assertTicketLifecycleProvenance(found, parsed.meta);
   const phase = Number(parsed.meta.phase || 1);
   const incompleteReasons = getPhase1IncompleteReasons(opts.cwd, absPath);
   const derivedStatus = incompleteReasons.length > 0 && phase === 1
@@ -1515,7 +1501,7 @@ export async function runTicketStatus(opts) {
   const out = {
     id: found.id,
     title: found.title,
-    path: found.path,
+    path: toRepoRelativePath(opts.cwd, ticketDoc.absPath),
     phase,
     status: derivedStatus,
     summary: parsed.meta.summary || null,
@@ -1559,16 +1545,15 @@ export async function runTicketGuard(opts) {
     throw new Error("ticket guard: no matching durable ticket found; do not call set_workflow_context.");
   }
 
-  const absPath = resolveTicketEntryPath(opts.cwd, found);
-  if (!existsSync(absPath)) {
+  const ticketDoc = readTicketDocument(opts.cwd, found, { action: "ticket guard", requireExists: false });
+  if (!ticketDoc.exists) {
     throw new Error(`ticket guard: durable ticket file missing for ${found.id || found.topic}; do not call set_workflow_context.`);
   }
+  const { meta: parsedMeta } = ticketDoc;
+  const absPath = ticketDoc.absPath;
+  assertTicketLifecycleProvenance(found, parsedMeta);
 
-  const body = readFileSync(absPath, "utf8");
-  const parsed = parseFrontMatter(body);
-  assertTicketLifecycleProvenance(found, parsed.meta);
-
-  const phase = Number(parsed.meta.phase || 1);
+  const phase = Number(parsedMeta.phase || 1);
   const reasons = getPhase1IncompleteReasons(opts.cwd, absPath);
   if (phase === 1 && reasons.length > 0) {
     throw new Error(`[VALIDATION FAILED] ticket guard rejected incomplete Phase 1 for ${found.id || found.topic}: ${reasons.join(", ")}. Do not call set_workflow_context until the durable ticket is complete.`);
@@ -1587,8 +1572,8 @@ export async function runTicketGuard(opts) {
     id: found.id,
     topic: found.topic,
     phase,
-    status: parsed.meta.status || found.status || "open",
-    path: found.path
+    status: parsedMeta.status || found.status || "open",
+    path: toRepoRelativePath(opts.cwd, absPath)
   };
 
   if (opts.json) {
@@ -1606,10 +1591,10 @@ export async function runTicketHandoff(opts) {
   const current = pickTicketEntry(opts, index);
   if (!current) throw new Error("ticket handoff: no matching ticket found");
 
-  const currentAbs = resolveTicketEntryPath(opts.cwd, current);
-  const currentMissing = !existsSync(currentAbs);
-  const currentBody = currentMissing ? "" : readFileSync(currentAbs, "utf8");
-  const currentParsed = currentMissing ? { meta: {}, content: "" } : parseFrontMatter(currentBody);
+  const currentDoc = readTicketDocument(opts.cwd, current, { action: "ticket handoff", requireExists: false });
+  const currentAbs = currentDoc.absPath;
+  const currentMissing = !currentDoc.exists;
+  const currentParsed = currentMissing ? { meta: {}, content: "" } : { meta: currentDoc.meta, content: currentDoc.content };
   const currentPhase = Number(currentParsed.meta.phase || 1);
   const currentReasons = currentMissing ? ["ticket_file_missing"] : getPhase1IncompleteReasons(opts.cwd, currentAbs);
   const currentStatus = currentReasons.length > 0 && currentPhase === 1
@@ -1707,9 +1692,7 @@ export async function runTicketEvidenceCheck(opts) {
     throw new Error("ticket evidence: no matching ticket found.");
   }
 
-  const absPath = resolveTicketEntryPath(opts.cwd, target);
-  if (!existsSync(absPath)) throw new Error("Ticket file not found: " + target.path);
-  const { meta, content } = parseFrontMatter(readFileSync(absPath, "utf8"));
+  const { absPath, meta, content } = readTicketDocument(opts.cwd, target, { action: "ticket evidence", requireExists: true });
   const result = getClaimEvidenceResult(target, meta, content, opts.claim);
   const implementationGuard = getImplementationClaimGuardResult(opts.cwd, { claim: opts.claim, content, changedFiles: opts.changedFiles });
 
@@ -1738,9 +1721,7 @@ export async function runTicketEvidenceReport(opts) {
     throw new Error("ticket report: no matching ticket found.");
   }
 
-  const absPath = resolveTicketEntryPath(opts.cwd, target);
-  if (!existsSync(absPath)) throw new Error("Ticket file not found: " + target.path);
-  const { meta, content } = parseFrontMatter(readFileSync(absPath, "utf8"));
+  const { absPath, meta, content } = readTicketDocument(opts.cwd, target, { action: "ticket report", requireExists: true });
   const result = getClaimEvidenceResult(target, meta, content, opts.claim);
   const implementationGuard = getImplementationClaimGuardResult(opts.cwd, { claim: opts.claim, content, changedFiles: opts.changedFiles });
 
@@ -1793,10 +1774,8 @@ export async function runTicketClose(opts) {
     throw new Error("No matching ticket found to update status");
   }
 
-  const abs = resolveTicketEntryPath(opts.cwd, targetEntry);
-  if (!existsSync(abs)) throw new Error("Ticket file not found: " + targetEntry.path);
-  const previousBody = readFileSync(abs, "utf8");
-  const parsedForClose = parseFrontMatter(previousBody);
+  const { absPath: abs, meta: closeMeta, body: previousBody, content: closeContent } = readTicketDocument(opts.cwd, targetEntry, { action: "ticket close", requireExists: true });
+  const parsedForClose = { meta: closeMeta, content: closeContent };
   const closePlanningReasons = getCloseLifecycleReasons(parsedForClose.meta, parsedForClose.content);
   const implementationGuard = getImplementationClaimGuardResult(opts.cwd, { content: parsedForClose.content, changedFiles: opts.changedFiles });
   if (!implementationGuard.ok) {
@@ -1829,7 +1808,7 @@ export async function runTicketClose(opts) {
       syncActiveTicketId(opts.cwd);
     }
 
-    const finalPath = archiveResult?.path || entry.path;
+    const finalPath = archiveResult?.path || computeTicketPath(entry);
     appendTelemetryEvent(opts.cwd, {
       event: "ticket_closed",
       action: "ticket-close",
@@ -1889,25 +1868,23 @@ export async function runTicketUse(opts) {
     throw new Error(buildUseNoMatchError(targetTopic, candidates));
   }
 
-  const foundAbsPath = resolveTicketEntryPath(opts.cwd, found);
-  if (!existsSync(foundAbsPath)) throw new Error("Ticket file not found: " + found.path);
-  const foundParsed = parseFrontMatter(readFileSync(foundAbsPath, "utf8"));
-  assertTicketLifecycleProvenance(found, foundParsed.meta);
+  const foundDoc = readTicketDocument(opts.cwd, found, { action: "ticket use", requireExists: true });
+  assertTicketLifecycleProvenance(found, foundDoc.meta);
   
   // Explicitly set activeTicketId to the selected ticket
   if (index.activeTicketId !== found.id) {
     writeTicketIndexJson(opts.cwd, { ...index, activeTicketId: found.id });
   }
 
-  const absPath = toPosixPath(resolveTicketEntryPath(opts.cwd, found));
+  const absPath = toPosixPath(foundDoc.absPath);
   if (isCompactTicketOutput(opts) || opts.pathOnly) {
     printTicketSelectionLine(found.id, absPath, opts);
   } else {
-    const posixPath = toPosixPath(found.path);
+    const posixPath = toRepoRelativePath(opts.cwd, foundDoc.absPath);
     console.log(`Active ticket: ${found.id}`);
     console.log(`Path: [${posixPath}](file://${absPath})`);
     printTicketStartLine(found.id, absPath);
-    if (opts.printContent) console.log("\n" + readFileSync(resolveTicketEntryPath(opts.cwd, found), "utf8"));
+    if (opts.printContent) console.log("\n" + readFileSync(foundDoc.absPath, "utf8"));
     printUsageReminder(opts.cwd, opts);
   }
 }
@@ -2055,7 +2032,7 @@ export async function runTicketArchive(opts) {
   const found = pickTicketEntry(opts, indexJson);
   if (!found) throw new Error("ticket archive: no matching entry");
 
-  const fileName = found.path.split(/[/\\]/).pop();
+  const fileName = (found.path || computeTicketPath(found)).split(/[/\\]/).pop();
   
   // Auto-search for report if not provided
   let report = opts.report;
@@ -2110,8 +2087,9 @@ export async function runTicketDiscard(opts) {
   const found = pickTicketEntry(opts, indexJson);
   if (!found) throw new Error("ticket discard: no matching entry");
 
-  const absPath = resolveTicketEntryPath(opts.cwd, found);
-  if (!existsSync(absPath)) throw new Error("Ticket file not found: " + found.path);
+  const absPath = resolveTicketEntryOrComputedPath(opts.cwd, found);
+  const relativePath = toRepoRelativePath(opts.cwd, absPath);
+  if (!existsSync(absPath)) throw new Error("Ticket file not found: " + relativePath);
 
   const body = readFileSync(absPath, "utf8");
   const { meta } = parseFrontMatter(body);
@@ -2122,8 +2100,8 @@ export async function runTicketDiscard(opts) {
   }
 
   if (opts.dryRun) {
-    console.log(`ticket discard: would delete ${found.id || found.topic} (${found.path})`);
-    return { id: found.id, path: found.path, discarded: false };
+    console.log(`ticket discard: would delete ${found.id || found.topic} (${relativePath})`);
+    return { id: found.id, path: relativePath, discarded: false };
   }
 
   rmSync(absPath, { force: true });
@@ -2138,12 +2116,12 @@ export async function runTicketDiscard(opts) {
     event: "ticket_discarded",
     action: "ticket-discard",
     ticket: found.id || found.topic,
-    file: found.path,
+    file: relativePath,
     phase,
     status: "discarded"
   });
   console.log(`ticket: discarded -> ${found.id || found.topic}`);
-  return { id: found.id, path: found.path, discarded: true };
+  return { id: found.id, path: relativePath, discarded: true };
 }
 
 export async function runTicketReports(opts) {
@@ -2185,8 +2163,7 @@ export async function runTicketReportAttach(opts) {
   const found = pickTicketEntry(opts, index);
   if (!found) throw new Error("ticket report attach: no matching ticket found");
 
-  const absTicketPath = resolveTicketPath(opts.cwd, found.path);
-  if (!existsSync(absTicketPath)) throw new Error("Ticket file not found: " + found.path);
+  const { absPath: absTicketPath } = readTicketDocument(opts.cwd, found, { action: "ticket report attach", requireExists: true });
 
   const reportSrc = resolve(opts.cwd, opts.report);
   if (!existsSync(reportSrc)) throw new Error("Report file not found: " + opts.report);
@@ -2194,7 +2171,7 @@ export async function runTicketReportAttach(opts) {
   const reportDir = resolveTicketReportDir(opts.cwd);
   if (!opts.dryRun) mkdirSync(reportDir, { recursive: true });
 
-  const ticketFileName = found.path.split(/[/\\]/).pop();
+  const ticketFileName = (found.path || computeTicketPath(found)).split(/[/\\]/).pop();
   const reportBaseName = ticketFileName.replace(/\.md$/i, "-report.md");
   const reportDest = join(reportDir, reportBaseName);
 
@@ -2235,14 +2212,11 @@ export async function runTicketMove(opts) {
   
   if (!entry) throw new Error("No matching ticket found to move.");
 
-  const abs = resolveTicketEntryPath(opts.cwd, entry);
-  if (!existsSync(abs)) throw new Error("Ticket file not found: " + entry.path);
+  const { absPath: abs, meta: parsedMeta, content } = readTicketDocument(opts.cwd, entry, { action: "ticket move", requireExists: true });
 
   const previousIndex = readTicketIndexJson(opts.cwd);
   const body = readFileSync(abs, "utf8");
-  const { meta, content } = parseFrontMatter(body);
-
-  const currentPhase = meta.phase || 1;
+  const currentPhase = parsedMeta.phase || 1;
   let nextPhase = opts.next ? currentPhase + 1 : (opts.phase || currentPhase + 1);
 
   if (currentPhase === 1 && nextPhase >= 2) {
@@ -2259,22 +2233,22 @@ export async function runTicketMove(opts) {
     }
   }
 
-  meta.phase = nextPhase;
+  parsedMeta.phase = nextPhase;
   if (nextPhase >= 4) {
-    meta.status = "closed";
-  } else if (nextPhase >= 2 && (!meta.status || meta.status === "open")) {
-    meta.status = "active";
+    parsedMeta.status = "closed";
+  } else if (nextPhase >= 2 && (!parsedMeta.status || parsedMeta.status === "open")) {
+    parsedMeta.status = "active";
   }
 
-  const newBody = stringifyFrontMatter(meta, content);
+  const newBody = stringifyFrontMatter(parsedMeta, content);
 
   try {
     writeFileSync(abs, newBody, "utf8");
 
     // Re-sync index to reflect the status change if any
     opts.topic = entry.topic;
-    if (meta.status !== entry.status) {
-      opts.status = meta.status;
+    if (parsedMeta.status !== entry.status) {
+      opts.status = parsedMeta.status;
       updateTicketEntryStatus(opts.cwd, opts);
     } else {
       rebuildTicketIndexFromTopicFilesIfNeeded(opts.cwd, { ...opts, force: true });
@@ -2290,11 +2264,11 @@ export async function runTicketMove(opts) {
       event: "ticket_phase_moved",
       action: "ticket-move",
       ticket: entry.id || entry.topic,
-      file: entry.path,
+      file: computeTicketPath(entry),
       phase: nextPhase,
-      status: meta.status
+      status: parsedMeta.status
     });
-    console.log(`ticket: moved -> ${entry.topic} is now in Phase ${nextPhase} (${meta.status})`);
+    console.log(`ticket: moved -> ${entry.topic} is now in Phase ${nextPhase} (${parsedMeta.status})`);
     printUsageReminder(opts.cwd, opts);
   } catch (err) {
     rollbackTicketLifecycleArtifacts(opts.cwd, previousIndex, body, abs, opts);
@@ -2321,7 +2295,7 @@ export async function runTicketNext(opts) {
     if (latestClosed) {
       const latestClosedPath = resolveTicketEntryOrComputedPath(opts.cwd, latestClosed);
       if (existsSync(latestClosedPath)) {
-        const { content } = parseFrontMatter(readFileSync(latestClosedPath, "utf8"));
+        const { content } = readTicketDocument(opts.cwd, latestClosed, { action: "ticket next", computePath: true });
         if (followUpDecisionMeansNoFollowUp(content)) {
           const absPath = toPosixPath(latestClosedPath);
           if (opts.pathOnly) {
@@ -2344,22 +2318,23 @@ export async function runTicketNext(opts) {
     writeTicketIndexJson(opts.cwd, { ...index, activeTicketId: found.id });
   }
 
-  const absPath = toPosixPath(resolveTicketEntryPath(opts.cwd, found));
+  const foundAbs = readTicketDocument(opts.cwd, found, { action: "ticket next", requireExists: true });
+  const absPath = toPosixPath(foundAbs.absPath);
   if (isCompactTicketOutput(opts) || opts.pathOnly) {
     printTicketSelectionLine(found.id, absPath, opts);
   } else {
-    const posixPath = toPosixPath(found.path);
+    const posixPath = toPosixPath(toRepoRelativePath(opts.cwd, foundAbs.absPath));
     console.log(`Next ticket: ${found.id}`);
     console.log(`Path: [${posixPath}](file://${absPath})`);
-    if (opts.printContent) console.log("\n" + readFileSync(resolveTicketEntryPath(opts.cwd, found), "utf8"));
+      if (opts.printContent) console.log("\n" + readFileSync(foundAbs.absPath, "utf8"));
   }
 }
 
 function isTicketNextRunnableCandidate(cwd, entry) {
-  const absPath = resolveTicketEntryOrComputedPath(cwd, entry);
-  if (!existsSync(absPath)) return true;
+  const ticketDoc = readTicketDocument(cwd, entry, { action: "ticket next", computePath: true, requireExists: false });
+  if (!ticketDoc.exists) return true;
 
-  const { meta } = parseFrontMatter(readFileSync(absPath, "utf8"));
+  const { meta } = ticketDoc;
   const lifecycleSource = String(meta.lifecycleSource || meta.ticketLifecycleSource || "").trim();
   return lifecycleSource === "ticket-create";
 }
@@ -2398,11 +2373,7 @@ export async function runTicketHotfix(opts) {
   
   if (!entry) throw new Error("No matching ticket found for hotfix.");
 
-  const abs = resolveTicketEntryPath(opts.cwd, entry);
-  if (!existsSync(abs)) throw new Error("Ticket file not found: " + entry.path);
-
-  const body = readFileSync(abs, "utf8");
-  const { meta, content } = parseFrontMatter(body);
+  const { absPath: abs, meta, content } = readTicketDocument(opts.cwd, entry, { action: "ticket hotfix", requireExists: true });
 
   // Force phase 2 and active status, bypassing APC checks
   meta.phase = 2;

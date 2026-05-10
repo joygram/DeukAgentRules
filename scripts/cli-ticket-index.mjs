@@ -12,6 +12,34 @@ const ARCHIVE_INDEX_RETENTION_MONTHS = 12;
 const ARCHIVE_INDEX_MONTH_RE = /^INDEX\.archive\.(\d{4}-\d{2})\.json$/;
 const ARCHIVE_INDEX_LEGACY_RE = /^INDEX\.archive\.json$/;
 
+function parseNextTicketSequence(value) {
+  const raw = Number(value);
+  if (!Number.isInteger(raw) || raw < 1) return null;
+  return raw;
+}
+
+function maxTicketNumberFromEntries(entries = []) {
+  const newRe = /^([0-9]{3,4})-/;
+  let max = 0;
+  for (const e of (entries || [])) {
+    const id = String(e.id || '');
+    const m = id.match(newRe);
+    if (m) {
+      const n = parseInt(m[1], 10);
+      if (n > max) max = n;
+    }
+  }
+  return max;
+}
+
+function normalizeNextTicketSequence(nextTicketSequence, entries = []) {
+  const fallbackNum = maxTicketNumberFromEntries(entries);
+  const fallbackNext = fallbackNum < 9999 ? (fallbackNum + 1) : fallbackNum;
+  const parsed = parseNextTicketSequence(nextTicketSequence);
+  if (parsed === null) return fallbackNext || 1;
+  return Math.max(parsed, fallbackNext || 1);
+}
+
 function parseArchiveMonth(value) {
   const match = String(value || "").match(/^(\d{4})-(\d{2})$/);
   if (!match) return null;
@@ -77,7 +105,7 @@ function listArchiveIndexFiles(dir) {
 
 function parseIndexFile(absPath) {
   if (!existsSync(absPath)) {
-    return { version: 1, updatedAt: null, activeTicketId: null, entries: [] };
+    return { version: 1, updatedAt: null, activeTicketId: null, nextTicketSequence: 1, entries: [] };
   }
   try {
     const j = JSON.parse(readFileSync(absPath, "utf8"));
@@ -90,11 +118,12 @@ function parseIndexFile(absPath) {
       version: j.version || 1,
       updatedAt: j.updatedAt ?? null,
       activeTicketId: j.activeTicketId ?? null,
+      nextTicketSequence: parseNextTicketSequence(j.nextTicketSequence),
       entries
     };
   } catch (err) {
     console.error(`[ERROR] Failed to parse ${basename(absPath)} at ${absPath}:`, err.message);
-    return { version: 1, updatedAt: null, activeTicketId: null, entries: [], _corrupt: true };
+    return { version: 1, updatedAt: null, activeTicketId: null, nextTicketSequence: 1, entries: [], _corrupt: true };
   }
 }
 
@@ -151,6 +180,7 @@ export function readTicketIndexJson(cwd) {
     version: main.version || archiveFiles[0]?.version || 1,
     updatedAt: main.updatedAt ?? archiveFiles[0]?.updatedAt ?? null,
     activeTicketId: main.activeTicketId ?? null,
+    nextTicketSequence: normalizeNextTicketSequence(main.nextTicketSequence, entries),
     entries,
     _corrupt: Boolean(main._corrupt || archiveFiles.some(file => file._corrupt))
   };
@@ -168,6 +198,7 @@ export function writeTicketIndexJson(cwd, indexJson, opts = {}) {
   
   const out = { ...indexJson };
   delete out._corrupt;
+  out.nextTicketSequence = normalizeNextTicketSequence(out.nextTicketSequence, out.entries || []);
   
   // Strip physical path snapshots before saving to enforce state-driven resolution
   const entries = Array.isArray(out.entries) ? out.entries : [];
@@ -192,10 +223,11 @@ export function writeTicketIndexJson(cwd, indexJson, opts = {}) {
 
   const desiredArchiveFiles = new Set();
   for (const [yearMonth, bucket] of archiveBuckets.entries()) {
-    const archiveOut = {
+  const archiveOut = {
       version: out.version || 1,
       updatedAt: out.updatedAt || new Date().toISOString(),
       activeTicketId: null,
+      nextTicketSequence: out.nextTicketSequence,
       entries: bucket.map(e => {
         const { path, archiveDay, ...clean } = e;
         return clean;
@@ -226,22 +258,14 @@ export function getHostnameSlug() {
   }
 }
 
-export function computeNextTicketNumber(existingEntries) {
+export function computeNextTicketNumber(indexState) {
   const hostname = getHostnameSlug();
-  const newRe = /^(\d{3,4})-/;
-  let max = 0;
-  for (const e of (existingEntries || [])) {
-    const id = String(e.id || '');
-    const m = id.match(newRe);
-    if (m) {
-      const n = parseInt(m[1], 10);
-      if (n > max && n < 10000) max = n;
-    }
-  }
-  return { num: max + 1, hostname };
+  const maybeEntries = Array.isArray(indexState) ? indexState : indexState?.entries;
+  const parsedNext = normalizeNextTicketSequence(indexState?.nextTicketSequence, maybeEntries);
+  return { num: parsedNext, hostname };
 }
 
-export function generateTicketId(topicSlug, existingEntries) {
+export function generateTicketId(topicSlug, indexState) {
   const hostname = getHostnameSlug();
   const slug = requireNonEmptySlug(topicSlug, "ticket topic");
   const match = slug.match(/^(\d{3,4})-(.*)/);
@@ -250,7 +274,7 @@ export function generateTicketId(topicSlug, existingEntries) {
     const restSlug = match[2].slice(0, 32);
     return `${numStr}-${restSlug}-${hostname}`;
   }
-  const { num } = computeNextTicketNumber(existingEntries);
+  const { num } = computeNextTicketNumber(indexState);
   const numStr = String(num).padStart(3, '0');
   const finalSlug = slug.slice(0, 32);
   return `${numStr}-${finalSlug}-${hostname}`;

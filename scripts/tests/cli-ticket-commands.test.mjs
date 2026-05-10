@@ -376,6 +376,58 @@ test("runTicketCreate normalizes phase1 heading levels before strict validation"
   }
 });
 
+test("runTicketCreate tracks nextTicketSequence in INDEX.json", async () => {
+  const { cwd, ticketDir } = makeTicketWorkspace([]);
+  const indexPath = join(ticketDir, TICKET_INDEX_FILENAME);
+  const originalLog = console.log;
+  const originalWarn = console.warn;
+  const lines = [];
+  console.log = value => { lines.push(String(value)); };
+  console.warn = () => {};
+
+  try {
+    await runTicketCreate({
+      cwd,
+      topic: "counter-host",
+      summary: "verify sequence initialization",
+      nonInteractive: true,
+      skipPhase0: true,
+      requireFilled: true,
+      planBody: minimalEvidencePhase1Plan("counter host")
+    });
+
+    let index = readTicketIndexJson(cwd);
+    assert.strictEqual(index.entries.length, 1);
+    assert.strictEqual(index.nextTicketSequence, 2);
+
+    const firstId = index.entries[0].id;
+    assert.match(firstId, /^001-counter-host-/);
+
+    await runTicketCreate({
+      cwd,
+      topic: "counter-host-2",
+      summary: "verify sequence increments",
+      nonInteractive: true,
+      skipPhase0: true,
+      requireFilled: true,
+      planBody: minimalEvidencePhase1Plan("counter host 2")
+    });
+
+    index = readTicketIndexJson(cwd);
+    assert.strictEqual(index.entries.length, 2);
+    assert.strictEqual(index.nextTicketSequence, 3);
+    assert.notStrictEqual(index.entries[0].id, firstId);
+    assert.match(index.entries[0].id, /^002-counter-host-2-/);
+
+    const raw = JSON.parse(readFileSync(indexPath, "utf8"));
+    assert.strictEqual(raw.nextTicketSequence, 3);
+  } finally {
+    console.log = originalLog;
+    console.warn = originalWarn;
+    rmSync(cwd, { recursive: true, force: true });
+  }
+});
+
 test("runTicketCreate rejects non-ascii topic instead of creating a generic fallback slug", async () => {
   const { cwd, ticketDir } = makeTemplateWorkspace();
 
@@ -592,6 +644,76 @@ test("runTicketMove ignores unrelated dirty markdown during lifecycle lint", asy
 
     await runTicketMove({ cwd, topic: "003", next: true, nonInteractive: true, approval: "approved" });
 
+    const body = readFileSync(join(cwd, ticketPath), "utf8");
+    assert.match(body, /phase: 2/);
+    assert.match(body, /status: active/);
+  } finally {
+    rmSync(cwd, { recursive: true, force: true });
+  }
+});
+
+test("runTicketMove updates phase/status when INDEX entry path is missing", async () => {
+  const ticketId = "006-no-path-move";
+  const ticketPath = `.deuk-agent/tickets/sub/${ticketId}.md`;
+  const { cwd } = makeTicketWorkspace([
+    makeEntry({
+      id: `${ticketId}-host`,
+      title: "missing path move",
+      topic: ticketId,
+      fileName: `${ticketId}.md`,
+      status: "open",
+      phase: 1
+    })
+  ]);
+
+  writeTicketFile(cwd, ticketPath, [
+    "---",
+    `id: ${ticketId}-host`,
+    `title: missing path move`,
+    "topic: missing-path-move",
+    "phase: 1",
+    "status: open",
+    "summary: transition with missing path metadata",
+    "priority: P2",
+    "tags: [test]",
+    "lifecycleSource: ticket-create",
+    "---",
+    "# missing path move",
+    "## Agent Permission Contract (APC)",
+    "### [BOUNDARY]",
+    "- Scope: ticket lifecycle path fallback",
+    "### [CONTRACT]",
+    "- Update and verify lifecycle state transitions.",
+    "### [PATCH PLAN]",
+    "- Confirm move updates metadata when path is missing.",
+    "## Compact Plan",
+    "- **Finding:** path can be dropped from index entries.",
+    "- **Direction:** compute ticket path from metadata.",
+    "- **Verification:** run ticket move and check phase transition.",
+    "## Problem Analysis",
+    "- path fallback must exist for legacy index entries.",
+    "## Source Observations",
+    "- `scripts/cli-ticket-parser.mjs` and `scripts/cli-ticket-commands.mjs`.",
+    "## Cause Hypotheses",
+    "- index snapshots can miss path field while status transitions still expected.",
+    "## Improvement Direction",
+    "- keep path derivation centralized.",
+    "## Audit Evidence",
+    "- This fixture validates a real transition path."
+  ]);
+
+  try {
+    await runTicketMove({
+      cwd,
+      topic: ticketId,
+      next: true,
+      nonInteractive: true,
+      approval: "approved"
+    });
+
+    const updated = readTicketIndexJson(cwd).entries.find(item => item.topic === ticketId);
+    assert.ok(updated, "index entry should exist");
+    assert.strictEqual(updated.status, "active");
     const body = readFileSync(join(cwd, ticketPath), "utf8");
     assert.match(body, /phase: 2/);
     assert.match(body, /status: active/);

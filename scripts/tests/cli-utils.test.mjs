@@ -139,6 +139,8 @@ test("cli-ticket-index.mjs - computeNextTicketNumber", (t) => {
   assert.strictEqual(computeNextTicketNumber([{id: "005-test-local"}]).num, 6);
   assert.strictEqual(computeNextTicketNumber([{id: "invalid-id"}]).num, 1);
   assert.strictEqual(computeNextTicketNumber([{id: "099-test-local"}, {id: "001-foo-local"}]).num, 100);
+  assert.strictEqual(computeNextTicketNumber({ nextTicketSequence: 20, entries: [{id: "005-test-local"}] }).num, 20);
+  assert.strictEqual(computeNextTicketNumber({ nextTicketSequence: 2, entries: [{id: "005-test-local"}] }).num, 6);
 });
 
 test("cli-ticket-index.mjs - generateTicketId", (t) => {
@@ -148,8 +150,11 @@ test("cli-ticket-index.mjs - generateTicketId", (t) => {
   const id2 = generateTicketId("005-prefixed-topic", []);
   assert.ok(id2.startsWith("005-prefixed-topic-")); // Keeps the prefix
 
-  const id3 = generateTicketId("new topic", [{id: "008-something-host"}]);
+  const id3 = generateTicketId("new topic", { nextTicketSequence: 9, entries: [{id: "008-something-host"}] });
   assert.ok(id3.startsWith("009-new-topic-"));
+
+  const id4 = generateTicketId("new topic", { nextTicketSequence: 2, entries: [{id: "008-something-host"}] });
+  assert.ok(id4.startsWith("009-new-topic-"));
 
   assert.throws(
     () => generateTicketId("한글 티켓 생성", []),

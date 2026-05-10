@@ -3,7 +3,7 @@ import { basename, dirname, join } from "path";
 import {
   AGENT_ROOT_DIR, TICKET_SUBDIR, TICKET_LIST_FILENAME,
   toPosixPath, toRepoRelativePath, detectProjectFromBody, deriveTopicFromBaseName, normalizeTicketGroup,
-  parseFrontMatter, stringifyFrontMatter, discoverAllWorkspaces, detectConsumerTicketDir,
+  parseFrontMatter, stringifyFrontMatter, discoverAllWorkspaces, detectConsumerTicketDir, computeTicketPath,
   ARCHIVE_YEAR_MONTH_RE, ARCHIVE_DAY_RE
 } from "./cli-utils.mjs";
 import { readTicketIndexJson, writeTicketIndexJson } from "./cli-ticket-index.mjs";
@@ -185,7 +185,8 @@ export function updateTicketEntryStatus(cwd, opts = {}) {
   entry.updatedAt = new Date().toISOString();
   
   // Sync status back to .md frontmatter to prevent rebuild reversion
-  const absPath = join(cwd, entry.path);
+  const entryPath = entry.path || computeTicketPath(entry);
+  const absPath = join(cwd, entryPath);
   if (existsSync(absPath)) {
     try {
       const body = readFileSync(absPath, "utf8");
@@ -199,7 +200,7 @@ export function updateTicketEntryStatus(cwd, opts = {}) {
         writeFileSync(absPath, newBody, "utf8");
       }
     } catch (err) {
-      console.warn(`[WARNING] Failed to sync status to ${entry.path}: ${err.message}`);
+      console.warn(`[WARNING] Failed to sync status to ${entryPath}: ${err.message}`);
     }
   }
 
