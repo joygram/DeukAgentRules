@@ -10,7 +10,21 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 
 ### Fixed
 
+- _Nothing to release yet._
+
+## [4.2.2] - 2026-05-10
+
+### Fixed
+
+- **release:** keep release-context carry-over so version bumping does not drop `Unreleased` items.
+
+## [4.2.1] - 2026-05-10
+
+### Fixed
+
 - **cli:** stop ticket discovery at the current agent-rule boundary instead of inheriting the parent workspace.
+- **ticket:** enforce Phase 1 planning completeness in `status`, `guard`, and `move` checks to prevent silent Phase-1 bypass.
+- **ticket:** coerce string phase values to numbers before phase transitions so moves can’t produce string-concatenation artifacts (for example, `"1" + 1 => "11"`).
 
 ## [4.0.38] - 2026-05-10
 

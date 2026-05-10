@@ -26,7 +26,7 @@ module.exports = {
   ],
   releaseCommitMessageFormat: "chore(release): {{currentTag}}",
   scripts: {
-    postchangelog: "node scripts/changelog-polish.mjs",
+    postchangelog: "node scripts/changelog-polish.mjs && node scripts/changelog-rollover.mjs",
   },
   writerOpts: {
     mainTemplate: read("template.hbs"),
