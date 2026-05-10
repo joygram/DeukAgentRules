@@ -1,9 +1,18 @@
 {
   "version": 1,
-  "updatedAt": "2026-05-10T23:22:27.169Z",
+  "updatedAt": "2026-05-10T23:25:16.276Z",
   "activeTicketId": "355-ticket-gate-format-regression-joy-nucb",
-  "nextTicketSequence": 366,
   "entries": [
+    {
+      "id": "366-cli-skill-init-sync-cleanup-joy-nucb",
+      "title": "cli-skill-init-sync-cleanup",
+      "topic": "cli-skill-init-sync-cleanup",
+      "group": "sub",
+      "project": "global",
+      "createdAt": "2026-05-10T23:25:16.272Z",
+      "source": "ticket-create",
+      "status": "open"
+    },
     {
       "id": "356-deukpack-codegen-hardcoded-meta--joy-nucb",
       "title": "deukpack-codegen-hardcoded-meta-audit",
@@ -243,5 +252,6 @@
       "source": "ticket-sync",
       "status": "active"
     }
-  ]
+  ],
+  "nextTicketSequence": 367
 }
