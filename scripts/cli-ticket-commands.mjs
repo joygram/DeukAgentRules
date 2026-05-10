@@ -1000,6 +1000,40 @@ function buildOpenTicketLimitError(indexJson) {
   return lines.join("\n");
 }
 
+function topicKeysForEntry(entry = {}) {
+  const keys = [entry.topic, entry.id];
+  try {
+    if (entry.title) keys.push(toSlug(entry.title));
+  } catch {
+    // Non-ASCII or otherwise unsluggable titles are not duplicate keys.
+  }
+  return keys
+    .map(value => String(value || "").toLowerCase())
+    .filter(Boolean);
+}
+
+function findReusableCompletedTicket(indexJson, topic, opts = {}) {
+  const key = String(topic || "").toLowerCase();
+  if (!key) return null;
+  return filterTicketEntries(indexJson.entries, opts)
+    .filter(entry => !OPEN_TICKET_STATUSES.has(String(entry.status || "open").toLowerCase()))
+    .sort((a, b) => String(b.updatedAt || b.createdAt || "").localeCompare(String(a.updatedAt || a.createdAt || "")))
+    .find(entry => topicKeysForEntry(entry).includes(key)) || null;
+}
+
+function buildReusableTicketCreateError(entry, topic) {
+  const id = entry?.id || entry?.topic || topic;
+  const status = entry?.status || "closed";
+  return [
+    `[DUPLICATE TICKET BLOCKED] A ${status} ticket already matches "${topic}".`,
+    `Existing ticket: ${id}`,
+    "Do not guess .deuk-agent/tickets/sub paths for closed or archived tickets.",
+    `Use: deuk-agent-flow ticket status --topic ${id} --status-detail --non-interactive`,
+    `Or:  deuk-agent-flow ticket use --topic ${id} --non-interactive`,
+    "Create a new ticket only when the scope is genuinely different; use a distinct topic for that scope."
+  ].join("\n");
+}
+
 function resolveArchiveReport(cwd, fileName, report) {
   if (report) return resolve(cwd, report);
 
@@ -1233,6 +1267,10 @@ export async function runTicketCreate(opts) {
     }
 
     const indexJson = readTicketIndexJson(opts.cwd);
+    const reusableTicket = findReusableCompletedTicket(indexJson, finalTopic, opts);
+    if (reusableTicket) {
+      throw new Error(buildReusableTicketCreateError(reusableTicket, finalTopic));
+    }
 
     // Smart close: check previous active ticket's completion state before deciding
     const activeId = indexJson.activeTicketId;

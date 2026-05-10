@@ -567,6 +567,60 @@ test("runTicketCreate tracks nextTicketSequence in INDEX.json", async () => {
   }
 });
 
+test("runTicketCreate blocks duplicate topic when matching ticket is archived", async () => {
+  const { cwd, ticketDir } = makeTicketWorkspace([]);
+  writeFileSync(join(ticketDir, "INDEX.archive.2026-05.json"), JSON.stringify(makeIndex([
+    makeEntry({
+      id: "001-reuse-after-close-host",
+      title: "reuse-after-close",
+      topic: "reuse-after-close",
+      fileName: "001-reuse-after-close-host.md",
+      status: "closed",
+      phase: 4,
+      archiveYearMonth: "2026-05"
+    })
+  ]), null, 2) + "\n", "utf8");
+
+  const originalLog = console.log;
+  const originalWarn = console.warn;
+  console.log = () => {};
+  console.warn = () => {};
+
+  try {
+    await assert.rejects(
+      () => runTicketCreate({
+        cwd,
+        topic: "reuse-after-close",
+        summary: "should reuse archived ticket",
+        nonInteractive: true,
+        skipPhase0: true,
+        requireFilled: true,
+        planBody: minimalEvidencePhase1Plan("reuse after close")
+      }),
+      err => {
+        assert.match(err.message, /DUPLICATE TICKET BLOCKED/);
+        assert.match(err.message, /001-reuse-after-close-host/);
+        assert.match(err.message, /ticket status --topic 001-reuse-after-close-host/);
+        assert.match(err.message, /Do not guess \.deuk-agent\/tickets\/sub paths/);
+        return true;
+      }
+    );
+
+    const index = readTicketIndexJson(cwd);
+    assert.strictEqual(index.entries.length, 1);
+    assert.strictEqual(index.entries[0].id, "001-reuse-after-close-host");
+    const ticketSubDir = join(ticketDir, "sub");
+    const ticketFiles = existsSync(ticketSubDir)
+      ? readdirSync(ticketSubDir).filter(name => name.endsWith(".md"))
+      : [];
+    assert.strictEqual(ticketFiles.length, 0);
+  } finally {
+    console.log = originalLog;
+    console.warn = originalWarn;
+    rmSync(cwd, { recursive: true, force: true });
+  }
+});
+
 test("runTicketCreate rejects non-ascii topic instead of creating a generic fallback slug", async () => {
   const { cwd, ticketDir } = makeTemplateWorkspace();
 

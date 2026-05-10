@@ -1,6 +1,6 @@
 ---
-version: 75
-changelog: "v75: Prefer heading-style APC markers and validate APC content without marker-body slicing."
+version: 76
+changelog: "v76: Route ticket reuse through CLI topic/id resolution and block duplicate create after archived path misses."
 ---
 
 # Agent Rules
@@ -99,6 +99,7 @@ When the user asks for AgentFlow skill status or connected skills, use `deuk-age
 
 Use the mentioned ticket directly. For investigation/regression/why questions, create the ticket first and stop after Phase 1. Do not use `deuk-agent-flow ticket list` for discovery.
 For bug/regression/why or direct change requests, the first repo action after rules load is `deuk-agent-flow ticket create` or `deuk-agent-flow ticket use`. Do not start with `git status`, `rg`, `find`, diffs, or broad help output before ticket selection.
+When a ticket id/topic is known, never infer its active file path or probe `.deuk-agent/tickets/sub` directly; use `deuk-agent-flow ticket status --topic <id>` or `deuk-agent-flow ticket use --topic <id>` so closed/archived locations resolve through the index. A missing guessed path is not evidence that a new ticket is needed.
 
 ## 3. Phase Contract
 At each phase, ask available tooling for one complete requirement bundle and follow it exactly. Minimum bundle:

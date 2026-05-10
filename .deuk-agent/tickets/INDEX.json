@@ -1,7 +1,19 @@
 {
   "version": 1,
-  "updatedAt": "2026-05-10T09:21:41.206Z",
+  "updatedAt": "2026-05-10T23:22:27.169Z",
+  "activeTicketId": "355-ticket-gate-format-regression-joy-nucb",
+  "nextTicketSequence": 366,
   "entries": [
+    {
+      "id": "356-deukpack-codegen-hardcoded-meta--joy-nucb",
+      "title": "deukpack-codegen-hardcoded-meta-audit",
+      "topic": "deukpack-codegen-hardcoded-meta-audit",
+      "group": "sub",
+      "project": "global",
+      "createdAt": "2026-05-10T09:38:22.609Z",
+      "source": "ticket-create",
+      "status": "open"
+    },
     {
       "id": "355-ticket-gate-format-regression-joy-nucb",
       "title": "ticket-gate-format-regression",
@@ -206,32 +218,6 @@
       "status": "open"
     },
     {
-      "id": "315-install-binary-missing-cross-pla-joy-nucb",
-      "title": "install-binary-missing-cross-platform-smoke",
-      "topic": "315-install-binary-missing-cross-pla-joy-nucb",
-      "group": "sub",
-      "fileName": "315-install-binary-missing-cross-pla-joy-nucb.md",
-      "project": "global",
-      "submodule": "",
-      "createdAt": "2026-05-07 09:55:28",
-      "updatedAt": "2026-05-07T11:48:07.616Z",
-      "source": "ticket-sync",
-      "status": "open"
-    },
-    {
-      "id": "314-ticket-create-missing-durable-ti-joy-nucb",
-      "title": "ticket-create-missing-durable-ticket",
-      "topic": "314-ticket-create-missing-durable-ti-joy-nucb",
-      "group": "sub",
-      "fileName": "314-ticket-create-missing-durable-ti-joy-nucb.md",
-      "project": "global",
-      "submodule": "",
-      "createdAt": "2026-05-07 09:41:46",
-      "updatedAt": "2026-05-07T09:44:14.564Z",
-      "source": "ticket-sync",
-      "status": "open"
-    },
-    {
       "id": "308-archive-yearmonth-workspace-sync-joy-nucb",
       "title": "archive-yearmonth-workspace-sync",
       "topic": "308-archive-yearmonth-workspace-sync-joy-nucb",
@@ -257,7 +243,5 @@
       "source": "ticket-sync",
       "status": "active"
     }
-  ],
-  "nextTicketSequence": 356,
-  "activeTicketId": "355-ticket-gate-format-regression-joy-nucb"
+  ]
 }
