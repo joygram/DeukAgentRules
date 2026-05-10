@@ -12,6 +12,12 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 
 - **cli:** stop ticket discovery at the current agent-rule boundary instead of inheriting the parent workspace.
 
+## [4.0.38] - 2026-05-10
+
+### Fixed
+
+- **rules:** require approval-pending final answers to repeat the compact `Ticket start` surface, preventing final-only approval text from hiding the active ticket link.
+
 ## [4.0.37] - 2026-05-09
 
 ### Fixed

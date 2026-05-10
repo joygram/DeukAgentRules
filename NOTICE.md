@@ -13,3 +13,7 @@ Ticket creation/use surfaces must keep the clickable `Ticket start` line visible
 ## v4.0.37 init completion feedback
 
 Successful `init` now ends with a visible completion line and a short first-use prompt guide so terminal-first installs do not appear to finish silently.
+
+## v4.0.38 approval-pending final answer guard
+
+Approval-pending final answers must repeat the compact `Ticket start` surface. A final answer that only says approval is pending is treated as a hidden-ticket regression.

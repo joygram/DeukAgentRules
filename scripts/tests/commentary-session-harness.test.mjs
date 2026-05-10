@@ -137,6 +137,61 @@ test("requirement change returns to approval-pending contract instead of executi
   assert.deepEqual(result.violations, []);
 });
 
+test("approval-pending final answer must keep ticket start visible", () => {
+  const result = validateCommentaryScenario(
+    {
+      steps: [
+        {
+          stage: "approval_pending",
+          output: [
+            "Ticket start: [491-session-like-commentary-harness-joy-nucb](/tmp/491.md)",
+            "조용히 작업",
+            "Guard topic: 491-session-like-commentary-harness-joy-nucb"
+          ].join("\n")
+        },
+        {
+          stage: "final_answer",
+          output: "승인 대기 중이에요."
+        }
+      ]
+    },
+    { model: "gpt-5.5" }
+  );
+
+  assert.equal(result.ok, false);
+  assert.ok(result.violations.some(v => v.code === "final_answer_pre_approval_missing_ticket_start"));
+  assert.ok(result.violations.some(v => v.code === "final_answer_pre_approval_ticket_start_not_first_visible_line"));
+});
+
+test("approval-pending final answer may repeat the compact ticket-start surface", () => {
+  const result = validateCommentaryScenario(
+    {
+      steps: [
+        {
+          stage: "approval_pending",
+          output: [
+            "Ticket start: [491-session-like-commentary-harness-joy-nucb](/tmp/491.md)",
+            "조용히 작업",
+            "Guard topic: 491-session-like-commentary-harness-joy-nucb"
+          ].join("\n")
+        },
+        {
+          stage: "final_answer",
+          output: [
+            "Ticket start: [491-session-like-commentary-harness-joy-nucb](/tmp/491.md)",
+            "조용히 작업",
+            "Guard topic: 491-session-like-commentary-harness-joy-nucb"
+          ].join("\n")
+        }
+      ]
+    },
+    { model: "gpt-5.5" }
+  );
+
+  assert.equal(result.ok, true);
+  assert.deepEqual(result.violations, []);
+});
+
 test("execution status budget is enforced across sequential approved turns", () => {
   const result = validateCommentaryScenario(
     {

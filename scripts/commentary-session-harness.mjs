@@ -129,12 +129,22 @@ function validateRunningSurface(lines = [], stepIndex = 0) {
   return violations;
 }
 
+function validateFinalAnswerLines(lines = [], stepIndex = 0, state = {}) {
+  if (!state.awaitingApproval) return [];
+  if (lines.length === 0) return [];
+  return validatePreApprovalLines(lines, stepIndex).map(violation => ({
+    ...violation,
+    code: `final_answer_${violation.code}`
+  }));
+}
+
 export function validateCommentaryScenario(scenario = {}, options = {}) {
   const constraint = resolveCommentaryConstraint(options);
   const steps = Array.isArray(scenario.steps) ? scenario.steps : [];
   const violations = [];
   let executionStatusCount = 0;
   let interrupted = false;
+  const state = { awaitingApproval: false };
 
   for (const [index, step] of steps.entries()) {
     const stage = String(step.stage || "").trim();
@@ -152,10 +162,12 @@ export function validateCommentaryScenario(scenario = {}, options = {}) {
 
     if (stage === "ticket_start_pending" || stage === "approval_pending" || stage === "requirement_change_pending" || stage === "requirement_change") {
       violations.push(...validatePreApprovalLines(lines, index));
+      state.awaitingApproval = true;
       continue;
     }
 
     if (stage === "approved_execution" || stage === "command_running" || stage === "search_running") {
+      state.awaitingApproval = false;
       violations.push(...validateRunningSurface(lines, index));
       for (const line of lines) {
         if (isSingleWordStatus(line)) {
@@ -181,6 +193,7 @@ export function validateCommentaryScenario(scenario = {}, options = {}) {
     }
 
     if (stage === "final_answer") {
+      violations.push(...validateFinalAnswerLines(lines, index, state));
       continue;
     }
 
