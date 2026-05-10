@@ -1,11 +1,12 @@
 ---
 name: project-pilot
-summary: Apply the ProjectPilot Refactor Contract Kit before cross-language, generated/runtime, or repeated-drift refactors.
+summary: Apply the ProjectPilot Refactor Contract Kit before broad refactors.
 ---
 
 # ProjectPilot
 
-Authority: follow `core-rules/AGENTS.md`, the active ticket APC, Phase Gate, and project rules.
+Authority: follow `core-rules/AGENTS.md`, the active ticket APC, Phase Gate,
+and project rules.
 
 Use this skill when the task involves any of the following:
 
@@ -13,6 +14,8 @@ Use this skill when the task involves any of the following:
 - protocol, serialization, transport, codec, or table lane work
 - generated/runtime/report contract drift
 - fallback, alias, helper, no-op, placeholder, or silent stub cleanup
+- metadata, manifest, schema, generated-artifact, or report contract bypass
+  cleanup
 - convention, naming, file layout, factory surface, or lifecycle unification
 - repeated failure families where one local fix would hide shared contract drift
 
@@ -23,10 +26,14 @@ Use this skill when the task involves any of the following:
 3. Define the refactor contract before proposing or making edits.
 4. Build the implementation matrix across the relevant surfaces.
 5. Classify drift as `C`, `P`, `S`, `B`, `U`, or `D`.
-6. Identify source owners before touching source, generated, runtime, report, or template files.
-7. Fill the drift checklist and reject shortcuts that hide drift.
-8. Define the conformance gate in the ticket without creating tests unless the user requested tests.
-9. Only then split remediation tickets or implement scoped changes.
+6. Identify source owners before touching source, generated, runtime, report,
+   or template files.
+7. Identify metadata/manifest/schema contract bypasses before accepting
+   generated-output evidence.
+8. Fill the drift checklist and reject shortcuts that hide drift.
+9. Define the conformance gate in the ticket without creating tests unless the
+   user requested tests.
+10. Only then split remediation tickets or implement scoped changes.
 
 ## Required Outputs
 
@@ -51,7 +58,8 @@ Use the shared ProjectPilot semantics and templates when available:
 - `templates/project-pilot/CONFORMANCE_GATE_TEMPLATE.md`
 - `templates/project-pilot/REMEDIATION_PLAN_TEMPLATE.md`
 
-Consumer projects may keep only project-local pilot evidence and references. Shared ProjectPilot semantics and templates are owned by DeukAgentFlow.
+Consumer projects may keep only project-local pilot evidence and references.
+Shared ProjectPilot semantics and templates are owned by DeukAgentFlow.
 
 ## Stop Conditions
 
@@ -59,5 +67,7 @@ Consumer projects may keep only project-local pilot evidence and references. Sha
 - No implementation matrix or refactor contract can be stated clearly.
 - Source-of-truth owner cannot be identified.
 - A fix depends on generated direct edits or hidden fallback.
+- A provider, generator, template, or report path hardcodes values that belong in
+  metadata, a manifest, schema contract, or shared conformance rule.
 - Unsupported-by-contract and broken-entrypoint are not separated.
 - Verification cannot prove the claimed alignment.

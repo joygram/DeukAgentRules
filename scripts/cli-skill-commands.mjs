@@ -6,7 +6,6 @@ import { AGENT_ROOT_DIR } from "./cli-utils.mjs";
 const SKILL_IDS = ["safe-refactor", "generated-file-guard", "context-recall", "project-pilot"];
 const SKILL_ROOT = "templates/skills";
 const CONFIG_FILE = `${AGENT_ROOT_DIR}/skills.json`;
-const REPO_SKILL_TEMPLATE_ROOT = `${AGENT_ROOT_DIR}/skill-templates`;
 const PACKAGE_ROOT = join(dirname(fileURLToPath(import.meta.url)), "..");
 
 function repoSkillPath(cwd, id) {
@@ -14,8 +13,6 @@ function repoSkillPath(cwd, id) {
 }
 
 function sourceSkillPath(cwd, id) {
-  const localTemplate = join(cwd, REPO_SKILL_TEMPLATE_ROOT, id, "SKILL.md");
-  if (existsSync(localTemplate)) return localTemplate;
   const repoTemplate = join(cwd, SKILL_ROOT, id, "SKILL.md");
   if (existsSync(repoTemplate)) return repoTemplate;
   return join(PACKAGE_ROOT, SKILL_ROOT, id, "SKILL.md");
@@ -153,7 +150,7 @@ export function exposeSkills(opts = {}) {
 
 export function lintSkills(cwd = process.cwd()) {
   const paths = [];
-  for (const root of [join(cwd, SKILL_ROOT), join(cwd, REPO_SKILL_TEMPLATE_ROOT), join(cwd, AGENT_ROOT_DIR, "skills")]) {
+  for (const root of [join(cwd, SKILL_ROOT), join(cwd, AGENT_ROOT_DIR, "skills")]) {
     if (!existsSync(root)) continue;
     for (const id of readdirSync(root)) {
       const path = join(root, id, "SKILL.md");

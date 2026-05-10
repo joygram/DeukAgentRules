@@ -84,8 +84,17 @@ test("runInit removes runtime and legacy template folders", async () => {
   const cwd = mkdtempSync(join(tmpdir(), "deuk-init-template-cleanup-"));
   try {
     mkdirSync(join(cwd, ".deuk-agent", "templates"), { recursive: true });
+    mkdirSync(join(cwd, ".deuk-agent", "skill-templates", "project-pilot"), { recursive: true });
+    mkdirSync(join(cwd, ".deuk-agent", "skills", "project-pilot"), { recursive: true });
+    mkdirSync(join(cwd, ".claude", "skills", "project-pilot"), { recursive: true });
+    mkdirSync(join(cwd, ".cursor", "rules"), { recursive: true });
     mkdirSync(join(cwd, ".deuk-agent-templates"), { recursive: true });
     writeFileSync(join(cwd, ".deuk-agent", "templates", "TICKET_TEMPLATE.md"), "# stale runtime template\n", "utf8");
+    writeFileSync(join(cwd, ".deuk-agent", "skill-templates", "project-pilot", "SKILL.md"), "# stale skill template\n", "utf8");
+    writeFileSync(join(cwd, ".deuk-agent", "skills", "project-pilot", "SKILL.md"), "# stale installed skill\n", "utf8");
+    writeFileSync(join(cwd, ".deuk-agent", "skills.json"), JSON.stringify({ installed: ["project-pilot"] }, null, 2) + "\n", "utf8");
+    writeFileSync(join(cwd, ".claude", "skills", "project-pilot", "SKILL.md"), "# stale exposed skill\n", "utf8");
+    writeFileSync(join(cwd, ".cursor", "rules", "deuk-agent-skills.mdc"), "- project-pilot: .deuk-agent/skills/project-pilot/SKILL.md\n", "utf8");
     writeFileSync(join(cwd, ".deuk-agent-templates", "TICKET_TEMPLATE.md"), "# stale legacy template\n", "utf8");
 
     await runInit({
@@ -99,6 +108,11 @@ test("runInit removes runtime and legacy template folders", async () => {
     }, "/home/joy/workspace/DeukAgentFlow");
 
     assert.ok(!existsSync(join(cwd, ".deuk-agent", "templates")));
+    assert.ok(!existsSync(join(cwd, ".deuk-agent", "skill-templates")));
+    assert.ok(!existsSync(join(cwd, ".deuk-agent", "skills")));
+    assert.ok(!existsSync(join(cwd, ".deuk-agent", "skills.json")));
+    assert.ok(!existsSync(join(cwd, ".claude", "skills")));
+    assert.ok(!existsSync(join(cwd, ".cursor", "rules", "deuk-agent-skills.mdc")));
     assert.ok(!existsSync(join(cwd, ".deuk-agent-templates")));
     assert.ok(existsSync(join(cwd, "PROJECT_RULE.md")));
   } finally {
@@ -186,7 +200,7 @@ test("runInit migrates nested legacy AGENTS surfaces through init", async () => 
   }
 });
 
-test("enforceCanonicalAgentLayout preserves runtime skill and usage state files", () => {
+test("enforceCanonicalAgentLayout removes local skill state and preserves usage state", () => {
   const cwd = mkdtempSync(join(tmpdir(), "deuk-agent-layout-state-"));
   try {
     const agentRoot = join(cwd, ".deuk-agent");
@@ -196,9 +210,8 @@ test("enforceCanonicalAgentLayout preserves runtime skill and usage state files"
 
     enforceCanonicalAgentLayout(cwd, false);
 
-    assert.ok(existsSync(join(agentRoot, "skills.json")));
+    assert.ok(!existsSync(join(agentRoot, "skills.json")));
     assert.ok(existsSync(join(agentRoot, "usage.json")));
-    assert.strictEqual(JSON.parse(readFileSync(join(agentRoot, "skills.json"), "utf8")).installed[0], "project-pilot");
     assert.strictEqual(JSON.parse(readFileSync(join(agentRoot, "usage.json"), "utf8")).platform, "codex");
   } finally {
     rmSync(cwd, { recursive: true, force: true });
@@ -831,8 +844,8 @@ test("init enforces canonical docs knowledge tickets layout", () => {
     assert.ok(existsSync(join(cwd, ".deuk-agent", "docs", "plan", "misplaced-report.md")));
     assert.ok(existsSync(join(cwd, ".deuk-agent", "tickets", "archive", "sub", "2026-05", "200-old.md")));
     assert.ok(existsSync(join(cwd, ".deuk-agent", "tickets", "sub", "201-open.md")));
-    assert.ok(existsSync(join(cwd, ".deuk-agent", "skills", "safe-refactor", "SKILL.md")));
-    assert.ok(existsSync(join(cwd, ".deuk-agent", "skill-templates", "context-recall", "SKILL.md")));
+    assert.ok(!existsSync(join(cwd, ".deuk-agent", "skills")));
+    assert.ok(!existsSync(join(cwd, ".deuk-agent", "skill-templates")));
     assert.ok(!existsSync(join(cwd, ".deuk-agent", "templates")));
     assert.ok(existsSync(join(cwd, ".deuk-agent", "knowledge", "legacy-distilled.json")), "legacy distilled knowledge should remain knowledge");
     assert.ok(!existsSync(join(cwd, ".deuk-agent", "legacy")));

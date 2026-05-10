@@ -31,6 +31,8 @@ ProjectPilot: Refactor Contract Kit
 - generated output과 source-of-truth가 다르다.
 - runtime, factory, helper, codegen, report가 다른 표면을 가진다.
 - fail-fast 대신 fallback, alias, no-op, silent stub가 남는다.
+- metadata, manifest, schema, generated-artifact, report contract를 우회한
+  직접 구현이 남는다.
 - 한 언어 수정이 전체 제품 정합성 수정처럼 오인된다.
 
 ProjectPilot은 이런 작업을 "코드 수정"이 아니라 "계약 기반 리팩터링"으로 다룬다.
@@ -45,6 +47,7 @@ ProjectPilot은 이런 작업을 "코드 수정"이 아니라 "계약 기반 리
 - cross-language parity 수정
 - 반복되는 버그 군집 수습
 - convention, naming, file layout, factory surface 통일
+- metadata/manifest/schema/generated-artifact/report contract bypass 제거
 - release truth와 관련된 matrix/report/gate 수정
 
 ## Core Units
@@ -69,6 +72,7 @@ ProjectPilot 검토 단위는 아래 여섯 개다.
 5. verification 결과 없이 "구조가 맞다"고 주장하지 않는다.
 6. unsupported-by-contract와 broken-entrypoint를 섞지 않는다.
 7. 반복되는 실패군은 단발 버그가 아니라 계약 결함으로 본다.
+8. Metadata/manifest/schema 우회 검출 결과 없이 generated output만 보고 통과시키지 않는다.
 
 ## Required Artifacts
 
@@ -122,6 +126,15 @@ ProjectPilot 적용 작업은 아래 산출물을 남긴다.
 - generated file 직접 수정
 - runtime 미구현을 report pass 또는 skip처럼 보이게 처리
 - 한 언어에서만 helper 우회로 해결
+- provider, generator, template, report에서 metadata/manifest/schema contract에
+  있어야 할 값을 직접 박아 넣기
+
+ProjectPilot이 반드시 표면화해야 하는 contract bypass category는 아래와 같다.
+
+- `metadata-bypass-protocol-call`: language metadata 또는 shared provider contract
+- `metadata-bypass-dpfield-helper`: shared runtime contract 또는 conformance rule
+- `contract-bypass-format-surface`: protocol contract 또는 generated-artifact manifest
+- `schema-contract-inline-json`: schema metadata contract 또는 generated-artifact manifest
 
 허용 가능한 예외는 아래 조건을 모두 만족해야 한다.
 

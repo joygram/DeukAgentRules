@@ -164,7 +164,7 @@ git diff -- .deuk-agent/tickets/INDEX.archive.*.json
 
 스킬은 전체 workflow를 대체하지 않는 짧은 행동 playbook입니다. DeukAgentFlow에서는 티켓/APC/Phase Gate가 계속 상위 권한이고, 스킬은 특정 실패 패턴에서 에이전트의 움직임만 더 날카롭게 만듭니다.
 
-`init`을 실행하면 first-party 스킬 원본은 `.deuk-agent/skill-templates/`로 동기화됩니다. 실제 장착은 프로젝트 성격에 맞게 `skill add`로 선택합니다.
+`init`은 first-party 스킬 원본을 프로젝트 안으로 복제하지 않습니다. 스킬 원본은 DeukAgentFlow 패키지의 `templates/skills/`가 SSoT입니다.
 
 기본 추천 장착:
 
@@ -201,7 +201,7 @@ deuk-agent-flow skill expose --platform claude
 deuk-agent-flow skill expose --platform cursor
 ```
 
-`skill add`는 프로젝트의 `.deuk-agent/skills/<id>/SKILL.md`에 스킬을 설치하고, `skill expose`는 설치된 스킬을 Claude/Cursor가 읽을 수 있는 얇은 포인터로 노출합니다.
+`skill add`/`skill expose`는 스킬 사용 경로를 열지만, `init`은 로컬 스킬 템플릿 복제본을 만들거나 보존하지 않습니다.
 
 ---
 

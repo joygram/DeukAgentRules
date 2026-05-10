@@ -1,6 +1,6 @@
 import { join, dirname, basename, relative } from "path";
 import { homedir } from "os";
-import { existsSync, readFileSync, writeFileSync, mkdirSync, copyFileSync, readdirSync, unlinkSync, rmSync, renameSync, statSync, cpSync, symlinkSync, chmodSync } from "fs";
+import { existsSync, readFileSync, writeFileSync, mkdirSync, copyFileSync, readdirSync, unlinkSync, rmSync, renameSync, statSync, symlinkSync, chmodSync } from "fs";
 
 import { ensureTicketDirAndGitignore } from "./cli-init-logic.mjs";
 import { normalizeTicketPaths } from "./cli-ticket-migration.mjs";
@@ -813,8 +813,10 @@ function canonicalizeAgentRootLayout(cwd, dryRun) {
     console.log(`[CLEANUP] removed runtime template copy: ${toRepoRelativePath(cwd, runtimeTemplates)}`);
   }
 
-  const allowedDirs = new Set(["docs", "knowledge", "tickets", "skill-templates", "skills"]);
-  const allowedFiles = new Set(["config.json", "telemetry.jsonl", "skills.json", "usage.json"]);
+  removeLocalSkillCopies(cwd, dryRun);
+
+  const allowedDirs = new Set(["docs", "knowledge", "tickets"]);
+  const allowedFiles = new Set(["config.json", "telemetry.jsonl", "usage.json"]);
 
   for (const entry of sortedDirEntries(agentRoot, { withFileTypes: true })) {
     const sourceAbs = join(agentRoot, entry.name);
@@ -1343,18 +1345,19 @@ function removeRuntimeTemplateCopies(cwd, dryRun) {
   }
 }
 
-function syncSkillTemplates(cwd, bundleRoot, dryRun) {
-  const skillDestDir = join(cwd, AGENT_ROOT_DIR, "skill-templates");
-  const skillSourceDir = join(bundleRoot, "templates", "skills");
-  if (!existsSync(skillSourceDir)) return;
-
-  if (!dryRun) {
-    mkdirSync(skillDestDir, { recursive: true });
-    cpSync(skillSourceDir, skillDestDir, { recursive: true });
-    console.log(`[SYNC] skill templates synced to ${toRepoRelativePath(cwd, skillDestDir)}`);
-    return;
+function removeLocalSkillCopies(cwd, dryRun) {
+  const targets = [
+    join(cwd, AGENT_ROOT_DIR, "skill-templates"),
+    join(cwd, AGENT_ROOT_DIR, "skills"),
+    join(cwd, AGENT_ROOT_DIR, "skills.json"),
+    join(cwd, ".claude", "skills"),
+    join(cwd, ".cursor", "rules", "deuk-agent-skills.mdc")
+  ];
+  for (const target of targets) {
+    if (!existsSync(target)) continue;
+    if (!dryRun) rmSync(target, { recursive: true, force: true });
+    console.log(`[CLEANUP] removed local skill copy: ${toRepoRelativePath(cwd, target)}`);
   }
-  console.log(`[SYNC] skill templates synced to ${toRepoRelativePath(cwd, skillDestDir)} (dry-run mode)`);
 }
 
 function canonicalizeLegacyDeukAgentText(content, bundleRoot) {
@@ -1730,7 +1733,7 @@ async function initSingleWorkspace(subCwd, opts, bundleRoot, selectedTools) {
 
   // 5. Runtime template cleanup; package templates/ is the SSoT.
   removeRuntimeTemplateCopies(subCwd, opts.dryRun);
-  syncSkillTemplates(subCwd, bundleRoot, opts.dryRun);
+  removeLocalSkillCopies(subCwd, opts.dryRun);
   canonicalizeGeneratedCommandReferences(subCwd, bundleRoot, opts.dryRun);
   canonicalizeRecursiveInitSurfaces(subCwd, bundleRoot, opts.dryRun);
 }
@@ -1746,5 +1749,5 @@ export function runMerge(opts, bundleRoot) {
   }
   
   removeRuntimeTemplateCopies(opts.cwd, opts.dryRun);
-  syncSkillTemplates(opts.cwd, bundleRoot, opts.dryRun);
+  removeLocalSkillCopies(opts.cwd, opts.dryRun);
 }
