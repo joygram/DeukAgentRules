@@ -256,25 +256,30 @@ function hasSubstantiveSectionContent(text, scaffolds = []) {
   return !scaffolds.some(phrase => normalized.includes(phrase));
 }
 
-function getMarkerBody(text, marker, nextMarkers) {
-  const lines = String(text || "").split("\n");
-  const start = lines.findIndex(line => line.includes(marker));
-  if (start < 0) return null;
+function hasApcMarker(text, marker) {
+  const escapedMarker = marker.replace(/[.*+?^${}()|[\]\\]/g, "\\$&");
+  const markerPattern = new RegExp(`^\\s*(?:#{1,6}\\s+)?${escapedMarker}(?:\\s|$)`);
+  return String(text || "").split("\n").some(line => markerPattern.test(line));
+}
 
-  const body = [];
-  for (const line of lines.slice(start + 1)) {
-    if (nextMarkers.some(nextMarker => line.includes(nextMarker))) break;
-    body.push(line);
-  }
-  return body.join("\n").trim();
+function getApcContentWithoutMarkers(text) {
+  return String(text || "")
+    .split("\n")
+    .map(line => {
+      for (const { marker } of REQUIRED_APC_MARKERS) {
+        const escapedMarker = marker.replace(/[.*+?^${}()|[\]\\]/g, "\\$&");
+        const markerPattern = new RegExp(`^\\s*(?:#{1,6}\\s+)?${escapedMarker}\\s*`);
+        if (markerPattern.test(line)) return line.replace(markerPattern, "");
+      }
+      return line;
+    })
+    .join("\n")
+    .trim();
 }
 
 function getMissingApcFields(text) {
   return REQUIRED_APC_MARKERS
-    .filter(({ marker }, index) => {
-      const nextMarkers = REQUIRED_APC_MARKERS.slice(index + 1).map(item => item.marker);
-      return !hasSubstantiveSectionContent(getMarkerBody(text, marker, nextMarkers), []);
-    })
+    .filter(({ marker }) => !hasApcMarker(text, marker))
     .map(field => field.name);
 }
 
@@ -293,6 +298,9 @@ function getPhase1PlanBodyReasons(body) {
   } else {
     for (const field of getMissingApcFields(apcSection)) {
       reasons.push(`apc_${field}_missing`);
+    }
+    if (!hasSubstantiveSectionContent(getApcContentWithoutMarkers(apcSection), [])) {
+      reasons.push("apc_content_incomplete");
     }
   }
 
@@ -318,7 +326,7 @@ function buildPlanBodyRequiredMessage(reasons = []) {
     "Use the AGENTS.md self-serve recipe: do not ask the user, call help, or search for templates.",
     "Run with stdin: `deuk-agent-flow ticket create --topic <topic> --summary \"<summary>\" --plan-body-file - --non-interactive`.",
     "Use these exact H2 headings: `## Agent Permission Contract (APC)`, `## Compact Plan`, `## Problem Analysis`, `## Source Observations`, `## Cause Hypotheses`, `## Improvement Direction`, `## Audit Evidence`.",
-    "Under `## Agent Permission Contract (APC)`, include `[BOUNDARY]`, `[CONTRACT]`, and `[PATCH PLAN]`.",
+    "Under `## Agent Permission Contract (APC)`, use `### [BOUNDARY]`, `### [CONTRACT]`, and `### [PATCH PLAN]`; write each body on following lines.",
     "If a scratch plan-body file is unavoidable, keep it outside the workspace, delete it after create, and never present it as a ticket artifact.",
     "Do not rely on template defaults or auto-generated filler text for Phase 1 ticket content."
   ].join("\n");

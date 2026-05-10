@@ -65,6 +65,7 @@ test("rules audit requires user requirements to be recorded and re-approved thro
   assert.match(rulesText, /update the ticket with that new input/i);
   assert.match(rulesText, /Completion reports go in the ticket first/i);
   assert.match(rulesText, /terse TDW feedback only/i);
+  assert.match(rulesText, /do not emit a second clickable link for that ticket/i);
 });
 
 test("rules audit maps AgentFlow skill status to DeukAgentFlow skill commands", () => {

@@ -44,6 +44,7 @@ const RULE_CHECKS = [
     test: (rules) => /Silent-by-default is mandatory/i.test(rules)
       && /Keep chat compact/i.test(rules)
       && /Final answers must be short but complete enough/i.test(rules)
+      && /do not emit a second clickable link for that ticket/i.test(rules)
       && /Commentary surface map/i.test(rules)
       && /Running-surface contract/i.test(rules)
       && /CLI running-output contract/i.test(rules)

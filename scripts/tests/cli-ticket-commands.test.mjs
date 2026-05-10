@@ -72,6 +72,71 @@ function minimalEvidencePhase1Plan(title = "phase1 ticket") {
   ].join("\n");
 }
 
+function inlineApcEvidencePhase1Plan(title = "inline apc phase1 ticket") {
+  return [
+    `# ${title}`,
+    "",
+    "## Agent Permission Contract (APC)",
+    "[BOUNDARY] Change only the ticket lifecycle behavior under test.",
+    "[CONTRACT] Keep ticket validation aligned with the runtime contract.",
+    "[PATCH PLAN] Use the smallest ticket fixture that exercises the requested guard.",
+    "",
+    "## Compact Plan",
+    "- Finding: the ticket owns a single lifecycle contract.",
+    "- Direction: validate the contract with one focused fixture.",
+    "- Verification: run the focused ticket-command tests.",
+    "",
+    "## Problem Analysis",
+    "- The lifecycle command must enforce the intended ticket contract.",
+    "",
+    "## Source Observations",
+    "- `scripts/cli-ticket-commands.mjs` owns the command behavior.",
+    "",
+    "## Cause Hypotheses",
+    "- The lifecycle path can drift when guard logic is not exercised directly.",
+    "",
+    "## Improvement Direction",
+    "- Keep one durable test per important lifecycle contract.",
+    "",
+    "## Audit Evidence",
+    "- `node --test scripts/tests/cli-ticket-commands.test.mjs` verifies the compact lifecycle suite."
+  ].join("\n");
+}
+
+function wholeApcEvidencePhase1Plan(title = "whole apc phase1 ticket") {
+  return [
+    `# ${title}`,
+    "",
+    "## Agent Permission Contract (APC)",
+    "### [BOUNDARY]",
+    "### [CONTRACT]",
+    "### [PATCH PLAN]",
+    "- Boundary: change only the ticket lifecycle behavior under test.",
+    "- Contract: keep ticket validation aligned with the runtime contract.",
+    "- Patch plan: use the smallest ticket fixture that exercises the requested guard.",
+    "",
+    "## Compact Plan",
+    "- Finding: the ticket owns a single lifecycle contract.",
+    "- Direction: validate the contract with one focused fixture.",
+    "- Verification: run the focused ticket-command tests.",
+    "",
+    "## Problem Analysis",
+    "- The lifecycle command must enforce the intended ticket contract.",
+    "",
+    "## Source Observations",
+    "- `scripts/cli-ticket-commands.mjs` owns the command behavior.",
+    "",
+    "## Cause Hypotheses",
+    "- The lifecycle path can drift when guard logic is not exercised directly.",
+    "",
+    "## Improvement Direction",
+    "- Keep one durable test per important lifecycle contract.",
+    "",
+    "## Audit Evidence",
+    "- `node --test scripts/tests/cli-ticket-commands.test.mjs` verifies the compact lifecycle suite."
+  ].join("\n");
+}
+
 function makeTicketWorkspace(entries) {
   const cwd = mkdtempSync(join(tmpdir(), "deuk-ticket-next-"));
   const ticketDir = join(cwd, ".deuk-agent", "tickets");
@@ -90,6 +155,19 @@ test("ticket action help exits before create validation", () => {
   assert.equal(result.status, 0);
   assert.match(result.stdout, /DeukAgentFlow CLI/);
   assert.doesNotMatch(result.stderr + result.stdout, /ticket create requires a filled Phase 1 plan body/);
+});
+
+test("ticket templates use heading-style APC markers without explanatory prose", () => {
+  const repoRoot = dirname(dirname(dirname(fileURLToPath(import.meta.url))));
+  for (const relPath of ["templates/TICKET_TEMPLATE.md", "templates/TICKET_TEMPLATE.ko.md"]) {
+    const content = readFileSync(join(repoRoot, relPath), "utf8");
+    assert.match(content, /^## Agent Permission Contract \(APC\)$/m);
+    assert.match(content, /^### \[BOUNDARY\]$/m);
+    assert.match(content, /^### \[CONTRACT\]$/m);
+    assert.match(content, /^### \[PATCH PLAN\]$/m);
+    assert.doesNotMatch(content, /^\[(?:BOUNDARY|CONTRACT|PATCH PLAN)\][^\S\r\n]+\S/m);
+    assert.doesNotMatch(content, /Keep each APC marker|각 APC 마커/);
+  }
 });
 
 function makeTemplateWorkspace() {
@@ -212,6 +290,7 @@ test("runTicketCreate strict mode rejects scaffold-only compact plan drafts", as
         assert.match(err.message, /do not ask the user, call help, or search for templates/);
         assert.match(err.message, /Use these exact H2 headings:/);
         assert.match(err.message, /Agent Permission Contract \(APC\)/);
+        assert.match(err.message, /use `### \[BOUNDARY\]`, `### \[CONTRACT\]`, and `### \[PATCH PLAN\]`/);
         return true;
       }
     );
@@ -219,6 +298,66 @@ test("runTicketCreate strict mode rejects scaffold-only compact plan drafts", as
     const index = readTicketIndexJson(cwd);
     assert.strictEqual(index.entries.length, 0);
     assert.ok(!readdirSync(srcDir).some(name => name.includes("strict-plan-scaffold-ticket")));
+  } finally {
+    console.log = originalLog;
+    console.warn = originalWarn;
+    rmSync(cwd, { recursive: true, force: true });
+  }
+});
+
+test("runTicketCreate validates APC content as one section instead of per-marker slices", async () => {
+  const { cwd } = makeTemplateWorkspace();
+  const originalLog = console.log;
+  const originalWarn = console.warn;
+  console.log = () => {};
+  console.warn = () => {};
+
+  try {
+    await runTicketCreate({
+      cwd,
+      topic: "whole-apc-body",
+      summary: "validate whole APC section content",
+      planBody: wholeApcEvidencePhase1Plan("whole apc body"),
+      nonInteractive: true,
+      docsLanguage: "en",
+      skipPhase0: true,
+      requireFilled: true
+    });
+
+    const entry = readTicketIndexJson(cwd).entries.find(item => item.topic === "whole-apc-body");
+    assert.ok(entry, "ticket index entry exists");
+  } finally {
+    console.log = originalLog;
+    console.warn = originalWarn;
+    rmSync(cwd, { recursive: true, force: true });
+  }
+});
+
+test("runTicketCreate accepts inline APC marker bodies for compatibility", async () => {
+  const { cwd } = makeTemplateWorkspace();
+  const originalLog = console.log;
+  const originalWarn = console.warn;
+  console.log = () => {};
+  console.warn = () => {};
+
+  try {
+    await runTicketCreate({
+      cwd,
+      topic: "inline-apc-body",
+      summary: "validate inline apc marker body compatibility",
+      planBody: inlineApcEvidencePhase1Plan("inline apc body"),
+      nonInteractive: true,
+      docsLanguage: "en",
+      skipPhase0: true,
+      requireFilled: true
+    });
+
+    const entry = readTicketIndexJson(cwd).entries.find(item => item.topic === "inline-apc-body");
+    assert.ok(entry, "ticket index entry exists");
+    const content = readFileSync(join(cwd, entry.path), "utf8");
+    assert.match(content, /^\[BOUNDARY\] Change only the ticket lifecycle behavior under test\.$/m);
+    assert.match(content, /^\[CONTRACT\] Keep ticket validation aligned with the runtime contract\.$/m);
+    assert.match(content, /^\[PATCH PLAN\] Use the smallest ticket fixture that exercises the requested guard\.$/m);
   } finally {
     console.log = originalLog;
     console.warn = originalWarn;

@@ -10,6 +10,9 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 
 ### Fixed
 
+- **ticket:** prefer heading-style APC markers in ticket templates without extra explanatory prose, so agents keep marker bodies on following lines.
+- **ticket:** validate APC create input from the whole APC section instead of slicing per marker, preserving compatibility with heading, bare, and inline marker styles.
+- **rules:** avoid emitting a second clickable link for the same ticket in the completion reply after `Ticket start` was already exposed.
 - **skills:** remove DeukAgentFlow-specific wording from shared skill summaries and ownership notes so consumer-facing templates stay generic.
 
 ## [4.2.2] - 2026-05-10

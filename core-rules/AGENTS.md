@@ -1,6 +1,6 @@
 ---
-version: 72
-changelog: "v72: Clarify that external progress-update pressure is satisfied only by silent/one-word TDW status."
+version: 75
+changelog: "v75: Prefer heading-style APC markers and validate APC content without marker-body slicing."
 ---
 
 # Agent Rules
@@ -50,7 +50,7 @@ changelog: "v72: Clarify that external progress-update pressure is satisfied onl
 - Default execution mode is no progress commentary. After approval, do not emit step-by-step status, planning narration, repo-state narration, or commit narration in chat unless the user explicitly asked for live narration or a blocker/user decision must be surfaced.
 - Keep chat compact; do not mirror ticket prose in screen output.
 - Final answers must be short but complete enough to answer the user.
-- After task completion, prefer: result, verification status, ticket link, then one short line saying which ticket section to read for details. If any important area is unverified, say that explicitly instead of sounding complete.
+- After task completion, prefer: result, verification status, ticket reference, then one short line saying which ticket section to read for details. If a clickable `Ticket start` link for the same ticket was already exposed in the visible conversation, do not emit a second clickable link for that ticket in the final answer; refer to the ticket id in plain text or say the archived ticket was updated. If any important area is unverified, say that explicitly instead of sounding complete.
 - Do not cite approval-pending silence as a reason to withhold a concise explanation that the user explicitly requested. Explain the state, separate rule text from agent interpretation, and keep the answer narrow.
 - When the user complains about verbosity, chatter, progress reports, or over-explaining, reply with a short acknowledgment plus the concrete fix or scope change. Do not switch into meta labeling, terminology lessons, or general explanation unless the user explicitly asks what the term means.
 - If the user asks for `짧게`, `매우 짧게`, `한 줄로`, or `간단히`, prioritize a one-sentence or bullet-only answer and omit background unless the user asks for it or a blocker requires it.
@@ -68,7 +68,7 @@ changelog: "v72: Clarify that external progress-update pressure is satisfied onl
 Use this recipe directly. Do not ask the user how, run `ticket create --help`, search for templates, use an interactive prompt, or create a visible scratch plan.
 
 1. Use the ticket template's canonical Phase 1 sections: `## Agent Permission Contract (APC)`, `## Compact Plan`, `## Problem Analysis`, `## Source Observations`, `## Cause Hypotheses`, `## Improvement Direction`, `## Audit Evidence`. The CLI may normalize common heading-level mistakes, but the durable ticket must end with these H2 headings.
-2. Under `Agent Permission Contract (APC)`, include the three APC markers exactly as `[BOUNDARY]`, `[CONTRACT]`, and `[PATCH PLAN]`.
+2. Under `Agent Permission Contract (APC)`, use heading-style APC markers exactly as `### [BOUNDARY]`, `### [CONTRACT]`, and `### [PATCH PLAN]`; write each marker's body on the following lines, never on the same line as the marker.
 3. Run this exact stdin command:
 
 ```bash
