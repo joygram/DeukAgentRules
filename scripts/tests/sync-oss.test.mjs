@@ -55,6 +55,7 @@ test("public tree package payload stays public-only and excludes telemetry inter
     "scripts/cli-rule-compiler.mjs",
     "scripts/cli-skill-commands.mjs",
     "scripts/cli-telemetry-commands.mjs",
+    "scripts/cli-ticket-command-shared.mjs",
     "scripts/cli-ticket-commands.mjs",
     "scripts/cli-ticket-index.mjs",
     "scripts/cli-ticket-migration.mjs",

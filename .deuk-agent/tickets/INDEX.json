@@ -1,8 +1,8 @@
 {
   "version": 1,
-  "updatedAt": "2026-05-10T23:55:46.634Z",
+  "updatedAt": "2026-05-11T00:04:47.566Z",
   "activeTicketId": "355-ticket-gate-format-regression-joy-nucb",
-  "nextTicketSequence": 368,
+  "nextTicketSequence": 369,
   "entries": [
     {
       "id": "366-cli-skill-init-sync-cleanup-joy-nucb",

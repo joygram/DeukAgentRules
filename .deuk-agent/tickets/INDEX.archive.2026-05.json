@@ -1,9 +1,23 @@
 {
   "version": 1,
-  "updatedAt": "2026-05-10T23:55:46.634Z",
+  "updatedAt": "2026-05-11T00:04:47.566Z",
   "activeTicketId": null,
-  "nextTicketSequence": 368,
+  "nextTicketSequence": 369,
   "entries": [
+    {
+      "id": "368-investigate-npm-publish-error-joy-nucb",
+      "title": "investigate-npm-publish-error",
+      "topic": "investigate-npm-publish-error",
+      "group": "sub",
+      "project": "global",
+      "createdAt": "2026-05-10T23:58:41.539Z",
+      "source": "ticket-create",
+      "status": "archived",
+      "phase": 4,
+      "updatedAt": "2026-05-11T00:04:47.613Z",
+      "archiveYearMonth": "2026-05",
+      "fileName": "368-investigate-npm-publish-error-joy-nucb.md"
+    },
     {
       "id": "367-investigate-api-secret-exposure-joy-nucb",
       "title": "investigate-api-secret-exposure",

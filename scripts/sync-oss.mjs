@@ -32,6 +32,7 @@ const PUBLIC_SCRIPTS = [
   "cli-rule-compiler.mjs",
   "cli-skill-commands.mjs",
   "cli-telemetry-commands.mjs",
+  "cli-ticket-command-shared.mjs",
   "cli-ticket-commands.mjs",
   "cli-ticket-index.mjs",
   "cli-ticket-migration.mjs",

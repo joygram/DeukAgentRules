@@ -74,6 +74,7 @@ try {
       "bin/deuk-agent-flow.js",
       "bin/deuk-agent-rule.js",
       "scripts/cli.mjs",
+      "scripts/cli-ticket-command-shared.mjs",
       "scripts/cli-ticket-commands.mjs",
       "scripts/lint-md.mjs",
       "scripts/lint-rules.mjs",
